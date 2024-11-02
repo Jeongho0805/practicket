@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 
@@ -23,22 +24,41 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
 
-    public void initSetting() {
+    private final TicketQueueRepository ticketQueueRepository;
+
+    public void resetTimer() {
         ticketTimer.resetStartTime();
-        ticketCreator.resetCount();
         LocalDateTime startTime = ticketTimer.getStartTime();
         log.info("[ Server Log ] : 변경된 티켓 예매 시작 시간 = {}", startTime);
     }
 
-    public void deleteAllRecord() {
+    public void initData() {
         ticketRepository.deleteAll();
+        ticketCreator.resetCount();
     }
 
-    public void issueTicket(String name) {
+    public void validateRegisterAvailable() {
+        validateStartTime();
+        validateTicketCount();
+    }
+
+    public void validateTicketCount() {
+        int ticketCount = ticketCreator.getTicketCount();
+        int waitingCount = ticketQueueRepository.getListSize();
+        if (ticketCount <= waitingCount) {
+            throw new RuntimeException("티켓이 모두 소진되었습니다.");
+        }
+
+    }
+
+    public void validateStartTime() {
         if (!ticketTimer.isValidStartTime()) {
             throw new RuntimeException("티켓팅 시작 시간이 아닙니다.");
         }
-        String ticketCode = ticketCreator.getTicketCode();
+    }
+
+    public void issueTicket(String name) {
+        String ticketCode = ticketCreator.RegisterTicketCode();
         Ticket ticket = new Ticket(name, ticketCode);
         ticketRepository.save(ticket);
     }
@@ -50,5 +70,10 @@ public class TicketService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
                 .map(TicketRankDto::createFromTicket).toList();
+    }
+
+    public boolean isAlreadyIssued(String name) {
+        Optional<Ticket> ticket = ticketRepository.findById(name);
+        return ticket.isPresent();
     }
 }

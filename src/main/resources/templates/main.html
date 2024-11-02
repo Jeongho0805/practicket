@@ -178,9 +178,87 @@
             border-radius: 5px;
             font-weight: bold;
         }
+        #modal-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        #modal-content {
+            background-color: white;
+            width: 40vw;
+            height: 50vh;
+            border-radius: 10px;
+            border: 3px solid darkslateblue;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        #waiting-info-section {
+            background-color: #E6E6FA;
+            width: 30vw;
+            height: 20vh;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+        }
+        #waiting-mention {
+            font-weight: bold;
+            line-height: 1.5;
+
+        }
+        #waiting-number {
+            font-weight: bold;
+            font-size: 25px;
+            color: darkslateblue;
+        }
+        #progress-container {
+            margin-top: 10px;
+            width: 30vw;
+            height: 1vh;
+            border: 3px solid darkslateblue;
+            border-radius: 10px;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 1vh;
+            background-color: darkslateblue;
+            border-radius: 25px;
+        }
     </style>
 </head>
 <body>
+    <div id="modal-section">
+        <div id="modal-content">
+            <h2 id="modal-title">예매 대기중입니다.</h2>
+            <div id="waiting-info-section">
+                <p id="waiting-mention">
+                    사용자 앞에
+                    <span id="waiting-number">3</span>
+                    명의 대기자가 있습니다. <br/>
+                    현재 접속중인 사용자가 많아 대기중이며 <br/>
+                    잠시만 기다리시면, 예매 페이지로 이동합니다
+                </p>
+                <div id="progress-container">
+                    <div id="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="info-section">
         <h1 id="main-title">Ticketing Practice</h1>
         <div id="name-section">
@@ -211,7 +289,7 @@
             <button id="chatting-send-button">전송</button>
         </div>
     </div>
-</body>4
+</body>
 <script type="module">
     // 호스트 설정
     const HOST = "https://ticketing.ddns.net";
@@ -249,8 +327,8 @@
             if (!response.ok) {
                 throw new Error("Request is failed");
             }
-            alert("예매 성공")
-            window.location.href = `${HOST}/rank`;
+            activateModalToggle();
+            setWaitingOrderSse(getNickname());
         }).catch(error => {
             alert("에매 실패")
         })
@@ -287,10 +365,39 @@
         location.reload();
     })
 
+    function updateProgressBar(currentWaiting, totalCapacity) {
+        const progressBar = document.getElementById('progress-bar');
+        const progress = (totalCapacity - currentWaiting) / totalCapacity;
+        progressBar.style.width = progress * 100 + '%';
+    }
+
+    function activateModalToggle() {
+        const modal = document.getElementById("modal-section");
+        if (modal.style.display === "none" || modal.style.display === "") {
+            modal.style.display = "flex";
+        } else {
+            modal.style.display = "none";
+        }
+    }
+
+    function setWaitingOrderSse(name) {
+        const eventSource = new EventSource(`${HOST}/api/order?name=${name}`);
+        eventSource.addEventListener("waiting-order", (event) => {
+            const data = JSON.parse(event.data)
+            const waiting_number = document.getElementById("waiting-number");
+            waiting_number.innerText = data.myWaitingCount;
+            updateProgressBar(data.myWaitingCount, data.totalWaitingCount);
+        });
+        eventSource.onerror = (error) => {
+            eventSource.close();
+            window.location.href = `${HOST}/rank`;
+        };
+    }
+
     function setChattingSse() {
         const eventSource = new EventSource(`${HOST}/api/sse-stream`);
         eventSource.addEventListener("chat-event", (event) => {
-            console.log("sse 이벤트 수신");
+            // console.log("sse 이벤트 수신");
             const chattingBox = document.getElementById("chatting-box-section");
             const childCount = chattingBox.childElementCount;
             const chatData = JSON.parse(event.data);

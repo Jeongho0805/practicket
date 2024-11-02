@@ -1,11 +1,16 @@
 package com.example.ticketing.ticket.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class TicketRequestDto {
     private String name;
-    private String text;
+
+    public TicketRequestDto(String name) {
+        this.name = name;
+    }
 }
