@@ -3,6 +3,7 @@ package com.example.ticketing.chat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,8 @@ public class ChatService {
 
     private final ChatRepository chatRepository;
 
+    private final ChatConnectionRepository chatConnectionRepository;
+
     public void saveChat(ChatRequestDto dto) {
         Chat chat = new Chat(dto.getName(), dto.getText());
         chatRepository.save(chat);
@@ -28,5 +31,10 @@ public class ChatService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Chat::getCreatedAt))
                 .map((chat) -> ChatResponseDto.createFromChat(chat.getName(), chat.getText(), chat.getCreatedAt())).toList();
+    }
+
+    public SseEmitter connectChat(String name) {
+        SseEmitter emitter = new SseEmitter();
+        return emitter;
     }
 }

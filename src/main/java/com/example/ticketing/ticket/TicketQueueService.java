@@ -1,14 +1,18 @@
 package com.example.ticketing.ticket;
 
+import com.example.ticketing.ticket.dto.TicketQueueEventDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
-import com.example.ticketing.ticket.dto.TicketWaitingInfo;
+import com.example.ticketing.ticket.dto.TicketWaitingOrderResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -16,16 +20,20 @@ public class TicketQueueService {
 
     private final int WORKER_COUNT = 5;
 
-    private final TicketQueueRepository ticketQueueRepository;
+    private final TicketQueueEventRepository eventRepository;
+
+    private final TicketQueueEmitterRepository emitterRepository;
 
     private final ThreadPoolTaskExecutor taskExecutor;
 
     private final TicketService ticketService;
 
-    public TicketQueueService(TicketQueueRepository ticketQueueRepository,
+    public TicketQueueService(TicketQueueEventRepository eventRepository,
+                              TicketQueueEmitterRepository emitterRepository,
                               @Qualifier("ticketTaskExecutor") ThreadPoolTaskExecutor executor,
                               TicketService ticketService) {
-        this.ticketQueueRepository = ticketQueueRepository;
+        this.eventRepository = eventRepository;
+        this.emitterRepository = emitterRepository;
         this.taskExecutor = executor;
         this.ticketService = ticketService;
     }
@@ -44,10 +52,13 @@ public class TicketQueueService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            TicketRequestDto dto = ticketQueueRepository.pollEvent();
-            if (dto != null) {
-                ticketService.issueTicket(dto.getName());
-            } else {
+            TicketQueueEventDto dto = null;
+            try {
+                dto = eventRepository.pollEvent();
+            } catch (Exception e) {
+                log.error("예외 발생 {}", e.getMessage());
+            }
+            if (dto == null) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -58,15 +69,50 @@ public class TicketQueueService {
     }
 
     public void saveEvent(TicketRequestDto dto) {
-        ticketQueueRepository.pushEvent(dto);
+        int currentTotalWaitingNumber = eventRepository.getListSize();
+        TicketQueueEventDto eventDto = new TicketQueueEventDto(dto.getName(), currentTotalWaitingNumber);
+        eventRepository.pushEvent(eventDto);
     }
 
-    public TicketWaitingInfo getWaitingInfo(String name) {
-        List<String> names = ticketQueueRepository.findAllNameList();
-        return new TicketWaitingInfo(names.indexOf(name), names.size());
+    public TicketWaitingOrderResponse getWaitingOrder(String name) {
+        List<TicketQueueEventDto> events = eventRepository.findAllEvents();
+        List<String> names = events.stream().map(TicketQueueEventDto::getName).toList();
+        int index = names.indexOf(name);
+        if (index == -1) {
+            return new TicketWaitingOrderResponse(index, 0);
+        }
+        TicketQueueEventDto eventDto = events.get(index);
+        return new TicketWaitingOrderResponse(index, eventDto.getFirstWaitingOrder());
     }
 
     public void deleteAllWaiting() {
-        ticketQueueRepository.deleteAll();
+        eventRepository.deleteAll();
+    }
+
+    public SseEmitter saveEmitter(String name) {
+        SseEmitter emitter = new SseEmitter(0L);
+        emitterRepository.save(name, emitter);
+        emitter.onCompletion(() -> emitterRepository.deleteByName(name));
+        emitter.onTimeout(() -> emitterRepository.deleteByName(name));
+        return emitter;
+    }
+
+    public void sendOrderByEmitter() {
+        Map<String, SseEmitter> emitters = emitterRepository.findAll();
+        if (emitters.isEmpty()) {
+            return;
+        }
+        for (String name : emitters.keySet()) {
+            TicketWaitingOrderResponse data = getWaitingOrder(name);
+            SseEmitter emitter = emitters.get(name);
+            try{
+                emitter.send(SseEmitter.event()
+                        .name("waiting-order")
+                        .data(data));
+            } catch (IOException e){
+                emitter.completeWithError(e);
+                emitterRepository.deleteByName(name);
+            }
+        }
     }
 }

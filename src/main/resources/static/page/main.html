@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>올콘 - 성덕을 위한 연습</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <div id="nav-section">
+        <div id="nav-left">
+            <div id="logo">
+                <img id="logo-img" src="../img/logo.png">
+                <p id="logo-title">올콘</p>
+            </div>
+            <a href="/" class="nav-text">예매</a>
+            <a href="/rank" class="nav-text">순위표</a>
+        </div>
+        <div id="nav-right">
+            <div id="info-section">
+                <div id="name-section">
+                    <p id="name-value"></p>
+                    <button id="reset-button">닉네임 변경</button>
+                </div>
+                <div id="name-input-section">
+                    <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요."/>
+                    <button id="name-input-button" type="button">완료</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="content-section">
+        <div id="ad-section">
+            추후 광고 삽입 영역
+        </div>
+        <div id="main-section">
+            <div id="ticketing-section">
+                <div id="countdown">잠시후 카운트다운이 시작됩니다</div>
+                <div id="button-container">
+                    <button id="round-button">예매하기</button>
+                </div>
+            </div>
+            <div id="chatting-section">
+                <h1 id="chatting-box-title">채팅창</h1>
+                <div id="chatting-box-section">
+                    Chatting Box
+                </div>
+                <div id="chatting-input-section">
+                    <input id="chatting-input" type="text" placeholder="채팅을 입력해주세요."/>
+                    <button id="chatting-send-button">전송</button>
+                </div>
+            </div>
+            <div id="modal-section">
+                <div id="modal-content">
+                    <h2 id="modal-title">예매 대기중입니다.</h2>
+                    <div id="waiting-info-section">
+                        <p id="waiting-mention">
+                            사용자 앞에
+                            <span id="waiting-number"></span>
+                            명의 대기자가 있습니다. <br/>
+                            현재 접속중인 사용자가 많아 대기중이며 <br/>
+                            잠시만 기다리시면, 예매 페이지로 이동합니다
+                        </p>
+                        <div id="progress-container">
+                            <div id="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="etc-section">
+            기타 영역
+        </div>
+    </div>
+    <script type="module" src="../js/main.js"></script>
+</body>
+</html>

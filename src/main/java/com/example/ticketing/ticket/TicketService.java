@@ -24,7 +24,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
 
-    private final TicketQueueRepository ticketQueueRepository;
+    private final TicketQueueEventRepository ticketQueueRepository;
 
     public void resetTimer() {
         ticketTimer.resetStartTime();

@@ -10,13 +10,16 @@ public class ViewController {
 
     @GetMapping("/")
     public String main() {
-        log.info("[ Server Log ] : 홈페이지 접근");
-        return "main";
+        return "forward:/page/main.html";
     }
 
     @GetMapping("/rank")
     public String RankPage() {
-        log.info("[ Server Log ] : 순위 페이지 접근");
-        return "rank";
+        return "forward:/page/rank.html";
+    }
+
+    @GetMapping("/reservation")
+    public String reservationPage() {
+        return "forward:/page/reservation.html";
     }
 }

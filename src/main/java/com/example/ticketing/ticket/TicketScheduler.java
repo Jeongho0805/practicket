@@ -14,7 +14,7 @@ public class TicketScheduler {
 
     private final TicketService ticketService;
 
-    private final TicketQueueService ticketQueueHelper;
+    private final TicketQueueService ticketQueueService;
 
     private final static int AI_USER_NUMBER = 100;
 
@@ -27,7 +27,7 @@ public class TicketScheduler {
 
     @Scheduled(cron = "55 * * * * *")
     public void clearAllRecord() {
-        ticketQueueHelper.deleteAllWaiting();
+        ticketQueueService.deleteAllWaiting();
         ticketService.initData();
     }
 
@@ -37,8 +37,13 @@ public class TicketScheduler {
         for (int i=1; i<=AI_USER_NUMBER; i++) {
             try {
                 Thread.sleep(AI_USER_INTERVAL);
-                ticketQueueHelper.saveEvent(new TicketRequestDto(name + i));
+                ticketQueueService.saveEvent(new TicketRequestDto(name + i));
             } catch (Exception ignored) {}
         }
+    }
+
+    @Scheduled(cron = "* * * * * *")
+    public void sendWaitingOrder() {
+        ticketQueueService.sendOrderByEmitter();
     }
 }

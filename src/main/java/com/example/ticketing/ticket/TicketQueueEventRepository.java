@@ -1,5 +1,6 @@
 package com.example.ticketing.ticket;
 
+import com.example.ticketing.ticket.dto.TicketQueueEventDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -9,26 +10,25 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class TicketQueueRepository {
+public class TicketQueueEventRepository {
         private final String QUEUE_NAME = "ticketQueue";
 
         private final RedisTemplate<String, Object> redisTemplate;
 
-        public List<String> findAllNameList() {
+        public List<TicketQueueEventDto> findAllEvents() {
             List<Object> list = redisTemplate.opsForList().range(QUEUE_NAME, 0, -1);
             assert list != null;
             return list.stream()
-                    .map(t -> (TicketRequestDto) t)
-                    .map(TicketRequestDto::getName)
+                    .map(t -> (TicketQueueEventDto) t)
                     .toList();
         }
 
-        public void pushEvent(TicketRequestDto dto) {
+        public void pushEvent(TicketQueueEventDto dto) {
             redisTemplate.opsForList().rightPush(QUEUE_NAME, dto);
         }
 
-        public TicketRequestDto pollEvent () {
-            return (TicketRequestDto) redisTemplate.opsForList().leftPop(QUEUE_NAME);
+        public TicketQueueEventDto pollEvent () {
+            return (TicketQueueEventDto) redisTemplate.opsForList().leftPop(QUEUE_NAME);
         }
 
         public void deleteAll() {

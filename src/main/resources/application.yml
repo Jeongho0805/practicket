@@ -10,3 +10,8 @@ management:
   endpoint:
     health:
       show-details: always
+spring:
+  web:
+    resources:
+      cache:
+        period: 0
