@@ -27,6 +27,13 @@ public class TicketController {
         return ResponseEntity.ok(rankInfo);
     }
 
+    @GetMapping("/ticket")
+    public ResponseEntity<List<String>> getSeatsInfo() {
+        List<String> seats = ticketService.findAllSeats();
+        return ResponseEntity.ok(seats);
+    }
+
+
     @PostMapping("/ticket")
     public ResponseEntity<?> createTicket(@RequestBody TicketRequestDto dto) {
         ticketService.issueTicket(dto);

@@ -1,5 +1,6 @@
 package com.example.ticketing.ticket;
 
+import com.example.ticketing.ticket.component.TicketManager;
 import com.example.ticketing.ticket.dto.OrderRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ public class TicketScheduler {
     private final TicketService ticketService;
 
     private final TicketQueueService ticketQueueService;
+
+    private final TicketManager ticketManager;
 
     private final static int AI_USER_NUMBER = 100;
 
@@ -32,12 +35,23 @@ public class TicketScheduler {
     }
 
     @Scheduled(cron = "0 * * * * *")
-    public void activateAiUser() {
+    public void activateAIUserOrder() {
         String name = "AI-User-";
         for (int i=1; i<=AI_USER_NUMBER; i++) {
             try {
                 Thread.sleep(AI_USER_INTERVAL);
                 ticketQueueService.saveEvent(new OrderRequestDto(name + i));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    @Scheduled(cron = "5 * * * * *")
+    public void activateAIUserTicket() {
+        String name = "AI-User-";
+        for (int i=1; i<=AI_USER_NUMBER; i++) {
+            try {
+                Thread.sleep(AI_USER_INTERVAL);
+                ticketManager.createTicketForAI(name + i);
             } catch (Exception ignored) {}
         }
     }

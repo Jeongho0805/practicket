@@ -1,6 +1,7 @@
 import { getNickname, host as HOST } from "./common.js";
 
 const selected_seats = new Set();
+let security_text;
 
 function hasPermission(name) {
     const key = "permission";
@@ -14,7 +15,6 @@ function hasPermission(name) {
 function permissionCheck() {
     window.onload = function() {
         if (hasPermission()) {
-            alert("권한 통과")
             document.cookie = "permission=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         } else {
             alert("권한 없음")
@@ -23,18 +23,26 @@ function permissionCheck() {
     };
 }
 
-function createSeat() {
+async function createSeat() {
     const row_size = 10;
     const col_size = 10;
     const seat_section = document.getElementById("seats");
+    seat_section.innerHTML = "";
+    const seats = await requestSeatInfo();
+    console.log("seat 정보 =", seats);
 
     for (let i=0; i<row_size; i++) {
         for (let j=0; j<col_size; j++) {
             const seat_button = document.createElement('button');
-            seat_button.style.cursor="pointer"
+            const seat_number = `${String.fromCharCode(65 + i)}${j + 1}`
             seat_button.classList.add('seat-button');
-            seat_button.dataset.seatNumber = `${String.fromCharCode(65 + i)}${j + 1}`;
-            seat_button.addEventListener('click', () => toggleSeat(seat_button));
+            seat_button.dataset.seatNumber = seat_number;
+            if (seats.some(seat => seat === seat_number)) {
+                seat_button.style.backgroundColor="lightsteelblue"
+            } else {
+                seat_button.style.cursor="pointer"
+                seat_button.addEventListener('click', () => toggleSeat(seat_button));
+            }
             seat_section.appendChild(seat_button);
         }
     }
@@ -74,6 +82,29 @@ function addButtonEventListener() {
     });
 }
 
+async function requestSeatInfo() {
+    try {
+        const response = await fetch(`${HOST}/api/ticket`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        if (!response.ok) {
+            throw new Error("서버 오류 발생");
+        }
+
+        const result = await response.json();
+        console.log(result); //todo 추후 삭제
+        if (Array.isArray(result)) {
+            return result;
+        }
+        return [];
+    } catch (error) {
+        console.error("네트워크 오류:", error);
+        return [];
+    }
+}
 function requestReservation() {
     fetch(`${HOST}/api/ticket`, {
         method: "POST",
@@ -85,14 +116,81 @@ function requestReservation() {
             seats: Array.from(selected_seats.keys())
         })
     }).then(response => {
-        if (!response.ok) {
-            throw new Error("Request is failed");
+        if (response.ok) {
+            alert("예매 완료")
+            window.location.href = `${HOST}/rank`;
+            return Promise.resolve();
+        } else {
+            return response.json();
+        }
+    }).then(result => {
+        if (result) {
+            alert(result.message);
         }
     }).catch(error => {
-        alert("에매 실패")
+        console.error(error);
+        alert("일시적인 서버 오류로 예매에 실패하였습니다.")
     })
 }
 
+function createRandomSecurityText() {
+    security_text = "";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let i = 0; i < 6; i++) {
+        security_text += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById("security-text").textContent = security_text;
+}
+
+function activateModalToggle() {
+    const modal = document.getElementById("modal-section");
+    if (modal.style.display === "none" || modal.style.display === "") {
+        modal.style.display = "flex";
+        const input = document.getElementById("security-input");
+        input.focus();
+    } else {
+        modal.style.display = "none";
+    }
+}
+
+function checkSecurityText() {
+    const security_input = document.getElementById("security-input");
+    if (security_input.value.toUpperCase() === security_text) {
+        activateModalToggle();
+    } else {
+        security_input.value = "";
+    }
+}
+
+function addSecurityInputEvent() {
+    const button = document.getElementById("security-input-button");
+    button.addEventListener("click", () => {
+        checkSecurityText();
+    });
+    const input = document.getElementById("security-input");
+    input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // 기본 Enter 동작 방지 (폼 제출 등)
+            checkSecurityText();
+        }
+    });
+}
+
+function addSecurityResetEvent() {
+    const button = document.getElementById("security-reset-button");
+    button.addEventListener("click", () => {
+        createRandomSecurityText();
+    });
+}
+
+function activateSecurityText() {
+    createRandomSecurityText();
+    addSecurityInputEvent();
+    addSecurityResetEvent();
+    activateModalToggle();
+}
+
 // permissionCheck();
-createSeat();
+activateSecurityText();
+await createSeat();
 addButtonEventListener();

@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +91,14 @@ public class TicketQueueService {
         SseEmitter emitter = new SseEmitter(0L);
         emitterRepository.save(name, emitter);
         emitter.onCompletion(() -> emitterRepository.deleteByName(name));
-        emitter.onTimeout(() -> emitterRepository.deleteByName(name));
+        emitter.onTimeout(() -> {
+            emitter.complete();
+            emitterRepository.deleteByName(name);
+        });
+        emitter.onError((error) -> {
+            emitter.complete();
+            emitterRepository.deleteByName(name);
+        });
         return emitter;
     }
 
@@ -105,14 +110,25 @@ public class TicketQueueService {
         for (String name : emitters.keySet()) {
             TicketWaitingOrderResponse data = getWaitingOrder(name);
             SseEmitter emitter = emitters.get(name);
+            if (emitter == null) continue;
             try{
-                emitter.send(SseEmitter.event()
-                        .name("waiting-order")
-                        .data(data));
-            } catch (IOException e){
-                emitter.completeWithError(e);
+                if (isEmitterActive(emitter)) {
+                    emitter.send(SseEmitter.event()
+                            .name("waiting-order")
+                            .data(data));
+                }
+            } catch (Exception e){
                 emitterRepository.deleteByName(name);
             }
+        }
+    }
+
+    private boolean isEmitterActive(SseEmitter emitter) {
+        try {
+            emitter.send(SseEmitter.event().name("waiting-order"));
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

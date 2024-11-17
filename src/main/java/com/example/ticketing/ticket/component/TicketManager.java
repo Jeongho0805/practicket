@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +23,16 @@ public class TicketManager {
                 .map((seat) -> new Ticket(seat, name))
                 .toList();
         ticketRepository.saveAll(tickets);
+    }
+
+    public void createTicketForAI(String name) {
+        int rowSize = 10;
+        int colSize = 10;
+        Random random = new Random();
+        int row = random.nextInt(rowSize);
+        int col = random.nextInt(colSize);
+        String seat =  (char) ('A' + row) + String.valueOf(col + 1);
+        ticketRepository.save(new Ticket(seat, name));
     }
 
     private void validateExistSeat(List<String> seats) {

@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 
@@ -32,8 +29,6 @@ public class TicketService {
     private final TicketManager ticketManager;
 
     private final TicketRepository ticketRepository;
-
-    private final TicketQueueEventRepository ticketQueueRepository;
 
     public void resetTimer() {
         ticketTimer.resetStartTime();
@@ -67,5 +62,11 @@ public class TicketService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
                 .map(TicketRankDto::createFromTicket).toList();
+    }
+
+    public List<String> findAllSeats() {
+        List<String> seats = new ArrayList<>();
+        ticketRepository.findAll().forEach((ticket -> seats.add(ticket.getSeat())));
+        return seats;
     }
 }
