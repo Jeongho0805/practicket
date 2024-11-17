@@ -1,4 +1,4 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.component;
 
 import lombok.Getter;
 import org.springframework.stereotype.Component;

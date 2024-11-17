@@ -1,7 +1,6 @@
 package com.example.ticketing.ticket;
 
 import com.example.ticketing.ticket.dto.TicketQueueEventDto;
-import com.example.ticketing.ticket.dto.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;

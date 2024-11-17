@@ -1,7 +1,5 @@
-// 호스트 설정
-// const HOST = "https://ticketing.ddns.net";
-const HOST = "https://practicket.com";
-// const HOST = "http://localhost:8080";
+import { getNickname, host as HOST } from "./common.js";
+
 
 // 페이지 로드시 마다 실행 (새로고침 포함)
 window.onload = () => {
@@ -23,7 +21,7 @@ ticket_button.addEventListener("click", () => {
         return
     }
 
-    fetch(`${HOST}/api/ticket`, {
+    fetch(`${HOST}/api/order`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -159,18 +157,6 @@ function setChatEventListener() {
             button.click();
         }
     });
-}
-
-// 닉네임 값 가져오기
-function getNickname() {
-    const cookies = document.cookie.split(';');
-    let cookie_key = "name";
-    for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].trim(); // 공백 제거
-        if (cookie.startsWith(cookie_key + '=')) {
-            return cookie.substring(cookie_key.length + 1);
-        }
-    }
 }
 
 function startCountdown() {

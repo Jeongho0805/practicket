@@ -1,6 +1,7 @@
 package com.example.ticketing.ticket;
 
 import com.example.ticketing.ticket.dto.TicketRankDto;
+import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +28,14 @@ public class TicketController {
     }
 
     @PostMapping("/ticket")
-    public ResponseEntity<?> registerTicket(@RequestBody TicketRequestDto dto) {
-        ticketService.validateRegisterAvailable();
+    public ResponseEntity<?> createTicket(@RequestBody TicketRequestDto dto) {
+        ticketService.issueTicket(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/order")
+    public ResponseEntity<?> registerTicket(@RequestBody OrderRequestDto dto) {
+        ticketService.validateStartTime();
         ticketQueueService.saveEvent(dto);
         return ResponseEntity.ok().build();
     }

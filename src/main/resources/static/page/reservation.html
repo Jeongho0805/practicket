@@ -2,10 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>올콘 - 성덕을 위한 연습</title>
+    <title>프랙티켓 - 티켓팅 연습 사이트</title>
+    <link rel="stylesheet" href="../css/reservation.css">
 </head>
 <body>
-    <h1>포도알 페이지</h1>
+    <div id="reservation-section">
+        <div id="seat-section">
+            <div id="stage">Stage</div>
+            <div id="seats"></div>
+        </div>
+        <div id="right-section">
+            <div id="selected-section">
+                <h2>선택하신 좌석</h2>
+                <div id="selected-seat-list"></div>
+            </div>
+            <button id="complete-button">좌석 선택 완료</button>
+        </div>
+    </div>
     <script type="module" src="../js/reservation.js"></script>
 </body>
 </html>

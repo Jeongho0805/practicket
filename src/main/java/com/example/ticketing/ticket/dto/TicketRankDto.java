@@ -1,6 +1,6 @@
 package com.example.ticketing.ticket.dto;
 
-import com.example.ticketing.ticket.Ticket;
+import com.example.ticketing.ticket.domain.Ticket;
 import lombok.Getter;
 
 @Getter
@@ -11,7 +11,7 @@ public class TicketRankDto {
 
     public static TicketRankDto createFromTicket(Ticket ticket) {
         TicketRankDto ticketRankDto = new TicketRankDto();
-        ticketRankDto.name = ticket.getId();
+        ticketRankDto.name = ticket.getName();
         ticketRankDto.second = (ticket.getCreatedAt().getSecond()) + "." + String.valueOf(ticket.getCreatedAt().getNano()).substring(0, 2) + "초";
         return  ticketRankDto;
     }

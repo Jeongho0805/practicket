@@ -1,6 +1,6 @@
 package com.example.ticketing.ticket;
 
-import com.example.ticketing.ticket.dto.TicketRequestDto;
+import com.example.ticketing.ticket.dto.OrderRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,7 +37,7 @@ public class TicketScheduler {
         for (int i=1; i<=AI_USER_NUMBER; i++) {
             try {
                 Thread.sleep(AI_USER_INTERVAL);
-                ticketQueueService.saveEvent(new TicketRequestDto(name + i));
+                ticketQueueService.saveEvent(new OrderRequestDto(name + i));
             } catch (Exception ignored) {}
         }
     }

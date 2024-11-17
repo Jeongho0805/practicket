@@ -1,4 +1,4 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.domain;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,15 +15,15 @@ import java.time.LocalDateTime;
 public class Ticket implements Serializable {
 
     @Id
-    private String id;
+    private String seat;
 
-    private String code;
+    private String name;
 
     private LocalDateTime createdAt;
 
-    public Ticket(String id, String code) {
-        this.id = id;
-        this.code = code;
+    public Ticket(String seat, String name) {
+        this.seat = seat;
+        this.name = name;
         this.createdAt = LocalDateTime.now();
     }
 }

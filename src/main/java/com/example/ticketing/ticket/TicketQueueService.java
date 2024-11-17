@@ -1,7 +1,7 @@
 package com.example.ticketing.ticket;
 
 import com.example.ticketing.ticket.dto.TicketQueueEventDto;
-import com.example.ticketing.ticket.dto.TicketRequestDto;
+import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketWaitingOrderResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +68,7 @@ public class TicketQueueService {
         }
     }
 
-    public void saveEvent(TicketRequestDto dto) {
+    public void saveEvent(OrderRequestDto dto) {
         int currentTotalWaitingNumber = eventRepository.getListSize();
         TicketQueueEventDto eventDto = new TicketQueueEventDto(dto.getName(), currentTotalWaitingNumber);
         eventRepository.pushEvent(eventDto);
