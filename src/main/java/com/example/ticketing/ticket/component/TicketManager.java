@@ -1,5 +1,7 @@
 package com.example.ticketing.ticket.component;
 
+import com.example.ticketing.common.ErrorCode;
+import com.example.ticketing.common.TicketException;
 import com.example.ticketing.ticket.domain.Ticket;
 import com.example.ticketing.ticket.domain.TicketRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,7 @@ public class TicketManager {
         Iterable<Ticket> tickets = ticketRepository.findAll();
         for (Ticket ticket : tickets) {
             if (seats.contains(ticket.getSeat())) {
-                throw new IllegalArgumentException("이미 선택된 좌석입니다.");
+                throw new TicketException(ErrorCode.SEAT_ALREADY_BOOKED);
             }
         }
     }
