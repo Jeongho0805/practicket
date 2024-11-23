@@ -2,16 +2,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus  # prometheus 엔드포인트 활성화
-  metrics:
-    export:
-      prometheus:
-        enabled: true  # prometheus 활성화
+        include: health,metrics,prometheus
   endpoint:
     health:
       show-details: always
+
 spring:
   web:
     resources:
       cache:
         period: 0
+  datasource:
+    url: "jdbc:mysql://localhost:3306/practicket?serverTimezone=Asia/Seoul&useSSL=false"
+    username: "root"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none # 옵션: create, create-drop, update, validate, none
+    open-in-view: false

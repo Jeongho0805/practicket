@@ -1,5 +1,5 @@
-// export const host = "https://practicket.com"
-export const host = "http://localhost:8080"
+export const host = "https://practicket.com"
+// export const host = "http://localhost:8080"
 
 // 닉네임 값 가져오기
 export function getNickname() {

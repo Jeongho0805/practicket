@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -32,8 +33,6 @@ public class TicketService {
 
     public void resetTimer() {
         ticketTimer.resetStartTime();
-        LocalDateTime startTime = ticketTimer.getStartTime();
-        log.info("[ Server Log ] : 변경된 티켓 예매 시작 시간 = {}", startTime);
     }
 
     public void initData() {
