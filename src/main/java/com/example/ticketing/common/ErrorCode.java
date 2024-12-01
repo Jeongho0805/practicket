@@ -2,7 +2,9 @@ package com.example.ticketing.common;
 
 public enum ErrorCode {
     // 409 Conflict
-    SEAT_ALREADY_BOOKED(409, "T01", "이미 선택된 좌석입니다.");
+    SEAT_ALREADY_BOOKED(409, "T01", "이미 선택된 좌석입니다."),
+
+    SESSION_IS_NOT_EXIST(404, "A01", "세션이 존재하지 않습니다.");
 
     private final int status;
     private final String code;

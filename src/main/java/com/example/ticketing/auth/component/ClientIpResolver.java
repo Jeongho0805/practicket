@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClientIpResolver {
 
-    public String getClientIp(HttpServletRequest request) {
+    public String extractClientIp(HttpServletRequest request) {
         String clientIp = request.getHeader("X-Forwarded-For");
         if (clientIp == null || clientIp.isEmpty()) {
             clientIp = request.getRemoteAddr();

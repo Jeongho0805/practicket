@@ -5,10 +5,11 @@ import com.example.ticketing.auth.dto.SessionObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -16,38 +17,21 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final static String SESSION_KEY = "auth";
-
     @GetMapping
-    public ResponseEntity<SessionObject> getSessionValues(HttpSession session) {
-        SessionObject sessionObject = (SessionObject) session.getAttribute(SESSION_KEY);
-        if (sessionObject == null) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
+    public ResponseEntity<SessionObject> getSessionObject(HttpServletRequest request) {
+        SessionObject sessionObject = authService.getSessionObject(request);
         return ResponseEntity.ok(sessionObject);
     }
 
     @PostMapping
-    public ResponseEntity<?> createSession(@RequestBody LoginRequestDto requestDto, HttpServletRequest request, HttpSession session) {
-        String ip = authService.recordIp(request);
-        session.setAttribute(SESSION_KEY, new SessionObject(ip, requestDto.getName()));
-        return ResponseEntity.ok().build();
-    }
-
-    @PatchMapping
-    public ResponseEntity<?> updateSession(@RequestBody LoginRequestDto requestDto, HttpSession session) {
-        SessionObject sessionObject = (SessionObject) session.getAttribute(SESSION_KEY);
-        if (sessionObject == null) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        sessionObject.setName(requestDto.getName());
-        session.setAttribute(SESSION_KEY, sessionObject);
+    public ResponseEntity<?> createSession(@RequestBody LoginRequestDto requestDto, HttpServletRequest request) {
+        authService.createSession(request, requestDto);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteSession(HttpSession session) {
-        session.invalidate();
+    public ResponseEntity<?> deleteSession(HttpServletRequest request) {
+        authService.deleteSession(request);
         return ResponseEntity.ok().build();
     }
 }
