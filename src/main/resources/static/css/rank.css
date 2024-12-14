@@ -1,0 +1,78 @@
+html, body {
+    height: 100%; /* 화면 전체 높이 차지 */
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    background: white;
+}
+#rank-table {
+    width: 300px;
+    text-align: center;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+#rank-table thead tr {
+    background-color: darkslateblue;
+    color: #ffffff;
+}
+
+#rank-table th, #rank-table td {
+    padding: 12px 15px;
+    border: 1px solid #dddddd;
+}
+th:nth-child(1), td:nth-child(1) {
+    width: 20%; /* 첫 번째 컬럼 너비 */
+}
+th:nth-child(2), td:nth-child(2) {
+    width: 50%; /* 두 번째 컬럼 너비 */
+}
+th:nth-child(3), td:nth-child(3) {
+    width: 30%; /* 세 번째 컬럼 너비 */
+}
+
+#rank-table tbody tr {
+    border-bottom: 1px solid darkslateblue;
+    background-color: white;
+}
+
+#rank-table tbody tr:last-of-type {
+    border-bottom: 2px solid darkslateblue;
+}
+
+#rank-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+#main-title {
+    flex-grow: 0.05;
+    padding-top: 20px;
+    margin: 0px;
+}
+#move-page-btn {
+    width: 200px;
+    height: 50px;
+    border: none;
+    border-radius: 20px;
+    background: darkslateblue;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+#move-page-btn:hover {
+    transform: scale(1.1); /* 크기를 10% 정도 확대 */
+}
+#button-section {
+    flex-grow: 0.1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 20px;
+}
+#rank-section {
+    flex-grow: 0.8;
+    max-height: 600px;
+    overflow-y: scroll;
+}

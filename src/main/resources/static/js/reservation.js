@@ -1,4 +1,4 @@
-import { getNickname, host as HOST } from "./common.js";
+import { getNickname, HOST } from "./common.js";
 
 const selected_seats = new Set();
 let security_text;

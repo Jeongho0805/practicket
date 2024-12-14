@@ -20,3 +20,16 @@ spring:
     hibernate:
       ddl-auto: none # 옵션: create, create-drop, update, validate, none
     open-in-view: false
+#  session:
+#    timeout: 0
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: "auth"
+        http-only: false
+
+#logging:
+#  level:
+#    org.springframework.session: DEBUG

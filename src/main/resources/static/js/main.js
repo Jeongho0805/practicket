@@ -1,65 +1,131 @@
-import { getNickname, host as HOST } from "./common.js";
+import { getNickname, HOST } from "./common.js";
 
 
 // 페이지 로드시 마다 실행 (새로고침 포함)
-window.onload = () => {
-    if (document.cookie.indexOf("name=") !== -1) {
-        name_input_section.style.display = "none";
-        name_value.style.display = "block";
-        name_value.textContent = `${getNickname()}`;
-    } else {
-        const name_section = document.getElementById("name-section");
-        name_section.style.display = "none";
+let name;
+
+window.onload = async () => {
+    try {
+        name = await getNickname();
+        const name_input_section = document.getElementById("name-input-section");
+        const name_value = document.getElementById("name-value");
+        if (name) {
+            name_input_section.style.display = "none";
+            name_value.style.display = "block";
+            name_value.textContent = name;
+        } else {
+            const name_section = document.getElementById("name-section");
+            name_section.style.display = "none";
+        }
+    } catch (e) {
+        console.log(e);
     }
 };
 
+function addEventList() {
+    // 티켓 예매 이벤트
+    const ticket_button = document.getElementById("round-button")
+    ticket_button.addEventListener("click", () => {
+        console.log(name);
+        if (!name) {
+            alert("닉네임을 입력해주세요.");
+            return
+        }
 
-const ticket_button = document.getElementById("round-button")
-ticket_button.addEventListener("click", () => {
-    if (document.cookie.indexOf("name=") === -1) {
-        alert("닉네임을 입력해주세요.");
-        return
-    }
+        fetch(`${HOST}/api/order`, {
+            method: "POST",
+            credentials: 'same-origin',
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error("Request is failed");
+            }
+            activateModalToggle();
+            setWaitingOrderSse(name);
+        }).catch(error => {
+            alert("에매 실패")
+        })
+    })
 
-    fetch(`${HOST}/api/order`, {
+    // 닉네임 입력 이벤트
+    const name_button = document.getElementById("name-input-button");
+    name_button.addEventListener("click", async () => {
+        const name = document.getElementById("name-input-box").value;
+        if (name === "" || !name) {
+            alert("닉네임을 입력해주세요.");
+            return
+        }
+        await requestCreateSession(name);
+        location.reload();
+    })
+
+    // 닉네임 변경 이벤트
+    const name_reset_button = document.getElementById("reset-button");
+    name_reset_button.addEventListener("click", async () => {
+        await requestDeleteSession();
+        document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        location.reload();
+    })
+}
+
+function requestCreateSession(name) {
+    return fetch(`${HOST}/api/auth`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            name: getNickname()
+            name: name
+        })
+    }).then(response => {
+        if (!response.ok) {
+            console.log("requestCreateSession 요청 실패");
+            throw new Error("Request is failed");
+        }
+    }).catch(e => {
+        console.log("에러 =", e.getMessage())
+        alert("서버 에러가 발생하였습니다.\n 닉네임을 다시 입력해주세요.")
+    })
+}
+
+function requestUpdateSession(name) {
+    fetch(`${HOST}/api/auth`, {
+        method: "PATCH",
+        credentials: 'same-origin',
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            name: name
         })
     }).then(response => {
         if (!response.ok) {
             throw new Error("Request is failed");
         }
-        activateModalToggle();
-        setWaitingOrderSse(getNickname());
-    }).catch(error => {
-        alert("에매 실패")
+    }).catch(e => {
+        alert("서버 에러가 발생하였습니다.\n 닉네임을 다시 입력해주세요.")
     })
-})
+}
 
-// 닉네임 입력 로직
-const name_button = document.getElementById("name-input-button");
-const name_input_section = document.getElementById("name-input-section");
-const name_value = document.getElementById("name-value");
-name_button.addEventListener("click", () => {
-    const name = document.getElementById("name-input-box").value;
-    if (name === "" || !name) {
-        alert("닉네임을 입력해주세요.");
-        return
-    }
-    document.cookie = `name=${name}; path=/`;
-    location.reload();
-})
+function requestDeleteSession() {
+    return fetch(`${HOST}/api/auth`, {
+        method: "DELETE",
+        credentials: 'same-origin',
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }).then(response => {
+        console.log("세션 삭제 완료");
+        if (!response.ok) {
+            throw new Error("Request is failed");
+        }
+    }).catch(e => {
+        alert("서버 에러가 발생하였습니다.")
+    })
+}
 
-// 닉네임 변경 로직
-const name_reset_button = document.getElementById("reset-button");
-name_reset_button.addEventListener("click", () => {
-    document.cookie = `name=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
-    location.reload();
-})
 
 function updateProgressBar(currentWaiting, totalCapacity) {
     const progressBar = document.getElementById('progress-bar');
@@ -77,7 +143,7 @@ function activateModalToggle() {
 }
 
 function setWaitingOrderSse(name) {
-    const eventSource = new EventSource(`${HOST}/api/order?name=${name}`);
+    const eventSource = new EventSource(`${HOST}/api/order`);
     eventSource.addEventListener("waiting-order", (event) => {
         const data = JSON.parse(event.data)
         if (data.isComplete) {
@@ -186,6 +252,7 @@ function displayCountDown() {
     }, 1000);
 }
 
+addEventList();
 startCountdown();
-setChatEventListener();
-setChattingSse();
+// setChatEventListener();
+// setChattingSse();

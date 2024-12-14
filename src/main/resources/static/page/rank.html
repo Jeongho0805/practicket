@@ -2,87 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rank</title>
-    <style>
-        html, body {
-        height: 100%; /* 화면 전체 높이 차지 */
-        margin: 0;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        flex-direction: column;
-        background: white;
-        }
-        #rank-table {
-            width: 300px;
-            text-align: center;
-            border-collapse: collapse;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        }
-
-        #rank-table thead tr {
-            background-color: darkslateblue;
-            color: #ffffff;
-        }
-
-        #rank-table th, #rank-table td {
-            padding: 12px 15px;
-            border: 1px solid #dddddd;
-        }
-        th:nth-child(1), td:nth-child(1) {
-            width: 20%; /* 첫 번째 컬럼 너비 */
-        }
-        th:nth-child(2), td:nth-child(2) {
-            width: 50%; /* 두 번째 컬럼 너비 */
-        }
-        th:nth-child(3), td:nth-child(3) {
-            width: 30%; /* 세 번째 컬럼 너비 */
-        }
-
-        #rank-table tbody tr {
-            border-bottom: 1px solid darkslateblue;
-            background-color: white;
-        }
-
-        #rank-table tbody tr:last-of-type {
-            border-bottom: 2px solid darkslateblue;
-        }
-
-        #rank-table tbody tr:hover {
-            background-color: #f1f1f1;
-        }
-        #main-title {
-            flex-grow: 0.05;
-            padding-top: 20px;
-            margin: 0px;
-        }
-        #move-page-btn {
-            width: 200px;
-            height: 50px;
-            border: none;
-            border-radius: 20px;
-            background: darkslateblue;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        #move-page-btn:hover {
-            transform: scale(1.1); /* 크기를 10% 정도 확대 */
-        }
-        #button-section {
-            flex-grow: 0.1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-bottom: 20px;
-        }
-        #rank-section {
-            flex-grow: 0.8;
-            max-height: 600px;
-            overflow-y: scroll;
-        }
-    </style>
+    <meta name="title" content="프랙티켓 | 실전 티켓팅 연습사이트">
+    <meta name="description" content="프랙티켓은 실전을 통해 티켓 예매 성공률을 높일 수 있는 티켓팅 연습 플랫폼입니다.">
+    <meta name="robots" content="noindex, follow">
+    <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프랙티켓 - 실전 티켓팅 연습 플랫폼</title>
+    <link rel="icon" href="../img/logo.png" type="image/png">
+    <link rel="stylesheet" href="../css/rank.css">
 </head>
 <body>
     <h1 id="main-title">Ticketing Rank</h1>
@@ -98,112 +25,9 @@
                 <th>시간</th>
             </tr>
             </thead>
-            <tbody id="rank-body">
-<!--                <tr>-->
-<!--                    <td>1</td>-->
-<!--                    <td>호야</td>-->
-<!--                    <td>12:00</td>-->
-<!--                </tr>-->
-<!--                <tr>-->
-<!--                    <td>2</td>-->
-<!--                    <td>은댕</td>-->
-<!--                    <td>12:00</td>-->
-<!--                </tr>-->
-            </tbody>
+            <tbody id="rank-body"></tbody>
         </table>
     </div>
+    <script type="module" src="../js/rank.js"></script>
 </body>
-<script>
-    const HOST = "https://practicket.com";
-    // const HOST = "http://localhost:8080";
-
-    function getNickname() {
-        const cookies = document.cookie.split(';');
-        let cookie_key = "name";
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim(); // 공백 제거
-            if (cookie.startsWith(cookie_key + '=')) {
-                return cookie.substring(cookie_key.length + 1);
-            }
-        }
-    }
-
-    function markMyRank() {
-        const name = getNickname();
-        const tdElements = document.querySelectorAll('td');
-
-        tdElements.forEach(td => {
-            if (td.textContent.trim() === name) {
-                const target = td.parentElement;
-                target.style.backgroundColor = "darkslateblue"; // 두께, 스타일, 색상 지정
-                target.style.color = "white"
-                // 스크롤 이동
-                target.scrollIntoView({
-                    behavior: "smooth", // 부드럽게 스크롤 이동
-                    block: "center"     // 화면 중앙에 해당 요소가 오도록 설정
-                });
-            }
-        });
-    }
-
-    function moveTicketingPage() {
-        const button = document.getElementById("move-page-btn")
-        button.addEventListener("click", () =>{
-            window.location.href = `${HOST}`;
-        })
-    }
-    function checkTimeToBack() {
-        let isTimeToBack = true;
-        setInterval(() => {
-            const second = new Date().getSeconds();
-            if (second >= 30 && isTimeToBack) {
-                isTimeToBack = false;
-                alert("다음 예매 티켓팅 카운트 다운이 시작됩니다.")
-            }
-            if (second >= 0 && second < 30) {
-                isTimeToBack = true;
-            }
-        })
-    }
-    function displayRank() {
-        setInterval(() => {
-            const rankBody = document.getElementById("rank-body");
-            fetch(`${HOST}/api/rank`, {
-                method: "GET",
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length === rankBody.children.length ) {
-                        return;
-                    }
-                    rankBody.innerHTML = "";
-                    console.log(JSON.stringify(data));
-                    data.forEach((rank, index) => {
-                        const row = document.createElement("tr");
-
-                        const rankCell = document.createElement("td");
-                        rankCell.textContent = index + 1;
-                        row.appendChild(rankCell);
-
-                        const nameCell = document.createElement("td");
-                        nameCell.textContent = rank.name;
-                        row.appendChild(nameCell);
-
-                        const timeCell = document.createElement("td");
-                        timeCell.textContent = rank.second;
-                        row.appendChild(timeCell);
-
-                        rankBody.appendChild(row);
-                    })
-                    markMyRank()
-                }).catch(error => {
-                    console.log(error);
-                })
-        }, 1000)
-    }
-
-    displayRank();
-    checkTimeToBack();
-    moveTicketingPage();
-</script>
 </html>
