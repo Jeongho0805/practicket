@@ -13,8 +13,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketRequestDto {
-
-    private String name;
-
     private List<String> seats;
 }

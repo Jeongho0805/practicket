@@ -15,15 +15,18 @@ import java.time.LocalDateTime;
 public class Ticket implements Serializable {
 
     @Id
+    private String key;
+
     private String seat;
 
     private String name;
 
     private LocalDateTime createdAt;
 
-    public Ticket(String seat, String name) {
-        this.seat = seat;
+    public Ticket(String key, String name, String seat) {
+        this.key = key;
         this.name = name;
+        this.seat = seat;
         this.createdAt = LocalDateTime.now();
     }
 }

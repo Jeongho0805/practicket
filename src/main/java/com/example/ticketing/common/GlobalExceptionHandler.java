@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TicketException.class)
-    public ResponseEntity<ErrorResponse> handleConflictException(TicketException exception) {
+    @ExceptionHandler(GlobalException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(GlobalException exception) {
         ErrorCode errorCode = exception.getErrorCode();
         ErrorResponse response = new ErrorResponse(
                 errorCode.getStatus(),

@@ -17,10 +17,10 @@ public class TicketManager {
     private final TicketRepository ticketRepository;
 
 
-    public void createTickets(List<String> seats, String name) {
+    public void createTickets(String key, String name, List<String> seats) {
         validateExistSeat(seats);
         List<Ticket> tickets = seats.stream()
-                .map((seat) -> new Ticket(seat, name))
+                .map((seat) -> new Ticket(key, name, seat))
                 .toList();
         ticketRepository.saveAll(tickets);
     }
@@ -32,7 +32,7 @@ public class TicketManager {
         int row = random.nextInt(rowSize);
         int col = random.nextInt(colSize);
         String seat =  (char) ('A' + row) + String.valueOf(col + 1);
-        ticketRepository.save(new Ticket(seat, name));
+        ticketRepository.save(new Ticket(name, name, seat));
     }
 
     private void validateExistSeat(List<String> seats) {

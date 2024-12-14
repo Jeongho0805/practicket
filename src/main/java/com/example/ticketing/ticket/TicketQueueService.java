@@ -66,16 +66,16 @@ public class TicketQueueService {
         }
     }
 
-    public void saveEvent(OrderRequestDto dto) {
+    public void saveEvent(String key) {
         int currentTotalWaitingNumber = eventRepository.getListSize();
-        TicketQueueEventDto eventDto = new TicketQueueEventDto(dto.getName(), currentTotalWaitingNumber);
+        TicketQueueEventDto eventDto = new TicketQueueEventDto(key, currentTotalWaitingNumber);
         eventRepository.pushEvent(eventDto);
     }
 
-    public TicketWaitingOrderResponse getWaitingOrder(String name) {
+    public TicketWaitingOrderResponse getWaitingOrder(String key) {
         List<TicketQueueEventDto> events = eventRepository.findAllEvents();
         List<String> names = events.stream().map(TicketQueueEventDto::getName).toList();
-        int index = names.indexOf(name);
+        int index = names.indexOf(key);
         if (index == -1) {
             return new TicketWaitingOrderResponse(index, 0);
         }
@@ -87,17 +87,17 @@ public class TicketQueueService {
         eventRepository.deleteAll();
     }
 
-    public SseEmitter saveEmitter(String name) {
+    public SseEmitter saveEmitter(String key) {
         SseEmitter emitter = new SseEmitter(0L);
-        emitterRepository.save(name, emitter);
-        emitter.onCompletion(() -> emitterRepository.deleteByName(name));
+        emitterRepository.save(key, emitter);
+        emitter.onCompletion(() -> emitterRepository.deleteByName(key));
         emitter.onTimeout(() -> {
             emitter.complete();
-            emitterRepository.deleteByName(name);
+            emitterRepository.deleteByName(key);
         });
         emitter.onError((error) -> {
             emitter.complete();
-            emitterRepository.deleteByName(name);
+            emitterRepository.deleteByName(key);
         });
         return emitter;
     }
@@ -107,9 +107,9 @@ public class TicketQueueService {
         if (emitters.isEmpty()) {
             return;
         }
-        for (String name : emitters.keySet()) {
-            TicketWaitingOrderResponse data = getWaitingOrder(name);
-            SseEmitter emitter = emitters.get(name);
+        for (String key : emitters.keySet()) {
+            TicketWaitingOrderResponse data = getWaitingOrder(key);
+            SseEmitter emitter = emitters.get(key);
             if (emitter == null) continue;
             try{
                 if (isEmitterActive(emitter)) {
@@ -118,7 +118,7 @@ public class TicketQueueService {
                             .data(data));
                 }
             } catch (Exception e){
-                emitterRepository.deleteByName(name);
+                emitterRepository.deleteByName(key);
             }
         }
     }

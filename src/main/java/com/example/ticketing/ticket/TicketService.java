@@ -1,5 +1,6 @@
 package com.example.ticketing.ticket;
 
+import com.example.ticketing.common.auth.UserInfo;
 import com.example.ticketing.ticket.component.TicketCounter;
 import com.example.ticketing.ticket.component.TicketManager;
 import com.example.ticketing.ticket.component.TicketTimer;
@@ -47,10 +48,10 @@ public class TicketService {
     }
 
     @Transactional
-    public void issueTicket(TicketRequestDto dto) {
+    public void issueTicket(UserInfo userInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
         ticketCounter.isAvailableCount(seats.size());
-        ticketManager.createTickets(seats, dto.getName());
+        ticketManager.createTickets(userInfo.getKey(), userInfo.getName(), seats);
         ticketCounter.minusTicketCount(seats.size());
     }
 

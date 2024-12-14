@@ -40,7 +40,7 @@ public class TicketScheduler {
         for (int i=1; i<=AI_USER_NUMBER; i++) {
             try {
                 Thread.sleep(AI_USER_INTERVAL);
-                ticketQueueService.saveEvent(new OrderRequestDto(name + i));
+                ticketQueueService.saveEvent(name + i);
             } catch (Exception ignored) {}
         }
     }

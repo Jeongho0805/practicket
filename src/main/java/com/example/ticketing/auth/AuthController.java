@@ -24,8 +24,8 @@ public class AuthController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createSession(@RequestBody LoginRequestDto requestDto, HttpServletRequest request) {
-        authService.createSession(request, requestDto);
+    public ResponseEntity<?> createSession(@RequestBody LoginRequestDto dto, HttpServletRequest request) {
+        authService.createSession(request, dto);
         return ResponseEntity.ok().build();
     }
 
