@@ -11,6 +11,7 @@
     <link rel="icon" href="/image/logo.png" type="image/png">
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/chatting.css">
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
@@ -24,16 +25,7 @@
                     <button id="round-button">예매하기</button>
                 </div>
             </div>
-            <div id="chatting-section">
-                <h1 id="chatting-box-title">채팅창</h1>
-                <div id="chatting-box-section">
-                    Chatting Box
-                </div>
-                <div id="chatting-input-section">
-                    <input id="chatting-input" type="text" placeholder="채팅을 입력해주세요."/>
-                    <button id="chatting-send-button">전송</button>
-                </div>
-            </div>
+            <div th:replace="~{fragments/chatting::chatting}"></div>
             <div id="modal-section">
                 <div id="modal-content">
                     <h2 id="modal-title">예매 대기중입니다.</h2>
@@ -57,5 +49,6 @@
     </div>
     <script type="module" src="/js/main.js"></script>
     <script type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/chatting.js"></script>
 </body>
 </html>
