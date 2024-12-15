@@ -8,6 +8,5 @@ import lombok.ToString;
 @Setter
 @ToString
 public class ChatRequestDto {
-    private String name;
     private String text;
 }

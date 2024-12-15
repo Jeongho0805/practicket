@@ -1,21 +1,78 @@
-import {HOST} from "./common";
+import {HOST, getAuthValue, getNickname} from "./common.js";
+
+function makeChatElements(chat, chatBox, authValue) {
+    const lastChatUnit = chatBox.lastElementChild;
+
+    const chatType = authValue === chat.key ? "sent" : "received";
+    const chatUnit = document.createElement("div");
+    chatUnit.classList.add("chat-unit", chatType);
+
+    chatUnit.setAttribute("data-user-key", chat.key);
+
+    const user = document.createElement("p");
+    user.classList.add("chat-user");
+    user.textContent = chat.name;
+
+    const chatContent = document.createElement("div");
+    chatContent.classList.add("chat-content");
+
+    const message = document.createElement("p");
+    message.classList.add("chat-message");
+    message.textContent = chat.text;
+
+    const time = document.createElement("p");
+    time.classList.add("chat-time");
+    time.textContent = chat.sendAt;
+
+    if (!lastChatUnit || lastChatUnit.dataset.userKey !== chat.key) {
+        chatUnit.appendChild(user);
+    }
+    chatContent.appendChild(message);
+    chatContent.appendChild(time);
+    chatUnit.appendChild(chatContent);
+    chatBox.appendChild(chatUnit);
+
+}
+
+function renderingChatting(data, isFirstRendering) {
+    const authValue = getAuthValue();
+    const chatBox = document.getElementById("chatting-box-section");
+    if (isFirstRendering) {
+        chatBox.innerHTML = "";
+        data.forEach(chat => {
+            makeChatElements(chat, chatBox, authValue);
+        })
+    } else {
+        makeChatElements(data, chatBox, authValue);
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function setChatting() {
+    fetch(`${HOST}/api/chat`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error("Request is failed");
+        }
+        return response.json();
+    }).then(data => {
+        console.log("채팅 데이터 추후 삭제", data);
+        renderingChatting(data, true);
+    }).catch(e => {
+        alert("채팅 전송 실패")
+    })
+}
 
 function setChattingSse() {
-    const eventSource = new EventSource(`${HOST}/api/sse-stream`);
-    eventSource.addEventListener("chat-event", (event) => {
-        // console.log("sse 이벤트 수신");
-        const chattingBox = document.getElementById("chatting-box-section");
-        const childCount = chattingBox.childElementCount;
-        const chatData = JSON.parse(event.data);
-        if (childCount !== chatData.length) {
-            chattingBox.innerHTML = "";
-            chatData.forEach(item => {
-                const newParagraph = document.createElement("p");
-                newParagraph.textContent = item.name + ": " + item.text + "  [" + item.sendAt + "]"
-                chattingBox.appendChild(newParagraph);
-            });
-            chattingBox.scrollTop = chattingBox.scrollHeight;
-        }
+    const eventSource = new EventSource(`${HOST}/api/chat/connection`);
+    eventSource.addEventListener("chat", (event) => {
+        console.log("sse 이벤트 수신");
+        const chat = JSON.parse(event.data);
+        renderingChatting(chat, false);
     });
     eventSource.onerror = (error) => {
         console.error("Error:", error);
@@ -43,8 +100,8 @@ function setChatEventListener() {
             },
             body: JSON.stringify({
                 text: chatting,
-                name: name
-            })
+            }),
+            credentials: "same-origin"
         }).then(response => {
             if (!response.ok) {
                 throw new Error("Request is failed");
@@ -62,5 +119,6 @@ function setChatEventListener() {
     });
 }
 
+setChatting();
 setChatEventListener();
 setChattingSse();

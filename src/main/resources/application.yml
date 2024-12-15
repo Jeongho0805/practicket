@@ -8,14 +8,14 @@ management:
       show-details: always
 
 spring:
-  thymeleaf:
-    cache: false
-    prefix: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/templates/"
+#  thymeleaf:
+#    cache: false
+#    prefix: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/templates/"
   web:
     resources:
       cache:
         period: 0
-      static-locations: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/static/"
+#      static-locations: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/static/"
   datasource:
     url: "jdbc:mysql://localhost:3306/practicket?serverTimezone=Asia/Seoul&useSSL=false"
     username: "root"

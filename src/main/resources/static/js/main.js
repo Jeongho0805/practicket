@@ -6,7 +6,7 @@ function addEventList() {
     // 티켓 예매 이벤트
     const ticket_button = document.getElementById("round-button")
     ticket_button.addEventListener("click", () => {
-        console.log(name);
+        const name = getNickname();
         if (!name) {
             alert("닉네임을 입력해주세요.");
             return

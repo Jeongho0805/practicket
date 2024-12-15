@@ -1,5 +1,7 @@
 package com.example.ticketing.chat;
 
+import com.example.ticketing.common.auth.User;
+import com.example.ticketing.common.auth.UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -20,15 +22,21 @@ public class ChatController {
 
     private final ChatService chatService;
 
+    @GetMapping
+    public ResponseEntity<?> findAllChat() {
+        List<ChatResponseDto> chats = chatService.findAllChat();
+        return ResponseEntity.ok(chats);
+    }
+
     @PostMapping
-    public ResponseEntity<?> sendChat(@RequestBody ChatRequestDto dto) {
-        chatService.saveChat(dto);
+    public ResponseEntity<?> sendChat(@User UserInfo userInfo, @RequestBody ChatRequestDto dto) {
+        chatService.saveChat(userInfo, dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping(value = "/connection", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connectChat(@RequestParam("name") String name) {
-        SseEmitter emitter = chatService.connectChat(name);
+    public ResponseEntity<SseEmitter> connectChat(@User UserInfo userInfo) {
+        SseEmitter emitter = chatService.connectChat(userInfo.getKey());
         return ResponseEntity.ok(emitter);
     }
 }

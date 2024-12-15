@@ -7,16 +7,18 @@ import java.time.format.DateTimeFormatter;
 
 @Getter
 public class ChatResponseDto {
+    private String key;
     private String name;
     private String text;
     private String sendAt;
 
-    public static ChatResponseDto createFromChat(String name, String text, LocalDateTime sendAt) {
+    public static ChatResponseDto createFromChat(Chat chat) {
         ChatResponseDto dto = new ChatResponseDto();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        String sendAtString = sendAt.format(formatter);
-        dto.name = name;
-        dto.text = text;
+        String sendAtString = chat.getCreatedAt().format(formatter);
+        dto.key = chat.getKey();
+        dto.name = chat.getName();
+        dto.text = chat.getText();
         dto.sendAt = sendAtString;
         return dto;
     }
