@@ -10,16 +10,16 @@ public class ViewController {
 
     @GetMapping("/")
     public String main() {
-        return "forward:/page/main.html";
+        return "main";
     }
 
     @GetMapping("/rank")
     public String RankPage() {
-        return "forward:/page/rank.html";
+        return "rank";
     }
 
     @GetMapping("/reservation")
     public String reservationPage() {
-        return "forward:/page/reservation.html";
+        return "reservation";
     }
 }

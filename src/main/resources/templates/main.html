@@ -8,32 +8,12 @@
     <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프랙티켓 - 실전 티켓팅 연습 플랫폼</title>
-    <link rel="icon" href="../img/logo.png" type="image/png">
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/header.css">
 </head>
 <body>
-    <div id="nav-section">
-        <div id="nav-left">
-            <div id="logo-section">
-                <img id="logo-img" src="../img/logo.png">
-                <p id="logo-title">프랙티켓</p>
-            </div>
-            <a href="/" class="nav-text">실전연습</a>
-            <a href="/rank" class="nav-text">순위표</a>
-        </div>
-        <div id="nav-right">
-            <div id="info-section">
-                <div id="name-section">
-                    <p id="name-value"></p>
-                    <button id="reset-button">닉네임 변경</button>
-                </div>
-                <div id="name-input-section">
-                    <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요."/>
-                    <button id="name-input-button" type="button">완료</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header::header}"></div>
     <div id="content-section">
         <div id="ad-section">
         </div>
@@ -75,6 +55,7 @@
         <div id="etc-section">
         </div>
     </div>
-    <script type="module" src="../js/main.js"></script>
+    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/header.js"></script>
 </body>
 </html>
