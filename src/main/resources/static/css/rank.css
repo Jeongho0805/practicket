@@ -5,59 +5,134 @@
     font-style: normal;
 }
 
-html, body {
-    height: 100vh; /* 화면 전체 높이 차지 */
-    width: 100vw;
-    margin: 0;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    flex-direction: column;
-    background: white;
-    font-family: my-font, sans-serif;
+@media (min-width: 769px) {
+    html, body {
+        height: 100vh; /* 화면 전체 높이 차지 */
+        width: 100vw;
+        margin: 0;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: column;
+        background: white;
+        font-family: my-font, sans-serif;
+    }
+
+    #rank-section {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #rank-table {
+        width: 400px;
+        text-align: center;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    #rank-table thead tr {
+        background-color: darkslateblue;
+        color: #ffffff;
+    }
+
+    #rank-table th, #rank-table td {
+        padding: 12px 15px;
+        border: 1px solid #dddddd;
+    }
+    th:nth-child(1), td:nth-child(1) {
+        width: 20%; /* 첫 번째 컬럼 너비 */
+    }
+    th:nth-child(2), td:nth-child(2) {
+        width: 50%; /* 두 번째 컬럼 너비 */
+    }
+    th:nth-child(3), td:nth-child(3) {
+        width: 30%; /* 세 번째 컬럼 너비 */
+    }
+
+    #rank-table tbody tr {
+        border-bottom: 1px solid darkslateblue;
+        background-color: white;
+    }
+
+    #rank-table tbody tr:last-of-type {
+        border-bottom: 2px solid darkslateblue;
+    }
+
+    #rank-table tbody tr:hover {
+        background-color: #f1f1f1;
+    }
 }
 
-#rank-section {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
 
-#rank-table {
-    width: 400px;
-    text-align: center;
-    border-collapse: collapse;
-    font-size: 14px;
-}
 
-#rank-table thead tr {
-    background-color: darkslateblue;
-    color: #ffffff;
-}
+@media (max-width: 768px) {
+    html, body {
+        height: 100vh; /* 화면 전체 높이 차지 */
+        width: 100vw;
+        margin: 0;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        flex-direction: column;
+        background: white;
+        font-family: my-font, sans-serif;
+    }
 
-#rank-table th, #rank-table td {
-    padding: 12px 15px;
-    border: 1px solid #dddddd;
-}
-th:nth-child(1), td:nth-child(1) {
-    width: 20%; /* 첫 번째 컬럼 너비 */
-}
-th:nth-child(2), td:nth-child(2) {
-    width: 50%; /* 두 번째 컬럼 너비 */
-}
-th:nth-child(3), td:nth-child(3) {
-    width: 30%; /* 세 번째 컬럼 너비 */
-}
+    #rank-section {
+        height: 80vh;
+        width: 90%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-grow: 0.95;
+    }
 
-#rank-table tbody tr {
-    border-bottom: 1px solid darkslateblue;
-    background-color: white;
-}
+    #rank-title {
+        margin-bottom: 10px;
+    }
 
-#rank-table tbody tr:last-of-type {
-    border-bottom: 2px solid darkslateblue;
-}
+    #rank-details {
+    }
 
-#rank-table tbody tr:hover {
-    background-color: #f1f1f1;
+    #rank-table {
+        width: calc(100vw * 0.9);
+        text-align: center;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+
+    #rank-table thead tr {
+        background-color: darkslateblue;
+        color: #ffffff;
+    }
+
+    #rank-table th, #rank-table td {
+        padding: 12px 15px;
+        border: 1px solid #dddddd;
+    }
+    th:nth-child(1), td:nth-child(1) {
+        width: 20%; /* 첫 번째 컬럼 너비 */
+    }
+    th:nth-child(2), td:nth-child(2) {
+        width: 50%; /* 두 번째 컬럼 너비 */
+    }
+    th:nth-child(3), td:nth-child(3) {
+        width: 30%; /* 세 번째 컬럼 너비 */
+    }
+
+    #rank-table tbody tr {
+        border-bottom: 1px solid darkslateblue;
+        background-color: white;
+    }
+
+    #rank-table tbody tr:last-of-type {
+        border-bottom: 2px solid darkslateblue;
+    }
+
+    #rank-table tbody tr:hover {
+        background-color: #f1f1f1;
+        display: table;
+        width: 90vw;
+    }
 }

@@ -19,9 +19,9 @@ public class TicketScheduler {
 
     private final TicketManager ticketManager;
 
-    private final static int AI_USER_NUMBER = 100;
+    private final static int AI_USER_NUMBER = 30;
 
-    private final static int AI_USER_INTERVAL = 50;
+    private final static int AI_USER_INTERVAL = 100;
 
     @Scheduled(cron = "30 * * * * *")
     public void resetTime() {
@@ -45,7 +45,7 @@ public class TicketScheduler {
         }
     }
 
-    @Scheduled(cron = "5 * * * * *")
+    @Scheduled(cron = "7 * * * * *")
     public void activateAIUserTicket() {
         String name = "AI-User-";
         for (int i=1; i<=AI_USER_NUMBER; i++) {

@@ -190,7 +190,7 @@ function activateSecurityText() {
     activateModalToggle();
 }
 
-// permissionCheck();
+permissionCheck();
 activateSecurityText();
 await createSeat();
 addButtonEventListener();

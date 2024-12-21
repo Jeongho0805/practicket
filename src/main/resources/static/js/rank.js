@@ -13,7 +13,7 @@ function checkTimeToBack() {
         const second = new Date().getSeconds();
         if (second >= 30 && isTimeToBack) {
             isTimeToBack = false;
-            alert("다음 예매 티켓팅 카운트 다운이 시작됩니다.")
+            // alert("다음 예매 티켓팅 카운트 다운이 시작됩니다.")
         }
         if (second >= 0 && second < 30) {
             isTimeToBack = true;
@@ -76,4 +76,3 @@ function markMyRank() {
 
 displayRank();
 checkTimeToBack();
-moveTicketingPage();

@@ -159,7 +159,6 @@
 
 @media (max-width: 768px) {
     html, body {
-        display: none;
         height: 100vh; /* 화면 전체 높이 차지 */
         width: 100vw;
         margin: 0;
@@ -168,5 +167,145 @@
         flex-direction: column;
         background: white;
         font-family: my-font, sans-serif;
+        overflow: hidden;
+        display: flex;
+    }
+
+    /* 컨텐트 섹션 */
+    #content-section {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        overflow: auto;
+        flex-direction: column;
+        flex-grow: 0.95;
+        width: 100%;
+    }
+
+    #ad-section {
+        display: flex;
+        flex-grow: 0.2;
+        width: 100%;
+        text-align: center;
+        align-items: center;
+    }
+
+    /* 메인 내용 부분 */
+    #main-section {
+        display: flex;
+        flex-grow: 0.8;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    #button-container {
+        display: flex;
+        justify-content: center; /* 가로 중앙 정렬 */
+        align-items: center;
+        flex-grow: 0.8;
+        flex-direction: column;
+    }
+
+    #round-button {
+        width: 150px;
+        height: 100%;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        color: white;
+        background: darkslateblue;
+        font-size: 20px;
+        font-family: my-font, sans-serif;
+    }
+    #round-button:hover {
+        transform: scale(1.1); /* 크기를 10% 정도 확대 */
+    }
+    #countdown {
+        font-size: 20px;
+        color: darkslateblue;
+        font-weight: bolder;
+        text-align: center;
+        display: flex;
+        flex-grow: 0.2;
+        align-items: center;
+        justify-content: center;
+    }
+    /* 티켓팅 영역 */
+    #ticketing-section {
+        display: flex;
+        flex-grow: 0.3;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    #modal-section {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none;
+    }
+    #modal-content {
+        background-color: white;
+        width: 80vw;
+        height: 80vw;
+        border-radius: 10px;
+        border: 3px solid darkslateblue;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    #modal-title {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    #waiting-info-section {
+        background-color: #E6E6FA;
+        width: 80%;
+        height: 50%;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    #waiting-mention {
+        font-weight: bold;
+        line-height: 1.5;
+        font-size: 12px;
+    }
+
+    #waiting-number {
+        font-weight: bold;
+        font-size: 14px;
+        color: darkslateblue;
+    }
+    #progress-container {
+        margin-top: 10px;
+        width: 100%;
+        height: 1vh;
+        border: 3px solid darkslateblue;
+        border-radius: 10px;
+    }
+    #progress-bar {
+        width: 0;
+        height: 1vh;
+        background-color: darkslateblue;
+        border-radius: 25px;
+    }
+
+    #etc-section {
+        display: none;
     }
 }

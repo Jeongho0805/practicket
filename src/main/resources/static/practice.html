@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        #parent{
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            background-color: #514897;
+            flex-direction: column;
+        }
+        .child {
+            display: flex;
+        }
+        #child1 {
+            flex-grow: 0.3;
+            background-color: #2C2C2C;
+            display: flex;
+            flex-direction: column;
+        }
+        #child2 {
+            flex-grow: 0.3;
+            background-color: #6b196b;
+        }
+        #child3 {
+            flex-grow: 0.4;
+            background-color: #480e0e;
+        }
+        #a {
+            flex-grow: 0.5;
+            background-color: #8b7fa0;
+        }
+        #b {
+            flex-grow: 0.5;
+            background-color: coral;
+        }
+    </style>
+</head>
+<body>
+    <div id="parent">
+        <div class="child" id="child1">
+            <div id="a"></div>
+            <div id="b"></div>
+        </div>
+        <div class="child" id="child2"></div>
+        <div class="child" id="child3"></div>
+    </div>
+
+</body>
+</html>
