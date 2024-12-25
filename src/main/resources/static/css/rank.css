@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'my-font';
-    src: url('../fonts/Jalnan.ttf') format('truetype');
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
@@ -68,7 +68,7 @@
 
 @media (max-width: 768px) {
     html, body {
-        height: 100vh; /* 화면 전체 높이 차지 */
+        height: 100dvh; /* 화면 전체 높이 차지 */
         width: 100vw;
         margin: 0;
         display: flex;

@@ -80,10 +80,19 @@ function setChattingSse() {
 }
 
 // 채팅 이벤트 설정
-function setChatEventListener() {
+async function setChatEventListener() {
+    const inputBox = document.getElementById("chatting-input");
+    inputBox.addEventListener("click", async () => {
+        const name = await getNickname();
+        if (!name) {
+            alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+            return
+        }
+    })
+
     const button = document.getElementById("chatting-send-button");
-    button.addEventListener("click", () => {
-        const name = getNickname();
+    button.addEventListener("click", async () => {
+        const name = await getNickname();
         if (!name) {
             alert("채팅을 입력하려면 닉네임을 입력해주세요.")
             return

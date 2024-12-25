@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'my-font';
-    src: url('../fonts/Jalnan.ttf') format('truetype');
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
@@ -159,16 +159,14 @@
 
 @media (max-width: 768px) {
     html, body {
-        height: 100vh; /* 화면 전체 높이 차지 */
+        height: 100dvh; /* 화면 전체 높이 차지 */
         width: 100vw;
         margin: 0;
-        justify-content: flex-start;
-        align-items: center;
-        flex-direction: column;
         background: white;
         font-family: my-font, sans-serif;
         overflow: hidden;
-        display: flex;
+        display: grid;
+        grid-template-rows: 1fr 9fr;
     }
 
     /* 컨텐트 섹션 */
@@ -204,13 +202,12 @@
         display: flex;
         justify-content: center; /* 가로 중앙 정렬 */
         align-items: center;
-        flex-grow: 0.8;
         flex-direction: column;
     }
 
     #round-button {
-        width: 150px;
-        height: 100%;
+        width: 40vw;
+        height: 40vw;
         border: none;
         border-radius: 50%;
         cursor: pointer;
@@ -235,7 +232,7 @@
     /* 티켓팅 영역 */
     #ticketing-section {
         display: flex;
-        flex-grow: 0.3;
+        flex-grow: 0.1;
         width: 100%;
         justify-content: center;
         align-items: center;
