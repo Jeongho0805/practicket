@@ -22,4 +22,9 @@ public class ViewController {
     public String reservationPage() {
         return "reservation";
     }
+
+    @GetMapping("/security")
+    public String securityLetterPage() {
+        return "security";
+    }
 }

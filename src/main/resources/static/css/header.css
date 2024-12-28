@@ -1,5 +1,9 @@
 /* 네비바 */
 @media (min-width: 769px) {
+    .desktop-invisible {
+        display: none;
+    }
+
     #nav-section {
         width: 100%;
         padding: 10px 20px 10px 20px;
@@ -8,6 +12,13 @@
         justify-content: space-between;
         flex-direction: row;
         align-items: center;
+    }
+
+    #nav-upper {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
     }
 
     #nav-left {
@@ -112,13 +123,30 @@
 }
 
 @media (max-width: 768px) {
+    .mobile-invisible {
+        display: none;
+    }
+
     #nav-section {
+        height: 100%;
+        max-height: 100%;
         width: 100%;
-        padding: 15px 5px;
+        padding: 10px 5px;
         box-sizing: border-box;
         font-size: 10px;
         display: grid;
+        grid-auto-flow: row;
+        grid-template-rows: 1fr 1fr;
+        overflow: hidden;
+    }
+
+    #nav-upper {
+        display: grid;
+        overflow: hidden;
+        height: 100%;
+        max-height: 100%;
         grid-auto-flow: column;
+        place-content: space-between;
     }
 
     #nav-left {
@@ -168,16 +196,16 @@
     }
 
     #reset-button {
-        width: 70px;
-        height: 35px;
+        box-sizing: border-box;
         border: none;
         color: white;
         background: darkslateblue;
+        padding: 10px;
         cursor: pointer;
-        border-radius: 10px;
+        border-radius: 5px;
         margin-left: 10px;
         font-weight: bold;
-        font-size: 10px;
+        font-size: 8px;
     }
     #reset-button:hover {
         transform: scale(1.1); /* 크기를 10% 정도 확대 */
@@ -191,7 +219,7 @@
         text-align: center;
         font-weight: bold;
         color: darkslateblue;
-        font-size: 13px;
+        font-size: 10px;
 
     }
 
@@ -233,16 +261,25 @@
     }
 
     .nav-text {
-        padding: 10px;
         box-sizing: border-box;
         font-family: my-font, sans-serif;
         cursor: pointer;
-        color: rgb(25, 25, 26);
         text-decoration: none;
+        color: darkslateblue;
+        padding: 10px 20px;
     }
 
     .nav-text:hover {
         color: darkslateblue;
+    }
+
+    #nav-bottom {
+        height: 100%;
+        max-height: 100%;
+        display: grid;
+        grid-auto-flow: column;
+        align-items: center;
+        justify-items: center;
     }
 }
 
