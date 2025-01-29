@@ -298,6 +298,7 @@
     }
 
     #selected-section {
+        max-height: 100%;
         height: 100%;
         width: 100%;
         display: flex;
@@ -308,6 +309,7 @@
         background-color: white;
         border-radius: 10px;
         margin-bottom: 10px;
+        overflow: hidden;
     }
 
     #selected-seat-list {
@@ -334,26 +336,11 @@
         grid-template-rows: 1fr 1fr;
         width: 100%;
         height: 100%;
-    }
-
-    #complete-button {
-        display: flex;
         align-items: center;
-        justify-content: center;
-        background-color: white;
-        color: darkslateblue;
-        font-family: my-font, sans-serif;
-        font-size: 10px;
-        padding: 10px;
-        width: 100%;
-        height: 80%;
-        box-sizing: border-box;
-        border-radius: 10px;
-        border: 3px solid #e1d4ff;
-        cursor: pointer;
+        justify-items: center;
     }
 
-    #seat-reset-button {
+    #complete-button, #seat-reset-button {
         display: flex;
         align-items: center;
         justify-content: center;
