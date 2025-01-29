@@ -213,27 +213,38 @@
         font-family: my-font, sans-serif;
     }
 
+    #countdown-message {
+        width: 100%;
+        text-align: center;
+        background-color: #514897;
+        color: white;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+    }
+
     #countdown {
         font-size: 20px;
+        height: 100%;
         color: darkslateblue;
         font-weight: bolder;
         text-align: center;
         display: flex;
-        flex-grow: 0.2;
         align-items: center;
         justify-content: center;
         width: 100%;
     }
     /* 티켓팅 영역 */
     #ticketing-section {
-        display: flex;
-        flex-grow: 0.1;
         width: 100%;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        height: 100%;
-        max-height: 100%;
+        overflow: hidden;
+        display: grid;
+        grid-auto-flow: row;
+        grid-template-rows: 1fr 1fr 4fr;
+        justify-items: center;
+        align-items: start;
     }
     #modal-section {
         position: fixed;

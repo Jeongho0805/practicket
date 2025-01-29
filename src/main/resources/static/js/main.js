@@ -12,12 +12,7 @@ function addEventList() {
 
         const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 정각 00초 부터 30초까지 가능합니다."
 
-        // const second = getSyncDate().getSeconds();
-        // if (second >= 30) {
-        //     alert("예매 가능 시간이 아닙니다. \n 예매는 정각 00초 부터 30초까지 가능합니다.")
-        // }
-
-        await checkServerTime();
+        // await checkServerTime();
         const response = await fetch(`${HOST}/api/order`, {
             method: "POST",
             credentials: 'same-origin',
@@ -34,8 +29,8 @@ function addEventList() {
                 }
                 throw new Error(data.message);
             }
-            // activateModalToggle();
-            // setWaitingOrderSse(name);
+            activateModalToggle();
+            setWaitingOrderSse(name);
         } catch(error) {
             console.log(error);
             alert("일시적인 서버 장애로 예매에 실패하였습니다.")
@@ -104,7 +99,7 @@ async function displayTime() {
         const minutes = serverTime.getMinutes().toString().padStart(2, '0');
         const seconds = serverTime.getSeconds().toString().padStart(2, '0');
         const displayElement = document.getElementById('countdown'); // 시간을 표시할 요소 선택
-        displayElement.innerText = `${hours}:${minutes}:${seconds}`;
+        displayElement.innerText = `${hours}시 ${minutes}분 ${seconds}초`;
         updateColor(seconds);
     }, 50)
 }
@@ -112,21 +107,18 @@ async function displayTime() {
 function updateColor(second) {
     const displayElement = document.getElementById('countdown');
     if (second < 30) {
-        displayElement.style.backgroundColor = "red";
-        displayElement.style.color = "white"
+        displayElement.style.color = "red"
     }
     if (second >= 50) {
         const normalizedValue = Math.min(Math.max((second - 50) / 10, 0), 1);
 
-        const green = Math.floor(200 * (1 - normalizedValue));
-        const blue = Math.floor(200 * (1 - normalizedValue));
+        const green = Math.floor(100 * (1 - normalizedValue));
+        const blue = Math.floor(100 * (1 - normalizedValue));
         const color = `rgb(255, ${green}, ${blue})`;
 
-        displayElement.style.backgroundColor = color;
-        displayElement.style.color = "white"
+        displayElement.style.color = color;
     }
     if (second < 50 && second >= 30) {
-        displayElement.style.backgroundColor = "white";
         displayElement.style.color = "darkslateblue"
     }
 }
@@ -156,6 +148,7 @@ window.addEventListener("pageshow", async (event) => {
         window.location.reload();
     }
 });
+
 addEventList();
 await displayTime();
 
