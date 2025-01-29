@@ -208,6 +208,24 @@
     }
 }
 
+
+
+
+
+
+
+
+/*-------------------- 분리선 --------------------------*/
+
+
+
+
+
+
+
+
+
+
 @media (max-width: 768px) {
     html, body {
         height: 100dvh; /* 화면 전체 높이 차지 */
@@ -217,66 +235,19 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        background: white;
         font-family: my-font, sans-serif;
+        background-color: darkslateblue;
     }
 
     #reservation-section {
-        height: 100vw; /* 화면 전체 높이 차지 */
-        width: 100vw;
-        background: linear-gradient(to bottom, #f5c9f4, rgba(133, 218, 234, 0.32));
-        display: flex;
-        flex-direction: row;
-        border-radius: 20px;
-    }
-
-    #right-section {
-        display: flex;
-        flex-grow: 0.2;
-        justify-content: center;
+        height: 60vh; /* 화면 전체 높이 차지 */
+        width: 95vw;
+        display: grid;
         align-items: center;
-        flex-direction: column;
-        background-color: #8b7fa0;
-        border-radius: 10px;
-    }
-
-    #selected-section {
-        flex-grow: 0.2;
-        width: 90%;
-        height: 30%;
-        justify-content: center;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        border: 1px solid #480e0e;
-        background-color: white;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
-
-    #selected-seat-list {
-        height: 100%;
-        width: 100%;
-        overflow-y: auto;
-        text-align: center;
-    }
-
-    #complete-button {
-        display: flex;
-        align-items: flex-end;
-        background-color: white;
-        color: #1c1b20;
-        font-family: my-font, sans-serif;
-        font-size: 10px;
-        padding: 15px;
-        width: 90%;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-    }
-
-    #selected-seat-title {
-        font-size: 15px;
+        justify-items: center;
+        grid-auto-flow: column;
+        grid-template-columns: 7fr 3fr;
+        background-color: darkslateblue;
     }
 
     #seat-section {
@@ -289,15 +260,15 @@
     }
 
     #stage {
-        width: 40%;
+        width: 50%;
         margin-bottom: 10px;
         border-radius: 10px;
-        height: 5%;
-        background-color: darkslateblue;
+        height: 8%;
+        background-color: white;
         display: flex;
         justify-content: center;
         align-items: center;
-        color: white;
+        color: darkslateblue;
     }
 
     #seats {
@@ -310,8 +281,93 @@
         height: 20px;
         width: 20px;
         background-color: white;
-        border: 2px solid black;
+        border: 2px solid #ddd4f3;
         border-radius: 5px;
+    }
+
+    #right-section {
+        display: grid;
+        grid-template-rows: 6fr 4fr;
+        justify-items: center;
+        height: 80%;
+        width: 100%;
+        align-items: center;
+        overflow: hidden;
+        background-color: darkslateblue;
+        padding: 10px;
+    }
+
+    #selected-section {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        border: 3px solid #ae91ef;
+        background-color: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+    #selected-seat-list {
+        height: 100%;
+        width: 100%;
+        overflow-y: auto;
+        text-align: center;
+    }
+
+    #selected-seat-list p {
+        font-size: 12px;
+        margin: 0;
+    }
+
+    #selected-seat-title {
+        font-size: 12px;
+        color: darkslateblue;
+    }
+
+    #button-section {
+        overflow: hidden;
+        display: grid;
+        grid-auto-flow: row;
+        grid-template-rows: 1fr 1fr;
+        width: 100%;
+        height: 100%;
+    }
+
+    #complete-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: darkslateblue;
+        font-family: my-font, sans-serif;
+        font-size: 10px;
+        padding: 10px;
+        width: 100%;
+        height: 80%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 3px solid #e1d4ff;
+        cursor: pointer;
+    }
+
+    #seat-reset-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: white;
+        color: darkslateblue;
+        font-family: my-font, sans-serif;
+        font-size: 10px;
+        padding: 10px;
+        width: 100%;
+        height: 80%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        border: 3px solid #e1d4ff;
+        cursor: pointer;
     }
 
     /*

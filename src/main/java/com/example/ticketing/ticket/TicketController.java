@@ -6,6 +6,7 @@ import com.example.ticketing.ticket.dto.ServerTimeResponseDto;
 import com.example.ticketing.ticket.dto.TicketRankDto;
 import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class TicketController {
 
 
     @PostMapping("/ticket")
-    public ResponseEntity<?> createTicket(@User UserInfo userInfo, @RequestBody TicketRequestDto dto) {
+    public ResponseEntity<?> createTicket(@User UserInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
         ticketService.issueTicket(userInfo, dto);
         return ResponseEntity.ok().build();
     }

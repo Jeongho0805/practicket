@@ -75,6 +75,10 @@ function displaySelectSeat() {
 function addButtonEventListener() {
     const button = document.getElementById("complete-button");
     button.addEventListener("click", () => {
+        if (selected_seats.size === 0) {
+            alert("좌석을 선택해주세요");
+            return;
+        }
         requestReservation();
     });
 }
@@ -193,7 +197,7 @@ window.addEventListener("pageshow", (event) => {
     }
 });
 
-permissionCheck();
-activateSecurityText();
+// permissionCheck();
+// activateSecurityText();
 await createSeat();
 addButtonEventListener();
