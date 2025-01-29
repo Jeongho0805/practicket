@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# 실서버 yml 제외
+src/main/resources/application-prod.yml

@@ -1,7 +1,3 @@
-// export const HOST = "https://practicket.com"
-export const HOST = "http://localhost:8080"
-
-// 닉네임 값 가져오기
 export async function getNickname() {
     console.log("api 요청")
     return await fetch(`${HOST}/api/auth`, {
@@ -28,4 +24,23 @@ export function getAuthValue() {
         }
     }
     return null;
+}
+
+const pageInfo = {
+    ticketing: document.getElementById("ticketing-page-btn"),
+    rank: document.getElementById("rank-page-btn"),
+    security: document.getElementById("security-page-btn")
+}
+
+export function markCurrentPage() {
+    let currentPath = window.location.pathname;
+    currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
+    const button = pageInfo[currentPath];
+
+    Object.values(pageInfo).forEach(btn => {
+        btn.style.backgroundColor = "white";
+        button.style.color = "darkslateblue";
+    });
+    button.style.backgroundColor = "darkslateblue";
+    button.style.color = "white";
 }

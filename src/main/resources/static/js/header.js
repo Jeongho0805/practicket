@@ -1,4 +1,4 @@
-import { getNickname, HOST } from "./common.js";
+import { getNickname, markCurrentPage } from "./common.js";
 
 // 페이지 로드시 마다 실행 (새로고침 포함)
 let name;
@@ -81,3 +81,4 @@ function requestDeleteSession() {
 }
 
 addHeaderEventList();
+markCurrentPage();

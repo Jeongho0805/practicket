@@ -1,26 +1,23 @@
-import { getNickname, HOST } from "./common.js";
+import { getNickname } from "./common.js";
 
 const selected_seats = new Set();
 let security_text;
 
-function hasPermission(name) {
+function hasPermission() {
     const key = "permission";
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${key}=`);
-    return parts.length === 2;
-
+    const cookies = document.cookie.split(';'); // 쿠키 문자열을 ;로 분리
+    cookies.forEach((c) => console.log(c));
+    return cookies.some(cookie => cookie.trim().startsWith(`${key}=`));
 }
 
 // 예매 페이지 접근 권한 확인
 function permissionCheck() {
-    window.onload = function() {
-        if (hasPermission()) {
-            document.cookie = "permission=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        } else {
-            alert("권한 없음")
-            window.location.href = `${HOST}`;
-        }
-    };
+    if (!hasPermission()) {
+        alert("비정상적인 경로를 통하여 접근하셨습니다\n 예매페이지로 돌아갑니다.")
+        window.location.href = `${HOST}`;
+    } else {
+        document.cookie = "permission=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
 }
 
 async function createSeat() {
@@ -189,6 +186,12 @@ function activateSecurityText() {
     addSecurityResetEvent();
     activateModalToggle();
 }
+
+window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+        permissionCheck();
+    }
+});
 
 permissionCheck();
 activateSecurityText();

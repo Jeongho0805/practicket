@@ -12,6 +12,7 @@
     <link rel="icon" href="/image/logo.png" type="image/png">
     <link rel="stylesheet" href="/css/rank.css">
     <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/chatting.css">
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
@@ -26,11 +27,20 @@
                         <th>시간</th>
                     </tr>
                 </thead>
-                <tbody id="rank-body"></tbody>
+                <tbody id="rank-body">
+<!--                    <tr>-->
+<!--                        <td>1</td>-->
+<!--                        <td>호야</td>-->
+<!--                        <td>7.73초</td>-->
+<!--                    </tr>-->
+                </tbody>
             </table>
         </div>
     </div>
+    <div th:replace="~{fragments/chatting::chatting}"></div>
+    <script> const HOST = "[[${host}]]"; </script>
     <script type="module" src="/js/rank.js"></script>
     <script type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/chatting.js"></script>
 </body>
 </html>

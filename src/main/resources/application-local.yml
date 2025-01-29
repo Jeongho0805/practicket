@@ -1,0 +1,19 @@
+spring:
+  thymeleaf:
+    cache: false
+    prefix: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/templates/"
+  web:
+    resources:
+      cache:
+        period: 0
+      static-locations: "file:///Users/jeongho/JavaProjects/ticketing/src/main/resources/static/"
+  datasource:
+    url: "jdbc:mysql://localhost:3306/practicket?serverTimezone=Asia/Seoul&useSSL=false"
+    username: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+app:
+  host: "http://localhost:8080"

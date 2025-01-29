@@ -1,8 +1,12 @@
 package com.example.ticketing.common;
 
+import org.springframework.http.HttpStatus;
+
 public enum ErrorCode {
     // 409 Conflict
     SEAT_ALREADY_BOOKED(409, "T01", "이미 선택된 좌석입니다."),
+
+    TICKETING_TIME_IS_NOT_ALLOWED(HttpStatus.BAD_REQUEST.value(), "T02", "예매가능한 시간이 아닙니다."),
 
     SESSION_IS_NOT_EXIST(404, "A01", "세션이 존재하지 않습니다.");
 

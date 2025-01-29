@@ -167,7 +167,7 @@
         font-family: my-font, sans-serif;
         overflow: hidden;
         display: grid;
-        grid-template-rows: 15fr 85fr;
+        grid-template-rows: 20fr 80fr;
     }
 
     /* 컨텐트 섹션 */
@@ -212,9 +212,7 @@
         font-size: 20px;
         font-family: my-font, sans-serif;
     }
-    #round-button:hover {
-        transform: scale(1.1); /* 크기를 10% 정도 확대 */
-    }
+
     #countdown {
         font-size: 20px;
         color: darkslateblue;
@@ -224,6 +222,7 @@
         flex-grow: 0.2;
         align-items: center;
         justify-content: center;
+        width: 100%;
     }
     /* 티켓팅 영역 */
     #ticketing-section {

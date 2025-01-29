@@ -1,32 +1,45 @@
-import { getNickname, HOST } from "./common.js";
-
-
+import { getNickname } from "./common.js";
 
 function addEventList() {
     // 티켓 예매 이벤트
     const ticket_button = document.getElementById("round-button")
-    ticket_button.addEventListener("click", () => {
-        const name = getNickname();
+    ticket_button.addEventListener("click", async () => {
+        const name = await getNickname();
         if (!name) {
             alert("닉네임을 입력해주세요.");
             return
         }
 
-        fetch(`${HOST}/api/order`, {
+        const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 정각 00초 부터 30초까지 가능합니다."
+
+        // const second = getSyncDate().getSeconds();
+        // if (second >= 30) {
+        //     alert("예매 가능 시간이 아닙니다. \n 예매는 정각 00초 부터 30초까지 가능합니다.")
+        // }
+
+        await checkServerTime();
+        const response = await fetch(`${HOST}/api/order`, {
             method: "POST",
             credentials: 'same-origin',
             headers: {
                 "Content-Type": "application/json",
             },
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error("Request is failed");
+        });
+        try {
+            if(!response.ok) {
+                const data = await response.json();
+                if(data.code === "T02") {
+                    alert(timeErrorMessage);
+                    return;
+                }
+                throw new Error(data.message);
             }
-            activateModalToggle();
-            setWaitingOrderSse(name);
-        }).catch(error => {
-            alert("에매 실패")
-        })
+            // activateModalToggle();
+            // setWaitingOrderSse(name);
+        } catch(error) {
+            console.log(error);
+            alert("일시적인 서버 장애로 예매에 실패하였습니다.")
+        }
     })
 }
 
@@ -66,32 +79,83 @@ function setWaitingOrderSse(name) {
     };
 }
 
-function startCountdown() {
-    let isCountDownOn = false;
+let serverOffset;
+
+async function fetchServerTime() {
+    const localTime = new Date();
+    const response = await fetch(`${HOST}/api/server-time`);
+    const data = await response.json();
+    const serverTime = new Date(data.serverTime);
+    console.log(`초기서버=${serverTime.getSeconds()}.${serverTime.getMilliseconds()}`);
+    console.log(`초기로컬=${localTime.getSeconds()}.${localTime.getMilliseconds()}`);
+    serverOffset = serverTime.getTime() - localTime.getTime();
+    console.log("오프셋=", serverOffset)
+}
+
+function getSyncDate() {
+    return new Date(new Date().getTime() + serverOffset);
+}
+
+async function displayTime() {
+    await fetchServerTime();
     setInterval(() => {
-        const seconds = new Date().getSeconds();
-        if (seconds >= 30 && !isCountDownOn) {
-            displayCountDown(60 - seconds);
-            isCountDownOn = true;
-        }
-        if (seconds < 30) {
-            isCountDownOn = false;
-        }
-    }, 1000)
+        const serverTime = getSyncDate();
+        const hours = serverTime.getHours().toString().padStart(2, '0');
+        const minutes = serverTime.getMinutes().toString().padStart(2, '0');
+        const seconds = serverTime.getSeconds().toString().padStart(2, '0');
+        const displayElement = document.getElementById('countdown'); // 시간을 표시할 요소 선택
+        displayElement.innerText = `${hours}:${minutes}:${seconds}`;
+        updateColor(seconds);
+    }, 50)
 }
 
-function displayCountDown() {
+function updateColor(second) {
+    const displayElement = document.getElementById('countdown');
+    if (second < 30) {
+        displayElement.style.backgroundColor = "red";
+        displayElement.style.color = "white"
+    }
+    if (second >= 50) {
+        const normalizedValue = Math.min(Math.max((second - 50) / 10, 0), 1);
+
+        const green = Math.floor(200 * (1 - normalizedValue));
+        const blue = Math.floor(200 * (1 - normalizedValue));
+        const color = `rgb(255, ${green}, ${blue})`;
+
+        displayElement.style.backgroundColor = color;
+        displayElement.style.color = "white"
+    }
+    if (second < 50 && second >= 30) {
+        displayElement.style.backgroundColor = "white";
+        displayElement.style.color = "darkslateblue"
+    }
+}
+
+//todo 시간 확인을 위한 임시 처리
+async function checkServerTime() {
+    const synTime = getSyncDate();
+    const synTimeInfo = `${synTime.getHours()}:${synTime.getMinutes()}:${synTime.getSeconds()}.${synTime.getMilliseconds()}`
+
+    const deviceTime = new Date();
+    const deviceTimeInfo = `${deviceTime.getHours()}:${deviceTime.getMinutes()}:${deviceTime.getSeconds()}.${deviceTime.getMilliseconds()}`
+
+    const response = await fetch(`${HOST}/api/server-time`);
+    const data = await response.json();
+    const serverDate = new Date(data.serverTime);
+    const serverDateInfo = `${serverDate.getHours()}:${serverDate.getMinutes()}:${serverDate.getSeconds()}.${serverDate.getMilliseconds()}`
+
     const displayElement = document.getElementById('countdown'); // 시간을 표시할 요소 선택
-    const countdownInterval = setInterval(() => {
-        const remainingSecond = 60 - new Date().getSeconds();
-        if (remainingSecond === 60) {
-            displayElement.innerText = "Ticketing Start!";
-            clearInterval(countdownInterval);
-        } else {
-            displayElement.innerText = remainingSecond.toString();
-        }
-    }, 1000);
+
+    console.log(
+        `보정시간=${synTimeInfo} \n기기시간=${deviceTimeInfo}\n서버시간-${serverDateInfo}\n표시시간=${displayElement.innerText}\n차이=${serverOffset}`
+    );
 }
 
+window.addEventListener("pageshow", async (event) => {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
 addEventList();
-startCountdown();
+await displayTime();
+

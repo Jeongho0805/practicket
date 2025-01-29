@@ -1,4 +1,4 @@
-import { getAuthValue, HOST } from "./common.js";
+import { getAuthValue } from "./common.js";
 
 function moveTicketingPage() {
     const button = document.getElementById("move-page-btn")

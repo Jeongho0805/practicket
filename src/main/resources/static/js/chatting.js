@@ -1,4 +1,4 @@
-import {HOST, getAuthValue, getNickname} from "./common.js";
+import { getAuthValue, getNickname} from "./common.js";
 
 function makeChatElements(chat, chatBox, authValue) {
     const lastChatUnit = chatBox.lastElementChild;

@@ -2,6 +2,7 @@ package com.example.ticketing.ticket;
 
 import com.example.ticketing.common.auth.User;
 import com.example.ticketing.common.auth.UserInfo;
+import com.example.ticketing.ticket.dto.ServerTimeResponseDto;
 import com.example.ticketing.ticket.dto.TicketRankDto;
 import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -53,5 +56,14 @@ public class TicketController {
         ticketService.validateStartTime();
         ticketQueueService.saveEvent(userInfo.getKey());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/server-time")
+    public ResponseEntity<?> getServerTime() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        String formattedTime = now.format(formatter);
+        ServerTimeResponseDto response = new ServerTimeResponseDto(formattedTime);
+        return ResponseEntity.ok().body(response);
     }
 }
