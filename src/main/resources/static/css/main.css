@@ -181,6 +181,8 @@
 
     #ad-section {
         width: 100%;
+        overflow: hidden;
+        /*max-width: 200px;*/
     }
 
     /* 메인 내용 부분 */

@@ -10,7 +10,7 @@ function addEventList() {
             return
         }
 
-        const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 정각 00초 부터 30초까지 가능합니다."
+        const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 매분 00초 부터 30초까지 가능합니다."
 
         // await checkServerTime();
         const response = await fetch(`${HOST}/api/order`, {
