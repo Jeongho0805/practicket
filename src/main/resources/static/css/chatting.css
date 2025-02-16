@@ -64,11 +64,6 @@
         align-items: flex-end;
     }
 
-    .chat-content {
-        width: 60%;
-        max-width: 60%;
-    }
-
     .chat-user {
         margin: 20px 5px 0 5px;
         font-size: 20px;
@@ -82,12 +77,33 @@
         margin: 5px 0px;
         color: white;
         font-size: 15px;
-        max-width: 70%;
+        max-width: 60%;
     }
 
     .chat-time {
         font-size: 10px;
         margin: 10px 5px;
+    }
+
+    /* 체팅 날짜 설정 */
+    .chat-date {
+        width: 100%;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        box-sizing: border-box;
+        height: 25%;
+        padding-top: 10%;
+    }
+
+    .chat-date > p {
+        margin: 0;
+        color: white;
+        background-color: darkslateblue;
+        padding: 5px 20px;
+        font-size: 12px;
+        box-sizing: border-box;
+        border-radius: 5em;
     }
 
 
@@ -232,6 +248,27 @@
     .chat-time {
         font-size: 10px;
         margin: 10px 5px;
+    }
+
+    /* 체팅 날짜 설정 */
+    .chat-date {
+        width: 100%;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        box-sizing: border-box;
+        height: 50%;
+        padding-top: 10%;
+    }
+
+    .chat-date > p {
+        margin: 0;
+        color: white;
+        background-color: darkslateblue;
+        padding: 5px 20px;
+        font-size: 10px;
+        box-sizing: border-box;
+        border-radius: 5em;
     }
 
 

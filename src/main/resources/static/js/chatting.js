@@ -8,6 +8,7 @@ function makeChatElements(chat, chatBox, authValue) {
     chatUnit.classList.add("chat-unit", chatType);
 
     chatUnit.setAttribute("data-user-key", chat.key);
+    chatUnit.setAttribute("data-send-at", chat.sendAt);
 
     const user = document.createElement("p");
     user.classList.add("chat-user");
@@ -20,18 +21,34 @@ function makeChatElements(chat, chatBox, authValue) {
     message.classList.add("chat-message");
     message.textContent = chat.text;
 
+    const chatDateTime = new Date(chat.sendAt);
+    const hour = chatDateTime.getHours();
+    const period = hour < 12 ? "오전" : "오후";
+    const timeValue = `${period} ${hour % 12 || 12}:${String(chatDateTime.getMinutes()).padStart(2, "0")}`;
+    const dateValue = `${chatDateTime.getFullYear()}년 ${chatDateTime.getMonth() + 1}월 ${chatDateTime.getDate()}일`
+
+    const date = document.createElement("div");
+    const dateText = document.createElement("p");
+    dateText.textContent = dateValue;
+    date.appendChild(dateText);
+    date.classList.add("chat-date");
+
     const time = document.createElement("p");
     time.classList.add("chat-time");
-    time.textContent = chat.sendAt;
+    time.textContent = timeValue;
 
     if (!lastChatUnit || lastChatUnit.dataset.userKey !== chat.key) {
         chatUnit.appendChild(user);
     }
+
+    if (!lastChatUnit || (new Date(lastChatUnit.dataset.sendAt).getDate() !== chatDateTime.getDate())) {
+        chatBox.appendChild(date);
+    }
+
     chatContent.appendChild(message);
     chatContent.appendChild(time);
     chatUnit.appendChild(chatContent);
     chatBox.appendChild(chatUnit);
-
 }
 
 function renderingChatting(data, isFirstRendering) {
