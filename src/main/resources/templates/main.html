@@ -13,25 +13,27 @@
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/chatting.css">
+
+    <!-- 구글 에드센스 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5146591484722882" crossorigin="anonymous"></script>
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
     <div id="content-section">
         <div id="ad-section">
-            <ins class="adsbygoogle"
-                 style="display:inline-block; width: 100%; height: 100%;"
-                 data-ad-client="ca-pub-5146591484722882"
-                 data-ad-slot="0987654321"
-                 data-ad-format="fluid"
-                 data-full-width-responsive="true">
-            </ins>
-            <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+<!--            <ins class="adsbygoogle"-->
+<!--                 style="display:block"-->
+<!--                 data-ad-client="ca-pub-5146591484722882"-->
+<!--                 data-ad-slot="9697904962"-->
+<!--                 data-ad-format="fluid"-->
+<!--                 data-full-width-responsive="true"></ins>-->
+<!--            </ins>-->
         </div>
         <div id="main-section">
             <div id="ticketing-section">
-                <div id="countdown-message">예매 가능 시간 (매분 00초 ~ 30초)</div>
+                <div id="countdown-message">예매 가능 시간
+                    <span id="countdown-message-important">[00초 ~ 30초]</span>
+                </div>
                 <div id="countdown"></div>
                 <div id="button-container">
                     <button id="round-button">예매하기</button>
@@ -58,10 +60,11 @@
         </div>
         <div id="etc-section"></div>
     </div>
+    <!-- 광로 로드   -->
+<!--    <script> (adsbygoogle = window.adsbygoogle || []).push({});</script>-->
     <script> const HOST = "[[${host}]]"; </script>
     <script type="module" src="/js/main.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/chatting.js"></script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5146591484722882" crossorigin="anonymous"></script>
 </body>
 </html>

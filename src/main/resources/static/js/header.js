@@ -34,6 +34,21 @@ function addHeaderEventList() {
         location.reload();
     })
 
+    // 엔터 키 이벤트 추가
+    const name_input_box = document.getElementById("name-input-box");
+    name_input_box.addEventListener("keyup", async (event) => {
+        if (event.key === "Enter") {
+            const name = document.getElementById("name-input-box").value;
+            if (name === "" || !name) {
+                alert("닉네임을 입력해주세요.");
+                return
+            }
+            await requestCreateSession(name);
+            location.reload();
+        }
+    });
+
+
     // 닉네임 변경 이벤트
     const name_reset_button = document.getElementById("reset-button");
     name_reset_button.addEventListener("click", async () => {

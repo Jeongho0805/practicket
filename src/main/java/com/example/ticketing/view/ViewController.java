@@ -5,12 +5,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Slf4j
 @Controller
 public class ViewController {
 
-    @Value("${app.host}") // application.yml에서 값 가져오기
+    @Value("${app.host}")
     private String host;
 
     @GetMapping("/")
@@ -36,5 +37,11 @@ public class ViewController {
     public String securityLetterPage(Model model) {
         model.addAttribute("host", host);
         return "security";
+    }
+
+    @GetMapping("/blog/{id}")
+    public String blogPageForAdsense(@PathVariable("id") String id, Model model) {
+        model.addAttribute("host", host);
+        return "blog/" + id;
     }
 }

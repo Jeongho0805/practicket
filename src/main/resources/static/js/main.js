@@ -12,7 +12,6 @@ function addEventList() {
 
         const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 매분 00초 부터 30초까지 가능합니다."
 
-        // await checkServerTime();
         const response = await fetch(`${HOST}/api/order`, {
             method: "POST",
             credentials: 'same-origin',
@@ -78,7 +77,9 @@ let serverOffset;
 
 async function fetchServerTime() {
     const localTime = new Date();
-    const response = await fetch(`${HOST}/api/server-time`);
+    const response = await fetch(`${HOST}/api/server-time`, {
+        cache: 'no-store'
+    });
     const data = await response.json();
     const serverTime = new Date(data.serverTime);
     console.log(`초기서버=${serverTime.getSeconds()}.${serverTime.getMilliseconds()}`);
