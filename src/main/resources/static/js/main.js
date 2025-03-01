@@ -107,8 +107,8 @@ async function displayTime() {
 
 function updateColor(second) {
     const displayElement = document.getElementById('countdown');
-    if (second < 30) {
-        displayElement.style.color = "red"
+    if (second < 60) {
+        displayElement.style.color = "#3CB371"
     }
     if (second >= 50) {
         const normalizedValue = Math.min(Math.max((second - 50) / 10, 0), 1);

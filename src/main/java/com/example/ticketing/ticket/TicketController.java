@@ -4,7 +4,6 @@ import com.example.ticketing.common.auth.User;
 import com.example.ticketing.common.auth.UserInfo;
 import com.example.ticketing.ticket.dto.ServerTimeResponseDto;
 import com.example.ticketing.ticket.dto.TicketRankDto;
-import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

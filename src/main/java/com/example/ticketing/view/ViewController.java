@@ -39,8 +39,14 @@ public class ViewController {
         return "security";
     }
 
+    @GetMapping("/blog")
+    public String blogList(Model model) {
+        model.addAttribute("host", host);
+        return "blog";
+    }
+
     @GetMapping("/blog/{id}")
-    public String blogPageForAdsense(@PathVariable("id") String id, Model model) {
+    public String blogContents(@PathVariable("id") String id, Model model) {
         model.addAttribute("host", host);
         return "blog/" + id;
     }

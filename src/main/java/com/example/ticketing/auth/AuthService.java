@@ -1,7 +1,7 @@
 package com.example.ticketing.auth;
 
 import com.example.ticketing.auth.component.ClientIpManager;
-import com.example.ticketing.auth.component.ClientIpResolver;
+import com.example.ticketing.auth.component.ClientExtractor;
 import com.example.ticketing.auth.component.SessionManager;
 import com.example.ticketing.auth.dto.LoginRequestDto;
 import com.example.ticketing.auth.dto.SessionObject;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final ClientIpResolver clientIpResolver;
+    private final ClientExtractor clientExtractor;
 
     private final ClientIpManager clientIpManager;
 
@@ -24,9 +24,10 @@ public class AuthService {
     }
 
     public void createSession(HttpServletRequest request, LoginRequestDto dto) {
-        String clientIp = clientIpResolver.extractClientIp(request);
-        clientIpManager.save(clientIp);
-        sessionManager.createSession(request, clientIp, dto.getName());
+        String ip = clientExtractor.extractClientIp(request);
+        String device = clientExtractor.extractClientDevice(request);
+        clientIpManager.save(dto.getName(), ip, device);
+        sessionManager.createSession(request, ip, dto.getName());
     }
 
     public void deleteSession(HttpServletRequest request) {

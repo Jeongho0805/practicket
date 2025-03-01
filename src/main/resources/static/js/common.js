@@ -29,7 +29,8 @@ export function getAuthValue() {
 const pageInfo = {
     ticketing: document.getElementById("ticketing-page-btn"),
     rank: document.getElementById("rank-page-btn"),
-    security: document.getElementById("security-page-btn")
+    security: document.getElementById("security-page-btn"),
+    blog: document.getElementById("blog-page-btn")
 }
 
 export function markCurrentPage() {
