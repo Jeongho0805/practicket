@@ -40,12 +40,13 @@
     }
 
     #blog-title {
-        font-size: 2rem;
+        font-size: 25px;
+        color: darkslateblue;
         text-align: center;
     }
 
     #blog-sub-title {
-        font-size: 1rem;
+        font-size: 16px;
         text-align: center;
         padding: 1em;
         border-radius: 1em;
@@ -151,7 +152,7 @@
     }
 
     p {
-        font-size: 12px;
+        font-size: 13px;
     }
 
     .link-page {

@@ -18,4 +18,28 @@
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
+    <url>
+        <loc>https://practicket.com/blog/2</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/3</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/4</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/5</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
 </urlset>
