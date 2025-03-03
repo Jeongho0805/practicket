@@ -32,7 +32,6 @@ public class ViewController {
         return "reservation";
     }
 
-
     @GetMapping("/security")
     public String securityLetterPage(Model model) {
         model.addAttribute("host", host);

@@ -96,4 +96,4 @@ function requestDeleteSession() {
 }
 
 addHeaderEventList();
-// markCurrentPage();
+markCurrentPage();

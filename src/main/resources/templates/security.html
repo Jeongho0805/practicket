@@ -2,10 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="title" content="프랙티켓 | 실전 티켓팅 연습사이트">
+    <meta name="description" content="프랙티켓은 실전을 통해 티켓 예매 성공률을 높일 수 있는 티켓팅 연습 플랫폼입니다.">
+    <meta name="robots" content="index, follow">
+    <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <title>프랙티켓 - 보안문자 입력 연습</title>
+    <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="canonical" href="https://practicket.com/">
+    <link rel="stylesheet" href="/css/security.css">
+    <link rel="stylesheet" href="/css/header.css">
 </head>
 <body>
-    <h1>페이지 준비중입니다.</h1>
+    <div th:replace="~{fragments/header::header}"></div>
+    <div id="content-section">
+        <div id="ad-section"></div>
+        <div id="main-section">
+            <div id="title-section">
+                <h1>보안문자 입력 연습도 프랙티켓에서!</h1>
+                <h2>실제 사용자들과 비교하여 나의 보안 문자 입력 속도는 얼마나 되는지 확인해보세요.</h2>
+            </div>
+            <div id="guide-section">
+                <h3 id="guide-section-title">다음과 같이 동작합니다.</h3>
+                <p>
+                    - 시작하기를 누르면 3초 카운트다운이 시작됩니다. <br/>
+                    - 3개의 보안 문자가 제시됩니다. <br/>
+                    - 모든 보안문자 입력을 성공적으로 완료하면 나의 랭킹이 표시됩니다. <br/>
+                </p>
+            </div>
+<!--            style="align-items: center; height: 100%-->
+            <div id="security-section">
+                <button id="start-button">시작하기</button>
+                <div id="security-letter-section">
+                    <h3 id="security-letter-title">문자를 입력해주세요</h3>
+                    <div id="security-letter-guide">
+                        <p id="security-letter-count-message"></p>
+                        <h4 id="security-letter-count">맞춘 갯수&nbsp;&nbsp;  <span id="correct-count">0</span></h4>
+                    </div>
+                    <div id="security-letter-image-background">
+                        <canvas id="security-letter-image"></canvas>
+                    </div>
+                    <div id="security-input-section">
+                        <input id="security-input" placeholder="문자를 입력해주세요.">
+                        <button id="security-input-button">입력완료</button>
+                    </div>
+                </div>
+            </div>
+            <div id="result-section">
+                <h3 id="result-title">보안문자 입력 결과</h3>
+                <div id="result-detail">
 
+
+                </div>
+            </div>
+        </div>
+        <div id="etc-section"></div>
+    </div>
+    <script> const HOST = "[[${host}]]"; </script>
+    <script type="module" src="/js/security.js"></script>
+    <script type="module" src="/js/header.js"></script>
 </body>
 </html>
