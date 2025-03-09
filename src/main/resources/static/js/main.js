@@ -102,7 +102,7 @@ async function displayTime() {
         const displayElement = document.getElementById('countdown'); // 시간을 표시할 요소 선택
         displayElement.innerText = `${hours}시 ${minutes}분 ${seconds}초`;
         updateColor(seconds);
-    }, 50)
+    }, 100)
 }
 
 function updateColor(second) {

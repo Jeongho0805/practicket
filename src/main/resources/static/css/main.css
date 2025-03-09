@@ -76,17 +76,18 @@
     #round-button:hover {
         transform: scale(1.05);
     }
+
     #countdown-message {
-        display: grid;
+        display: flex;
         align-items: center;
-        justify-items: center;
+        justify-content: center;
         width: 80%;
         height: 30%;
         background-color: darkslateblue;
         padding: 10px;
         color: white;
         text-align: center;
-        font-size: 20px;
+        font-size: 15px;
         border-radius: 10px;
     }
 
@@ -96,6 +97,7 @@
         box-sizing: border-box;
         border-radius: 10px;
         color: darkslateblue;
+        margin-left: 10px;
     }
 
     #countdown {

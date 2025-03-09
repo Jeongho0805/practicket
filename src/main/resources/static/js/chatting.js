@@ -8,7 +8,7 @@ function makeChatElements(chat, chatBox, authValue) {
     chatUnit.classList.add("chat-unit", chatType);
 
     chatUnit.setAttribute("data-user-key", chat.key);
-    chatUnit.setAttribute("data-send-at", chat.sendAt);
+    chatUnit.setAttribute("data-send-at", chat.send_at);
 
     const user = document.createElement("p");
     user.classList.add("chat-user");
@@ -77,7 +77,6 @@ function setChatting() {
         }
         return response.json();
     }).then(data => {
-        console.log("채팅 데이터 추후 삭제", data);
         renderingChatting(data, true);
     }).catch(e => {
         alert("채팅 전송 실패")
@@ -87,7 +86,6 @@ function setChatting() {
 function setChattingSse() {
     const eventSource = new EventSource(`${HOST}/api/chat/connection`);
     eventSource.addEventListener("chat", (event) => {
-        console.log("sse 이벤트 수신");
         const chat = JSON.parse(event.data);
         renderingChatting(chat, false);
     });
@@ -103,7 +101,6 @@ async function setChatEventListener() {
         const name = await getNickname();
         if (!name) {
             alert("채팅을 입력하려면 닉네임을 입력해주세요.")
-            return
         }
     })
 
@@ -146,5 +143,5 @@ async function setChatEventListener() {
 }
 
 setChatting();
-setChatEventListener();
+await setChatEventListener();
 setChattingSse();
