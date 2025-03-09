@@ -21,7 +21,7 @@ function makeChatElements(chat, chatBox, authValue) {
     message.classList.add("chat-message");
     message.textContent = chat.text;
 
-    const chatDateTime = new Date(chat.sendAt);
+    const chatDateTime = new Date(chat.send_at);
     const hour = chatDateTime.getHours();
     const period = hour < 12 ? "오전" : "오후";
     const timeValue = `${period} ${hour % 12 || 12}:${String(chatDateTime.getMinutes()).padStart(2, "0")}`;

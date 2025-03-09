@@ -1,7 +1,7 @@
 package com.example.ticketing.ticket;
 
-import com.example.ticketing.common.ErrorCode;
-import com.example.ticketing.common.TicketException;
+import com.example.ticketing.common.exception.ErrorCode;
+import com.example.ticketing.common.exception.TicketException;
 import com.example.ticketing.common.auth.UserInfo;
 import com.example.ticketing.ticket.component.TicketCounter;
 import com.example.ticketing.ticket.component.TicketManager;
@@ -14,9 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.StreamSupport;
 

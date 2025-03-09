@@ -20,17 +20,15 @@
         <div id="main-section">
             <div id="title-section">
                 <h1>보안문자 입력 연습도 프랙티켓에서!</h1>
-                <h2>실제 사용자들과 비교하여 나의 보안 문자 입력 속도는 얼마나 되는지 확인해보세요.</h2>
+                <h2>실제 사용자들과 비교하여 나의 보안문자 입력 결과를 확인해보세요.</h2>
             </div>
             <div id="guide-section">
-                <h3 id="guide-section-title">다음과 같이 동작합니다.</h3>
-                <p>
-                    - 시작하기를 누르면 3초 카운트다운이 시작됩니다. <br/>
-                    - 3개의 보안 문자가 제시됩니다. <br/>
-                    - 모든 보안문자 입력을 성공적으로 완료하면 나의 랭킹이 표시됩니다. <br/>
+                <p class="guide-description">시작에 앞서 닉네임을 입력해주세요</p>
+                <p class="guide-description">
+                    시작하기를 누르면 <span class="guide-highlight">3초</span> 카운트다운 이후 <span class="guide-highlight">3개</span>의 보안문자가 제시됩니다.
                 </p>
+                <p class="guide-description">모든 보안문자 입력을 성공적으로 완료하면 나의 랭킹이 표시됩니다</p>
             </div>
-<!--            style="align-items: center; height: 100%-->
             <div id="security-section">
                 <button id="start-button">시작하기</button>
                 <div id="security-letter-section">
@@ -51,8 +49,18 @@
             <div id="result-section">
                 <h3 id="result-title">보안문자 입력 결과</h3>
                 <div id="result-detail">
-
-
+                    <div class="result-detail-content" id="my-latest-result">
+                        <h4>내 최근 결과</h4>
+                        <p id="my-latest-result-value"></p>
+                    </div>
+                    <div class="result-detail-content" id="my-average-result">
+                        <h4>내 평균 소요시간</h4>
+                        <p id="my-average-result-value"></p>
+                    </div>
+                    <div class="result-detail-content" id="total-average-result">
+                        <h4>전체 평균 소요시간</h4>
+                        <p id="total-average-result-value"></p>
+                    </div>
                 </div>
             </div>
         </div>

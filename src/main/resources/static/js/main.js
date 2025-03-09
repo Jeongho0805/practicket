@@ -81,7 +81,7 @@ async function fetchServerTime() {
         cache: 'no-store'
     });
     const data = await response.json();
-    const serverTime = new Date(data.serverTime);
+    const serverTime = new Date(data.server_time);
     console.log(`초기서버=${serverTime.getSeconds()}.${serverTime.getMilliseconds()}`);
     console.log(`초기로컬=${localTime.getSeconds()}.${localTime.getMilliseconds()}`);
     serverOffset = serverTime.getTime() - localTime.getTime();

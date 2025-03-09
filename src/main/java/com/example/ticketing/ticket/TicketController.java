@@ -38,7 +38,6 @@ public class TicketController {
         return ResponseEntity.ok(seats);
     }
 
-
     @PostMapping("/ticket")
     public ResponseEntity<?> createTicket(@User UserInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
         ticketService.issueTicket(userInfo, dto);
@@ -53,6 +52,7 @@ public class TicketController {
 
     @PostMapping("/order")
     public ResponseEntity<?> registerTicket(@User UserInfo userInfo) {
+        log.info("세션키값  = {}", userInfo.getKey());
         ticketService.validateStartTime();
         ticketQueueService.saveEvent(userInfo.getKey());
         return ResponseEntity.ok().build();

@@ -1,6 +1,6 @@
 package com.example.ticketing.auth;
 
-import com.example.ticketing.auth.component.ClientIpManager;
+import com.example.ticketing.auth.component.ClientInfoManager;
 import com.example.ticketing.auth.component.ClientExtractor;
 import com.example.ticketing.auth.component.SessionManager;
 import com.example.ticketing.auth.dto.LoginRequestDto;
@@ -15,7 +15,7 @@ public class AuthService {
 
     private final ClientExtractor clientExtractor;
 
-    private final ClientIpManager clientIpManager;
+    private final ClientInfoManager clientIpManager;
 
     private final SessionManager sessionManager;
 
@@ -26,8 +26,8 @@ public class AuthService {
     public void createSession(HttpServletRequest request, LoginRequestDto dto) {
         String ip = clientExtractor.extractClientIp(request);
         String device = clientExtractor.extractClientDevice(request);
-        clientIpManager.save(dto.getName(), ip, device);
-        sessionManager.createSession(request, ip, dto.getName());
+        String sessionKey = sessionManager.createSession(request, ip, dto.getName());
+        clientIpManager.save(dto.getName(), ip, device, sessionKey);
     }
 
     public void deleteSession(HttpServletRequest request) {

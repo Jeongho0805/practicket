@@ -1,3 +1,4 @@
+import { getNickname } from "./common.js";
 const mainSection = document.getElementById("main-section");
 const titleSection = document.getElementById("title-section")
 const guideSection = document.getElementById("guide-section");
@@ -7,15 +8,18 @@ const correctCountTag = document.getElementById("correct-count");
 const securityCountMessage = document.getElementById("security-letter-count-message");
 const securityInput = document.getElementById("security-input")
 const resultSection = document.getElementById("result-section");
+const inputBox = document.getElementById("security-input");
+const inputButton = document.getElementById("security-input-button");
 const successMessage = "보안문자 입력에 성공하였습니다.";
 const errorMessage = "보안문자를 잘못 입력하였습니다.";
 let correctCount = 0;
+let isStart = false;
 
 function startCountDown() {
     const timeInfo = document.createElement("h3")
     timeInfo.id = "countdown";
     timeInfo.textContent = "3";
-    guideSection.querySelectorAll("*").forEach(child => {
+    guideSection.querySelectorAll(".guide-description").forEach(child => {
         child.style.display = "none";
     });
     guideSection.appendChild(timeInfo);
@@ -126,7 +130,7 @@ function toggleElements() {
         securityLetterSection.style.display = "none"
         mainSection.style.display = "grid"
         resultSection.style.display = "flex";
-        guideSection.querySelectorAll("*").forEach(child => {
+        guideSection.querySelectorAll(".guide-description").forEach(child => {
             child.style.display = "block";
         });
         guideSection.style.display = "flex";
@@ -145,30 +149,13 @@ function markCorrectCount() {
     correctCountTag.innerText = correctCount;
 }
 
-function startSecurityTest() {
-    markCorrectCount();
-    generateCaptcha();
-    securityInput.focus();
-    return new Promise(resolve => {
-        const inputBox = document.getElementById("security-input");
-        const inputButton = document.getElementById("security-input-button");
-
-        inputButton.addEventListener("click", () => checkCaptcha(resolve));
-
-        inputBox.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault(); // 기본 엔터 키 동작 방지 (폼 제출 방지)
-                checkCaptcha(resolve);
-            }
-        });
-    });
-}
-
-function checkCaptcha(resolve) {
+function checkCaptcha() {
+    if (!isStart) {
+        return;
+    }
     const userInput = securityInput.value.toUpperCase();
     const canvas = document.getElementById("security-letter-image");
     const correctText = canvas.dataset.captcha;
-    securityInput.value = "";
 
     if (userInput === correctText) {
         correctCount++;
@@ -179,26 +166,113 @@ function checkCaptcha(resolve) {
             markCorrectCount();
             generateCaptcha();
         } else {
+            securityCountMessage.innerText = "";
             correctCount = 0;
-            resolve();
+            isStart = false;
         }
     } else {
         securityCountMessage.innerText = errorMessage;
         securityCountMessage.style.color = "red";
     }
+    securityInput.value = "";
+}
+
+function startSecurityTest() {
+    isStart = true;
+    markCorrectCount();
+    generateCaptcha();
+    securityInput.focus();
+    return new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (isStart === false) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, 200);
+    });
+}
+
+async function fetchCreateElapsedTime(startTime, endTime) {
+    const elapsedTime = ((endTime - startTime) / 1000).toFixed(2);
+    const response = await fetch("/api/captcha", {
+        method: "POST",
+        credentials: 'same-origin',
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ elapsed_time: elapsedTime }) // ✅ JSON 키를 snake_case로 변환
+    });
+    // todo 모든 api 관련 처리 로직 모듈화 하면 좋을듯
+    if (!response.ok) {
+        alert("서버 오류로 전송 실패");
+    }
+}
+
+async function fetchGetResult() {
+    let response;
+    try {
+        response = await fetch("/api/captcha", {
+            method: "GET",
+            credentials: 'same-origin',
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+    } catch (e) {
+        return null;
+    }
+    if (!response.ok) {
+        return;
+    }
+    return await response.json();
+}
+
+async function updateResultValue() {
+    const result = await fetchGetResult();
+    const resultSection = document.getElementById("result-section");
+    if (!result || result.latest_result === 0) {
+        resultSection.style.display = "none";
+    }
+    else  {
+        const myLatestResult = document.getElementById("my-latest-result-value")
+        const myAverageResult = document.getElementById("my-average-result-value")
+        const totalAverageResult = document.getElementById("total-average-result-value")
+        myLatestResult.innerText = `${Number(result.latest_result).toFixed(2)}초`;
+        myAverageResult.innerText = `${Number(result.my_avg_result).toFixed(2)}초`;
+        totalAverageResult.innerText = `${Number(result.total_avg_result).toFixed(2)}초`;
+        resultSection.style.display = "flex";
+    }
 }
 
 function addEventList() {
+    // 보안문자 입력 관련 이벤트 등록
+    inputButton.addEventListener("click", () => checkCaptcha());
+    inputBox.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault(); // 기본 엔터 키 동작 방지 (폼 제출 방지)
+            checkCaptcha();
+        }
+    });
+
+    // 보안문자 입력 테스트 시작 이벤트 등록
     startButton.addEventListener("click", async () => {
+        if (!await getNickname()) {
+            alert("닉네임을 입력해주세요.")
+            return;
+        }
         await startCountDown();
         toggleElements();
-        // 테스트 시작 시간 측정
+        const startTime = performance.now();
         await startSecurityTest();
-        // 테스트 끝 시간 측정
+        const endTime = performance.now();
         toggleElements();
-        // api 콜을 통해 서버에 소요시간 전송
-        // 입력 결과 업데이트
+        await fetchCreateElapsedTime(startTime, endTime);
+        await updateResultValue();
     })
 }
 
+window.onload = async () => {
+    await updateResultValue();
+};
+await updateResultValue();
 addEventList();

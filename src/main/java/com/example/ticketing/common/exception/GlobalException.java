@@ -1,4 +1,4 @@
-package com.example.ticketing.common;
+package com.example.ticketing.common.exception;
 
 import lombok.Getter;
 

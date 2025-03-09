@@ -1,7 +1,7 @@
 package com.example.ticketing.ticket.component;
 
-import com.example.ticketing.common.ErrorCode;
-import com.example.ticketing.common.TicketException;
+import com.example.ticketing.common.exception.ErrorCode;
+import com.example.ticketing.common.exception.TicketException;
 import com.example.ticketing.ticket.domain.Ticket;
 import com.example.ticketing.ticket.domain.TicketRepository;
 import lombok.RequiredArgsConstructor;
