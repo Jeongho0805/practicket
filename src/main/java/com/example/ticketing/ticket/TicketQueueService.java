@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 public class TicketQueueService {
 
-    private final int WORKER_COUNT = 5;
+    private final int WORKER_COUNT = 10;
 
     private final TicketQueueEventRepository eventRepository;
 

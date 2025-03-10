@@ -64,8 +64,8 @@ function setWaitingOrderSse(name) {
         }
         console.log(event);
         const waiting_number = document.getElementById("waiting-number");
-        waiting_number.innerText = data.currentWaitingOrder;
-        updateProgressBar(data.currentWaitingOrder, data.firstWaitingOrder);
+        waiting_number.innerText = data.current_waiting_order;
+        updateProgressBar(data.current_waiting_order, data.first_waiting_order);
     });
     eventSource.onerror = (error) => {
         eventSource.close();
