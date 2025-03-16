@@ -3,14 +3,14 @@
     <url>
         <loc>https://practicket.com/</loc>
         <lastmod>2025-02-08T08:15:52+00:00</lastmod>
-        <changefreq>monthly</changefreq>
+        <changefreq>weekly</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
         <loc>https://practicket.com/security</loc>
         <lastmod>2025-02-08T08:15:52+00:00</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.8</priority>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
     </url>
     <url>
         <loc>https://practicket.com/blog/1</loc>
@@ -38,6 +38,66 @@
     </url>
     <url>
         <loc>https://practicket.com/blog/5</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/6</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/7</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/8</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/9</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/10</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/11</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/12</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/13</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/14</loc>
+        <lastmod>2025-02-08T08:15:52+00:00</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://practicket.com/blog/15</loc>
         <lastmod>2025-02-08T08:15:52+00:00</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
