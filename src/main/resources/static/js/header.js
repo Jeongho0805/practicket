@@ -3,23 +3,30 @@ import { getNickname } from "./common.js";
 // 페이지 로드시 마다 실행 (새로고침 포함)
 let name;
 
-window.onload = async () => {
+// window.onload = async () => {
+//
+// };
+
+async function displayNickName() {
     try {
         name = await getNickname();
         const name_input_section = document.getElementById("name-input-section");
         const name_value = document.getElementById("name-value");
+        const reset_button = document.getElementById("reset-button");
         if (name) {
             name_input_section.style.display = "none";
             name_value.style.display = "block";
             name_value.textContent = name;
+            reset_button.style.display = "block";
         } else {
             const name_section = document.getElementById("name-section");
             name_section.style.display = "none";
+            name_input_section.style.display = "flex";
         }
     } catch (e) {
         console.log(e);
     }
-};
+}
 
 function addHeaderEventList() {
     // 닉네임 입력 이벤트
@@ -126,5 +133,6 @@ export function markCurrentPage() {
     desktopButton.style.color = "darkslateblue";
 }
 
+await displayNickName();
 addHeaderEventList();
 markCurrentPage();

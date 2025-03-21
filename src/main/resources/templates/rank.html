@@ -16,29 +16,34 @@
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
-    <div id="rank-section">
-        <div id="rank-title">당신의 티켓팅 랭킹을 확인해보세요.</div>
-        <div id="rank-details">
-            <table id="rank-table">
-                <thead>
-                <tr>
-                    <th>순위</th>
-                    <th>닉네임</th>
-                    <th>시간</th>
-                </tr>
-                </thead>
-                <tbody id="rank-body">
-<!--                                    <tr>-->
-<!--                                        <td>1</td>-->
-<!--                                        <td>호야</td>-->
-<!--                                        <td>7.73초</td>-->
-<!--                                    </tr>-->
-                </tbody>
-            </table>
+    <div id="content-section">
+        <div id="ad-section"></div>
+        <div id="main-section">
+            <div id="rank-section">
+                <div id="rank-title">당신의 티켓팅 랭킹을 확인해보세요.</div>
+                <div id="rank-details">
+                    <table id="rank-table">
+                        <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>닉네임</th>
+                            <th>시간</th>
+                        </tr>
+                        </thead>
+                        <tbody id="rank-body">
+                        <!--                                    <tr>-->
+                        <!--                                        <td>1</td>-->
+                        <!--                                        <td>호야</td>-->
+                        <!--                                        <td>7.73초</td>-->
+                        <!--                                    </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div th:replace="~{fragments/chatting::chatting}"></div>
         </div>
+        <div id="etc-section"></div>
     </div>
-    <div th:replace="~{fragments/chatting::chatting}"></div>
-
     <script> const HOST = "[[${host}]]"; </script>
     <script type="module" src="/js/rank.js"></script>
     <script type="module" src="/js/header.js"></script>

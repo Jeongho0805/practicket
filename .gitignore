@@ -39,3 +39,5 @@ out/
 # 실서버 yml 제외
 src/main/resources/application-prod.yml
 src/main/generated/**
+
+ads.txt

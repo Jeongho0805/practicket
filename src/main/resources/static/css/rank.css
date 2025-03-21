@@ -7,25 +7,59 @@
 
 @media (min-width: 769px) {
     html, body {
-        height: 100vh; /* 화면 전체 높이 차지 */
+        height: 100vh;
+        max-height: 100vh;
+        overflow: hidden;
         width: 100vw;
         margin: 0;
         display: grid;
         justify-items: center;
         background: white;
         font-family: my-font, sans-serif;
-        grid-template-rows: 1fr 5fr 5fr;
+        grid-template-rows: 1fr 10fr;
     }
 
-    #chatting-section {
-        width: 50%;
+    #content-section {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        width: 100vw;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+        grid-template-columns: 1fr 2fr 1fr;
+    }
+
+    #ad-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    #etc-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    #main-section {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        justify-items: center;
+        align-items: center;
+        height: 100%;
+        max-height: 100%;
+        width: 100%;
+        overflow: hidden;
     }
 
     #rank-section {
-        height: 95%;
-        max-height: 95%;
+        height: 100%;
+        max-height: 100%;
         overflow: hidden;
-        width: 50%;
+        width: 100%;
         display: grid;
         grid-template-rows: 1fr 9fr;
         align-items: center;
@@ -89,17 +123,51 @@
 
 
 
+/*
+
+------------------------- 모바일 구분선 ------------------------------
+
+*/
+
+
+
+
 @media (max-width: 768px) {
     html, body {
         height: 100dvh; /* 화면 전체 높이 차지 */
-        width: 100%;
+        width: 100vw;
         margin: 0;
         background: white;
         font-family: my-font, sans-serif;
         overflow: hidden;
         display: grid;
+        grid-template-rows: 18fr 82fr;
+    }
+
+    #content-section {
+        overflow: hidden;
+        width: 100%;
+        display: grid;
         grid-auto-flow: row;
-        grid-template-rows: 20fr 40fr 40fr;
+        grid-template-rows: 2fr 8fr;
+    }
+
+    #ad-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    /* 메인 내용 부분 */
+    #main-section {
+        width: 100%;
+        overflow: hidden;
+        display: grid;
+        grid-auto-flow: row;
+        grid-template-rows: 5fr 5fr;
+        justify-items: center;
+        align-items: start;
     }
 
     #rank-section {
@@ -108,18 +176,12 @@
         max-height: 100%;
         overflow: hidden;
         display: grid;
-        grid-template-rows: 1fr 9fr;
         justify-items: center;
+        align-items: center;
     }
 
     #rank-title {
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        font-size: 0.5em;
-        text-align: center;
-        display: grid;
-        align-items: center;
+        display: none;
     }
 
     #rank-details {
@@ -160,5 +222,9 @@
     }
     th:nth-child(3), td:nth-child(3) {
         width: 30%; /* 세 번째 컬럼 너비 */
+    }
+
+    #etc-section {
+        display: none;
     }
 }
