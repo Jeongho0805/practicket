@@ -14,8 +14,12 @@ const successMessage = "보안문자 입력에 성공하였습니다.";
 const errorMessage = "보안문자를 잘못 입력하였습니다.";
 let correctCount = 0;
 let isStart = false;
+let isToggleOpen = true;
 
 function startCountDown() {
+    const startButton = document.getElementById("start-button");
+    const displaySetting = startButton.style.display;
+    startButton.style.display = "none";
     const timeInfo = document.createElement("h3")
     timeInfo.id = "countdown";
     timeInfo.textContent = "3";
@@ -32,6 +36,7 @@ function startCountDown() {
             if (count <= 0) {
                 timeInfo.remove();
                 clearInterval(interval);
+                startButton.style.display = displaySetting;
                 resolve();
             }
         }, 1000);
@@ -124,8 +129,11 @@ function generateCaptcha() {
 }
 
 function toggleElements() {
-    if (titleSection.style.display === "none") {
-        titleSection.style.display = "block"
+    if (!isToggleOpen) {
+        if (window.matchMedia("(min-width: 769px)").matches) {
+            titleSection.style.display = "block"
+            guideSection.style.border = "2px solid darkslateblue";
+        }
         startButton.style.display = "inline-block";
         securityLetterSection.style.display = "none"
         mainSection.style.display = "grid"
@@ -134,7 +142,7 @@ function toggleElements() {
             child.style.display = "block";
         });
         guideSection.style.display = "flex";
-        guideSection.style.border = "2px solid darkslateblue";
+        isToggleOpen = true;
     } else {
         titleSection.style.display = "none"
         guideSection.style.display = "none";
@@ -142,6 +150,7 @@ function toggleElements() {
         resultSection.style.display = "none";
         securityLetterSection.style.display = "grid"
         mainSection.style.display = "flex"
+        isToggleOpen = false;
     }
 }
 

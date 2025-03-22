@@ -9,17 +9,17 @@
 
 @media (min-width: 769px) {
     html, body {
-        height: 100dvh; /* 화면 전체 높이 차지 */
-        max-height: 100dvh;
+        height: 100vh; /* 화면 전체 높이 차지 */
+        max-height: 100vh;
         overflow: hidden;
         width: 100vw;
         margin: 0;
-        display: flex;
-        justify-content: flex-start;
+        display: grid;
         align-items: center;
-        flex-direction: column;
+        justify-items: center;
         background: white;
         font-family: my-font, sans-serif;
+        grid-template-rows: 1fr 10fr;
     }
 
     /* 컨텐트 섹션 */
@@ -35,10 +35,10 @@
     }
 
     #ad-section {
-        flex-grow: 0.3;
-        height: 100%;
-        width: 100%;
-        text-align: center;
+        width: 90%;
+        height: 70%;
+        max-height: 70%;
+        overflow: hidden;
     }
 
     /* 메인 내용 부분 */
