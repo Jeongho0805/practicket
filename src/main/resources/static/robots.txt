@@ -1,0 +1,24 @@
+User-agent: *
+Allow:/
+User-agent: AhrefsBot
+Disallow: /
+User-agent: SemrushBot*
+Disallow: /
+User-agent: PetalBot
+Disallow: /
+User-agent: dotbot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
+User-agent: barkrowler
+Disallow: /
+User-agent: BLEXBot
+Disallow: /
+User-agent: SeekportBot
+Disallow: /
+User-agent: CriteoBot/0.1
+Disallow: /
+User-agent: AwarioRssBot
+Disallow: /
+User-agent: AwarioSmartBot
+Disallow: /

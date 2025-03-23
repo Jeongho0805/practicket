@@ -162,6 +162,7 @@ function checkCaptcha() {
     if (!isStart) {
         return;
     }
+    securityInput.focus();
     const userInput = securityInput.value.toUpperCase();
     const canvas = document.getElementById("security-letter-image");
     const correctText = canvas.dataset.captcha;
@@ -184,6 +185,7 @@ function checkCaptcha() {
         securityCountMessage.style.color = "red";
     }
     securityInput.value = "";
+    securityInput.focus();
 }
 
 function startSecurityTest() {
