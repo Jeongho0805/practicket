@@ -24,7 +24,7 @@ async function displayNickName() {
             name_input_section.style.display = "flex";
         }
     } catch (e) {
-        console.log(e);
+
     }
 }
 
@@ -76,11 +76,9 @@ function requestCreateSession(name) {
         })
     }).then(response => {
         if (!response.ok) {
-            console.log("requestCreateSession 요청 실패");
             throw new Error("Request is failed");
         }
     }).catch(e => {
-        console.log("에러 =", e.getMessage())
         alert("서버 에러가 발생하였습니다.\n 닉네임을 다시 입력해주세요.")
     })
 }
@@ -93,7 +91,6 @@ function requestDeleteSession() {
             "Content-Type": "application/json",
         },
     }).then(response => {
-        console.log("세션 삭제 완료");
         if (!response.ok) {
             throw new Error("Request is failed");
         }
@@ -133,6 +130,6 @@ export function markCurrentPage() {
     desktopButton.style.color = "darkslateblue";
 }
 
-await displayNickName();
+displayNickName();
 addHeaderEventList();
 markCurrentPage();

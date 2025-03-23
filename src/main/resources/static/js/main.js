@@ -31,7 +31,6 @@ function addEventList() {
             activateModalToggle();
             setWaitingOrderSse(name);
         } catch(error) {
-            console.log(error);
             alert("일시적인 서버 장애로 예매에 실패하였습니다.")
         }
     })
@@ -73,7 +72,7 @@ function setWaitingOrderSse(name) {
     };
 }
 
-let serverOffset;
+let serverOffset = 0;
 
 async function fetchServerTime() {
     const localTime = new Date();
@@ -93,7 +92,7 @@ function getSyncDate() {
 }
 
 async function displayTime() {
-    await fetchServerTime();
+    fetchServerTime();
     setInterval(() => {
         const serverTime = getSyncDate();
         const hours = serverTime.getHours().toString().padStart(2, '0');
@@ -134,7 +133,7 @@ async function checkServerTime() {
 
     const response = await fetch(`${HOST}/api/server-time`);
     const data = await response.json();
-    const serverDate = new Date(data.serverTime);
+    const serverDate = new Date(data.server_time);
     const serverDateInfo = `${serverDate.getHours()}:${serverDate.getMinutes()}:${serverDate.getSeconds()}.${serverDate.getMilliseconds()}`
 
     const displayElement = document.getElementById('countdown'); // 시간을 표시할 요소 선택
@@ -151,5 +150,5 @@ window.addEventListener("pageshow", async (event) => {
 });
 
 addEventList();
-await displayTime();
+displayTime();
 

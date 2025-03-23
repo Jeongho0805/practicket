@@ -90,7 +90,6 @@ function setChattingSse() {
         renderingChatting(chat, false);
     });
     eventSource.onerror = (error) => {
-        console.error("Error:", error);
     };
 }
 
@@ -143,5 +142,5 @@ async function setChatEventListener() {
 }
 
 setChatting();
-await setChatEventListener();
+setChatEventListener();
 setChattingSse();

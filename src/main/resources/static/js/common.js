@@ -11,7 +11,7 @@ export async function getNickname() {
         .then(data => {
             return data.name;
         })
-        .catch(e => {console.log(e)});
+        .catch();
 }
 
 export function getAuthValue() {
