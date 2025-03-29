@@ -46,9 +46,7 @@ public class TicketScheduler {
             "워누야기다려", "오우", "ㄷ가ㅓ아", "winter", "ㅋㅋㅋㅋㅋ"
     );
 
-    private final static int AI_USER_NUMBER = 300;
-
-    private final static int AI_USER_INTERVAL = 100;
+    private final static int AI_USER_NUMBER = 200;
 
     @Scheduled(cron = "30 * * * * *")
     public void resetTime() {
@@ -76,10 +74,11 @@ public class TicketScheduler {
     public void activateAIUserTicket() {
         List<String> shuffledList = new ArrayList<>(nameList);
         Collections.shuffle(shuffledList);
-        int randomNumber = ThreadLocalRandom.current().nextInt(80, 101);
+        int randomNumber = ThreadLocalRandom.current().nextInt(60, 101);
+        int intervalTime = ThreadLocalRandom.current().nextInt(50, 200);
         for (int i=1; i<=randomNumber; i++) {
             try {
-                Thread.sleep(AI_USER_INTERVAL);
+                Thread.sleep(intervalTime);
                 String name = shuffledList.remove(0);
                 ticketManager.createTicketForAI(name);
             } catch (Exception ignored) {}

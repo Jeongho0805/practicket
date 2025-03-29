@@ -24,8 +24,6 @@ public class TicketTimer {
 
     public boolean isValidStartTime() {
         LocalDateTime now = LocalDateTime.now();
-        log.info("예매 시작 시간 = {}", startTime.toString());
-        log.info("현재 시간  = {}", now);
         return now.isAfter(startTime);
     }
 

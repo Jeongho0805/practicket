@@ -43,7 +43,6 @@ public class TicketService {
 
     public void validateStartTime() {
         if (!ticketTimer.isValidStartTime()) {
-            log.info("티켓 예매 시간 오류 발생");
             throw new TicketException(ErrorCode.TICKETING_TIME_IS_NOT_ALLOWED);
         }
     }

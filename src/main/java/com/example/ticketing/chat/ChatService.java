@@ -6,10 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -37,7 +34,8 @@ public class ChatService {
                 .toList();
     }
 
-    public SseEmitter connectChat(String key) {
+    public SseEmitter connectChat() {
+        String key = UUID.randomUUID().toString();
         SseEmitter emitter = new SseEmitter(0L);
         chatConnectionRepository.save(key, emitter);
         emitter.onCompletion(() -> chatConnectionRepository.deleteByKey(key));

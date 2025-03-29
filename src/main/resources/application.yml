@@ -9,6 +9,3 @@ server:
       cookie:
         name: "auth"
         http-only: false
-logging:
-  level:
-    org.springframework.session: error
