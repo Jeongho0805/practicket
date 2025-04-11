@@ -3,7 +3,7 @@ package com.example.ticketing.auth;
 import com.example.ticketing.auth.dto.LoginRequestDto;
 import com.example.ticketing.auth.dto.SessionObject;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class AuthController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createSession(@RequestBody LoginRequestDto dto, HttpServletRequest request) {
+    public ResponseEntity<?> createSession(@Valid @RequestBody LoginRequestDto dto, HttpServletRequest request) {
         authService.createSession(request, dto);
         return ResponseEntity.ok().build();
     }

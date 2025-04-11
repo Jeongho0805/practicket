@@ -28,14 +28,29 @@ async function displayNickName() {
     }
 }
 
+function isValidNickname(name) {
+    if (!name) {
+        alert("닉네임을 입력해주세요");
+        return false;
+    }
+    if (name.trim() === "") {
+        alert("공백 입력은 불가합니다")
+        return false;
+    }
+    if (name.length > 10) {
+        alert("닉네임은 최대 10 글자까지 입력가능합니다")
+        return false;
+    }
+    return true;
+}
+
 function addHeaderEventList() {
     // 닉네임 입력 이벤트
     const name_button = document.getElementById("name-input-button");
     name_button.addEventListener("click", async () => {
         const name = document.getElementById("name-input-box").value;
-        if (name === "" || !name) {
-            alert("닉네임을 입력해주세요.");
-            return
+        if (!isValidNickname(name)) {
+            return;
         }
         await requestCreateSession(name);
         location.reload();
@@ -46,9 +61,8 @@ function addHeaderEventList() {
     name_input_box.addEventListener("keyup", async (event) => {
         if (event.key === "Enter") {
             const name = document.getElementById("name-input-box").value;
-            if (name === "" || !name) {
-                alert("닉네임을 입력해주세요.");
-                return
+            if (!isValidNickname(name)) {
+                return;
             }
             await requestCreateSession(name);
             location.reload();
@@ -65,8 +79,8 @@ function addHeaderEventList() {
     })
 }
 
-function requestCreateSession(name) {
-    return fetch(`${HOST}/api/auth`, {
+async function requestCreateSession(name) {
+    const response = await fetch(`${HOST}/api/auth`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -74,13 +88,17 @@ function requestCreateSession(name) {
         body: JSON.stringify({
             name: name
         })
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error("Request is failed");
+    });
+
+    if (!response.ok) {
+        const errorResponse = await response.json(); // 응답 바디도 읽어줄 수 있음
+        if (errorResponse?.code === "P01") {
+            alert(errorResponse.message);
+            return;
         }
-    }).catch(e => {
-        alert("서버 에러가 발생하였습니다.\n 닉네임을 다시 입력해주세요.")
-    })
+        alert("서버에 문제가 발생하였습니다. 다시 시도해주세요.")
+    }
+
 }
 
 function requestDeleteSession() {
