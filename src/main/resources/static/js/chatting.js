@@ -79,7 +79,6 @@ function setChatting() {
     }).then(data => {
         renderingChatting(data, true);
     }).catch(e => {
-        alert("채팅 전송 실패")
     })
 }
 
@@ -91,6 +90,27 @@ function setChattingSse() {
     });
     eventSource.onerror = (error) => {
     };
+}
+
+async function isSendChatPossible(chatting) {
+    if (!chatting) {
+        alert("채팅을 입력해주세요.")
+        return false;
+    }
+    if (chatting.trim().length === 0) {
+        alert("공백 입력은 불가합니다.")
+        return false;
+    }
+    if (chatting.length > 100) {
+        alert("채팅은 최대 100 글자까지 가능합니다.")
+        return false;
+    }
+    const name = await getNickname();
+    if (!name) {
+        alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+        return false;
+    }
+    return true;
 }
 
 // 채팅 이벤트 설정
@@ -105,17 +125,11 @@ async function setChatEventListener() {
 
     const button = document.getElementById("chatting-send-button");
     button.addEventListener("click", async () => {
-        const name = await getNickname();
-        if (!name) {
-            alert("채팅을 입력하려면 닉네임을 입력해주세요.")
-            return
-        }
         const chatting = document.getElementById("chatting-input").value;
-        if (!chatting) {
-            alert("채팅을 입력해주세요.")
+        if (!await isSendChatPossible(chatting)) {
             return;
         }
-        fetch(`${HOST}/api/chat`, {
+        const response = await fetch(`${HOST}/api/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -124,14 +138,17 @@ async function setChatEventListener() {
                 text: chatting,
             }),
             credentials: "same-origin"
-        }).then(response => {
-            if (!response.ok) {
-                throw new Error("Request is failed");
+        });
+        document.getElementById("chatting-input").value = "";
+        if (!response.ok) {
+            const errorResponse = await response.json();
+            if (errorResponse?.code === "P01") {
+                alert(errorResponse.message);
+                return;
             }
-            document.getElementById("chatting-input").value = "";
-        }).catch(e => {
-            alert("채팅 전송 실패")
-        })
+            alert("서버에 문제가 발생하였습니다. 다시 시도해주세요.")
+        }
+
     });
     document.getElementById("chatting-input").addEventListener("keypress", function (e) {
         if (e.key === "Enter") { // 엔터 키를 눌렀을 때
