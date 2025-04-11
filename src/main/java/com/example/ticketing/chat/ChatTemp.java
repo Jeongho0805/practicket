@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @RedisHash(value = "Chat")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Chat {
+public class ChatTemp {
     @Id
     private String id;
 
@@ -23,7 +23,7 @@ public class Chat {
 
     private LocalDateTime createdAt;
 
-    public Chat(String key, String name, String text) {
+    public ChatTemp(String key, String name, String text) {
         LocalDateTime now = LocalDateTime.now();;
         this.id = key + name + text + now;
         this.key = key;

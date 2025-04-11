@@ -43,3 +43,4 @@ src/main/generated/**
 ads.txt
 navercc99a5b089096abdec8e622dcd5b05e9.html
 logs
+*.yml
