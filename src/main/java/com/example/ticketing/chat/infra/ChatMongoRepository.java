@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface ChatMongoRepository extends MongoRepository<ChatDocument, ObjectId> {
 
-    List<ChatDocument> findTop1ByCreatedAtBeforeOrderByCreatedAtDesc(LocalDateTime before);
+    List<ChatDocument> findTop50ByCreatedAtBeforeOrderByCreatedAtDesc(LocalDateTime before);
 }

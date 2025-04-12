@@ -33,7 +33,7 @@ public class ChatService {
     }
 
     public List<ChatResponseDto> findAllChat(LocalDateTime dateTime) {
-        List<ChatDocument> chatDocuments = chatMongoRepository.findTop1ByCreatedAtBeforeOrderByCreatedAtDesc(dateTime);
+        List<ChatDocument> chatDocuments = chatMongoRepository.findTop50ByCreatedAtBeforeOrderByCreatedAtDesc(dateTime);
         Collections.reverse(chatDocuments);
         return chatDocuments.stream()
                 .map(chatMapper::toDomainFromEntity)

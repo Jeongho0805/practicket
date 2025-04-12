@@ -39,4 +39,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.of(errorCode, message);
         return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
+
+    @ExceptionHandler(AsyncRequestNotUsableException.class)
+    public void handle(AsyncRequestNotUsableException e) {}
 }
