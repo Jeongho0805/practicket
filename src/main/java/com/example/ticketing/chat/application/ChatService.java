@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -31,8 +32,9 @@ public class ChatService {
         sendChatMessage(chatMapper.toDtoFromDomain(chat));
     }
 
-    public List<ChatResponseDto> findAllChat() {
-        List<ChatDocument> chatDocuments = chatMongoRepository.findAll(Sort.by(Sort.Direction.ASC, "createdAt"));
+    public List<ChatResponseDto> findAllChat(LocalDateTime dateTime) {
+        List<ChatDocument> chatDocuments = chatMongoRepository.findTop1ByCreatedAtBeforeOrderByCreatedAtDesc(dateTime);
+        Collections.reverse(chatDocuments);
         return chatDocuments.stream()
                 .map(chatMapper::toDomainFromEntity)
                 .map(chatMapper::toDtoFromDomain)
