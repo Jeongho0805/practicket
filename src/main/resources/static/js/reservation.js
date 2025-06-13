@@ -1,7 +1,17 @@
-import { getNickname } from "./common.js";
+import * as util from "./common.js";
 
 let selected_seats = new Set();
 let security_text;
+
+function checkTimeToLeave() {
+    setInterval(async () => {
+        const serverTime = await util.getSyncTime();
+        if (serverTime.getSeconds() >= 50) {
+            alert("예매 가능 시간이 지났습니다.\n 예매페이지로 돌아갑니다.")
+            window.location.href = `${HOST}`;
+        }
+    }, 1000);
+}
 
 function hasPermission() {
     const key = "permission";
@@ -121,7 +131,7 @@ function requestReservation() {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            name: getNickname(),
+            name: util.getNickname(),
             seats: Array.from(selected_seats.keys())
         })
     }).then(response => {
@@ -205,6 +215,7 @@ window.addEventListener("pageshow", (event) => {
     }
 });
 
+checkTimeToLeave();
 permissionCheck();
 activateSecurityText();
 await createSeat();

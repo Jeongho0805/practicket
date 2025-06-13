@@ -1,10 +1,10 @@
-import { getNickname } from "./common.js";
+import * as util from "./common.js";
 
 function addEventList() {
     // 티켓 예매 이벤트
     const ticket_button = document.getElementById("round-button")
     ticket_button.addEventListener("click", async () => {
-        const name = await getNickname();
+        const name = await util.getNickname();
         if (!name) {
             alert("닉네임을 입력해주세요.");
             return
@@ -72,29 +72,9 @@ function setWaitingOrderSse(name) {
     };
 }
 
-let serverOffset = 0;
-
-async function fetchServerTime() {
-    const localTime = new Date();
-    const response = await fetch(`${HOST}/api/server-time`, {
-        cache: 'no-store'
-    });
-    const data = await response.json();
-    const serverTime = new Date(data.server_time);
-    console.log(`초기서버=${serverTime.getSeconds()}.${serverTime.getMilliseconds()}`);
-    console.log(`초기로컬=${localTime.getSeconds()}.${localTime.getMilliseconds()}`);
-    serverOffset = serverTime.getTime() - localTime.getTime();
-    console.log("오프셋=", serverOffset)
-}
-
-function getSyncDate() {
-    return new Date(new Date().getTime() + serverOffset);
-}
-
 async function displayTime() {
-    fetchServerTime();
-    setInterval(() => {
-        const serverTime = getSyncDate();
+    setInterval(async () => {
+        const serverTime = await util.getSyncTime();
         const hours = serverTime.getHours().toString().padStart(2, '0');
         const minutes = serverTime.getMinutes().toString().padStart(2, '0');
         const seconds = serverTime.getSeconds().toString().padStart(2, '0');

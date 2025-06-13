@@ -1,5 +1,4 @@
 export async function getNickname() {
-    console.log("api 요청")
     return await fetch(`${HOST}/api/auth`, {
         method: "GET",
         credentials: 'same-origin',
@@ -23,4 +22,27 @@ export function getAuthValue() {
         }
     }
     return null;
+}
+
+
+
+
+async function calTimeOffset() {
+    const localTime = new Date();
+    const response = await fetch(`${HOST}/api/server-time`, {
+        cache: 'no-store'
+    });
+    const data = await response.json();
+    const serverTime = new Date(data.server_time);
+    return serverTime.getTime() - localTime.getTime();
+}
+
+let isFirstCall = true;
+let timeOffset = 0;
+export async function getSyncTime() {
+    if (isFirstCall) {
+        timeOffset = await calTimeOffset()
+        isFirstCall = false;
+    }
+    return new Date(new Date().getTime() + timeOffset);
 }

@@ -1,5 +1,12 @@
 import { getAuthValue, getNickname} from "./common.js";
 
+// 모바일 화면 이동시 채팅 sse 연결 끊김에 대한 처리
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        location.reload();
+    }
+});
+
 function appendChatElementAtBottom(chat, chatBox, authValue) {
     const lastChatUnit = chatBox.lastElementChild;
 
@@ -151,14 +158,19 @@ function renderingChatting(data, isFirstRendering) {
         data.forEach(chat => {
             appendChatElementAtBottom(chat, chatBox, authValue);
         })
+        chatBox.scrollTop = chatBox.scrollHeight;
     } else {
         appendChatElementAtBottom(data, chatBox, authValue);
     }
-    chatBox.scrollTop = chatBox.scrollHeight;
+    if (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight <= chatBox.clientHeight * 2) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 }
 
 async function setChatting() {
-    const response = await fetch(`${HOST}/api/chat?cursor=${encodeURIComponent(new Date().toISOString())}`);
+    const date = new Date();
+    const koreaTime = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    const response = await fetch(`${HOST}/api/chat?cursor=${encodeURIComponent(koreaTime.toISOString())}`);
     if (response.ok) {
         const data = await response.json();
         renderingChatting(data, true);
@@ -171,7 +183,13 @@ function setChattingSse() {
         const chat = JSON.parse(event.data);
         renderingChatting(chat, false);
     });
-    eventSource.onerror = (error) => {
+    eventSource.onerror = () => {
+        if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
+            eventSource.close();
+        }
+        setTimeout(() => {
+            setChattingSse();
+        }, 1000);
     };
 }
 
@@ -207,14 +225,18 @@ function getOldestChatDateTime() {
 // 채팅 이벤트 설정
 async function setChatEventListener() {
     const chatBox = document.getElementById("chatting-box-section");
-
+    let isLoading = false;
     chatBox.addEventListener("scroll", async () => {
-        if (chatBox.scrollTop === 0) {
-            const dateTime = getOldestChatDateTime();
-            console.log("오래된 시간 =", dateTime);
-            const response = await fetch(`${HOST}/api/chat?cursor=${encodeURIComponent(dateTime)}`);
-            const data = await response.json();
-            appendChatByScroll(data); // 위에 붙이기
+        if (chatBox.scrollTop < 100 && !isLoading) {
+            isLoading = true;
+            try {
+                const dateTime = getOldestChatDateTime();
+                const response = await fetch(`${HOST}/api/chat?cursor=${encodeURIComponent(dateTime)}`);
+                const data = await response.json();
+                appendChatByScroll(data);
+            } finally {
+                isLoading = false;
+            }
         }
     });
 
