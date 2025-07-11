@@ -37,8 +37,7 @@ out/
 .vscode/
 
 # 실서버 yml 제외
-src/main/resources/application-prod.yml
-src/main/resources/application-stage.yml
+src/main/resources/application-*.yml
 src/main/generated/**
 
 ads.txt
