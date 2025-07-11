@@ -15,5 +15,21 @@ spring:
     hibernate:
       ddl-auto: none
     open-in-view: false
+  data:
+    mongodb:
+      uri: "mongodb://admin:admin@localhost:27017/practicket?authSource=admin"
 app:
-  host: "http://localhost:8080"
+#  host: "http://localhost:8080"
+  host: "http://172.30.1.55:8080"
+sentry:
+  dsn: https://c6da84e59a53e5b7b50627bd3e706532@o4509064806793216.ingest.us.sentry.io/4509064808431616
+  send-default-pii: true
+  environment: local
+logging:
+  file:
+    path: "/Users/jeongho/JavaProjects/ticketing/logs"
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    org.springframework.data.mongodb.core.MongoOperations: DEBUG
+server:
+  address: 0.0.0.0

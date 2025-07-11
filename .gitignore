@@ -38,9 +38,9 @@ out/
 
 # 실서버 yml 제외
 src/main/resources/application-prod.yml
+src/main/resources/application-stage.yml
 src/main/generated/**
 
 ads.txt
 navercc99a5b089096abdec8e622dcd5b05e9.html
 logs
-*.yml
