@@ -49,6 +49,7 @@ public class ClientInfoArgumentResolver implements HandlerMethodArgumentResolver
                 .token(client.getToken())
                 .name(client.getName())
                 .banned(client.getBanned())
+                .banReason(client.getBanReason())
                 .build();
     }
 }

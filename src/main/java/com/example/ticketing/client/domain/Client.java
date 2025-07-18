@@ -1,6 +1,6 @@
 package com.example.ticketing.client.domain;
 
-import com.example.ticketing.common.domain.entity.CaptchaResult;
+import com.example.ticketing.captcha.domain.CaptchaResult;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -39,11 +39,13 @@ public class Client {
     @Column(nullable = false)
     private Boolean banned;
 
+    private String banReason;
+
     @CreatedDate
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "clientInfo")
+    @OneToMany(mappedBy = "client")
     @Builder.Default
     private List<CaptchaResult> captchaResults = new ArrayList<>();
 }

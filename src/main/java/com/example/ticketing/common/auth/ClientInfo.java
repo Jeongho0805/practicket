@@ -16,4 +16,6 @@ public class ClientInfo {
     private String name;
 
     private Boolean banned;
+
+    private String banReason;
 }

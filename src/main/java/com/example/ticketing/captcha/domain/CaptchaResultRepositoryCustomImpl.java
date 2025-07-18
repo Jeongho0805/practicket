@@ -1,13 +1,11 @@
-package com.example.ticketing.common.domain.repository;
+package com.example.ticketing.captcha.domain;
 
-import com.example.ticketing.common.domain.entity.CaptchaResult;
-import com.example.ticketing.client.domain.Client;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
-import static com.example.ticketing.common.domain.entity.QCaptchaResult.captchaResult;
+import static com.example.ticketing.captcha.domain.QCaptchaResult.*;
 
 
 @Repository
@@ -26,11 +24,10 @@ public class CaptchaResultRepositoryCustomImpl implements CaptchaResultRepositor
                 .fetch();
     }
 
-    @Override
-    public List<CaptchaResult> findAllByClientInfo(Client clientInfo) {
+    public List<CaptchaResult> findAllByClientId(Long clientId) {
         return queryFactory
                 .selectFrom(captchaResult)
-                .where(captchaResult.clientInfo.eq(clientInfo))
+                .where(captchaResult.client.id.eq(clientId))
                 .orderBy(captchaResult.createdAt.desc())
                 .fetch();
     }

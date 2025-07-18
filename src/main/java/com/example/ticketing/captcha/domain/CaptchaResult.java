@@ -1,4 +1,4 @@
-package com.example.ticketing.common.domain.entity;
+package com.example.ticketing.captcha.domain;
 
 import com.example.ticketing.client.domain.Client;
 import jakarta.persistence.*;
@@ -22,7 +22,7 @@ public class CaptchaResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
-    private Client clientInfo;
+    private Client client;
 
     @Column(nullable = false)
     private Float elapsedSecond;
