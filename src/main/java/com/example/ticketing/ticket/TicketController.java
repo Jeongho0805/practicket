@@ -1,7 +1,7 @@
 package com.example.ticketing.ticket;
 
-import com.example.ticketing.common.auth.User;
-import com.example.ticketing.common.auth.UserInfo;
+import com.example.ticketing.common.auth.Auth;
+import com.example.ticketing.common.auth.ClientInfo;
 import com.example.ticketing.ticket.dto.ServerTimeResponseDto;
 import com.example.ticketing.ticket.dto.TicketRankDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
@@ -39,21 +39,21 @@ public class TicketController {
     }
 
     @PostMapping("/ticket")
-    public ResponseEntity<?> createTicket(@User UserInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
+    public ResponseEntity<?> createTicket(@Auth ClientInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
         ticketService.issueTicket(userInfo, dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/order")
-    public ResponseEntity<SseEmitter> streamSse(@User UserInfo userInfo) {
-        SseEmitter emitter = ticketQueueService.saveEmitter(userInfo.getKey());
+    public ResponseEntity<SseEmitter> streamSse(@Auth ClientInfo userInfo) {
+        SseEmitter emitter = ticketQueueService.saveEmitter(userInfo.getToken());
         return ResponseEntity.ok(emitter);
     }
 
     @PostMapping("/order")
-    public ResponseEntity<?> registerTicket(@User UserInfo userInfo) {
+    public ResponseEntity<?> registerTicket(@Auth ClientInfo userInfo) {
         ticketService.validateStartTime();
-        ticketQueueService.saveEvent(userInfo.getKey());
+        ticketQueueService.saveEvent(userInfo.getToken());
         return ResponseEntity.ok().build();
     }
 

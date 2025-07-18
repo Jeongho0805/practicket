@@ -1,7 +1,7 @@
 package com.example.ticketing.common.domain.repository;
 
 import com.example.ticketing.common.domain.entity.CaptchaResult;
-import com.example.ticketing.common.domain.entity.ClientInfo;
+import com.example.ticketing.client.domain.Client;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -27,7 +27,7 @@ public class CaptchaResultRepositoryCustomImpl implements CaptchaResultRepositor
     }
 
     @Override
-    public List<CaptchaResult> findAllByClientInfo(ClientInfo clientInfo) {
+    public List<CaptchaResult> findAllByClientInfo(Client clientInfo) {
         return queryFactory
                 .selectFrom(captchaResult)
                 .where(captchaResult.clientInfo.eq(clientInfo))

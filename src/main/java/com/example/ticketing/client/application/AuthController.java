@@ -1,9 +1,8 @@
-package com.example.ticketing.auth;
+package com.example.ticketing.auth.application;
 
-import com.example.ticketing.auth.dto.LoginRequestDto;
 import com.example.ticketing.auth.dto.SessionObject;
+import com.example.ticketing.auth.dto.TokenResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +22,10 @@ public class AuthController {
         return ResponseEntity.ok(sessionObject);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createSession(@Valid @RequestBody LoginRequestDto dto, HttpServletRequest request) {
-        authService.createSession(request, dto);
-        return ResponseEntity.ok().build();
+    @PostMapping("/token")
+    public ResponseEntity<?> createToken(HttpServletRequest request) {
+        TokenResponse token = authService.createToken(request);
+        return ResponseEntity.ok(token);
     }
 
     @DeleteMapping

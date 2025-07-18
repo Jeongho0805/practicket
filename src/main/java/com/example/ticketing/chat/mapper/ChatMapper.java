@@ -5,7 +5,7 @@ import com.example.ticketing.chat.infra.ChatDocument;
 import com.example.ticketing.chat.application.ChatRequestDto;
 import com.example.ticketing.chat.application.ChatResponseDto;
 import com.example.ticketing.chat.domain.Chat;
-import com.example.ticketing.common.auth.UserInfo;
+import com.example.ticketing.common.auth.ClientInfo;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @Component
 public class ChatMapper {
 
-    public Chat toDomainFromDto(UserInfo userInfo, ChatRequestDto dto) {
+    public Chat toDomainFromDto(ClientInfo userInfo, ChatRequestDto dto) {
         return Chat.builder()
-                .key(userInfo.getKey())
+                .key(userInfo.getToken())
                 .name(userInfo.getName())
                 .text(dto.getText())
                 .createdAt(LocalDateTime.now())

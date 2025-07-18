@@ -1,5 +1,6 @@
-package com.example.ticketing.common.domain.entity;
+package com.example.ticketing.client.domain;
 
+import com.example.ticketing.common.domain.entity.CaptchaResult;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -15,14 +16,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class ClientInfo {
+public class Client {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String token;
 
     @Column(nullable = false)
     private String ip;
@@ -31,7 +32,12 @@ public class ClientInfo {
     private String device;
 
     @Column(nullable = false)
-    private String sessionKey;
+    private String referer;
+
+    private String name;
+
+    @Column(nullable = false)
+    private Boolean banned;
 
     @CreatedDate
     @Column(nullable = false)

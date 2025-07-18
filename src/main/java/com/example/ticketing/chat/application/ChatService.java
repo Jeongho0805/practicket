@@ -5,10 +5,9 @@ import com.example.ticketing.chat.infra.ChatConnectionManager;
 import com.example.ticketing.chat.infra.ChatDocument;
 import com.example.ticketing.chat.infra.ChatMongoRepository;
 import com.example.ticketing.chat.mapper.ChatMapper;
-import com.example.ticketing.common.auth.UserInfo;
+import com.example.ticketing.common.auth.ClientInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -26,7 +25,7 @@ public class ChatService {
 
     private final ChatMapper chatMapper;
 
-    public void saveChat(UserInfo userInfo, ChatRequestDto dto) {
+    public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
         Chat chat = chatMapper.toDomainFromDto(userInfo, dto);
         chatMongoRepository.save(chatMapper.toEntityFromDomain(chat));
         sendChatMessage(chatMapper.toDtoFromDomain(chat));

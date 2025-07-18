@@ -1,17 +1,19 @@
 package com.example.ticketing.common.auth;
 
-import com.example.ticketing.auth.dto.SessionObject;
 import lombok.*;
 
 @Getter
 @ToString
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserInfo {
+public class ClientInfo {
 
-    private String ip;
+    private Long clientId;
+
+    private String token;
 
     private String name;
 
-    private String key;
+    private Boolean banned;
 }
