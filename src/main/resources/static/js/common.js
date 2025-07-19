@@ -1,5 +1,5 @@
 export async function getNickname() {
-    return await fetch(`${HOST}/api/auth`, {
+    return await this.authFetch(`${HOST}/api/client`, {
         method: "GET",
         credentials: 'same-origin',
         headers: {
@@ -22,6 +22,38 @@ export function getAuthValue() {
         }
     }
     return null;
+}
+
+export function getTokenValue() {
+    return localStorage.getItem("token");
+}
+
+async function ensureToken() {
+    let token = localStorage.getItem("token");
+    if (token) return token;
+    const response = await fetch(`${HOST}/api/client`, { method: "POST" });
+
+    if (!response.ok) {
+        const errorResponse = await response.json();
+        alert(errorResponse.message);
+        return;
+    }
+
+    const data = await response.json();
+    token = data.token;
+    localStorage.setItem("token", token);
+    return token;
+}
+
+export async function authFetch(url, options = {}) {
+    const token = await ensureToken();
+
+    options.headers = {
+        ...(options.headers || {}),
+        "Authorization": `Bearer ${token}`
+    };
+
+    return fetch(url, options);
 }
 
 

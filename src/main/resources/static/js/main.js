@@ -12,7 +12,7 @@ function addEventList() {
 
         const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 매분 00초 부터 30초까지 가능합니다."
 
-        const response = await fetch(`${HOST}/api/order`, {
+        const response = await util.authFetch(`${HOST}/api/order`, {
             method: "POST",
             credentials: 'same-origin',
             headers: {
@@ -52,7 +52,8 @@ function activateModalToggle() {
 }
 
 function setWaitingOrderSse(name) {
-    const eventSource = new EventSource(`${HOST}/api/order`);
+    const token = localStorage.getItem("token");
+    const eventSource = new EventSource(`${HOST}/api/order?token=${encodeURIComponent(token)}`);
     eventSource.addEventListener("waiting-order", (event) => {
         const data = JSON.parse(event.data)
         if (data.isComplete) {

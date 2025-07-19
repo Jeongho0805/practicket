@@ -125,7 +125,7 @@ async function requestSeatInfo() {
     }
 }
 function requestReservation() {
-    fetch(`${HOST}/api/ticket`, {
+    util.authFetch(`${HOST}/api/ticket`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

@@ -36,11 +36,19 @@ public class ClientInfoArgumentResolver implements HandlerMethodArgumentResolver
         if (request == null) {
             throw new IllegalStateException("request is not exist");
         }
+        String token = null;
         String header = request.getHeader(HEADER_KEY);
-        if (header == null || !header.startsWith(TOKEN_TYPE)) {
+
+        if (header != null && header.startsWith(TOKEN_TYPE)) {
+            token = header.substring(TOKEN_TYPE.length());
+        } else {
+            token = request.getParameter("token");
+        }
+
+        if (token == null || token.isEmpty()) {
             throw new AuthException(ErrorCode.TOKEN_IS_NOT_EXIST);
         }
-        String token = header.substring(TOKEN_TYPE.length());
+
         Client client = clientRepository.findByToken(token)
                 .orElseThrow(() -> new AuthException(ErrorCode.INVALID_TOKEN));
 
