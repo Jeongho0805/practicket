@@ -2,7 +2,7 @@ package com.example.ticketing.auth.application;
 
 import com.example.ticketing.client.domain.Client;
 import com.example.ticketing.client.domain.ClientRepository;
-import com.example.ticketing.ticket.TicketScheduler;
+import com.example.ticketing.ticket.scheduler.TicketScheduler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

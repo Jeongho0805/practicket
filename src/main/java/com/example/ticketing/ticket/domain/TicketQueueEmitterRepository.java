@@ -1,4 +1,4 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.domain;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

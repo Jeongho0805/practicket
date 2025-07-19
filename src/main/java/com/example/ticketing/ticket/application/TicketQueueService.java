@@ -1,7 +1,8 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.application;
 
+import com.example.ticketing.ticket.domain.TicketQueueEmitterRepository;
+import com.example.ticketing.ticket.domain.TicketQueueEventRepository;
 import com.example.ticketing.ticket.dto.TicketQueueEventDto;
-import com.example.ticketing.ticket.dto.OrderRequestDto;
 import com.example.ticketing.ticket.dto.TicketWaitingOrderResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.util.List;
 import java.util.Map;
 
@@ -24,16 +26,12 @@ public class TicketQueueService {
 
     private final ThreadPoolTaskExecutor taskExecutor;
 
-    private final TicketService ticketService;
-
     public TicketQueueService(TicketQueueEventRepository eventRepository,
                               TicketQueueEmitterRepository emitterRepository,
-                              @Qualifier("ticketTaskExecutor") ThreadPoolTaskExecutor executor,
-                              TicketService ticketService) {
+                              @Qualifier("ticketTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.eventRepository = eventRepository;
         this.emitterRepository = emitterRepository;
         this.taskExecutor = executor;
-        this.ticketService = ticketService;
     }
 
     @PostConstruct

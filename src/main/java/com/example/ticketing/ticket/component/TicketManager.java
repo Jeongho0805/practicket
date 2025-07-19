@@ -9,12 +9,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Random;
+import java.util.stream.StreamSupport;
 
 @Component
 @RequiredArgsConstructor
 public class TicketManager {
 
     private final TicketRepository ticketRepository;
+
+    public void deleteAll() {
+        ticketRepository.deleteAll();
+    }
+
+    public List<Ticket> findAll() {
+        return StreamSupport
+                .stream(ticketRepository.findAll().spliterator(), false)
+                .toList();
+    }
 
 
     public void createTickets(String key, String name, List<String> seats) {

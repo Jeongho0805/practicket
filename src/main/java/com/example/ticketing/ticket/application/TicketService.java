@@ -1,26 +1,23 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.application;
 
+import com.example.ticketing.common.auth.ClientInfo;
 import com.example.ticketing.common.exception.ErrorCode;
 import com.example.ticketing.common.exception.TicketException;
-import com.example.ticketing.common.auth.ClientInfo;
 import com.example.ticketing.ticket.component.TicketCounter;
 import com.example.ticketing.ticket.component.TicketManager;
 import com.example.ticketing.ticket.component.TicketTimer;
 import com.example.ticketing.ticket.domain.Ticket;
-import com.example.ticketing.ticket.domain.TicketRepository;
 import com.example.ticketing.ticket.dto.TicketRankDto;
 import com.example.ticketing.ticket.dto.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.StreamSupport;
+import java.util.Comparator;
+import java.util.List;
 
-
-@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class TicketService {
 
@@ -30,14 +27,12 @@ public class TicketService {
 
     private final TicketManager ticketManager;
 
-    private final TicketRepository ticketRepository;
-
     public void resetTimer() {
         ticketTimer.resetStartTime();
     }
 
     public void initData() {
-        ticketRepository.deleteAll();
+        ticketManager.deleteAll();
         ticketCounter.resetCount();
     }
 
@@ -47,7 +42,6 @@ public class TicketService {
         }
     }
 
-    @Transactional
     public void issueTicket(ClientInfo userInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
         ticketCounter.isAvailableCount(seats.size());
@@ -56,17 +50,17 @@ public class TicketService {
     }
 
     public List<TicketRankDto> getRankInfo() {
-        Iterable<Ticket> tickets = ticketRepository.findAll();
-        return StreamSupport
-                .stream(tickets.spliterator(), false)
-                .filter(Objects::nonNull)
+        List<Ticket> tickets = ticketManager.findAll();
+        return tickets.stream()
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
-                .map(TicketRankDto::createFromTicket).toList();
+                .map(TicketRankDto::createFromTicket)
+                .toList();
     }
 
     public List<String> findAllSeats() {
-        List<String> seats = new ArrayList<>();
-        ticketRepository.findAll().forEach((ticket -> seats.add(ticket.getSeat())));
-        return seats;
+        return ticketManager.findAll()
+                .stream()
+                .map(Ticket::getSeat)
+                .toList();
     }
 }

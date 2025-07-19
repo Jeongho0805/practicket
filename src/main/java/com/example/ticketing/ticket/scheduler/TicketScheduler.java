@@ -1,5 +1,7 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.scheduler;
 
+import com.example.ticketing.ticket.application.TicketQueueService;
+import com.example.ticketing.ticket.application.TicketService;
 import com.example.ticketing.ticket.component.TicketManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

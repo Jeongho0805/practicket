@@ -1,4 +1,4 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.domain;
 
 import com.example.ticketing.ticket.dto.TicketQueueEventDto;
 import lombok.RequiredArgsConstructor;

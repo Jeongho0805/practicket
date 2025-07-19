@@ -1,4 +1,4 @@
-package com.example.ticketing.ticket;
+package com.example.ticketing.ticket.application;
 
 import com.example.ticketing.common.auth.Auth;
 import com.example.ticketing.common.auth.ClientInfo;
@@ -27,7 +27,7 @@ public class TicketController {
     private final TicketQueueService ticketQueueService;
 
     @GetMapping("/rank")
-    public ResponseEntity<?> getRankInfo() {
+    public ResponseEntity<List<TicketRankDto>> getRankInfo() {
         List<TicketRankDto> rankInfo = ticketService.getRankInfo();
         return ResponseEntity.ok(rankInfo);
     }
