@@ -1,6 +1,6 @@
-package com.example.ticketing.chat.infra;
+package com.example.ticketing.chat.component;
 
-import com.example.ticketing.chat.application.ChatResponseDto;
+import com.example.ticketing.chat.dto.ChatResponseDto;
 import lombok.Getter;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

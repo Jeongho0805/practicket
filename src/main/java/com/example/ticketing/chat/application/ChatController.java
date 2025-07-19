@@ -1,5 +1,7 @@
 package com.example.ticketing.chat.application;
 
+import com.example.ticketing.chat.dto.ChatRequestDto;
+import com.example.ticketing.chat.dto.ChatResponseDto;
 import com.example.ticketing.common.auth.Auth;
 import com.example.ticketing.common.auth.ClientInfo;
 import jakarta.validation.Valid;
@@ -33,8 +35,8 @@ public class ChatController {
     }
 
     @PostMapping
-    public ResponseEntity<?> sendChat(@Auth ClientInfo userInfo, @Valid @RequestBody ChatRequestDto dto) {
-        chatService.saveChat(userInfo, dto);
+    public ResponseEntity<?> sendChat(@Auth ClientInfo clientInfo, @Valid @RequestBody ChatRequestDto dto) {
+        chatService.saveChat(clientInfo, dto);
         return ResponseEntity.ok().build();
     }
 

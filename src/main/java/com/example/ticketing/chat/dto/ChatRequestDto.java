@@ -1,4 +1,4 @@
-package com.example.ticketing.chat.application;
+package com.example.ticketing.chat.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

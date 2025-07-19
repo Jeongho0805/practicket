@@ -1,4 +1,4 @@
-package com.example.ticketing.chat.application;
+package com.example.ticketing.chat.domain;
 
 import lombok.*;
 
@@ -8,9 +8,13 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatResponseDto {
+public class Chat {
+
     private String key;
+
     private String name;
+
     private String text;
-    private LocalDateTime sendAt;
+
+    private LocalDateTime createdAt;
 }
