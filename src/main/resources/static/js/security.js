@@ -1,4 +1,5 @@
-import { getNickname } from "./common.js";
+import  * as util from "./common.js";
+import {authFetch} from "./common.js";
 const mainSection = document.getElementById("main-section");
 const titleSection = document.getElementById("title-section")
 const guideSection = document.getElementById("guide-section");
@@ -205,7 +206,7 @@ function startSecurityTest() {
 
 async function fetchCreateElapsedTime(startTime, endTime) {
     const elapsedTime = ((endTime - startTime) / 1000).toFixed(2);
-    const response = await fetch("/api/captcha", {
+    const response = await authFetch("/api/captcha", {
         method: "POST",
         credentials: 'same-origin',
         headers: {
@@ -213,7 +214,6 @@ async function fetchCreateElapsedTime(startTime, endTime) {
         },
         body: JSON.stringify({ elapsed_time: elapsedTime }) // ✅ JSON 키를 snake_case로 변환
     });
-    // todo 모든 api 관련 처리 로직 모듈화 하면 좋을듯
     if (!response.ok) {
         alert("서버 오류로 전송 실패");
     }
@@ -222,7 +222,7 @@ async function fetchCreateElapsedTime(startTime, endTime) {
 async function fetchGetResult() {
     let response;
     try {
-        response = await fetch("/api/captcha", {
+        response = await authFetch("/api/captcha", {
             method: "GET",
             credentials: 'same-origin',
             headers: {
@@ -267,7 +267,7 @@ function addEventList() {
 
     // 보안문자 입력 테스트 시작 이벤트 등록
     startButton.addEventListener("click", async () => {
-        if (!await getNickname()) {
+        if (!await util.getNickname()) {
             alert("닉네임을 입력해주세요.")
             return;
         }

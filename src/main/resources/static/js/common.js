@@ -56,9 +56,6 @@ export async function authFetch(url, options = {}) {
     return fetch(url, options);
 }
 
-
-
-
 async function calTimeOffset() {
     const localTime = new Date();
     const response = await fetch(`${HOST}/api/server-time`, {
