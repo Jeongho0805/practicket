@@ -117,30 +117,7 @@ function markCurrentPage() {
     desktopButton.style.color = "darkslateblue";
 }
 
-async function requestCreateToken() {
-    let token = localStorage.getItem("token");
-    if (token) {
-        return;
-    }
-
-    const response = await fetch(`${HOST}/api/client`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        }
-    });
-
-    if (!response.ok) {
-        const errorResponse = await response.json(); // 응답 바디도 읽어줄 수 있음
-        alert(errorResponse.message);
-    }
-
-    const data = await response.json();
-    token = data.token;
-    localStorage.setItem("token", token);
-}
-
-requestCreateToken();
+await util.getOrCreateToken();
 displayNickName();
 addHeaderEventList();
 markCurrentPage();

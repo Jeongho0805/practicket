@@ -206,9 +206,14 @@ async function isSendChatPossible(chatting) {
         alert("채팅은 최대 100 글자까지 가능합니다.")
         return false;
     }
-    const name = await util.getNickname();
-    if (!name) {
+    const clientInfo = await util.getClientInfo();
+    console.log("clientInfo =", clientInfo);
+    if (!clientInfo.name) {
         alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+        return false;
+    }
+    if (clientInfo.banned) {
+        alert("채팅 전송이 불가합니다.")
         return false;
     }
     return true;
