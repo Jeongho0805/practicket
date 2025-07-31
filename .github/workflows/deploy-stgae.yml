@@ -1,4 +1,4 @@
-name: CI(github-action) / CD(argocd)
+name: Deploy Stage
 
 on:
   push:
@@ -44,8 +44,8 @@ jobs:
         run: |
           IMAGE_TAG="$(date +%Y%m%d%H%M%S)"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/practicket:$IMAGE_TAG .
-          docker push ${{ secrets.DOCKER_USERNAME }}/practicket:$IMAGE_TAG
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/practicket-stage:$IMAGE_TAG .
+          docker push ${{ secrets.DOCKER_USERNAME }}/practicket-stage:$IMAGE_TAG
 
       - name: Clone Argo CD deploy repo
         run: |

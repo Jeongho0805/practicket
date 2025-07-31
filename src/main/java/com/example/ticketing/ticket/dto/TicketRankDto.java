@@ -3,6 +3,8 @@ package com.example.ticketing.ticket.dto;
 import com.example.ticketing.ticket.domain.Ticket;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 public class TicketRankDto {
     private String key;
@@ -15,7 +17,13 @@ public class TicketRankDto {
         TicketRankDto ticketRankDto = new TicketRankDto();
         ticketRankDto.key = ticket.getKey();
         ticketRankDto.name = ticket.getName();
-        ticketRankDto.second = (ticket.getCreatedAt().getSecond()) + "." + String.valueOf(ticket.getCreatedAt().getNano()).substring(0, 2) + "초";
+        ticketRankDto.second = reformSecond(ticket.getCreatedAt());
         return ticketRankDto;
+    }
+
+    private static String reformSecond(LocalDateTime createdAt) {
+        int milli = createdAt.getNano() / 1_000_000;
+        String formattedMilli = String.format("%02d", milli / 10);
+        return createdAt.getSecond() + "." + formattedMilli + "초";
     }
 }
