@@ -1,18 +1,19 @@
 package com.example.ticketing.common.exception;
 
-import org.springframework.http.HttpStatus;
-
 public enum ErrorCode {
     // 409 Conflict
     SEAT_ALREADY_BOOKED(409, "T01", "이미 선택된 좌석입니다."),
 
-    TICKETING_TIME_IS_NOT_ALLOWED(HttpStatus.BAD_REQUEST.value(), "T02", "예매가능한 시간이 아닙니다."),
+    TICKETING_TIME_IS_NOT_ALLOWED(400, "T02", "예매가능한 시간이 아닙니다."),
 
-    SESSION_IS_NOT_EXIST(404, "A01", "세션이 존재하지 않습니다."),
+    TOKEN_IS_NOT_EXIST(404, "C01", "토큰이 존재하지 않습니다."),
+    INVALID_TOKEN(404, "C02", "토큰값이 유효하지 않습니다."),
+    NOT_FOUND_CLIENT(404, "C03", "존재하지 않는 사용자입니다."),
 
     PARAMETER_IS_NOT_VALID(400, "P01", "입력값이 올바르지 않습니다."),
 
-    INTERNAL_SERVER_ERROR(500, "S01", "서버 통신 에러가 발생하였습니다. 잠시 후 다시 이용해주세요.")
+    INTERNAL_SERVER_ERROR(500, "S01", "서버 통신 에러가 발생하였습니다. 잠시 후 다시 이용해주세요."),
+    RESOURCE_NOT_FOUND(404, "R01", "존재하지 않는 리소스입니다.")
     ;
 
 

@@ -1,7 +1,7 @@
 package com.example.ticketing.chat;
 
-import com.example.ticketing.chat.application.ChatResponseDto;
-import com.example.ticketing.chat.infra.ChatConnectionManager;
+import com.example.ticketing.chat.dto.ChatResponseDto;
+import com.example.ticketing.chat.component.ChatConnectionManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

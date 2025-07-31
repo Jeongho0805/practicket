@@ -1,4 +1,4 @@
-import { getAuthValue } from "./common.js";
+import * as util from "./common.js";
 
 let isFirst = true;
 
@@ -47,7 +47,7 @@ function markMyRank() {
     const trElements = document.querySelectorAll('tr');
     trElements.forEach(tr => {
         const key = tr.dataset.userKey;
-        if (key === getAuthValue()) {
+        if (key === util.getTokenValue()) {
             tr.style.backgroundColor = "darkslateblue"
             tr.style.color = "white"
             if (!isFirst) {

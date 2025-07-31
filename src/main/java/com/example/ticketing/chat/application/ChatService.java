@@ -1,43 +1,39 @@
 package com.example.ticketing.chat.application;
 
+import com.example.ticketing.chat.component.ChatManager;
+import com.example.ticketing.chat.dto.ChatRequestDto;
+import com.example.ticketing.chat.dto.ChatResponseDto;
+import com.example.ticketing.chat.component.ChatConnectionManager;
 import com.example.ticketing.chat.domain.Chat;
-import com.example.ticketing.chat.infra.ChatConnectionManager;
-import com.example.ticketing.chat.infra.ChatDocument;
-import com.example.ticketing.chat.infra.ChatMongoRepository;
-import com.example.ticketing.chat.mapper.ChatMapper;
-import com.example.ticketing.common.auth.UserInfo;
+import com.example.ticketing.common.auth.ClientInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final ChatMongoRepository chatMongoRepository;
+    private final ChatManager chatManager;
 
     private final ChatConnectionManager chatConnectionStore;
 
-    private final ChatMapper chatMapper;
-
-    public void saveChat(UserInfo userInfo, ChatRequestDto dto) {
-        Chat chat = chatMapper.toDomainFromDto(userInfo, dto);
-        chatMongoRepository.save(chatMapper.toEntityFromDomain(chat));
-        sendChatMessage(chatMapper.toDtoFromDomain(chat));
+    public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
+        Chat chat = chatManager.save(userInfo.getToken(), userInfo.getName(), dto.getText());
+        ChatResponseDto chatResponseDto = ChatResponseDto.of(chat);
+        sendChatMessage(chatResponseDto);
     }
 
     public List<ChatResponseDto> findAllChat(LocalDateTime dateTime) {
-        List<ChatDocument> chatDocuments = chatMongoRepository.findTop50ByCreatedAtBeforeOrderByCreatedAtDesc(dateTime);
-        Collections.reverse(chatDocuments);
-        return chatDocuments.stream()
-                .map(chatMapper::toDomainFromEntity)
-                .map(chatMapper::toDtoFromDomain)
+        List<Chat> chatList = chatManager.findAllByDatetime(dateTime);
+        Collections.reverse(chatList);
+        return chatList.stream()
+                .map(ChatResponseDto::of)
                 .toList();
     }
 

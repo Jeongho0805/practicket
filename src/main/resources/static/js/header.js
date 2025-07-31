@@ -1,31 +1,36 @@
-import { getNickname } from "./common.js";
+import * as util from "./common.js";
 
-// 페이지 로드시 마다 실행 (새로고침 포함)
 let name;
 
-// window.onload = async () => {
-//
-// };
+const mobilePageInfos = {
+    ticketing: document.getElementById("ticketing-page-btn"),
+    rank: document.getElementById("rank-page-btn"),
+    security: document.getElementById("security-page-btn"),
+    blog: document.getElementById("blog-page-btn")
+}
+
+const desktopPageInfos = {
+    ticketing: document.getElementById("ticketing-desktop-btn"),
+    rank: document.getElementById("rank-desktop-btn"),
+    security: document.getElementById("security-desktop-btn"),
+    blog: document.getElementById("blog-desktop-btn")
+}
 
 async function displayNickName() {
-    try {
-        name = await getNickname();
-        const name_input_section = document.getElementById("name-input-section");
-        const name_value = document.getElementById("name-value");
-        const reset_button = document.getElementById("reset-button");
-        if (name) {
-            name_input_section.style.display = "none";
-            name_value.style.display = "block";
-            name_value.textContent = name;
-            reset_button.style.display = "block";
-        } else {
-            const name_section = document.getElementById("name-section");
-            name_section.style.display = "none";
-            name_input_section.style.display = "flex";
-        }
-    } catch (e) {
-
+    name = await util.getNickname();
+    const name_input_section = document.getElementById("name-input-section");
+    const name_value = document.getElementById("name-value");
+    const reset_button = document.getElementById("reset-button");
+    if (!name) {
+        const name_section = document.getElementById("name-section");
+        name_section.style.display = "none";
+        name_input_section.style.display = "flex";
+        return;
     }
+    name_input_section.style.display = "none";
+    name_value.style.display = "block";
+    name_value.textContent = name;
+    reset_button.style.display = "block";
 }
 
 function isValidNickname(name) {
@@ -52,7 +57,7 @@ function addHeaderEventList() {
         if (!isValidNickname(name)) {
             return;
         }
-        await requestCreateSession(name);
+        await updateClient(name);
         location.reload();
     })
 
@@ -64,7 +69,7 @@ function addHeaderEventList() {
             if (!isValidNickname(name)) {
                 return;
             }
-            await requestCreateSession(name);
+            await updateClient(name);
             location.reload();
         }
     });
@@ -73,15 +78,14 @@ function addHeaderEventList() {
     // 닉네임 변경 이벤트
     const name_reset_button = document.getElementById("reset-button");
     name_reset_button.addEventListener("click", async () => {
-        await requestDeleteSession();
-        document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        await updateClient(null);
         location.reload();
     })
 }
 
-async function requestCreateSession(name) {
-    const response = await fetch(`${HOST}/api/auth`, {
-        method: "POST",
+async function updateClient(name) {
+    const response = await util.authFetch(`${HOST}/api/client`, {
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
         },
@@ -91,47 +95,12 @@ async function requestCreateSession(name) {
     });
 
     if (!response.ok) {
-        const errorResponse = await response.json(); // 응답 바디도 읽어줄 수 있음
-        if (errorResponse?.code === "P01") {
-            alert(errorResponse.message);
-            return;
-        }
-        alert("서버에 문제가 발생하였습니다. 다시 시도해주세요.")
+        const errorResponse = await response.json();
+        alert(errorResponse.message);
     }
-
 }
 
-function requestDeleteSession() {
-    return fetch(`${HOST}/api/auth`, {
-        method: "DELETE",
-        credentials: 'same-origin',
-        headers: {
-            "Content-Type": "application/json",
-        },
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error("Request is failed");
-        }
-    }).catch(e => {
-        alert("서버 에러가 발생하였습니다.")
-    })
-}
-
-const mobilePageInfos = {
-    ticketing: document.getElementById("ticketing-page-btn"),
-    rank: document.getElementById("rank-page-btn"),
-    security: document.getElementById("security-page-btn"),
-    blog: document.getElementById("blog-page-btn")
-}
-
-const desktopPageInfos = {
-    ticketing: document.getElementById("ticketing-desktop-btn"),
-    rank: document.getElementById("rank-desktop-btn"),
-    security: document.getElementById("security-desktop-btn"),
-    blog: document.getElementById("blog-desktop-btn")
-}
-
-export function markCurrentPage() {
+function markCurrentPage() {
     let currentPath = window.location.pathname;
     currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
 
@@ -148,6 +117,7 @@ export function markCurrentPage() {
     desktopButton.style.color = "darkslateblue";
 }
 
+await util.getOrCreateToken();
 displayNickName();
 addHeaderEventList();
 markCurrentPage();

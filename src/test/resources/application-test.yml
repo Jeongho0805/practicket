@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: false
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  task:
+    execution:
+      shutdown:
+        await-termination: true
+        await-termination-period: 1s
+
+
+app:
+  host: "http://localhost:8080"

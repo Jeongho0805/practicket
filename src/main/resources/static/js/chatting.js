@@ -1,4 +1,4 @@
-import { getAuthValue, getNickname} from "./common.js";
+import * as util from "./common.js";
 
 // 모바일 화면 이동시 채팅 sse 연결 끊김에 대한 처리
 document.addEventListener("visibilitychange", () => {
@@ -7,10 +7,10 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-function appendChatElementAtBottom(chat, chatBox, authValue) {
+function appendChatElementAtBottom(chat, chatBox, tokenValue) {
     const lastChatUnit = chatBox.lastElementChild;
 
-    const chatType = authValue === chat.key ? "sent" : "received";
+    const chatType = tokenValue === chat.key ? "sent" : "received";
     const chatUnit = document.createElement("div");
     chatUnit.classList.add("chat-unit", chatType);
 
@@ -133,7 +133,7 @@ function makeChatElementByScroll(chat, chatBox, authValue) {
 }
 
 function appendChatByScroll(data) {
-    const authValue = getAuthValue();
+    const authValue = util.getAuthValue();
     const chatBox = document.getElementById("chatting-box-section");
 
     const prevScrollHeight = chatBox.scrollHeight;
@@ -151,16 +151,16 @@ function appendChatByScroll(data) {
 }
 
 function renderingChatting(data, isFirstRendering) {
-    const authValue = getAuthValue();
+    const tokenValue = util.getTokenValue();
     const chatBox = document.getElementById("chatting-box-section");
     if (isFirstRendering) {
         chatBox.innerHTML = "";
         data.forEach(chat => {
-            appendChatElementAtBottom(chat, chatBox, authValue);
+            appendChatElementAtBottom(chat, chatBox, tokenValue);
         })
         chatBox.scrollTop = chatBox.scrollHeight;
     } else {
-        appendChatElementAtBottom(data, chatBox, authValue);
+        appendChatElementAtBottom(data, chatBox, tokenValue);
     }
     if (chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight <= chatBox.clientHeight * 2) {
         chatBox.scrollTop = chatBox.scrollHeight;
@@ -206,9 +206,14 @@ async function isSendChatPossible(chatting) {
         alert("채팅은 최대 100 글자까지 가능합니다.")
         return false;
     }
-    const name = await getNickname();
-    if (!name) {
+    const clientInfo = await util.getClientInfo();
+    console.log("clientInfo =", clientInfo);
+    if (!clientInfo.name) {
         alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+        return false;
+    }
+    if (clientInfo.banned) {
+        alert("채팅 전송이 불가합니다.")
         return false;
     }
     return true;
@@ -242,7 +247,7 @@ async function setChatEventListener() {
 
     const inputBox = document.getElementById("chatting-input");
     inputBox.addEventListener("click", async () => {
-        const name = await getNickname();
+        const name = await util.getNickname();
         if (!name) {
             alert("채팅을 입력하려면 닉네임을 입력해주세요.")
         }
@@ -254,7 +259,7 @@ async function setChatEventListener() {
         if (!await isSendChatPossible(chatting)) {
             return;
         }
-        const response = await fetch(`${HOST}/api/chat`, {
+        const response = await util.authFetch(`${HOST}/api/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

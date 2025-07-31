@@ -1,0 +1,68 @@
+name: Deploy Stage
+
+on:
+  push:
+    branches: [stage]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Copy application.yml
+        run: |
+          echo "${{ secrets.APPLICATION_STAGE_YAML }}" | base64 --decode > src/main/resources/application-stage.yml
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG="$(date +%Y%m%d%H%M%S)"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/practicket-stage:$IMAGE_TAG .
+          docker push ${{ secrets.DOCKER_USERNAME }}/practicket-stage:$IMAGE_TAG
+
+      - name: Clone Argo CD deploy repo
+        run: |
+          git clone https://x-access-token:${{ secrets.DEPLOY_REPO_TOKEN}}@github.com/Jeongho0805/practicket-deploy.git deploy
+          cd deploy
+          git checkout main
+
+      - name: Update image tag in deploy repo
+        run: |
+          cd deploy
+          sed -i "s/tag: .*/tag: \"$IMAGE_TAG\"/" overlays/stage/values.yaml
+
+      - name: Commit and push to deploy repo
+        run: |
+          cd deploy
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add overlays/stage/values.yaml
+          git commit -m "ci(stage): update image tag to $IMAGE_TAG"
+          git push origin main
