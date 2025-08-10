@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     implementation 'io.sentry:sentry-spring-boot-starter:6.34.0'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     testImplementation("com.h2database:h2")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

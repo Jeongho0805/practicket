@@ -28,7 +28,9 @@ public class CaptchaService {
     public CaptchaResultStatistic getStatistic(ClientInfo clientInfo) {
         List<Float> totalResults = captchaResultManager.findAllElapsedTimes();
         List<Float> myResults = captchaResultManager.findAllMyElapsedTimes(clientInfo.getClientId());
+
         return CaptchaResultStatistic.builder()
+                .latestRank(captchaResultCalculator.extractMyLatestRank(totalResults, myResults))
                 .latestResult(captchaResultCalculator.extractFirstIndexValue(myResults))
                 .myAvgResult(captchaResultCalculator.getAverageElapsedTime(myResults))
                 .totalAvgResult(captchaResultCalculator.getAverageElapsedTime(totalResults))

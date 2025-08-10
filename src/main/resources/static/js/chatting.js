@@ -272,11 +272,7 @@ async function setChatEventListener() {
         document.getElementById("chatting-input").value = "";
         if (!response.ok) {
             const errorResponse = await response.json();
-            if (errorResponse?.code === "P01") {
-                alert(errorResponse.message);
-                return;
-            }
-            alert("서버에 문제가 발생하였습니다. 다시 시도해주세요.")
+            alert(errorResponse.message);
         }
     });
     document.getElementById("chatting-input").addEventListener("keypress", function (e) {
