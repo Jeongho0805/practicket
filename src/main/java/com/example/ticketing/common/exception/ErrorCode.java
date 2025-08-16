@@ -13,7 +13,10 @@ public enum ErrorCode {
     PARAMETER_IS_NOT_VALID(400, "P01", "입력값이 올바르지 않습니다."),
 
     INTERNAL_SERVER_ERROR(500, "S01", "서버 통신 에러가 발생하였습니다. 잠시 후 다시 이용해주세요."),
-    RESOURCE_NOT_FOUND(404, "R01", "존재하지 않는 리소스입니다.")
+    RESOURCE_NOT_FOUND(404, "R01", "존재하지 않는 리소스입니다."),
+
+    INAPPROPRIATE_CONTENT(400, "V01", "부적절한 내용이 포함되어 있습니다.")
+
     ;
 
 

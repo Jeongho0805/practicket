@@ -23,4 +23,19 @@ public class CaptchaResultCalculator {
         }
         return elapsedTimes.get(0);
     }
+
+    public int extractMyLatestRank(List<Float> totalResults, List<Float> myResults) {
+        if (myResults.isEmpty()) {
+            return -1;
+        }
+        List<Float> totalResultSortByElapsedTime = totalResults.stream().sorted().toList();
+        float latestResult = myResults.get(0);
+
+        for (int i = 0; i < totalResultSortByElapsedTime.size(); i++) {
+            if (Float.compare(latestResult, totalResultSortByElapsedTime.get(i)) <= 0) {
+                return i + 1;
+            }
+        }
+        return totalResults.size();
+    }
 }
