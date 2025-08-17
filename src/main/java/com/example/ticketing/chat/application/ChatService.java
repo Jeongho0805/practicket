@@ -1,10 +1,11 @@
 package com.example.ticketing.chat.application;
 
+import com.example.ticketing.chat.component.ChatConnectionManager;
 import com.example.ticketing.chat.component.ChatManager;
+import com.example.ticketing.common.component.ProfanityValidator;
+import com.example.ticketing.chat.domain.Chat;
 import com.example.ticketing.chat.dto.ChatRequestDto;
 import com.example.ticketing.chat.dto.ChatResponseDto;
-import com.example.ticketing.chat.component.ChatConnectionManager;
-import com.example.ticketing.chat.domain.Chat;
 import com.example.ticketing.common.auth.ClientInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -23,7 +26,10 @@ public class ChatService {
 
     private final ChatConnectionManager chatConnectionStore;
 
+    private final ProfanityValidator profanityValidator;
+
     public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
+        profanityValidator.validateProfanityText(dto.getText());
         Chat chat = chatManager.save(userInfo.getToken(), userInfo.getName(), dto.getText());
         ChatResponseDto chatResponseDto = ChatResponseDto.of(chat);
         sendChatMessage(chatResponseDto);

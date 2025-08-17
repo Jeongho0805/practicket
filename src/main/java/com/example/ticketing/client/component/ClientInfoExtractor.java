@@ -27,10 +27,10 @@ public class ClientInfoExtractor {
 
     private String extractClientIp(HttpServletRequest request) {
         String clientIp = request.getHeader(IP_KEY);
-        if (clientIp == null || clientIp.isEmpty()) {
-            clientIp = request.getRemoteAddr();
+        if (clientIp != null && !clientIp.isEmpty()) {
+            return clientIp.split(",")[0].trim();
         }
-        return clientIp;
+        return request.getRemoteAddr();
     }
 
     private String extractClientDevice(HttpServletRequest request) {

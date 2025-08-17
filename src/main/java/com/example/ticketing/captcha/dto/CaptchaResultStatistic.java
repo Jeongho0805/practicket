@@ -8,6 +8,8 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CaptchaResultStatistic {
 
+    private int latestRank;
+
     private float latestResult;
 
     private float myAvgResult;
