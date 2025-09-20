@@ -61,11 +61,23 @@
         height: 100%;
         max-height: 100%;
         overflow: hidden;
-        background-color: white;
-        border-radius: 2em;
-        border: 2px solid darkslateblue;
-        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
-        0 4px 8px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
+        border-radius: 25px;
+        border: none;
+        box-shadow: 0 12px 24px rgba(75, 63, 114, 0.15),
+                    0 6px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    #guide-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #6b5b9a, #8470b3, #6b5b9a);
+        border-radius: 25px 25px 0 0;
     }
 
     .guide-description {
@@ -101,17 +113,41 @@
         border: none;
         width: 30%;
         aspect-ratio: 1/0.5;
-        background-color: darkslateblue;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
         color: white;
         font-size: 1.3em;
-        border-radius: 1.5em;
-        border: none;
+        border-radius: 25px;
         font-family: my-font, sans-serif;
         cursor: pointer;
+        box-shadow: 0 4px 15px rgba(75, 63, 114, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #start-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
     }
 
     #start-button:hover {
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(75, 63, 114, 0.4);
+    }
+
+    #start-button:hover::before {
+        left: 100%;
+    }
+
+    #start-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(75, 63, 114, 0.3);
     }
 
     #security-letter-section {
@@ -219,46 +255,57 @@
         color: darkslateblue;
         padding: 10px;
         box-sizing: border-box;
-        border: 2px solid darkslateblue;
-
+        margin-bottom: 20px;
     }
 
     #result-detail {
         width: 100%;
-        height: 40%;
+        height: auto;
         box-sizing: border-box;
-        border: 2px solid darkslateblue;
-        border-top: none;
-        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
-        0 4px 8px rgba(0, 0, 0, 0.1);
-        display: grid;
-        grid-template-columns: 3fr 4fr 5fr;
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     .result-detail-content {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        display: grid;
-        grid-template-rows: 1fr 1fr;
+        width: 180px;
+        height: 140px;
+        background: white;
+        border-radius: 15px;
+        border: 2px solid darkslateblue;
+        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
+                    0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-items: center;
+        justify-content: space-evenly;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 15px;
+        box-sizing: border-box;
     }
 
-    #my-latest-result, #my-average-result {
-        border-right: 2px solid darkslateblue;
+    .result-detail-content:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(75, 63, 114, 0.4),
+                    0 8px 16px rgba(0, 0, 0, 0.15);
     }
 
     .result-detail-content > h4 {
-        width: 100%;
-        height: 100%;
         margin: 0;
         text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-bottom: 2px solid darkslateblue;
+        color: darkslateblue;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .result-detail-content > p {
+        margin: 0;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #2a2d2f;
     }
 
     #ad-section {
@@ -341,10 +388,24 @@
         height: 100%;
         max-height: 100%;
         overflow: hidden;
-        background-color: white;
+        background: linear-gradient(135deg, #ffffff, #f8f9ff);
+        border-radius: 20px;
+        border: none;
         box-sizing: border-box;
-        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
-        0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 12px 24px rgba(75, 63, 114, 0.15),
+                    0 6px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
+    }
+
+    #guide-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #6b5b9a, #8470b3, #6b5b9a);
+        border-radius: 20px 20px 0 0;
     }
 
     .guide-description {
@@ -379,16 +440,41 @@
         border: none;
         width: 30%;
         aspect-ratio: 1/0.5;
-        background-color: darkslateblue;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
         color: white;
         font-size: 1em;
-        border-radius: 1.2em;
+        border-radius: 20px;
         font-family: my-font, sans-serif;
         cursor: pointer;
+        box-shadow: 0 4px 15px rgba(75, 63, 114, 0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    #start-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
     }
 
     #start-button:hover {
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(75, 63, 114, 0.4);
+    }
+
+    #start-button:hover::before {
+        left: 100%;
+    }
+
+    #start-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(75, 63, 114, 0.3);
     }
 
     #security-letter-section {
@@ -512,40 +598,52 @@
 
     #result-detail {
         width: 100%;
-        height: 100%;
+        height: auto;
         box-sizing: border-box;
-        border: 2px solid darkslateblue;
-        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
-        0 4px 8px rgba(0, 0, 0, 0.1);
-        display: grid;
-        grid-template-columns: 3fr 4fr 5fr;
+        display: flex;
+        gap: 8px;
+        padding: 10px;
+        justify-content: center;
+        flex-wrap: nowrap;
     }
 
     .result-detail-content {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        display: grid;
-        grid-template-rows: 1fr 1fr;
+        width: 90px;
+        height: 80px;
+        background: white;
+        border-radius: 10px;
+        border: 2px solid darkslateblue;
+        box-shadow: 0 8px 16px rgba(75, 63, 114, 0.3),
+                    0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-items: center;
-        font-size: 12px;
+        justify-content: space-evenly;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 8px;
+        box-sizing: border-box;
     }
 
-    #my-latest-result, #my-average-result {
-        border-right: 2px solid darkslateblue;
+    .result-detail-content:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(75, 63, 114, 0.4),
+                    0 8px 16px rgba(0, 0, 0, 0.15);
     }
 
     .result-detail-content > h4 {
-        width: 100%;
-        height: 100%;
         margin: 0;
         text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-bottom: 2px solid darkslateblue;
+        color: darkslateblue;
+        font-size: 9px;
+        font-weight: bold;
+    }
+
+    .result-detail-content > p {
+        margin: 0;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        color: #2a2d2f;
     }
 
     #ad-section {
