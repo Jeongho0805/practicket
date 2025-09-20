@@ -171,19 +171,20 @@ function checkCaptcha() {
     if (userInput === correctText) {
         correctCount++;
         securityCountMessage.innerText = successMessage;
-        securityCountMessage.style.color = "#3CB371"
+        securityCountMessage.className = "message-success";
 
         if (correctCount < 3) {
             markCorrectCount();
             generateCaptcha();
         } else {
             securityCountMessage.innerText = "";
+            securityCountMessage.className = "";
             correctCount = 0;
             isStart = false;
         }
     } else {
         securityCountMessage.innerText = errorMessage;
-        securityCountMessage.style.color = "red";
+        securityCountMessage.className = "message-error";
     }
     securityInput.value = "";
     securityInput.focus();
