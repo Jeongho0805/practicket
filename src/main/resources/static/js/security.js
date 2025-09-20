@@ -133,11 +133,14 @@ function toggleElements() {
     if (!isToggleOpen) {
         if (window.matchMedia("(min-width: 769px)").matches) {
             titleSection.style.display = "block"
-            guideSection.style.border = "2px solid darkslateblue";
         }
         startButton.style.display = "inline-block";
         securityLetterSection.style.display = "none"
-        mainSection.style.display = "grid"
+        const securitySection = document.getElementById("security-section");
+        securitySection.style.display = "none";
+        mainSection.style.display = "grid";
+        mainSection.style.alignItems = "";
+        mainSection.style.justifyContent = "";
         resultSection.style.display = "flex";
         guideSection.querySelectorAll(".guide-description").forEach(child => {
             child.style.display = "block";
@@ -150,7 +153,11 @@ function toggleElements() {
         startButton.style.display = "none";
         resultSection.style.display = "none";
         securityLetterSection.style.display = "grid"
-        mainSection.style.display = "flex"
+        const securitySection = document.getElementById("security-section");
+        securitySection.style.display = "flex";
+        mainSection.style.display = "flex";
+        mainSection.style.alignItems = "center";
+        mainSection.style.justifyContent = "center";
         isToggleOpen = false;
     }
 }
