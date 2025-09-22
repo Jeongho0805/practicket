@@ -15,4 +15,10 @@ public class CaptchaResultStatistic {
     private float myAvgResult;
 
     private float totalAvgResult;
+
+    private float latestPercentile;
+
+    private float avgPercentile;
+
+    private float bestResult;
 }
