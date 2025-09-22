@@ -351,7 +351,7 @@
         text-align: center;
         font-size: 20px;
         font-weight: bold;
-        color: #404141;
+        color: rgba(64, 65, 65, 0.89);
     }
 
     #ad-section {
@@ -777,7 +777,7 @@
         text-align: center;
         font-size: 14px;
         font-weight: bold;
-        color: #2a2d2f;
+        color: rgba(64, 65, 65, 0.89);
     }
 
     #ad-section {

@@ -257,13 +257,13 @@ async function updateResultValue() {
         const myAverageResult = document.getElementById("my-average-result-value")
         const totalAverageResult = document.getElementById("total-average-result-value")
         const myLatestPercentile = document.getElementById("my-latest-percentile-value")
-        const myTotalPercentile = document.getElementById("my-total-percentile-value")
+        const myLatestRank = document.getElementById("my-latest-rank-value")
         const myBestResult = document.getElementById("my-best-result-value")
         myLatestResult.innerText = `${Number(result.latest_result).toFixed(2)}초`;
         myAverageResult.innerText = `${Number(result.my_avg_result).toFixed(2)}초`;
         totalAverageResult.innerText = `${Number(result.total_avg_result).toFixed(2)}초`;
         myLatestPercentile.innerText = `${Number(result.latest_percentile).toFixed(2)}%`;
-        myTotalPercentile.innerText = `${Number(result.avg_percentile).toFixed(2)}%`;
+        myLatestRank.innerText = `${result.latest_rank}위`;
         myBestResult.innerText = `${Number(result.best_result).toFixed(2)}초`;
         resultSection.style.display = "flex";
     }
