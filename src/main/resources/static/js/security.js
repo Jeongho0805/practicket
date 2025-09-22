@@ -133,11 +133,14 @@ function toggleElements() {
     if (!isToggleOpen) {
         if (window.matchMedia("(min-width: 769px)").matches) {
             titleSection.style.display = "block"
-            guideSection.style.border = "2px solid darkslateblue";
         }
         startButton.style.display = "inline-block";
         securityLetterSection.style.display = "none"
-        mainSection.style.display = "grid"
+        const securitySection = document.getElementById("security-section");
+        securitySection.style.display = "none";
+        mainSection.style.display = "grid";
+        mainSection.style.alignItems = "";
+        mainSection.style.justifyContent = "";
         resultSection.style.display = "flex";
         guideSection.querySelectorAll(".guide-description").forEach(child => {
             child.style.display = "block";
@@ -150,7 +153,11 @@ function toggleElements() {
         startButton.style.display = "none";
         resultSection.style.display = "none";
         securityLetterSection.style.display = "grid"
-        mainSection.style.display = "flex"
+        const securitySection = document.getElementById("security-section");
+        securitySection.style.display = "flex";
+        mainSection.style.display = "flex";
+        mainSection.style.alignItems = "center";
+        mainSection.style.justifyContent = "center";
         isToggleOpen = false;
     }
 }
@@ -171,19 +178,20 @@ function checkCaptcha() {
     if (userInput === correctText) {
         correctCount++;
         securityCountMessage.innerText = successMessage;
-        securityCountMessage.style.color = "#3CB371"
+        securityCountMessage.className = "message-success";
 
         if (correctCount < 3) {
             markCorrectCount();
             generateCaptcha();
         } else {
             securityCountMessage.innerText = "";
+            securityCountMessage.className = "";
             correctCount = 0;
             isStart = false;
         }
     } else {
         securityCountMessage.innerText = errorMessage;
-        securityCountMessage.style.color = "red";
+        securityCountMessage.className = "message-error";
     }
     securityInput.value = "";
     securityInput.focus();
@@ -248,9 +256,15 @@ async function updateResultValue() {
         const myLatestResult = document.getElementById("my-latest-result-value")
         const myAverageResult = document.getElementById("my-average-result-value")
         const totalAverageResult = document.getElementById("total-average-result-value")
+        const myLatestPercentile = document.getElementById("my-latest-percentile-value")
+        const myLatestRank = document.getElementById("my-latest-rank-value")
+        const myBestResult = document.getElementById("my-best-result-value")
         myLatestResult.innerText = `${Number(result.latest_result).toFixed(2)}초`;
         myAverageResult.innerText = `${Number(result.my_avg_result).toFixed(2)}초`;
         totalAverageResult.innerText = `${Number(result.total_avg_result).toFixed(2)}초`;
+        myLatestPercentile.innerText = `${Number(result.latest_percentile).toFixed(2)}%`;
+        myLatestRank.innerText = `${result.latest_rank}위`;
+        myBestResult.innerText = `${Number(result.best_result).toFixed(2)}초`;
         resultSection.style.display = "flex";
     }
 }

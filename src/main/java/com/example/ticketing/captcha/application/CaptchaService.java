@@ -32,8 +32,11 @@ public class CaptchaService {
         return CaptchaResultStatistic.builder()
                 .latestRank(captchaResultCalculator.extractMyLatestRank(totalResults, myResults))
                 .latestResult(captchaResultCalculator.extractFirstIndexValue(myResults))
-                .myAvgResult(captchaResultCalculator.getAverageElapsedTime(myResults))
-                .totalAvgResult(captchaResultCalculator.getAverageElapsedTime(totalResults))
+                .myAvgResult(captchaResultCalculator.calAverageElapsedTime(myResults))
+                .totalAvgResult(captchaResultCalculator.calAverageElapsedTime(totalResults))
+                .latestPercentile(captchaResultCalculator.calLatestPercentile(totalResults, myResults))
+                .avgPercentile(captchaResultCalculator.calAvgPercentile(totalResults, myResults))
+                .bestResult(captchaResultCalculator.extractMyBestResult(myResults))
                 .build();
     }
 
