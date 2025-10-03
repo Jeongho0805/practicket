@@ -6,14 +6,16 @@ const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
     rank: document.getElementById("rank-page-btn"),
     security: document.getElementById("security-page-btn"),
-    blog: document.getElementById("blog-page-btn")
+    blog: document.getElementById("blog-page-btn"),
+    art: document.getElementById("art-page-btn")
 }
 
 const desktopPageInfos = {
     ticketing: document.getElementById("ticketing-desktop-btn"),
     rank: document.getElementById("rank-desktop-btn"),
     security: document.getElementById("security-desktop-btn"),
-    blog: document.getElementById("blog-desktop-btn")
+    blog: document.getElementById("blog-desktop-btn"),
+    art: document.getElementById("art-desktop-btn")
 }
 
 async function displayNickName() {

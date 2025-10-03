@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작품 상세 - 프랙티켓</title>
+    <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/art/art-detail.css">
+</head>
+<body>
+    <div th:replace="~{fragments/header::header}"></div>
+
+    <div class="detail-container">
+        <div class="art-section">
+            <div class="art-canvas-wrapper">
+                <canvas id="artCanvas"></canvas>
+            </div>
+
+            <div class="art-info">
+                <h1 id="artTitle">작품 제목</h1>
+                <p id="artDescription">작품 설명</p>
+
+                <div class="art-meta">
+                    <span class="author">작성자: <span id="authorName">익명</span></span>
+                    <span class="date">작성일: <span id="createdAt"></span></span>
+                    <span class="views">조회수: <span id="viewCount">0</span></span>
+                </div>
+
+                <div class="art-actions" id="artActions" style="display: none;">
+                    <button id="editBtn" class="action-btn edit-btn">수정</button>
+                    <button id="deleteBtn" class="action-btn delete-btn">삭제</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-section">
+            <a href="/art" class="back-btn">갤러리로 돌아가기</a>
+        </div>
+    </div>
+
+    <script>
+        const HOST = "[[${host}]]";
+        const ART_ID = "[[${artId}]]";
+    </script>
+    <script type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/art/detail.js"></script>
+</body>
+</html>
