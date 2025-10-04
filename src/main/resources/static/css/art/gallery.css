@@ -1,3 +1,12 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 공통 */
+.art-stats-number {
+    font-family: Pretendard, sans-serif;
+    color: #333537;
+}
+
+
 /* 데스크톱 스타일 */
 @media (min-width: 769px) {
     html, body {
@@ -64,7 +73,7 @@
     #gallery-content {
         flex: 1;
         width: 100%;
-        height: 100%;
+        height: 90%;
         overflow-y: scroll;
         display: flex;
         flex-direction: column;
@@ -100,89 +109,130 @@
 
     .art-gallery-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+        gap: 40px;
         width: 100%;
-        max-width: 100%;
-        padding: 5% 10%;
+        padding: 5%;
         box-sizing: border-box;
+        align-items: center;
+        justify-items: center;
     }
 
-    /* 아트 카드 */
+    /* 아트 카드 - 인스타 스타일 */
     .art-card {
-        background: white;
-        border: 2px solid darkslateblue;
-        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        background: none;
+        border: 1px solid #dbdbdb;
+        border-radius: 16px;
         box-sizing: border-box;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
+        max-width: 500px;
     }
 
     .art-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(139, 73, 146, 0.2);
+        transform: scale(1.01);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
     }
 
     .art-preview {
         position: relative;
-        background: #f8f9fa;
-        padding: 25px;
+        background: #fafafa;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 200px;
-        border-radius: 12px 12px 0 0;
+        aspect-ratio: 1;
         overflow: hidden;
+        border: 1px solid #dbdbdb;
+        cursor: pointer;
+    }
+
+    .art-caption, .art-footer {
+        cursor: pointer;
     }
 
     .art-canvas {
-        border: 2px solid #e9ecef;
-        border-radius: 6px;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
         image-rendering: pixelated;
         image-rendering: -moz-crisp-edges;
         image-rendering: crisp-edges;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     .art-info {
-        padding: 20px;
-    }
-
-    .art-title {
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: #333;
-        margin: 0 0 10px 0;
-        line-height: 1.4;
-        font-family: my-font, sans-serif;
-    }
-
-    .art-description {
-        color: #666;
-        font-size: 1rem;
-        margin: 0 0 15px 0;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        font-family: my-font, sans-serif;
-    }
-
-    .art-meta {
-        display: flex;
-        justify-content: space-between;
+        padding: 10px 14px;
+        display: grid;
+        grid-template-rows: 1fr 1fr 1fr;
         align-items: center;
+        justify-items: left;
+        row-gap: 10%;
+    }
+
+    .art-stats {
+        display: flex;
+        gap: 10%;
+    }
+
+    .art-likes, .art-comments, .art-views {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-size: 0.9rem;
-        color: #999;
+        font-weight: 600;
+        color: #262626;
         font-family: my-font, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .art-views {
+        cursor: default;
+    }
+
+    .art-likes svg path {
+        transition: all 0.2s ease;
+    }
+
+    .art-likes:hover svg path {
+        fill: #ed4956 !important;
+        stroke: #ed4956 !important;
+    }
+
+    .art-comments svg, .art-views svg {
+        fill: none;
+        stroke: currentColor;
+    }
+
+    .art-caption {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        margin: 0;
+        overflow: hidden;
+        gap: 3%;
+        font-family: Pretendard, sans-serif;
     }
 
     .art-author {
-        font-weight: 500;
-        color: #8b4992;
+        font-weight: bold;
+        font-size: 1.1rem;
+        color: rgb(28, 27, 32);
+    }
+
+    .art-title {
+        color: rgb(28, 27, 32);
+        font-size: 0.9rem;
+        font-weight: 400;
+    }
+
+    .art-date {
+        font-size: 0.75rem;
+        color: #8e8e8e;
+        font-family: my-font, sans-serif;
+        white-space: nowrap;
+        flex-shrink: 0;
+        align-self: flex-end;
     }
 
     #gallery-loading, #gallery-no-more {
@@ -260,90 +310,143 @@
 
     .art-gallery-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 20px;
+        grid-template-columns: 1fr;
+        gap: 24px;
         width: 100%;
-        padding-bottom: 20px;
+        max-width: 600px;
+        padding: 16px;
     }
 
-    /* 아트 카드 */
+    /* 아트 카드 - 인스타 모바일 */
     .art-card {
         background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dbdbdb;
+        border-radius: 12px;
         overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
-        cursor: pointer;
+        transition: all 0.2s ease;
     }
 
     .art-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(139, 73, 146, 0.2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
     }
-}
 
-/* 모바일 아트 미리보기 및 정보 */
-@media (max-width: 768px) {
+    .art-preview {
+        cursor: pointer;
+    }
+
+    .art-caption, .art-footer {
+        cursor: pointer;
+    }
+
     .art-preview {
         position: relative;
-        background: #f8f9fa;
-        padding: 20px;
+        background: #fafafa;
+        padding: 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 180px;
-        border-radius: 8px 8px 0 0;
+        aspect-ratio: 1;
         overflow: hidden;
     }
 
     .art-canvas {
-        border: 1px solid #e9ecef;
-        border-radius: 4px;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
         image-rendering: pixelated;
         image-rendering: -moz-crisp-edges;
         image-rendering: crisp-edges;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .art-info {
-        padding: 16px;
+        padding: 10px 14px 14px;
+        border-top: 1px solid #efefef;
+    }
+
+    .art-stats {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 10px;
+    }
+
+    .art-likes, .art-comments, .art-views {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #262626;
+        font-family: my-font, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .art-views {
+        cursor: default;
+    }
+
+    .art-likes svg path {
+        transition: all 0.2s ease;
+    }
+
+    .art-likes:hover svg path {
+        fill: #ed4956 !important;
+        stroke: #ed4956 !important;
+    }
+
+    .art-comments svg, .art-views svg {
+        fill: none;
+        stroke: currentColor;
+    }
+
+    .art-caption {
+        font-size: 0.85rem;
+        color: #262626;
+        margin: 0 0 5px 0;
+        line-height: 1.4;
+        font-family: my-font, sans-serif;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .art-author {
+        font-weight: 700;
+        color: #262626;
     }
 
     .art-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #333;
-        margin: 0 0 8px 0;
-        line-height: 1.4;
-        font-family: my-font, sans-serif;
+        font-weight: 400;
+        color: #262626;
+    }
+
+    .art-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 6px;
     }
 
     .art-description {
-        color: #666;
-        font-size: 0.9rem;
-        margin: 0 0 12px 0;
+        color: #8e8e8e;
+        font-size: 0.8rem;
+        margin: 0;
         line-height: 1.4;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         font-family: my-font, sans-serif;
+        flex: 1;
     }
 
-    .art-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.8rem;
-        color: #999;
+    .art-date {
+        font-size: 0.7rem;
+        color: #8e8e8e;
         font-family: my-font, sans-serif;
+        white-space: nowrap;
+        flex-shrink: 0;
+        align-self: flex-end;
     }
-
-    .art-author {
-        font-weight: 500;
-        color: #8b4992;
-    }
-
 }
-
 
