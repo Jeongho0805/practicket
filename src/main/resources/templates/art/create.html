@@ -5,71 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>작품 만들기 - 프랙티켓</title>
     <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/art/create.css">
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
-
-    <div class="create-container">
-        <header class="create-header">
-            <h1>픽셀 아트 만들기</h1>
-            <a href="/art" class="back-btn">갤러리로 돌아가기</a>
-        </header>
-
-        <div class="create-content">
-            <div class="canvas-section">
-                <div class="canvas-controls">
-                    <div class="info-text">
-                        <span>포도알로 여러분의 팬아트를 보여주세요.</span>
-                    </div>
-                    <div class="tool-controls">
-                        <button id="clearBtn" class="tool-btn">전체 지우기</button>
-                    </div>
-                </div>
-
-                <div class="canvas-wrapper">
-                    <canvas id="pixelCanvas"></canvas>
-                </div>
+    <div id="content-section">
+        <div th:replace="~{fragments/ad-section::ad-section}"></div>
+        <div id="art-create-section">
+            <div id="create-header-section">
+                <h1 id="header-title">포도아트 만들기</h1>
             </div>
-
-            <div class="form-section">
-                <form id="artForm">
-                    <div class="form-group">
-                        <label for="title">제목</label>
-                        <input type="text" id="title" name="title" required maxlength="100">
+            <div id="create-content-section">
+                <form id="art-form">
+                    <div id="title-section">
+                        <label for="title">작품 제목</label>
+                        <input type="text" id="title" name="title" required maxlength="20" placeholder="작품의 제목을 입력하세요">
                     </div>
-
-                    <div class="form-group">
-                        <label for="description">설명</label>
-                        <textarea id="description" name="description" required maxlength="1000" rows="4"></textarea>
+                    <div id="canvas-section">
+                        <div id="canvas-wrapper">
+                            <canvas id="pixel-canvas"></canvas>
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="isPublic" name="isPublic" checked>
-                            공개 작품으로 등록
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="submit-btn">작품 등록</button>
-                        <button type="button" id="previewBtn" class="preview-btn">미리보기</button>
-                    </div>
+                    <button type="submit" id="submit-btn">작품 등록</button>
                 </form>
             </div>
         </div>
-    </div>
-
-    <div id="previewModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>미리보기</h3>
-            <canvas id="previewCanvas"></canvas>
-            <button id="closePreview" class="close-btn">닫기</button>
-        </div>
+        <div id="etc-section"></div>
     </div>
 
     <script> const HOST = "[[${host}]]"; </script>
+    <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/art/create.js"></script>
 </body>

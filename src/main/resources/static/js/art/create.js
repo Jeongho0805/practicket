@@ -2,9 +2,9 @@ import * as util from "../common.js";
 
 const CONFIG = {
 	gridSize: 30,
-	cellSize: 24,
-	gap: 6,
-	corner: 6,
+	cellSize: 16,
+	gap: 4,
+	corner: 4,
 	colors: {
 		base: "#6633cc",
 		hover: "#7c4dff",
@@ -153,25 +153,21 @@ class GrapePalette {
 		event.preventDefault();
 
 		const title = this.form.querySelector("#title")?.value.trim();
-		const description = this.form.querySelector("#description")?.value.trim();
-		const isPublic = this.form.querySelector("#isPublic")?.checked ?? false;
 
-		if (!title || !description) {
-			alert("제목과 설명을 모두 입력해주세요.");
+		if (!title) {
+			alert("제목을 입력해주세요.");
 			return;
 		}
 
 		const artData = {
 			title,
-			description,
 			pixel_data: this.toPixelData(),
 			width: this.gridSize,
-			height: this.gridSize,
-			is_public: isPublic
+			height: this.gridSize
 		};
 
 		try {
-			const response = await util.authFetch(`${window.location.origin}/api/arts`, {
+			const response = await util.authFetch(`${HOST}/api/arts`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(artData),
@@ -190,8 +186,8 @@ class GrapePalette {
 
 document.addEventListener("DOMContentLoaded", () => {
 	new GrapePalette({
-		canvasId: "pixelCanvas",
-		resetId: "clearBtn",
-		formId: "artForm"
+		canvasId: "pixel-canvas",
+		resetId: "clear-btn",
+		formId: "art-form"
 	});
 });

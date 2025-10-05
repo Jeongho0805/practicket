@@ -1,34 +1,21 @@
 package com.example.ticketing.art.domain;
 
 import com.example.ticketing.client.domain.Client;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface ArtRepository extends JpaRepository<Art, Long> {
-
-    Page<Art> findByIsPublicTrueOrderByCreatedAtDesc(Pageable pageable);
-
-    Page<Art> findByIsPublicTrueOrderByLikeCountDescCreatedAtDesc(Pageable pageable);
-
-    Page<Art> findByIsPublicTrueOrderByViewCountDescCreatedAtDesc(Pageable pageable);
-
-    Page<Art> findByClientAndIsPublicTrueOrderByCreatedAtDesc(Client client, Pageable pageable);
-
-    @Query("SELECT a FROM Art a WHERE a.isPublic = true AND " +
-           "(LOWER(a.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(a.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Art> findByKeywordAndIsPublicTrue(@Param("keyword") String keyword, Pageable pageable);
-
-    Optional<Art> findByIdAndIsPublicTrue(Long id);
-
-    List<Art> findTop10ByIsPublicTrueOrderByLikeCountDescCreatedAtDesc();
+public interface ArtRepository extends JpaRepository<Art, Long>, ArtRepositoryCustom {
 
     @Query("SELECT COUNT(a) FROM Art a WHERE a.client = :client")
     Long countByClient(@Param("client") Client client);
+
+    @Modifying
+    @Query("UPDATE Art a SET a.likeCount = a.likeCount + 1 WHERE a.id = :id")
+    void incrementLikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Art a SET a.likeCount = a.likeCount - 1 WHERE a.id = :id AND a.likeCount > 0")
+    void decrementLikeCount(@Param("id") Long id);
 }

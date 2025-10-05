@@ -18,8 +18,32 @@
         <div id="art-gallery-section">
             <div id="gallery-header-section">
                 <h1 id="gallery-title">포도알로 최애를 응원해봐요</h1>
-                <div id="create-btn-wrapper">
-                    <a href="/art/create" id="create-art-btn">그리기</a>
+                <div id="gallery-controls">
+                    <div id="search-wrapper">
+                        <input type="text" id="search-input" placeholder="제목 OR 닉네임 검색">
+                        <label id="only-mine-label">
+                            <input type="checkbox" id="only-mine-checkbox">
+                            내 작품만
+                        </label>
+                    </div>
+                    <div id="sort-create-wrapper">
+                        <div id="sort-wrapper">
+                            <select id="sort-select">
+                                <option value="latest">최신순</option>
+                                <option value="like">좋아요순</option>
+                                <option value="view">조회순</option>
+                                <option value="comment">댓글순</option>
+                            </select>
+                            <button id="direction-toggle" data-direction="desc" title="내림차순">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14M19 12l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="create-btn-wrapper">
+                            <a href="/art/create" id="create-art-btn">그리기</a>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="gallery-content">

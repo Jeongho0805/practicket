@@ -26,9 +26,6 @@ public class Art {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, length = 1000)
-    private String description;
-
     @Column(nullable = false)
     private String pixelData;
 
@@ -45,10 +42,6 @@ public class Art {
     @Column(nullable = false)
     @Builder.Default
     private Integer viewCount = 0;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean isPublic = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
@@ -70,26 +63,11 @@ public class Art {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public void incrementLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decrementLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
     public void incrementViewCount() {
         this.viewCount++;
     }
 
-    public void updateInfo(String title, String description) {
+    public void updateInfo(String title) {
         this.title = title;
-        this.description = description;
-    }
-
-    public void toggleVisibility() {
-        this.isPublic = !this.isPublic;
     }
 }

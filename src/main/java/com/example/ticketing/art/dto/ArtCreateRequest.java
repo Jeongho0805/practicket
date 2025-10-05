@@ -10,12 +10,8 @@ import lombok.Data;
 public class ArtCreateRequest {
 
     @NotBlank(message = "제목을 입력해주세요.")
-    @Size(max = 100, message = "제목은 100자 이하로 입력해주세요.")
+    @Size(max = 20, message = "제목은 20자 이하로 입력해주세요.")
     private String title;
-
-    @NotBlank(message = "설명을 입력해주세요.")
-    @Size(max = 1000, message = "설명은 1000자 이하로 입력해주세요.")
-    private String description;
 
     @NotBlank(message = "픽셀 데이터를 입력해주세요.")
     private String pixelData;
@@ -27,6 +23,4 @@ public class ArtCreateRequest {
     @NotNull(message = "세로 크기를 입력해주세요.")
     @Positive(message = "세로 크기는 양수여야 합니다.")
     private Integer height;
-
-    private Boolean isPublic = true;
 }

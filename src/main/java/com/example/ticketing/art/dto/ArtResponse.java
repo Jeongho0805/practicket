@@ -12,13 +12,11 @@ public class ArtResponse {
 
     private Long id;
     private String title;
-    private String description;
     private String pixelData;
     private Integer width;
     private Integer height;
     private Integer likeCount;
     private Integer viewCount;
-    private Boolean isPublic;
     private String authorName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -28,17 +26,31 @@ public class ArtResponse {
         return ArtResponse.builder()
                 .id(art.getId())
                 .title(art.getTitle())
-                .description(art.getDescription())
                 .pixelData(art.getPixelData())
                 .width(art.getWidth())
                 .height(art.getHeight())
                 .likeCount(art.getLikeCount())
                 .viewCount(art.getViewCount())
-                .isPublic(art.getIsPublic())
                 .authorName(art.getClient().getName() != null ? art.getClient().getName() : "익명")
                 .createdAt(art.getCreatedAt())
                 .updatedAt(art.getUpdatedAt())
                 .isLikedByCurrentUser(false)
+                .build();
+    }
+
+    public static ArtResponse from(Art art, boolean isLiked) {
+        return ArtResponse.builder()
+                .id(art.getId())
+                .title(art.getTitle())
+                .pixelData(art.getPixelData())
+                .width(art.getWidth())
+                .height(art.getHeight())
+                .likeCount(art.getLikeCount())
+                .viewCount(art.getViewCount())
+                .authorName(art.getClient().getName() != null ? art.getClient().getName() : "익명")
+                .createdAt(art.getCreatedAt())
+                .updatedAt(art.getUpdatedAt())
+                .isLikedByCurrentUser(isLiked)
                 .build();
     }
 }

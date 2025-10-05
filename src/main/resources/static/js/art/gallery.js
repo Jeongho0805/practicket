@@ -24,12 +24,80 @@ class Gallery {
 		this.size = 20;
 		this.hasMore = true;
 		this.galleryContainer = document.getElementById("gallery-grid");
+
+		// 검색/필터 상태
+		this.searchKeyword = "";
+		this.sortBy = "latest";
+		this.sortDirection = "desc";
+		this.onlyMine = false;
+
 		this.init();
 	}
 
 	init() {
+		this.setupControls();
 		this.loadArts();
 		this.setupInfiniteScroll();
+	}
+
+	setupControls() {
+		const searchInput = document.getElementById("search-input");
+		const sortSelect = document.getElementById("sort-select");
+		const directionToggle = document.getElementById("direction-toggle");
+		const onlyMineCheckbox = document.getElementById("only-mine-checkbox");
+
+		// 검색 입력 (디바운스 적용)
+		let searchTimeout;
+		searchInput.addEventListener("input", (e) => {
+			clearTimeout(searchTimeout);
+			searchTimeout = setTimeout(() => {
+				this.searchKeyword = e.target.value.trim();
+				this.resetAndReload();
+			}, 500);
+		});
+
+		// 정렬 기준 변경
+		sortSelect.addEventListener("change", (e) => {
+			this.sortBy = e.target.value;
+			this.resetAndReload();
+		});
+
+		// 정렬 방향 토글
+		directionToggle.addEventListener("click", () => {
+			if (this.sortDirection === "desc") {
+				this.sortDirection = "asc";
+				directionToggle.setAttribute("data-direction", "asc");
+				directionToggle.setAttribute("title", "오름차순");
+				directionToggle.innerHTML = `
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 19V5M5 12l7-7 7 7"/>
+					</svg>
+				`;
+			} else {
+				this.sortDirection = "desc";
+				directionToggle.setAttribute("data-direction", "desc");
+				directionToggle.setAttribute("title", "내림차순");
+				directionToggle.innerHTML = `
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 5v14M19 12l-7 7-7-7"/>
+					</svg>
+				`;
+			}
+			this.resetAndReload();
+		});
+
+		// 내 작품만 보기
+		onlyMineCheckbox.addEventListener("change", (e) => {
+			this.onlyMine = e.target.checked;
+			this.resetAndReload();
+		});
+	}
+
+	resetAndReload() {
+		this.currentPage = 0;
+		this.hasMore = true;
+		this.galleryContainer.innerHTML = "";
+		this.loadArts();
 	}
 
 	setupInfiniteScroll() {
@@ -40,12 +108,32 @@ class Gallery {
 		});
 	}
 
+	buildQueryString() {
+		const params = new URLSearchParams();
+		params.append("page", this.currentPage);
+		params.append("size", this.size);
+
+		if (this.searchKeyword) {
+			params.append("keyword", this.searchKeyword);
+		}
+
+		params.append("sortBy", this.sortBy);
+		params.append("sortDirection", this.sortDirection);
+
+		if (this.onlyMine) {
+			params.append("onlyMine", "true");
+		}
+
+		return params.toString();
+	}
+
 	async loadArts() {
 		if (!this.hasMore) {
 			return;
 		}
 		try {
-			const response = await util.authFetch(`${HOST}/api/arts?page=${this.currentPage}&size=${this.size}`);
+			const queryString = this.buildQueryString();
+			const response = await util.authFetch(`${HOST}/api/arts?${queryString}`);
 			const data = await response.json();
 
 			if (data.content && data.content.length > 0) {
