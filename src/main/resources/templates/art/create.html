@@ -35,7 +35,11 @@
         <div id="etc-section"></div>
     </div>
 
-    <script> const HOST = "[[${host}]]"; </script>
+    <script>
+        const HOST = "[[${host}]]";
+        const IS_EDIT = "[[${isEdit}]]";
+        const ART_ID = "[[${artId}]]";
+    </script>
     <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/art/create.js"></script>

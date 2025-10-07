@@ -63,8 +63,8 @@
 
     #art-info-header {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 12px;
         padding: 12px 20px;
         background: white;
         border-radius: 12px;
@@ -72,7 +72,50 @@
         font-size: 0.9rem;
         color: #333;
         font-family: Pretendard, sans-serif;
-        flex-wrap: wrap;
+    }
+
+    #info-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #info-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #art-actions {
+        display: none;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .action-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    #info-bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #art-stats {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .info-separator {
@@ -93,31 +136,27 @@
     #created-at {
         color: #8e8e8e;
         font-size: 0.85rem;
+        margin-left: auto;
     }
 
-    #art-info-header #art-likes,
-    #art-info-header #art-comments,
-    #art-info-header #art-views {
+    #art-likes,
+    #art-comments,
+    #art-views {
         display: flex;
         align-items: center;
         gap: 4px;
         cursor: pointer;
     }
 
-    #art-info-header #art-views {
+    #art-views {
         cursor: default;
     }
 
-    #art-info-header svg {
-        fill: none;
-        stroke: currentColor;
-    }
-
-    #art-info-header #art-likes svg path {
+    #art-likes svg path {
         transition: all 0.2s ease;
     }
 
-    #art-info-header #art-likes:hover svg path {
+    #art-likes:hover svg path {
         fill: #ed4956 !important;
         stroke: #ed4956 !important;
     }
@@ -146,41 +185,6 @@
         image-rendering: pixelated;
         image-rendering: -moz-crisp-edges;
         image-rendering: crisp-edges;
-    }
-
-    #art-actions {
-        display: flex;
-        gap: 12px;
-        padding-top: 8px;
-    }
-
-    #edit-btn, #delete-btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    #edit-btn {
-        background: #514897;
-        color: white;
-    }
-
-    #edit-btn:hover {
-        background: rgba(72, 61, 139, 0.68);
-    }
-
-    #delete-btn {
-        background: #dc3545;
-        color: white;
-    }
-
-    #delete-btn:hover {
-        background: #c82333;
     }
 
     #comments-section {
@@ -362,8 +366,8 @@
 
     #art-info-header {
         display: flex;
-        align-items: center;
-        gap: 6px;
+        flex-direction: column;
+        gap: 10px;
         padding: 10px 16px;
         background: white;
         border-radius: 12px;
@@ -371,7 +375,51 @@
         font-size: 0.8rem;
         color: #333;
         font-family: Pretendard, sans-serif;
-        flex-wrap: wrap;
+    }
+
+    #info-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    #info-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #art-actions {
+        display: none;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .action-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.75rem;
+        transition: color 0.2s;
+    }
+
+    .action-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    #info-bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    #art-stats {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .info-separator {
@@ -392,27 +440,23 @@
     #created-at {
         color: #8e8e8e;
         font-size: 0.75rem;
+        margin-left: auto;
     }
 
-    #art-info-header #art-likes,
-    #art-info-header #art-comments,
-    #art-info-header #art-views {
+    #art-likes,
+    #art-comments,
+    #art-views {
         display: flex;
         align-items: center;
         gap: 3px;
         cursor: pointer;
     }
 
-    #art-info-header #art-views {
+    #art-views {
         cursor: default;
     }
 
-    #art-info-header svg {
-        fill: none;
-        stroke: currentColor;
-    }
-
-    #art-info-header #art-likes svg path {
+    #art-likes svg path {
         transition: all 0.2s ease;
     }
 
@@ -436,33 +480,6 @@
         image-rendering: pixelated;
         image-rendering: -moz-crisp-edges;
         image-rendering: crisp-edges;
-    }
-
-    #art-actions {
-        display: flex;
-        gap: 10px;
-        padding-top: 8px;
-    }
-
-    #edit-btn, #delete-btn {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-    }
-
-    #edit-btn {
-        background: #514897;
-        color: white;
-    }
-
-    #delete-btn {
-        background: #dc3545;
-        color: white;
     }
 
     #comments-section {

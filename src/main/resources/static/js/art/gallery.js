@@ -30,7 +30,7 @@ class Gallery {
 		this.searchKeyword = "";
 		this.sortBy = "LATEST";
 		this.sortDirection = "DESC";
-		this.onlyMine = false;
+		this.filterType = null; // 'ONLY_MINE', 'POPULAR', 'HOT'
 
 		this.init();
 	}
@@ -96,6 +96,12 @@ class Gallery {
 				option.classList.add("selected");
 				sortValue.textContent = text;
 
+				// POPULAR 또는 HOT 필터 활성화 시 필터 해제
+				if (this.filterType === "POPULAR" || this.filterType === "HOT") {
+					this.filterType = null;
+					filterButtons.forEach((b) => b.classList.remove("active"));
+				}
+
 				// 상태 업데이트 및 재로드
 				this.sortBy = value;
 				this.resetAndReload();
@@ -116,6 +122,12 @@ class Gallery {
 
 		// 정렬 방향 토글
 		directionToggle.addEventListener("click", () => {
+			// POPULAR 또는 HOT 필터 활성화 시 필터 해제
+			if (this.filterType === "POPULAR" || this.filterType === "HOT") {
+				this.filterType = null;
+				filterButtons.forEach((b) => b.classList.remove("active"));
+			}
+
 			if (this.sortDirection === "DESC") {
 				this.sortDirection = "ASC";
 				directionToggle.setAttribute("data-direction", "asc");
@@ -138,10 +150,25 @@ class Gallery {
 			this.resetAndReload();
 		});
 
-		// 내 작품만 보기
-		onlyMineCheckbox.addEventListener("change", (e) => {
-			this.onlyMine = e.target.checked;
-			this.resetAndReload();
+		// 필터 버튼 클릭
+		const filterButtons = document.querySelectorAll(".glass-filter-btn");
+		filterButtons.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				const filter = btn.dataset.filter;
+
+				// 이미 활성화된 버튼을 다시 클릭하면 필터 해제
+				if (btn.classList.contains("active")) {
+					btn.classList.remove("active");
+					this.filterType = null;
+				} else {
+					// 모든 버튼에서 active 제거 후 클릭한 버튼만 active
+					filterButtons.forEach((b) => b.classList.remove("active"));
+					btn.classList.add("active");
+					this.filterType = filter;
+				}
+
+				this.resetAndReload();
+			});
 		});
 	}
 
@@ -173,8 +200,8 @@ class Gallery {
 		params.append("sortBy", this.sortBy);
 		params.append("sortDirection", this.sortDirection);
 
-		if (this.onlyMine) {
-			params.append("onlyMine", "true");
+		if (this.filterType) {
+			params.append("filterType", this.filterType);
 		}
 
 		return params.toString();

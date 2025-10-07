@@ -3,25 +3,20 @@ package com.example.ticketing.art.application;
 import com.example.ticketing.art.domain.entity.Art;
 import com.example.ticketing.art.domain.entity.ArtComment;
 import com.example.ticketing.art.domain.entity.ArtLike;
-import com.example.ticketing.art.domain.repository.ArtCommentRepository;
-import com.example.ticketing.art.domain.repository.ArtLikeRepository;
-import com.example.ticketing.art.domain.repository.ArtQueryCondition;
-import com.example.ticketing.art.domain.repository.ArtRepository;
+import com.example.ticketing.art.domain.entity.ArtView;
+import com.example.ticketing.art.domain.repository.*;
 import com.example.ticketing.art.dto.*;
 import com.example.ticketing.client.component.ClientManager;
 import com.example.ticketing.client.domain.Client;
-import com.example.ticketing.client.domain.ClientRepository;
 import com.example.ticketing.common.auth.ClientInfo;
 import com.example.ticketing.common.exception.ErrorCode;
 import com.example.ticketing.common.exception.GlobalException;
+import com.example.ticketing.common.exception.ValidateException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +26,8 @@ public class ArtService {
     private final ArtRepository artRepository;
     private final ArtLikeRepository artLikeRepository;
     private final ArtCommentRepository artCommentRepository;
+    private final ArtViewRepository artViewRepository;
     private final ClientManager clientManager;
-    private final ClientRepository clientRepository;
 
     @Transactional
     public ArtResponse createArt(ArtCreateRequest request, ClientInfo clientInfo) {
@@ -52,15 +47,13 @@ public class ArtService {
     }
 
     public Page<ArtResponse> searchArts(ArtSearchCondition condition, ClientInfo clientInfo, Pageable pageable) {
-        Long currentClientId = null;
-        if (condition.getOnlyMine() != null && condition.getOnlyMine() && clientInfo != null) {
-            currentClientId = clientInfo.getClientId();
-        }
+        Long currentClientId = clientInfo != null ? clientInfo.getClientId() : null;
 
         ArtQueryCondition queryCondition = ArtQueryCondition.builder()
                 .keyword(condition.getKeyword())
                 .sortBy(condition.getSortBy())
                 .sortDirection(condition.getSortDirection())
+                .filterType(condition.getFilterType())
                 .currentClientId(currentClientId)
                 .build();
 
@@ -77,15 +70,31 @@ public class ArtService {
     }
 
     @Transactional
-    public ArtResponse getArt(Long artId) {
+    public ArtResponse getArt(ClientInfo clientInfo, Long artId) {
         Art art = artRepository.findById(artId)
                 .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
 
-        // 조회수 증가
-        art.incrementViewCount();
-        artRepository.save(art);
+        Client client = clientInfo != null ? clientManager.findById(clientInfo.getClientId()) : null;
 
-        return ArtResponse.from(art);
+        // 조회수 증가: 이미 조회한 사용자가 아닌 경우에만
+        if (client != null && !artViewRepository.existsByArtAndClient(art, client)) {
+            ArtView artView = ArtView.builder()
+                    .art(art)
+                    .client(client)
+                    .build();
+            artViewRepository.save(artView);
+            artRepository.incrementViewCount(artId);
+        }
+
+        // 좋아요 여부 및 소유 여부 확인
+        if (client == null) {
+            return ArtResponse.from(art, false, false);
+        }
+
+        boolean isLiked = artLikeRepository.existsByArtAndClient(art, client);
+        boolean isOwned = art.getClient().getId().equals(client.getId());
+
+        return ArtResponse.from(art, isLiked, isOwned);
     }
 
     @Transactional
@@ -94,10 +103,10 @@ public class ArtService {
                 .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
 
         if (!art.getClient().getId().equals(clientInfo.getClientId())) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new ValidateException(ErrorCode.FORBIDDEN);
         }
-
-        art.updateInfo(request.getTitle());
+        this.validatePixelData(request.getPixelData(), art.getWidth(), art.getHeight());
+        art.update(request.getTitle(), request.getPixelData());
 
         return ArtResponse.from(art);
     }

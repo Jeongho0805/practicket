@@ -19,7 +19,7 @@
             <div id="gallery-header-section">
                 <h1 id="gallery-title">포도알로 최애를 응원해봐요</h1>
                 <div id="gallery-controls">
-                    <div id="search-wrapper">
+                    <div id="controls-top-row">
                         <div id="search-input-wrapper">
                             <input type="text" id="search-input" placeholder="제목 OR 닉네임 검색">
                             <button id="search-btn" type="button">
@@ -28,12 +28,6 @@
                                 </svg>
                             </button>
                         </div>
-                        <label id="only-mine-label">
-                            <input type="checkbox" id="only-mine-checkbox">
-                            내 작품만
-                        </label>
-                    </div>
-                    <div id="sort-create-wrapper">
                         <div id="sort-wrapper">
                             <div id="sort-select-type">
                                 <div id="sort-trigger">
@@ -52,9 +46,14 @@
                                 </svg>
                             </button>
                         </div>
-                        <div id="create-btn-wrapper">
-                            <a href="/art/create" id="create-art-btn">그리기</a>
+                    </div>
+                    <div id="controls-bottom-row">
+                        <div id="filter-buttons">
+                            <button class="glass-filter-btn" data-filter="ONLY_MINE">내 작품만</button>
+                            <button class="glass-filter-btn" data-filter="POPULAR">인기 BEST</button>
+                            <button class="glass-filter-btn" data-filter="HOT">최근 HOT</button>
                         </div>
+                        <a href="/art/create" id="create-art-btn">만들기</a>
                     </div>
                 </div>
             </div>

@@ -39,8 +39,65 @@ class GrapePalette {
 		this.state = new Array(this.gridSize * this.gridSize).fill(false);
 		this.hoverIndex = null;
 
+		this.isEdit = IS_EDIT;
+		this.artId = ART_ID;
+
 		this.bindEvents();
+		this.init();
+	}
+
+	async init() {
+		if (this.isEdit && this.artId) {
+			await this.loadExistingArt();
+		}
 		this.drawBoard();
+	}
+
+	async loadExistingArt() {
+		try {
+			const response = await util.authFetch(`${HOST}/api/arts/${this.artId}`, {
+				credentials: 'include'
+			});
+
+			if (!response.ok) throw new Error('작품을 불러올 수 없습니다.');
+
+			const artData = await response.json();
+
+			// 제목 설정
+			const titleInput = this.form.querySelector("#title");
+			if (titleInput) {
+				titleInput.value = artData.title;
+			}
+
+			// 픽셀 데이터 로드
+			if (artData.pixel_data) {
+				this.loadPixelData(artData.pixel_data);
+			}
+
+			// 버튼 텍스트 변경
+			const submitBtn = document.getElementById('submit-btn');
+			if (submitBtn) {
+				submitBtn.textContent = '작품 수정';
+			}
+
+			// 헤더 제목 변경
+			const headerTitle = document.getElementById('header-title');
+			if (headerTitle) {
+				headerTitle.textContent = '포도아트 수정하기';
+			}
+		} catch (error) {
+			console.error('작품 로딩 실패:', error);
+			alert('작품을 불러오는데 실패했습니다.');
+			window.location.href = '/art';
+		}
+	}
+
+	loadPixelData(pixelData) {
+		if (!pixelData || typeof pixelData !== 'string') return;
+
+		for (let i = 0; i < Math.min(pixelData.length, this.state.length); i++) {
+			this.state[i] = pixelData[i] === '1';
+		}
 	}
 
 	bindEvents() {
@@ -167,8 +224,11 @@ class GrapePalette {
 		};
 
 		try {
-			const response = await util.authFetch(`${HOST}/api/arts`, {
-				method: "POST",
+			const method = this.isEdit ? "PUT" : "POST";
+			const url = this.isEdit ? `${HOST}/api/arts/${this.artId}` : `${HOST}/api/arts`;
+
+			const response = await util.authFetch(url, {
+				method: method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(artData),
 				credentials: "same-origin"
@@ -178,8 +238,8 @@ class GrapePalette {
 			const result = await response.json();
 			window.location.href = `/art/${result.id}`;
 		} catch (error) {
-			console.error("작품 등록 실패:", error);
-			alert("작품 등록에 실패했습니다. 다시 시도해주세요.");
+			console.error("작품 등록/수정 실패:", error);
+			alert("작품 등록/수정에 실패했습니다. 다시 시도해주세요.");
 		}
 	}
 }

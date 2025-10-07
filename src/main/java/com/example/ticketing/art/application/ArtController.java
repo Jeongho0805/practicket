@@ -25,14 +25,13 @@ public class ArtController {
             @Auth ClientInfo clientInfo,
             @ModelAttribute ArtSearchCondition condition,
             @PageableDefault(size = 20) Pageable pageable) {
-
         Page<ArtResponse> response = artService.searchArts(condition, clientInfo, pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{artId}")
-    public ResponseEntity<ArtResponse> getArt(@PathVariable Long artId) {
-        ArtResponse response = artService.getArt(artId);
+    public ResponseEntity<ArtResponse> getArt(@Auth ClientInfo clientInfo, @PathVariable Long artId) {
+        ArtResponse response = artService.getArt(clientInfo, artId);
         return ResponseEntity.ok(response);
     }
 

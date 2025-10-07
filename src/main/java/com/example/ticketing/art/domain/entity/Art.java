@@ -71,7 +71,8 @@ public class Art {
         this.viewCount++;
     }
 
-    public void updateInfo(String title) {
+    public void update(String title, String pixelData) {
         this.title = title;
+        this.pixelData = pixelData;
     }
 }

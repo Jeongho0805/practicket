@@ -27,4 +27,8 @@ public interface ArtRepository extends JpaRepository<Art, Long>, ArtRepositoryCu
     @Modifying
     @Query("UPDATE Art a SET a.commentCount = a.commentCount - 1 WHERE a.id = :id AND a.commentCount > 0")
     void decrementCommentCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Art a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
+    void incrementViewCount(@Param("id") Long id);
 }

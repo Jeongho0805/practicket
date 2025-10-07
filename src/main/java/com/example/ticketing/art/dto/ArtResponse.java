@@ -23,6 +23,7 @@ public class ArtResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isLikedByCurrentUser;
+    private Boolean isOwnedByCurrentUser;
 
     public static ArtResponse from(Art art) {
         return ArtResponse.builder()
@@ -39,6 +40,7 @@ public class ArtResponse {
                 .createdAt(art.getCreatedAt())
                 .updatedAt(art.getUpdatedAt())
                 .isLikedByCurrentUser(false)
+                .isOwnedByCurrentUser(false)
                 .build();
     }
 
@@ -57,6 +59,26 @@ public class ArtResponse {
                 .createdAt(art.getCreatedAt())
                 .updatedAt(art.getUpdatedAt())
                 .isLikedByCurrentUser(isLiked)
+                .isOwnedByCurrentUser(false)
+                .build();
+    }
+
+    public static ArtResponse from(Art art, boolean isLiked, boolean isOwned) {
+        return ArtResponse.builder()
+                .id(art.getId())
+                .title(art.getTitle())
+                .pixelData(art.getPixelData())
+                .width(art.getWidth())
+                .height(art.getHeight())
+                .likeCount(art.getLikeCount())
+                .viewCount(art.getViewCount())
+                .commentCount(art.getCommentCount())
+                .authorName(art.getClient().getName() != null ? art.getClient().getName() : "익명")
+                .authorId(art.getClient().getId())
+                .createdAt(art.getCreatedAt())
+                .updatedAt(art.getUpdatedAt())
+                .isLikedByCurrentUser(isLiked)
+                .isOwnedByCurrentUser(isOwned)
                 .build();
     }
 }

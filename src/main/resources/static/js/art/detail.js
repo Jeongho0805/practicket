@@ -4,7 +4,6 @@ class Detail {
     constructor() {
         this.artId = ART_ID;
         this.artData = null;
-        this.currentClientId = null;
 
         this.titleElement = document.getElementById('art-title');
         this.authorElement = document.getElementById('art-author');
@@ -16,6 +15,7 @@ class Detail {
         this.artActions = document.getElementById('art-actions');
         this.editBtn = document.getElementById('edit-btn');
         this.deleteBtn = document.getElementById('delete-btn');
+        this.artLikesElement = document.getElementById('art-likes');
 
         this.commentInput = document.getElementById('comment-input');
         this.commentSubmitBtn = document.getElementById('comment-submit-btn');
@@ -32,14 +32,14 @@ class Detail {
 
     async loadArt() {
         try {
-            const response = await fetch(`${HOST}/api/arts/${this.artId}`, {
+            const response = await authFetch(`${HOST}/api/arts/${this.artId}`, {
                 credentials: 'include'
             });
 
             if (response.ok) {
                 this.artData = await response.json();
                 this.renderArt();
-                this.checkOwnership();
+                this.updateUIBasedOnResponse();
             } else {
                 throw new Error('작품을 불러올 수 없습니다.');
             }
@@ -127,27 +127,27 @@ class Detail {
         return count.toString();
     }
 
-    async checkOwnership() {
-        try {
-            const response = await fetch(`${HOST}/api/client/info`, {
-                credentials: 'include'
-            });
+    updateUIBasedOnResponse() {
+        // 소유 여부에 따라 수정/삭제 링크 표시
+        const artActions = document.getElementById('art-actions');
+        if (this.artData.is_owned_by_current_user && artActions) {
+            artActions.style.display = 'flex';
+        }
 
-            if (response.ok) {
-                const clientInfo = await response.json();
-                this.currentClientId = clientInfo.id;
-
-                // 작성자 확인
-                if (this.artData.author_id === clientInfo.id) {
-                    this.artActions.style.display = 'flex';
-                }
-            }
-        } catch (error) {
-            console.error('권한 확인 실패:', error);
+        // 좋아요 여부에 따라 UI 업데이트
+        if (this.artData.is_liked_by_current_user) {
+            const svgPath = this.artLikesElement.querySelector('svg path');
+            svgPath.setAttribute('fill', '#ed4956');
+            svgPath.setAttribute('stroke', '#ed4956');
         }
     }
 
     setupEventListeners() {
+        // 좋아요 버튼
+        if (this.artLikesElement) {
+            this.artLikesElement.addEventListener('click', () => this.toggleLike());
+        }
+
         if (this.editBtn) {
             this.editBtn.addEventListener('click', () => this.editArt());
         }
@@ -170,36 +170,40 @@ class Detail {
         }
     }
 
-    editArt() {
-        const title = prompt('새 제목을 입력하세요:', this.artData.title);
-        if (title === null || title.trim() === '') return;
-
-        this.updateArt({ title: title.trim() });
-    }
-
-    async updateArt(updateData) {
+    async toggleLike() {
         try {
-            const response = await fetch(`${HOST}/api/arts/${this.artId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(updateData)
+            const response = await authFetch(`${HOST}/api/arts/${this.artId}/like`, {
+                method: 'POST',
+                credentials: 'include'
             });
 
-            if (response.ok) {
-                const updatedArt = await response.json();
-                this.artData = updatedArt;
-                this.renderArt();
-                alert('작품이 성공적으로 수정되었습니다.');
+            if (!response.ok) throw new Error('좋아요 실패');
+
+            const result = await response.json();
+            const isLiked = result.is_liked;
+            const likeCount = result.like_count;
+
+            // UI 업데이트
+            const svgPath = this.artLikesElement.querySelector('svg path');
+
+            if (isLiked) {
+                svgPath.setAttribute('fill', '#ed4956');
+                svgPath.setAttribute('stroke', '#ed4956');
             } else {
-                throw new Error('작품 수정에 실패했습니다.');
+                svgPath.setAttribute('fill', 'none');
+                svgPath.setAttribute('stroke', 'currentColor');
             }
+
+            this.likeCountElement.textContent = this.formatCount(likeCount);
+            this.artData.is_liked_by_current_user = isLiked;
         } catch (error) {
-            console.error('작품 수정 실패:', error);
-            alert('작품 수정에 실패했습니다. 다시 시도해주세요.');
+            console.error('좋아요 토글 실패:', error);
+            alert('좋아요 처리에 실패했습니다.');
         }
+    }
+
+    editArt() {
+        window.location.href = `/art/edit/${this.artId}`;
     }
 
     async deleteArt() {
@@ -208,7 +212,7 @@ class Detail {
         }
 
         try {
-            const response = await fetch(`${HOST}/api/arts/${this.artId}`, {
+            const response = await authFetch(`${HOST}/api/arts/${this.artId}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -272,7 +276,7 @@ class Detail {
                     <span class="comment-date">${this.formatDate(comment.created_at)}</span>
                 </div>
                 <p class="comment-content">${comment.content}</p>
-                ${this.currentClientId === comment.author_id ? `
+                ${comment.is_owned_by_current_user ? `
                     <div class="comment-actions">
                         <button class="comment-edit-btn" data-id="${comment.id}">수정</button>
                         <button class="comment-delete-btn" data-id="${comment.id}">삭제</button>
