@@ -1,4 +1,4 @@
-package com.example.ticketing.art.domain;
+package com.example.ticketing.art.domain.entity;
 
 import com.example.ticketing.client.domain.Client;
 import jakarta.persistence.*;
@@ -42,6 +42,10 @@ public class Art {
     @Column(nullable = false)
     @Builder.Default
     private Integer viewCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer commentCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)

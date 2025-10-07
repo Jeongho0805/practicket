@@ -1,6 +1,12 @@
 package com.example.ticketing.art.application;
 
-import com.example.ticketing.art.domain.*;
+import com.example.ticketing.art.domain.entity.Art;
+import com.example.ticketing.art.domain.entity.ArtComment;
+import com.example.ticketing.art.domain.entity.ArtLike;
+import com.example.ticketing.art.domain.repository.ArtCommentRepository;
+import com.example.ticketing.art.domain.repository.ArtLikeRepository;
+import com.example.ticketing.art.domain.repository.ArtQueryCondition;
+import com.example.ticketing.art.domain.repository.ArtRepository;
 import com.example.ticketing.art.dto.*;
 import com.example.ticketing.client.component.ClientManager;
 import com.example.ticketing.client.domain.Client;
@@ -24,6 +30,7 @@ public class ArtService {
 
     private final ArtRepository artRepository;
     private final ArtLikeRepository artLikeRepository;
+    private final ArtCommentRepository artCommentRepository;
     private final ClientManager clientManager;
     private final ClientRepository clientRepository;
 
@@ -45,16 +52,6 @@ public class ArtService {
     }
 
     public Page<ArtResponse> searchArts(ArtSearchCondition condition, ClientInfo clientInfo, Pageable pageable) {
-        // 1. 키워드로 닉네임 검색하여 clientId 목록 추출
-        List<Long> matchedClientIds = null;
-        if (condition.getKeyword() != null && !condition.getKeyword().isEmpty()) {
-            List<Client> matchedClients = clientRepository.findByNameContainingIgnoreCase(condition.getKeyword());
-            matchedClientIds = matchedClients.stream()
-                    .map(Client::getId)
-                    .collect(Collectors.toList());
-        }
-
-        // 2. ArtQueryCondition 생성
         Long currentClientId = null;
         if (condition.getOnlyMine() != null && condition.getOnlyMine() && clientInfo != null) {
             currentClientId = clientInfo.getClientId();
@@ -62,7 +59,6 @@ public class ArtService {
 
         ArtQueryCondition queryCondition = ArtQueryCondition.builder()
                 .keyword(condition.getKeyword())
-                .matchedClientIds(matchedClientIds)
                 .sortBy(condition.getSortBy())
                 .sortDirection(condition.getSortDirection() != null ? condition.getSortDirection() : "desc")
                 .currentClientId(currentClientId)
@@ -82,6 +78,7 @@ public class ArtService {
         });
     }
 
+    @Transactional
     public ArtResponse getArt(Long artId) {
         Art art = artRepository.findById(artId)
                 .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
@@ -148,6 +145,59 @@ public class ArtService {
                 .isLiked(isLiked)
                 .likeCount(likeCount)
                 .build();
+    }
+
+    public Page<ArtCommentResponse> getComments(Long artId, Pageable pageable) {
+        Art art = artRepository.findById(artId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+
+        Page<ArtComment> comments = artCommentRepository.findByArtOrderByCreatedAtAsc(art, pageable);
+        return comments.map(ArtCommentResponse::from);
+    }
+
+    @Transactional
+    public ArtCommentResponse createComment(Long artId, ArtCommentRequest request, ClientInfo clientInfo) {
+        Art art = artRepository.findById(artId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+
+        Client client = clientManager.findById(clientInfo.getClientId());
+
+        ArtComment comment = ArtComment.builder()
+                .content(request.getContent())
+                .art(art)
+                .client(client)
+                .build();
+
+        ArtComment savedComment = artCommentRepository.save(comment);
+        artRepository.incrementCommentCount(artId);
+        return ArtCommentResponse.from(savedComment);
+    }
+
+    @Transactional
+    public ArtCommentResponse updateComment(Long commentId, ArtCommentRequest request, ClientInfo clientInfo) {
+        ArtComment comment = artCommentRepository.findById(commentId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+
+        if (!comment.getClient().getId().equals(clientInfo.getClientId())) {
+            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        comment.updateContent(request.getContent());
+        return ArtCommentResponse.from(comment);
+    }
+
+    @Transactional
+    public void deleteComment(Long commentId, ClientInfo clientInfo) {
+        ArtComment comment = artCommentRepository.findById(commentId)
+                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+
+        if (!comment.getClient().getId().equals(clientInfo.getClientId())) {
+            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        Long artId = comment.getArt().getId();
+        artCommentRepository.delete(comment);
+        artRepository.decrementCommentCount(artId);
     }
 
     private void validatePixelData(String pixelData, Integer width, Integer height) {

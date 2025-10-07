@@ -1,23 +1,32 @@
+import {authFetch} from "../common.js";
+
 class Detail {
     constructor() {
         this.artId = ART_ID;
         this.artData = null;
+        this.currentClientId = null;
 
-        this.titleElement = document.getElementById('artTitle');
-        this.descriptionElement = document.getElementById('artDescription');
-        this.authorElement = document.getElementById('authorName');
-        this.createdAtElement = document.getElementById('createdAt');
-        this.viewCountElement = document.getElementById('viewCount');
-        this.artCanvas = document.getElementById('artCanvas');
-        this.artActions = document.getElementById('artActions');
-        this.editBtn = document.getElementById('editBtn');
-        this.deleteBtn = document.getElementById('deleteBtn');
+        this.titleElement = document.getElementById('art-title');
+        this.authorElement = document.getElementById('art-author');
+        this.createdAtElement = document.getElementById('created-at');
+        this.likeCountElement = document.getElementById('like-count');
+        this.commentCountElement = document.getElementById('comment-count');
+        this.viewCountElement = document.getElementById('view-count');
+        this.artCanvas = document.getElementById('art-canvas');
+        this.artActions = document.getElementById('art-actions');
+        this.editBtn = document.getElementById('edit-btn');
+        this.deleteBtn = document.getElementById('delete-btn');
+
+        this.commentInput = document.getElementById('comment-input');
+        this.commentSubmitBtn = document.getElementById('comment-submit-btn');
+        this.commentsList = document.getElementById('comments-list');
 
         this.init();
     }
 
     async init() {
         await this.loadArt();
+        await this.loadComments();
         this.setupEventListeners();
     }
 
@@ -42,161 +51,99 @@ class Detail {
     }
 
     renderArt() {
-        const { title, description, author_name, created_at, view_count, pixel_data, width, height } = this.artData;
+        const { title, author_name, created_at, view_count, like_count, pixel_data, width, height } = this.artData;
 
         // 기본 정보 표시
         this.titleElement.textContent = title;
-        this.descriptionElement.textContent = description;
         this.authorElement.textContent = author_name;
         this.createdAtElement.textContent = this.formatDate(created_at);
-        this.viewCountElement.textContent = view_count.toLocaleString();
+        this.likeCountElement.textContent = this.formatCount(like_count || 0);
+        this.commentCountElement.textContent = '0'; // 댓글 기능 미구현
+        this.viewCountElement.textContent = this.formatCount(view_count || 0);
 
         // 캔버스 설정 및 렌더링
-        const pixelSize = Math.max(8, Math.min(20, Math.floor(400 / Math.max(width, height))));
-        this.artCanvas.width = width * pixelSize;
-        this.artCanvas.height = height * pixelSize;
+        this.artCanvas.width = 360;
+        this.artCanvas.height = 360;
 
-        this.renderPixelArt(this.artCanvas, pixel_data, pixelSize);
+        this.renderPixelArt(this.artCanvas, pixel_data, width, height);
     }
 
-    renderPixelArt(canvas, pixelData, pixelSize) {
+    renderPixelArt(canvas, pixelData, gridWidth, gridHeight) {
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
 
-        // 배경을 부드러운 그라데이션으로
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#f8fafc');
-        gradient.addColorStop(1, '#e2e8f0');
-        ctx.fillStyle = gradient;
+        const cellSize = 12;
+        const gap = 3;
+        const corner = 3;
+        const innerSize = cellSize - gap;
+
+        // 배경
+        ctx.fillStyle = '#12082a';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        if (!pixelData || !Array.isArray(pixelData)) {
+        if (!pixelData || typeof pixelData !== 'string') {
             return;
         }
 
-        const seatSize = pixelSize * 0.7; // 좌석 크기 (여백 포함)
-        const seatGap = pixelSize * 0.3; // 좌석 간 여백
+        for (let i = 0; i < pixelData.length; i++) {
+            const isActive = pixelData[i] === '1';
+            const col = i % gridWidth;
+            const row = Math.floor(i / gridWidth);
 
-        for (let y = 0; y < pixelData.length; y++) {
-            for (let x = 0; x < pixelData[y].length; x++) {
-                const isSelected = pixelData[y][x];
-                const seatX = x * pixelSize + seatGap / 2;
-                const seatY = y * pixelSize + seatGap / 2;
+            const x = col * cellSize;
+            const y = row * cellSize;
 
-                if (isSelected === true) {
-                    // 선택된 좌석 (모던한 보라색)
-                    this.drawModernSeat(ctx, seatX, seatY, seatSize, true, false);
-                } else {
-                    // 매진 좌석 (모던한 회색)
-                    this.drawModernSeat(ctx, seatX, seatY, seatSize, false, false);
-                }
-            }
+            const drawX = x + gap / 2;
+            const drawY = y + gap / 2;
+            const radius = Math.min(corner, innerSize / 2);
+
+            ctx.save();
+            ctx.beginPath();
+            this.roundedRectPath(ctx, drawX, drawY, innerSize, innerSize, radius);
+            ctx.fillStyle = isActive ? '#cbb5ff' : '#6633cc';
+            ctx.shadowColor = isActive ? 'rgba(161,120,255,0.35)' : 'rgba(85,34,170,0.25)';
+            ctx.shadowBlur = isActive ? 14 : 8;
+            ctx.fill();
+            ctx.restore();
         }
     }
 
-    drawModernSeat(ctx, x, y, size, isSelected, isHovered) {
-        const seatSize = size * 0.9;
-        const offset = (size - seatSize) / 2;
-        const radius = seatSize * 0.25;
+    roundedRectPath(ctx, x, y, width, height, radius) {
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+    }
 
-        // 그림자 효과
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 2;
-
-        if (isSelected) {
-            // 선택된 좌석 - 단색 + 테두리
-            ctx.fillStyle = '#e11d48'; // 로즈 핑크
-            this.drawRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-
-            // 테두리 추가
-            ctx.shadowColor = 'transparent';
-            ctx.strokeStyle = '#9f1239'; // 더 진한 색상으로 테두리
-            ctx.lineWidth = 2;
-            this.strokeRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-
-        } else {
-            // 매진 좌석 - 단색 + 테두리
-            ctx.fillStyle = '#64748b'; // 그레이
-            this.drawRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-
-            // 테두리 추가
-            ctx.shadowColor = 'transparent';
-            ctx.strokeStyle = '#334155'; // 더 진한 그레이로 테두리
-            ctx.lineWidth = 1.5;
-            this.strokeRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
+    formatCount(count) {
+        if (count >= 1000000) {
+            return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
         }
-
-        // 그림자 리셋
-        ctx.shadowColor = 'transparent';
-    }
-
-    drawSeat(ctx, x, y, size, isOccupied) {
-        const seatSize = size * 0.85;
-        const offset = (size - seatSize) / 2;
-        const radius = seatSize * 0.2;
-
-        if (isOccupied) {
-            // 선택된 좌석 - 색상이 있는 좌석
-            ctx.fillStyle = ctx.fillStyle;
-            this.drawRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-
-            // 테두리 추가
-            ctx.strokeStyle = this.darkenColor(ctx.fillStyle, 0.2);
-            ctx.lineWidth = 2;
-            this.strokeRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-        } else {
-            // 빈 좌석 - 밝은 배경에 테두리
-            ctx.fillStyle = '#f8f9fa';
-            this.drawRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
-
-            ctx.strokeStyle = '#dee2e6';
-            ctx.lineWidth = 1.5;
-            this.strokeRoundedRect(ctx, x + offset, y + offset, seatSize, seatSize, radius);
+        if (count >= 1000) {
+            return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
         }
-    }
-
-    drawRoundedRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.roundRect(x, y, width, height, radius);
-        ctx.fill();
-    }
-
-    strokeRoundedRect(ctx, x, y, width, height, radius) {
-        ctx.beginPath();
-        ctx.roundRect(x, y, width, height, radius);
-        ctx.stroke();
-    }
-
-    darkenColor(color, factor) {
-        // RGB 색상을 어둡게 만드는 함수
-        if (color.startsWith('#')) {
-            const r = parseInt(color.substr(1, 2), 16);
-            const g = parseInt(color.substr(3, 2), 16);
-            const b = parseInt(color.substr(5, 2), 16);
-
-            return `rgb(${Math.floor(r * (1 - factor))}, ${Math.floor(g * (1 - factor))}, ${Math.floor(b * (1 - factor))})`;
-        }
-        return color;
+        return count.toString();
     }
 
     async checkOwnership() {
         try {
-            const response = await fetch(`${HOST}/api/arts/my?page=0&size=1`, {
+            const response = await fetch(`${HOST}/api/client/info`, {
                 credentials: 'include'
             });
 
             if (response.ok) {
-                const data = await response.json();
-                const isOwner = data.content.some(art => art.id === parseInt(this.artId));
+                const clientInfo = await response.json();
+                this.currentClientId = clientInfo.id;
 
-                if (isOwner) {
-                    this.artActions.style.display = 'block';
+                // 작성자 확인
+                if (this.artData.author_id === clientInfo.id) {
+                    this.artActions.style.display = 'flex';
                 }
             }
         } catch (error) {
-            console.error('소유권 확인 실패:', error);
+            console.error('권한 확인 실패:', error);
         }
     }
 
@@ -208,18 +155,26 @@ class Detail {
         if (this.deleteBtn) {
             this.deleteBtn.addEventListener('click', () => this.deleteArt());
         }
+
+        if (this.commentSubmitBtn) {
+            this.commentSubmitBtn.addEventListener('click', () => this.createComment());
+        }
+
+        if (this.commentInput) {
+            this.commentInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.createComment();
+                }
+            });
+        }
     }
 
     editArt() {
         const title = prompt('새 제목을 입력하세요:', this.artData.title);
-        if (title === null) return;
+        if (title === null || title.trim() === '') return;
 
-        const description = prompt('새 설명을 입력하세요:', this.artData.description);
-        if (description === null) return;
-
-        const isPublic = confirm('공개 작품으로 설정하시겠습니까?');
-
-        this.updateArt({ title: title.trim(), description: description.trim(), is_public: isPublic });
+        this.updateArt({ title: title.trim() });
     }
 
     async updateArt(updateData) {
@@ -279,6 +234,135 @@ class Detail {
             hour: '2-digit',
             minute: '2-digit'
         });
+    }
+
+    async loadComments() {
+        try {
+            const response = await authFetch(`${HOST}/api/arts/${this.artId}/comments?page=0&size=20`);
+
+            if (response.ok) {
+                const data = await response.json();
+                this.renderComments(data.content);
+                this.commentCountElement.textContent = data.total_elements || data.content.length;
+            }
+        } catch (error) {
+            console.error('댓글 로딩 실패:', error);
+        }
+    }
+
+    renderComments(comments) {
+        this.commentsList.innerHTML = '';
+
+        if (comments.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'comments-empty';
+            emptyMessage.textContent = '아직 댓글이 없습니다. 첫 댓글을 작성해보세요!';
+            this.commentsList.appendChild(emptyMessage);
+            return;
+        }
+
+        comments.forEach(comment => {
+            const commentItem = document.createElement('div');
+            commentItem.className = 'comment-item';
+            commentItem.dataset.commentId = comment.id;
+
+            commentItem.innerHTML = `
+                <div class="comment-header">
+                    <span class="comment-author">${comment.author_name}</span>
+                    <span class="comment-date">${this.formatDate(comment.created_at)}</span>
+                </div>
+                <p class="comment-content">${comment.content}</p>
+                ${this.currentClientId === comment.author_id ? `
+                    <div class="comment-actions">
+                        <button class="comment-edit-btn" data-id="${comment.id}">수정</button>
+                        <button class="comment-delete-btn" data-id="${comment.id}">삭제</button>
+                    </div>
+                ` : ''}
+            `;
+
+            this.commentsList.appendChild(commentItem);
+        });
+
+        // 댓글 수정/삭제 이벤트 리스너
+        this.commentsList.querySelectorAll('.comment-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.editComment(e.target.dataset.id));
+        });
+
+        this.commentsList.querySelectorAll('.comment-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.deleteComment(e.target.dataset.id));
+        });
+    }
+
+    async createComment() {
+        const content = this.commentInput.value.trim();
+        if (!content) {
+            alert('댓글 내용을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await authFetch(`${HOST}/api/arts/${this.artId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ content })
+            });
+
+            if (response.ok) {
+                alert('댓글이 작성되었습니다.');
+                this.commentInput.value = '';
+                await this.loadComments();
+            } else {
+                throw new Error('댓글 작성 실패');
+            }
+        } catch (error) {
+            console.error('댓글 작성 실패:', error);
+            alert('댓글 작성에 실패했습니다.');
+        }
+    }
+
+    async editComment(commentId) {
+        const commentItem = this.commentsList.querySelector(`[data-comment-id="${commentId}"]`);
+        const currentContent = commentItem.querySelector('.comment-content').textContent;
+
+        const newContent = prompt('댓글을 수정하세요:', currentContent);
+        if (!newContent || newContent.trim() === '') return;
+
+        try {
+            const response = await authFetch(`${HOST}/api/arts/comments/${commentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: newContent.trim() })
+            });
+
+            if (response.ok) {
+                await this.loadComments();
+            } else {
+                throw new Error('댓글 수정 실패');
+            }
+        } catch (error) {
+            console.error('댓글 수정 실패:', error);
+            alert('댓글 수정에 실패했습니다.');
+        }
+    }
+
+    async deleteComment(commentId) {
+        if (!confirm('정말 이 댓글을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await authFetch(`${HOST}/api/arts/comments/${commentId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                await this.loadComments();
+            } else {
+                throw new Error('댓글 삭제 실패');
+            }
+        } catch (error) {
+            console.error('댓글 삭제 실패:', error);
+            alert('댓글 삭제에 실패했습니다.');
+        }
     }
 }
 

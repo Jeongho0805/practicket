@@ -1,6 +1,6 @@
 package com.example.ticketing.art.dto;
 
-import com.example.ticketing.art.domain.Art;
+import com.example.ticketing.art.domain.entity.Art;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +17,9 @@ public class ArtResponse {
     private Integer height;
     private Integer likeCount;
     private Integer viewCount;
+    private Integer commentCount;
     private String authorName;
+    private Long authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isLikedByCurrentUser;
@@ -31,7 +33,9 @@ public class ArtResponse {
                 .height(art.getHeight())
                 .likeCount(art.getLikeCount())
                 .viewCount(art.getViewCount())
+                .commentCount(art.getCommentCount())
                 .authorName(art.getClient().getName() != null ? art.getClient().getName() : "익명")
+                .authorId(art.getClient().getId())
                 .createdAt(art.getCreatedAt())
                 .updatedAt(art.getUpdatedAt())
                 .isLikedByCurrentUser(false)
@@ -47,7 +51,9 @@ public class ArtResponse {
                 .height(art.getHeight())
                 .likeCount(art.getLikeCount())
                 .viewCount(art.getViewCount())
+                .commentCount(art.getCommentCount())
                 .authorName(art.getClient().getName() != null ? art.getClient().getName() : "익명")
+                .authorId(art.getClient().getId())
                 .createdAt(art.getCreatedAt())
                 .updatedAt(art.getUpdatedAt())
                 .isLikedByCurrentUser(isLiked)

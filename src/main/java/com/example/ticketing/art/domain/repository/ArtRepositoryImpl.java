@@ -1,5 +1,6 @@
-package com.example.ticketing.art.domain;
+package com.example.ticketing.art.domain.repository;
 
+import com.example.ticketing.art.domain.entity.Art;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.ticketing.art.domain.QArt.art;
+import static com.example.ticketing.art.domain.entity.QArt.art;
 import static com.example.ticketing.client.domain.QClient.client;
 
 @Repository
@@ -29,7 +30,6 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
                 .leftJoin(art.client, client).fetchJoin()
                 .where(
                         keywordCondition(condition.getKeyword()),
-                        clientIdsCondition(condition.getMatchedClientIds()),
                         onlyMineCondition(condition.getCurrentClientId())
                 )
                 .orderBy(getOrderSpecifiers(condition.getSortBy(), condition.getSortDirection()))
@@ -42,7 +42,6 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
                 .from(art)
                 .where(
                         keywordCondition(condition.getKeyword()),
-                        clientIdsCondition(condition.getMatchedClientIds()),
                         onlyMineCondition(condition.getCurrentClientId())
                 );
 
@@ -50,11 +49,11 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
     }
 
     private BooleanExpression keywordCondition(String keyword) {
-        return keyword != null ? art.title.containsIgnoreCase(keyword) : null;
-    }
-
-    private BooleanExpression clientIdsCondition(List<Long> clientIds) {
-        return clientIds != null && !clientIds.isEmpty() ? art.client.id.in(clientIds) : null;
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+        return art.title.containsIgnoreCase(keyword)
+                .or(art.client.name.containsIgnoreCase(keyword));
     }
 
     private BooleanExpression onlyMineCondition(Long currentClientId) {
@@ -74,7 +73,7 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
             orderSpecifiers.add(isAsc ? art.viewCount.asc() : art.viewCount.desc());
             orderSpecifiers.add(art.createdAt.desc());
         } else if ("comment".equals(sortBy)) {
-            orderSpecifiers.add(isAsc ? art.comments.size().asc() : art.comments.size().desc());
+            orderSpecifiers.add(isAsc ? art.commentCount.asc() : art.commentCount.desc());
             orderSpecifiers.add(art.createdAt.desc());
         }
 

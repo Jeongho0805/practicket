@@ -5,44 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>작품 상세 - 프랙티켓</title>
     <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/art/detail.css">
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>
-
-    <div class="detail-container">
-        <div class="art-section">
-            <div class="art-canvas-wrapper">
-                <canvas id="artCanvas"></canvas>
-            </div>
-
-            <div class="art-info">
-                <h1 id="artTitle">작품 제목</h1>
-                <p id="artDescription">작품 설명</p>
-
-                <div class="art-meta">
-                    <span class="author">작성자: <span id="authorName">익명</span></span>
-                    <span class="date">작성일: <span id="createdAt"></span></span>
-                    <span class="views">조회수: <span id="viewCount">0</span></span>
+    <div id="content-section">
+        <div th:replace="~{fragments/ad-section::ad-section}"></div>
+        <div id="art-detail-section">
+            <div id="detail-content-section">
+                <div id="art-fixed-section">
+                    <div id="art-info-header">
+                        <span id="art-author">작성자</span>
+                        <span class="info-separator">•</span>
+                        <span id="art-title">작품 제목</span>
+                        <span class="info-separator">•</span>
+                        <div id="art-likes">
+                            <svg width="16" height="16" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <span id="like-count">0</span>
+                        </div>
+                        <span class="info-separator">•</span>
+                        <div id="art-comments">
+                            <svg width="16" height="16" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span id="comment-count">0</span>
+                        </div>
+                        <span class="info-separator">•</span>
+                        <div id="art-views">
+                            <svg width="16" height="16" viewBox="0 0 24 24">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <span id="view-count">0</span>
+                        </div>
+                        <span class="info-separator">•</span>
+                        <span id="created-at"></span>
+                    </div>
+                    <div id="art-display">
+                        <div id="canvas-wrapper">
+                            <canvas id="art-canvas"></canvas>
+                        </div>
+                    </div>
+                    <div id="art-actions" style="display: none;">
+                        <button id="edit-btn">수정</button>
+                        <button id="delete-btn">삭제</button>
+                    </div>
                 </div>
-
-                <div class="art-actions" id="artActions" style="display: none;">
-                    <button id="editBtn" class="action-btn edit-btn">수정</button>
-                    <button id="deleteBtn" class="action-btn delete-btn">삭제</button>
+                <div id="comments-section">
+                    <div id="comment-form">
+                        <textarea id="comment-input" placeholder="댓글을 입력하세요..." maxlength="500"></textarea>
+                        <button id="comment-submit-btn">작성</button>
+                    </div>
+                    <div id="comments-list"></div>
                 </div>
             </div>
         </div>
-
-        <div class="back-section">
-            <a href="/art" class="back-btn">갤러리로 돌아가기</a>
-        </div>
+        <div id="etc-section"></div>
     </div>
 
     <script>
         const HOST = "[[${host}]]";
         const ART_ID = "[[${artId}]]";
     </script>
+    <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/art/detail.js"></script>
 </body>

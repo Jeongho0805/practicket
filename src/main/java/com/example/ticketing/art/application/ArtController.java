@@ -77,4 +77,38 @@ public class ArtController {
         ArtLikeResponse artLikeResponse = artService.toggleLike(artId, clientInfo);
         return ResponseEntity.ok(artLikeResponse);
     }
+
+    @GetMapping("/{artId}/comments")
+    public ResponseEntity<Page<ArtCommentResponse>> getComments(
+            @PathVariable Long artId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ArtCommentResponse> comments = artService.getComments(artId, pageable);
+        return ResponseEntity.ok(comments);
+    }
+
+    @PostMapping("/{artId}/comments")
+    public ResponseEntity<ArtCommentResponse> createComment(
+            @PathVariable Long artId,
+            @Valid @RequestBody ArtCommentRequest request,
+            @Auth ClientInfo clientInfo) {
+        ArtCommentResponse response = artService.createComment(artId, request, clientInfo);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<ArtCommentResponse> updateComment(
+            @PathVariable Long commentId,
+            @Valid @RequestBody ArtCommentRequest request,
+            @Auth ClientInfo clientInfo) {
+        ArtCommentResponse response = artService.updateComment(commentId, request, clientInfo);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Long commentId,
+            @Auth ClientInfo clientInfo) {
+        artService.deleteComment(commentId, clientInfo);
+        return ResponseEntity.noContent().build();
+    }
 }
