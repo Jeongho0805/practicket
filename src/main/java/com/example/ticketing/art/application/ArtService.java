@@ -154,12 +154,16 @@ public class ArtService {
                 .build();
     }
 
-    public Page<ArtCommentResponse> getComments(Long artId, Pageable pageable) {
-        Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
-
+    public Page<ArtCommentResponse> getComments(Long artId, ClientInfo clientInfo, Pageable pageable) {
+        Art art = artRepository.findById(artId).orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
         Page<ArtComment> comments = artCommentRepository.findByArtOrderByCreatedAtAsc(art, pageable);
-        return comments.map(ArtCommentResponse::from);
+
+        return comments.map(comment -> {
+            if (comment.getClient().getId().equals(clientInfo.getClientId())) {
+                return ArtCommentResponse.from(comment, true);
+            }
+            return ArtCommentResponse.from(comment, false);
+        });
     }
 
     @Transactional
@@ -177,7 +181,7 @@ public class ArtService {
 
         ArtComment savedComment = artCommentRepository.save(comment);
         artRepository.incrementCommentCount(artId);
-        return ArtCommentResponse.from(savedComment);
+        return ArtCommentResponse.from(savedComment, true);
     }
 
     @Transactional
@@ -186,11 +190,11 @@ public class ArtService {
                 .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
 
         if (!comment.getClient().getId().equals(clientInfo.getClientId())) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.FORBIDDEN);
         }
 
         comment.updateContent(request.getContent());
-        return ArtCommentResponse.from(comment);
+        return ArtCommentResponse.from(comment, true);
     }
 
     @Transactional

@@ -16,8 +16,9 @@ public class ArtCommentResponse {
     private Long authorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean isOwnedByCurrentUser;
 
-    public static ArtCommentResponse from(ArtComment comment) {
+    public static ArtCommentResponse from(ArtComment comment, Boolean isOwnedByCurrentUser) {
         return ArtCommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
@@ -25,6 +26,7 @@ public class ArtCommentResponse {
                 .authorId(comment.getClient().getId())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
+                .isOwnedByCurrentUser(isOwnedByCurrentUser)
                 .build();
     }
 }

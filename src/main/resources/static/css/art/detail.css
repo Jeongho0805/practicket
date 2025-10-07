@@ -283,7 +283,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
     }
 
     .comment-author {
@@ -293,27 +293,88 @@
         font-family: my-font, sans-serif;
     }
 
+    .comment-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .comment-edit-link,
+    .comment-delete-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: my-font, sans-serif;
+        transition: color 0.2s;
+    }
+
+    .comment-edit-link:hover,
+    .comment-delete-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    .comment-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    .comment-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .comment-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
     .comment-date {
         font-size: 0.75rem;
         color: #8e8e8e;
         font-family: my-font, sans-serif;
+        white-space: nowrap;
+        align-self: flex-start;
     }
 
     .comment-content {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: #333;
         line-height: 1.5;
-        font-family: my-font, sans-serif;
+        font-weight: bold;
+        font-family: Pretendard, sans-serif;
         word-break: break-word;
+        margin: 0;
     }
 
-    .comment-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
+    .comment-edit-input {
+        padding: 8px;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-family: my-font, sans-serif;
+        resize: vertical;
+        min-height: 60px;
+        outline: none;
     }
 
-    .comment-edit-btn, .comment-delete-btn {
+    .comment-edit-input:focus {
+        border-color: #514897;
+    }
+
+    .comment-edit-actions {
+        display: none;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .comment-save-btn,
+    .comment-cancel-btn {
         padding: 6px 12px;
         border: none;
         border-radius: 6px;
@@ -321,16 +382,25 @@
         font-weight: bold;
         font-family: my-font, sans-serif;
         cursor: pointer;
+        transition: all 0.2s;
     }
 
-    .comment-edit-btn {
+    .comment-save-btn {
+        background: #514897;
+        color: white;
+    }
+
+    .comment-save-btn:hover {
+        background: #6c5eb5;
+    }
+
+    .comment-cancel-btn {
         background: #6c757d;
         color: white;
     }
 
-    .comment-delete-btn {
-        background: #dc3545;
-        color: white;
+    .comment-cancel-btn:hover {
+        background: #5a6268;
     }
 }
 
@@ -569,7 +639,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
     }
 
     .comment-author {
@@ -579,27 +649,88 @@
         font-family: my-font, sans-serif;
     }
 
+    .comment-actions {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+    }
+
+    .comment-edit-link,
+    .comment-delete-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: my-font, sans-serif;
+        transition: color 0.2s;
+    }
+
+    .comment-edit-link:hover,
+    .comment-delete-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    .comment-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    .comment-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .comment-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+    }
+
     .comment-date {
         font-size: 0.7rem;
         color: #8e8e8e;
         font-family: my-font, sans-serif;
+        white-space: nowrap;
+        align-self: flex-start;
     }
 
     .comment-content {
         font-size: 0.85rem;
+        font-weight: normal;
         color: #333;
         line-height: 1.5;
         font-family: my-font, sans-serif;
         word-break: break-word;
+        margin: 0;
     }
 
-    .comment-actions {
-        display: flex;
+    .comment-edit-input {
+        padding: 8px;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-family: my-font, sans-serif;
+        resize: vertical;
+        min-height: 60px;
+        outline: none;
+    }
+
+    .comment-edit-input:focus {
+        border-color: #514897;
+    }
+
+    .comment-edit-actions {
+        display: none;
         gap: 6px;
-        margin-top: 6px;
+        align-items: center;
     }
 
-    .comment-edit-btn, .comment-delete-btn {
+    .comment-save-btn,
+    .comment-cancel-btn {
         padding: 5px 10px;
         border: none;
         border-radius: 6px;
@@ -607,15 +738,24 @@
         font-weight: bold;
         font-family: my-font, sans-serif;
         cursor: pointer;
+        transition: all 0.2s;
     }
 
-    .comment-edit-btn {
+    .comment-save-btn {
+        background: #514897;
+        color: white;
+    }
+
+    .comment-save-btn:hover {
+        background: #6c5eb5;
+    }
+
+    .comment-cancel-btn {
         background: #6c757d;
         color: white;
     }
 
-    .comment-delete-btn {
-        background: #dc3545;
-        color: white;
+    .comment-cancel-btn:hover {
+        background: #5a6268;
     }
 }

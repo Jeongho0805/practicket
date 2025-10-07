@@ -70,8 +70,9 @@ public class ArtController {
     @GetMapping("/{artId}/comments")
     public ResponseEntity<Page<ArtCommentResponse>> getComments(
             @PathVariable Long artId,
+            @Auth ClientInfo clientInfo,
             @PageableDefault(size = 20) Pageable pageable) {
-        Page<ArtCommentResponse> comments = artService.getComments(artId, pageable);
+        Page<ArtCommentResponse> comments = artService.getComments(artId, clientInfo, pageable);
         return ResponseEntity.ok(comments);
     }
 
