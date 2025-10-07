@@ -23,18 +23,8 @@ public class ArtController {
     @GetMapping
     public ResponseEntity<Page<ArtResponse>> searchArts(
             @Auth ClientInfo clientInfo,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false, defaultValue = "latest") String sortBy,
-            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
-            @RequestParam(required = false) Boolean onlyMine,
+            @ModelAttribute ArtSearchCondition condition,
             @PageableDefault(size = 20) Pageable pageable) {
-
-        ArtSearchCondition condition = ArtSearchCondition.builder()
-                .keyword(keyword)
-                .sortBy(sortBy)
-                .sortDirection(sortDirection)
-                .onlyMine(onlyMine)
-                .build();
 
         Page<ArtResponse> response = artService.searchArts(condition, clientInfo, pageable);
         return ResponseEntity.ok(response);

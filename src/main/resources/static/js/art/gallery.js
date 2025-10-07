@@ -28,8 +28,8 @@ class Gallery {
 
 		// 검색/필터 상태
 		this.searchKeyword = "";
-		this.sortBy = "latest";
-		this.sortDirection = "desc";
+		this.sortBy = "LATEST";
+		this.sortDirection = "DESC";
 		this.onlyMine = false;
 
 		this.init();
@@ -44,7 +44,10 @@ class Gallery {
 	setupControls() {
 		const searchInput = document.getElementById("search-input");
 		const searchBtn = document.getElementById("search-btn");
-		const sortSelect = document.getElementById("sort-select");
+		const sortSelectType = document.getElementById("sort-select-type");
+		const sortTrigger = document.getElementById("sort-trigger");
+		const sortValue = document.getElementById("sort-value");
+		const sortOptions = document.getElementById("sort-options");
 		const directionToggle = document.getElementById("direction-toggle");
 		const onlyMineCheckbox = document.getElementById("only-mine-checkbox");
 
@@ -74,16 +77,47 @@ class Gallery {
 			}
 		});
 
-		// 정렬 기준 변경
-		sortSelect.addEventListener("change", (e) => {
-			this.sortBy = e.target.value;
-			this.resetAndReload();
+		// 정렬 타입 셀렉트 토글
+		sortTrigger.addEventListener("click", (e) => {
+			e.stopPropagation();
+			sortTrigger.classList.toggle("active");
+			sortOptions.classList.toggle("active");
+		});
+
+		// 정렬 타입 옵션 선택
+		sortOptions.querySelectorAll("li").forEach((option) => {
+			option.addEventListener("click", (e) => {
+				e.stopPropagation();
+				const value = option.dataset.value;
+				const text = option.textContent;
+
+				// 선택된 옵션 업데이트
+				sortOptions.querySelectorAll("li").forEach((li) => li.classList.remove("selected"));
+				option.classList.add("selected");
+				sortValue.textContent = text;
+
+				// 상태 업데이트 및 재로드
+				this.sortBy = value;
+				this.resetAndReload();
+
+				// 드롭다운 닫기
+				sortTrigger.classList.remove("active");
+				sortOptions.classList.remove("active");
+			});
+		});
+
+		// 외부 클릭시 드롭다운 닫기
+		document.addEventListener("click", (e) => {
+			if (!sortSelectType.contains(e.target)) {
+				sortTrigger.classList.remove("active");
+				sortOptions.classList.remove("active");
+			}
 		});
 
 		// 정렬 방향 토글
 		directionToggle.addEventListener("click", () => {
-			if (this.sortDirection === "desc") {
-				this.sortDirection = "asc";
+			if (this.sortDirection === "DESC") {
+				this.sortDirection = "ASC";
 				directionToggle.setAttribute("data-direction", "asc");
 				directionToggle.setAttribute("title", "오름차순");
 				directionToggle.innerHTML = `
@@ -92,7 +126,7 @@ class Gallery {
 					</svg>
 				`;
 			} else {
-				this.sortDirection = "desc";
+				this.sortDirection = "DESC";
 				directionToggle.setAttribute("data-direction", "desc");
 				directionToggle.setAttribute("title", "내림차순");
 				directionToggle.innerHTML = `

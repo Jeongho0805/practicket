@@ -35,12 +35,17 @@
                     </div>
                     <div id="sort-create-wrapper">
                         <div id="sort-wrapper">
-                            <select id="sort-select">
-                                <option value="latest">최신순</option>
-                                <option value="like">좋아요순</option>
-                                <option value="view">조회순</option>
-                                <option value="comment">댓글순</option>
-                            </select>
+                            <div id="sort-select-type">
+                                <div id="sort-trigger">
+                                    <span id="sort-value">최신순</span>
+                                </div>
+                                <ul id="sort-options">
+                                    <li data-value="LATEST" class="selected">최신순</li>
+                                    <li data-value="LIKE">좋아요순</li>
+                                    <li data-value="VIEW">조회순</li>
+                                    <li data-value="COMMENT">댓글순</li>
+                                </ul>
+                            </div>
                             <button id="direction-toggle" data-direction="desc" title="내림차순">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 5v14M19 12l-7 7-7-7"/>

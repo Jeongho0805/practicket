@@ -1,6 +1,8 @@
 package com.example.ticketing.art.domain.repository;
 
 import com.example.ticketing.art.domain.entity.Art;
+import com.example.ticketing.art.domain.enums.ArtSortType;
+import com.example.ticketing.art.domain.enums.SortDirection;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -60,21 +62,24 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
         return currentClientId != null ? art.client.id.eq(currentClientId) : null;
     }
 
-    private OrderSpecifier<?>[] getOrderSpecifiers(String sortBy, String sortDirection) {
+    private OrderSpecifier<?>[] getOrderSpecifiers(ArtSortType sortBy, SortDirection sortDirection) {
         List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
-        boolean isAsc = "asc".equalsIgnoreCase(sortDirection);
+        boolean isAsc = sortDirection == SortDirection.ASC;
 
-        if (sortBy == null || "latest".equals(sortBy)) {
-            orderSpecifiers.add(isAsc ? art.createdAt.asc() : art.createdAt.desc());
-        } else if ("like".equals(sortBy)) {
-            orderSpecifiers.add(isAsc ? art.likeCount.asc() : art.likeCount.desc());
-            orderSpecifiers.add(art.createdAt.desc());
-        } else if ("view".equals(sortBy)) {
-            orderSpecifiers.add(isAsc ? art.viewCount.asc() : art.viewCount.desc());
-            orderSpecifiers.add(art.createdAt.desc());
-        } else if ("comment".equals(sortBy)) {
-            orderSpecifiers.add(isAsc ? art.commentCount.asc() : art.commentCount.desc());
-            orderSpecifiers.add(art.createdAt.desc());
+        switch (sortBy) {
+            case LATEST -> orderSpecifiers.add(isAsc ? art.createdAt.asc() : art.createdAt.desc());
+            case LIKE -> {
+                orderSpecifiers.add(isAsc ? art.likeCount.asc() : art.likeCount.desc());
+                orderSpecifiers.add(art.createdAt.desc());
+            }
+            case VIEW -> {
+                orderSpecifiers.add(isAsc ? art.viewCount.asc() : art.viewCount.desc());
+                orderSpecifiers.add(art.createdAt.desc());
+            }
+            case COMMENT -> {
+                orderSpecifiers.add(isAsc ? art.commentCount.asc() : art.commentCount.desc());
+                orderSpecifiers.add(art.createdAt.desc());
+            }
         }
 
         return orderSpecifiers.toArray(new OrderSpecifier[0]);

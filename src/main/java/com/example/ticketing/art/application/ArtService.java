@@ -60,14 +60,12 @@ public class ArtService {
         ArtQueryCondition queryCondition = ArtQueryCondition.builder()
                 .keyword(condition.getKeyword())
                 .sortBy(condition.getSortBy())
-                .sortDirection(condition.getSortDirection() != null ? condition.getSortDirection() : "desc")
+                .sortDirection(condition.getSortDirection())
                 .currentClientId(currentClientId)
                 .build();
 
-        // 3. 검색 실행
         Page<Art> arts = artRepository.searchArts(queryCondition, pageable);
 
-        // 4. 좋아요 정보 포함하여 응답 생성
         Client client = clientInfo != null ? clientManager.findById(clientInfo.getClientId()) : null;
         if (client == null) {
             return arts.map(art -> ArtResponse.from(art, false));
