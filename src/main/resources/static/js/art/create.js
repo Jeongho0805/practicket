@@ -134,8 +134,16 @@ class GrapePalette {
 		const clientX = event.clientX ?? event.touches?.[0]?.clientX;
 		const clientY = event.clientY ?? event.touches?.[0]?.clientY;
 
-		const x = Math.floor((clientX - rect.left) / this.cellSize);
-		const y = Math.floor((clientY - rect.top) / this.cellSize);
+		// 캔버스의 실제 표시 크기와 내부 해상도 비율 계산
+		const scaleX = this.canvas.width / rect.width;
+		const scaleY = this.canvas.height / rect.height;
+
+		// 클라이언트 좌표를 캔버스 좌표로 변환
+		const canvasX = (clientX - rect.left) * scaleX;
+		const canvasY = (clientY - rect.top) * scaleY;
+
+		const x = Math.floor(canvasX / this.cellSize);
+		const y = Math.floor(canvasY / this.cellSize);
 
 		if (Number.isNaN(x) || Number.isNaN(y)) return null;
 		if (x < 0 || x >= this.gridSize || y < 0 || y >= this.gridSize) return null;

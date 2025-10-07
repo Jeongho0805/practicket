@@ -35,10 +35,10 @@
         <div id="etc-section"></div>
     </div>
 
-    <script>
-        const HOST = "[[${host}]]";
-        const IS_EDIT = "[[${isEdit}]]";
-        const ART_ID = "[[${artId}]]";
+    <script th:inline="javascript">
+        const HOST = /*[[${host}]]*/ "";
+        const IS_EDIT = /*[[${isEdit}]]*/ false;
+        const ART_ID = /*[[${artId}]]*/ null;
     </script>
     <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
