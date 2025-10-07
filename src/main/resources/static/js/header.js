@@ -6,14 +6,16 @@ const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
     rank: document.getElementById("rank-page-btn"),
     security: document.getElementById("security-page-btn"),
-    blog: document.getElementById("blog-page-btn")
+    blog: document.getElementById("blog-page-btn"),
+    art: document.getElementById("art-page-btn")
 }
 
 const desktopPageInfos = {
     ticketing: document.getElementById("ticketing-desktop-btn"),
     rank: document.getElementById("rank-desktop-btn"),
     security: document.getElementById("security-desktop-btn"),
-    blog: document.getElementById("blog-desktop-btn")
+    blog: document.getElementById("blog-desktop-btn"),
+    art: document.getElementById("art-desktop-btn")
 }
 
 async function displayNickName() {
@@ -104,17 +106,28 @@ function markCurrentPage() {
     let currentPath = window.location.pathname;
     currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
 
+    let pageName = currentPath;
+    if (currentPath.startsWith("art")) {
+        pageName = "art";
+    }
+
     // 모바일 버튼 처리
-    const mobileButton = mobilePageInfos[currentPath];
+    const mobileButton = mobilePageInfos[pageName];
     Object.values(mobilePageInfos).forEach(btn => {
-        btn.style.backgroundColor = "white";
+        if (btn) {
+            btn.style.backgroundColor = "white";
+        }
     });
-    mobileButton.style.backgroundColor = "darkslateblue";
-    mobileButton.style.color = "white";
+    if (mobileButton) {
+        mobileButton.style.backgroundColor = "darkslateblue";
+        mobileButton.style.color = "white";
+    }
 
     // 데스크탑 버튼 처리
-    const desktopButton = desktopPageInfos[currentPath];
-    desktopButton.style.color = "darkslateblue";
+    const desktopButton = desktopPageInfos[pageName];
+    if (desktopButton) {
+        desktopButton.style.color = "darkslateblue";
+    }
 }
 
 await util.getOrCreateToken();

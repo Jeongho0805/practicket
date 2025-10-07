@@ -1,0 +1,774 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 공통 */
+.art-stats-number {
+    font-family: Pretendard, sans-serif;
+    color: #333537;
+}
+
+/* 데스크톱 스타일 */
+@media (min-width: 769px) {
+    html, body {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        display: grid;
+        justify-items: center;
+        background: white;
+        font-family: my-font, sans-serif;
+        grid-template-rows: 1fr 10fr;
+    }
+
+    #content-section {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        width: 100vw;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+        grid-template-columns: 1fr 2fr 1fr;
+    }
+
+    #art-detail-section {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        font-family: my-font, sans-serif;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    #detail-content-section {
+        width: 100%;
+        height: 100%;
+        padding: 2% 0;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+    }
+
+    #art-fixed-section {
+        width: 100%;
+        max-width: 560px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    #art-info-header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        font-size: 0.9rem;
+        color: #333;
+        font-family: Pretendard, sans-serif;
+    }
+
+    #info-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #info-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #art-actions {
+        display: none;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .action-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .action-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    #info-bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    #art-stats {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .info-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    #art-author {
+        font-weight: bold;
+        color: rgb(28, 27, 32);
+    }
+
+    #art-title {
+        color: #8e8e8e;
+        font-weight: 600;
+    }
+
+    #created-at {
+        color: #8e8e8e;
+        font-size: 0.85rem;
+        margin-left: auto;
+    }
+
+    #art-likes,
+    #art-comments,
+    #art-views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    #art-views {
+        cursor: default;
+    }
+
+    #art-likes svg path {
+        transition: all 0.2s ease;
+    }
+
+    #art-likes:hover svg path {
+        fill: #ed4956 !important;
+        stroke: #ed4956 !important;
+    }
+
+    #art-display {
+        width: 100%;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+    }
+
+    #canvas-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: white;
+        border-radius: 12px;
+        max-width: 100%;
+        overflow: auto;
+    }
+
+    #art-canvas {
+        border-radius: 8px;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+    }
+
+    #comments-section {
+        width: 100%;
+        max-width: 560px;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #comments-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0 0 16px 0;
+        font-family: my-font, sans-serif;
+        flex-shrink: 0;
+    }
+
+    #comment-form {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-shrink: 0;
+    }
+
+    #comment-input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #dbdbdb;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: my-font, sans-serif;
+        resize: vertical;
+        min-height: 60px;
+        outline: none;
+    }
+
+    #comment-input:focus {
+        border-color: #514897;
+    }
+
+    #comment-submit-btn {
+        padding: 12px 24px;
+        background: #514897;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
+        font-family: my-font, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+        align-self: flex-end;
+    }
+
+    #comment-submit-btn:hover {
+        background: rgba(72, 61, 139, 0.68);
+    }
+
+    #comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .comments-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 200px;
+        color: #8e8e8e;
+        font-size: 0.95rem;
+        font-family: my-font, sans-serif;
+        text-align: center;
+    }
+
+    .comment-item {
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .comment-author {
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: #333;
+        font-family: my-font, sans-serif;
+    }
+
+    .comment-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .comment-edit-link,
+    .comment-delete-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: my-font, sans-serif;
+        transition: color 0.2s;
+    }
+
+    .comment-edit-link:hover,
+    .comment-delete-link:hover {
+        color: #6c5eb5;
+        text-decoration: underline;
+    }
+
+    .comment-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    .comment-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .comment-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .comment-date {
+        font-size: 0.75rem;
+        color: #8e8e8e;
+        font-family: my-font, sans-serif;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+
+    .comment-content {
+        font-size: 0.8rem;
+        color: #333;
+        line-height: 1.5;
+        font-weight: bold;
+        font-family: Pretendard, sans-serif;
+        word-break: break-word;
+        margin: 0;
+    }
+
+    .comment-edit-input {
+        padding: 8px;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-family: my-font, sans-serif;
+        resize: vertical;
+        min-height: 60px;
+        outline: none;
+    }
+
+    .comment-edit-input:focus {
+        border-color: #514897;
+    }
+
+    .comment-edit-actions {
+        display: none;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .comment-save-btn,
+    .comment-cancel-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: bold;
+        font-family: my-font, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .comment-save-btn {
+        background: #514897;
+        color: white;
+    }
+
+    .comment-save-btn:hover {
+        background: #6c5eb5;
+    }
+
+    .comment-cancel-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+    .comment-cancel-btn:hover {
+        background: #5a6268;
+    }
+}
+
+/* 모바일 스타일 */
+@media (max-width: 768px) {
+    html, body {
+        height: 100dvh;
+        width: 100vw;
+        margin: 0;
+        background: white;
+        font-family: my-font, sans-serif;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 18fr 82fr;
+    }
+
+    #content-section {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        width: 100vw;
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden;
+        grid-template-rows: 1fr 9fr;
+    }
+
+    #art-detail-section {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        font-family: my-font, sans-serif;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    #detail-content-section {
+        width: 100%;
+        height: 100%;
+        padding: 12px;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    #art-fixed-section {
+        width: 100%;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #art-info-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        font-size: 0.75rem;
+        color: #333;
+        font-family: Pretendard, sans-serif;
+    }
+
+    #info-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    #art-actions {
+        display: none;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .action-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.7rem;
+        transition: color 0.2s;
+    }
+
+    #info-bottom-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    #art-stats {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #art-stats svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .info-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    #art-author {
+        font-weight: bold;
+        color: rgb(28, 27, 32);
+        font-size: 0.8rem;
+    }
+
+    #art-title {
+        color: #8e8e8e;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
+
+    #created-at {
+        color: #8e8e8e;
+        font-size: 0.7rem;
+        margin-left: auto;
+    }
+
+    #art-likes,
+    #art-comments,
+    #art-views {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    #art-views {
+        cursor: default;
+    }
+
+    #art-likes svg path {
+        transition: all 0.2s ease;
+    }
+
+    #art-display {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #canvas-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 100%;
+        overflow: auto;
+    }
+
+    #art-canvas {
+        border-radius: 8px;
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+        max-width: 100%;
+        height: auto;
+    }
+
+    #comments-section {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    #comments-title {
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0 0 10px 0;
+        font-family: my-font, sans-serif;
+        flex-shrink: 0;
+    }
+
+    #comment-form {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+        align-items: flex-end;
+    }
+
+    #comment-input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #dbdbdb;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-family: my-font, sans-serif;
+        resize: none;
+        height: 36px;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    #comment-input:focus {
+        border-color: #514897;
+    }
+
+    #comment-submit-btn {
+        padding: 8px 12px;
+        background: #514897;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: bold;
+        font-family: my-font, sans-serif;
+        cursor: pointer;
+        height: 36px;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    #comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .comments-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        min-height: 120px;
+        color: #8e8e8e;
+        font-size: 0.8rem;
+        font-family: my-font, sans-serif;
+        text-align: center;
+    }
+
+    .comment-item {
+        padding: 8px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .comment-author {
+        font-weight: bold;
+        font-size: 0.8rem;
+        color: #333;
+        font-family: my-font, sans-serif;
+    }
+
+    .comment-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.7rem;
+    }
+
+    .comment-edit-link,
+    .comment-delete-link {
+        color: #514897;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: my-font, sans-serif;
+        transition: color 0.2s;
+    }
+
+    .comment-separator {
+        color: #ddd;
+        font-weight: bold;
+    }
+
+    .comment-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .comment-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+    }
+
+    .comment-date {
+        font-size: 0.65rem;
+        color: #8e8e8e;
+        font-family: my-font, sans-serif;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+
+    .comment-content {
+        font-size: 0.8rem;
+        font-weight: normal;
+        color: #333;
+        line-height: 1.4;
+        font-family: my-font, sans-serif;
+        word-break: break-word;
+        margin: 0;
+    }
+
+    .comment-edit-input {
+        padding: 8px;
+        border: 1px solid #dbdbdb;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-family: my-font, sans-serif;
+        resize: vertical;
+        min-height: 50px;
+        outline: none;
+    }
+
+    .comment-edit-input:focus {
+        border-color: #514897;
+    }
+
+    .comment-edit-actions {
+        display: none;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .comment-save-btn,
+    .comment-cancel-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        font-family: my-font, sans-serif;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .comment-save-btn {
+        background: #514897;
+        color: white;
+    }
+
+    .comment-cancel-btn {
+        background: #6c757d;
+        color: white;
+    }
+}
