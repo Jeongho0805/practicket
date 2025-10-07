@@ -108,10 +108,17 @@
         gap: 5%;
     }
 
+    #search-input-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
     #search-input {
         flex: 1;
         min-width: 200px;
-        padding: 10px 15px;
+        padding: 10px 45px 10px 15px;
         border: 1px solid #dbdbdb;
         border-radius: 8px;
         font-family: my-font, sans-serif;
@@ -121,6 +128,24 @@
 
     #search-input:focus {
         border-color: #514897;
+    }
+
+    #search-btn {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8e8e8e;
+        transition: color 0.2s;
+    }
+
+    #search-btn:hover {
+        color: #514897;
     }
 
     #sort-create-wrapper {
@@ -234,6 +259,18 @@
         justify-items: center;
     }
 
+    .gallery-empty {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        color: #8e8e8e;
+        font-size: 1.1rem;
+        font-family: my-font, sans-serif;
+        text-align: center;
+    }
+
     /* 아트 카드 - 인스타 스타일 */
     .art-card {
         display: flex;
@@ -286,8 +323,9 @@
     }
 
     .art-stats {
-        display: flex;
-        gap: 10%;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        width: 50%;
     }
 
     .art-likes, .art-comments, .art-views {

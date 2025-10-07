@@ -23,6 +23,7 @@ class Gallery {
 		this.currentPage = 0;
 		this.size = 20;
 		this.hasMore = true;
+		this.isLoading = false;
 		this.galleryContainer = document.getElementById("gallery-grid");
 
 		// 검색/필터 상태
@@ -42,9 +43,18 @@ class Gallery {
 
 	setupControls() {
 		const searchInput = document.getElementById("search-input");
+		const searchBtn = document.getElementById("search-btn");
 		const sortSelect = document.getElementById("sort-select");
 		const directionToggle = document.getElementById("direction-toggle");
 		const onlyMineCheckbox = document.getElementById("only-mine-checkbox");
+
+		// 검색 버튼 클릭
+		const performSearch = () => {
+			this.searchKeyword = searchInput.value.trim();
+			this.resetAndReload();
+		};
+
+		searchBtn.addEventListener("click", performSearch);
 
 		// 검색 입력 (디바운스 적용)
 		let searchTimeout;
@@ -54,6 +64,14 @@ class Gallery {
 				this.searchKeyword = e.target.value.trim();
 				this.resetAndReload();
 			}, 500);
+		});
+
+		// 엔터키로도 검색
+		searchInput.addEventListener("keypress", (e) => {
+			if (e.key === "Enter") {
+				clearTimeout(searchTimeout);
+				performSearch();
+			}
 		});
 
 		// 정렬 기준 변경
@@ -101,8 +119,9 @@ class Gallery {
 	}
 
 	setupInfiniteScroll() {
-		window.addEventListener("scroll", () => {
-			if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+		const galleryContent = document.getElementById("gallery-content");
+		galleryContent.addEventListener("scroll", () => {
+			if (galleryContent.scrollHeight - galleryContent.scrollTop <= galleryContent.clientHeight + 500) {
 				this.loadArts();
 			}
 		});
@@ -128,9 +147,12 @@ class Gallery {
 	}
 
 	async loadArts() {
-		if (!this.hasMore) {
+		if (!this.hasMore || this.isLoading) {
 			return;
 		}
+
+		this.isLoading = true;
+
 		try {
 			const queryString = this.buildQueryString();
 			const response = await util.authFetch(`${HOST}/api/arts?${queryString}`);
@@ -142,10 +164,16 @@ class Gallery {
 				this.hasMore = !data.last;
 			} else {
 				this.hasMore = false;
+				// 첫 페이지에서 결과가 없으면 빈 결과 메시지 표시
+				if (this.currentPage === 0) {
+					this.showEmptyMessage();
+				}
 			}
 		} catch (error) {
 			console.error("failed to load arts", error);
 			alert("작품을 불러오는데 실패했습니다.");
+		} finally {
+			this.isLoading = false;
 		}
 	}
 
@@ -186,13 +214,14 @@ class Gallery {
 
 		const likeFill = isLiked ? '#ed4956' : 'none';
 		const likeStroke = isLiked ? '#ed4956' : 'currentColor';
+		const strokeColor = '#1C1B20FF';
 
 		artInfo.innerHTML = `
 			<div class="art-stats">
 				<div class="art-likes ${isLiked ? 'liked' : ''}" data-art-id="${art.id}">
 
 					<svg aria-label="좋아요" height="20" width="20" viewBox="0 0 24 24">
-						<path d="${likeIconPath}" fill="${likeFill}" stroke="${likeStroke}"></path>
+						<path d="${likeIconPath}" fill="${likeFill}" stroke="${likeStroke}" stroke-width="2"></path>
 					</svg>
 					<span class="art-stats-number like-count">${this.formatCount(art.like_count || 0)}</span>
 				</div>
@@ -203,9 +232,8 @@ class Gallery {
 					<span class="art-stats-number">${this.formatCount(art.comment_count || 0)}</span>
 				</div>
 				<div class="art-views">
-					<svg aria-label="조회수" height="20" width="20" viewBox="0 0 24 24" fill="none">
-						<path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-						<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+					<svg aria-label="조회수" height="20" width="20" viewBox="0 0 109.21 122.88">
+						<path fill="#000000"  stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-width="2" d="M86,122.31a5.57,5.57,0,0,1-.9.35,5.09,5.09,0,0,1-1,.18,5.46,5.46,0,0,1-1,0,6.77,6.77,0,0,1-1-.15,6,6,0,0,1-1-.36l0,0a5.51,5.51,0,0,1-.92-.53l0,0a6.41,6.41,0,0,1-.78-.69,5.19,5.19,0,0,1-.65-.87l-9.08-14.88-7.69,9a15.49,15.49,0,0,1-1.1,1.18c-.39.37-.78.71-1.18,1l-.08.06a12.19,12.19,0,0,1-1.2.82,9.66,9.66,0,0,1-1.24.63,6.91,6.91,0,0,1-1,.37,6.21,6.21,0,0,1-1,.22,7.55,7.55,0,0,1-1.06.07,7.19,7.19,0,0,1-1-.11,6.14,6.14,0,0,1-1.18-.35,5.42,5.42,0,0,1-1.06-.57,6.22,6.22,0,0,1-.92-.78l0,0a7.31,7.31,0,0,1-.75-1l-.11-.2-.09-.21L47.72,112l0-.17L40.91,43.26a4.52,4.52,0,0,1,0-1.33,4.3,4.3,0,0,1,.43-1.25,4.31,4.31,0,0,1,1.39-1.55l0,0a3.82,3.82,0,0,1,.9-.46,4.25,4.25,0,0,1,1-.24h0a4.31,4.31,0,0,1,1.29.05,4.67,4.67,0,0,1,1.25.44l.3.16c13.51,8.84,26.1,17.06,38.64,25.25l19,12.39a11.72,11.72,0,0,1,1,.72l0,0a8.78,8.78,0,0,1,.82.73l.06.07a7.41,7.41,0,0,1,.71.82,5.91,5.91,0,0,1,.57.87,6.42,6.42,0,0,1,.51,1.14,5.6,5.6,0,0,1,.26,1.17,5.44,5.44,0,0,1,0,1.21h0a6.59,6.59,0,0,1-.23,1.19,6.54,6.54,0,0,1-.94,1.88,6.41,6.41,0,0,1-.67.83,7.45,7.45,0,0,1-.82.76,10.42,10.42,0,0,1-1.16.83,12.92,12.92,0,0,1-1.34.7c-.47.21-1,.41-1.46.58a14.27,14.27,0,0,1-1.55.43h0c-2.77.54-5.53,1.21-8.27,1.87l-3.25.77,9,14.94a5.84,5.84,0,0,1,.46,1,5.59,5.59,0,0,1,.15,3.21l0,.1a5.53,5.53,0,0,1-.33.94,6.43,6.43,0,0,1-.51.89,5.62,5.62,0,0,1-.68.81,6,6,0,0,1-.82.67l-2,1.29A83,83,0,0,1,86,122.31ZM37.63,19.46a4,4,0,0,1-6.92,4l-8-14a4,4,0,0,1,6.91-4l8.06,14Zm-15,46.77a4,4,0,0,1,4,6.91l-14,8.06a4,4,0,0,1-4-6.91l14-8.06ZM20.56,39.84a4,4,0,0,1-2.07,7.72L3,43.36A4,4,0,0,1,5,35.64l15.53,4.2ZM82,41.17a4,4,0,0,1-4-6.91L92,26.2a4,4,0,0,1,4,6.91L82,41.17ZM63.46,20.57a4,4,0,1,1-7.71-2.06L59.87,3A4,4,0,0,1,67.59,5L63.46,20.57Zm20.17,96.36,9.67-5.86c-3.38-5.62-8.85-13.55-11.51-19.17a2.17,2.17,0,0,1-.12-.36,2.4,2.4,0,0,1,1.81-2.87c5.38-1.23,10.88-2.39,16.22-3.73a10.28,10.28,0,0,0,1.8-.58,6.11,6.11,0,0,0,1.3-.77,3.38,3.38,0,0,0,.38-.38.9.9,0,0,0,.14-.24l-.06-.18a2.15,2.15,0,0,0-.44-.53,5.75,5.75,0,0,0-.83-.63L47.06,45.75c2.11,21.36,5.2,44.1,6.45,65.31a6.28,6.28,0,0,0,.18,1,2.89,2.89,0,0,0,.26.62l.13.14a1,1,0,0,0,.29,0,2.76,2.76,0,0,0,.51-.17,5.71,5.71,0,0,0,1.28-.79,11.22,11.22,0,0,0,1.35-1.33c1.93-2.27,9.6-12.14,11.4-13.18a2.4,2.4,0,0,1,3.28.82l11.44,18.75Z"/>
 					</svg>
 					<span class="art-stats-number">${this.formatCount(art.view_count || 0)}</span>
 				</div>
@@ -373,6 +401,13 @@ class Gallery {
 			return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
 		}
 		return count.toString();
+	}
+
+	showEmptyMessage() {
+		const emptyMessage = document.createElement("div");
+		emptyMessage.className = "gallery-empty";
+		emptyMessage.textContent = "검색 결과가 없습니다.";
+		this.galleryContainer.appendChild(emptyMessage);
 	}
 }
 
