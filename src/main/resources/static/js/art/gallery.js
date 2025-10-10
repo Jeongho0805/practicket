@@ -248,12 +248,13 @@ class Gallery {
 	createArtCard(art) {
 		const card = document.createElement("div");
 		card.className = "art-card";
+		card.style.cursor = "pointer";
+		card.onclick = () => {
+			window.location.href = `/art/${art.id}`;
+		};
 
 		const artPreview = document.createElement("div");
 		artPreview.className = "art-preview";
-		artPreview.onclick = () => {
-			window.location.href = `/art/${art.id}`;
-		};
 
 		const canvas = document.createElement("canvas");
 		canvas.className = "art-canvas";
