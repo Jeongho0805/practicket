@@ -107,6 +107,17 @@ class GrapePalette {
 
 		this.resetBtn?.addEventListener("click", () => this.reset());
 		this.form?.addEventListener("submit", (e) => this.handleSubmit(e));
+
+		// title input 엔터키 처리
+		const titleInput = this.form?.querySelector("#title");
+		if (titleInput) {
+			titleInput.addEventListener("keypress", (e) => {
+				if (e.key === "Enter") {
+					e.preventDefault();
+					titleInput.blur(); // 키보드 내리기
+				}
+			});
+		}
 	}
 
 	handleHover(event) {
@@ -224,9 +235,17 @@ class GrapePalette {
 			return;
 		}
 
+		const pixelData = this.toPixelData();
+
+		// pixelData가 모두 0인지 확인 (아무것도 그리지 않은 경우)
+		if (!pixelData.includes('1')) {
+			alert("작품을 그려주세요.");
+			return;
+		}
+
 		const artData = {
 			title,
-			pixel_data: this.toPixelData(),
+			pixel_data: pixelData,
 			width: this.gridSize,
 			height: this.gridSize
 		};

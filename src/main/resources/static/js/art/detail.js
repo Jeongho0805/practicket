@@ -425,6 +425,7 @@ class Detail {
             });
 
             if (response.ok) {
+                editInput.blur();
                 this.currentPage = 0;
                 this.hasMoreComments = true;
                 await this.loadComments(true);

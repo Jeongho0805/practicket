@@ -304,7 +304,7 @@ class Gallery {
 				<span class="art-author">${art.author_name}</span>
 				<span class="art-title">${art.title}</span>
 			</div>
-			<div>
+			<div class="art-footer">
 				<span class="art-date">${this.formatDate(art.created_at)}</span>
 			</div>
 		`;
