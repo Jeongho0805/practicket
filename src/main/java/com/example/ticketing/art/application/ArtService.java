@@ -200,10 +200,10 @@ public class ArtService {
     @Transactional
     public void deleteComment(Long commentId, ClientInfo clientInfo) {
         ArtComment comment = artCommentRepository.findById(commentId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         if (!comment.getClient().getId().equals(clientInfo.getClientId())) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.FORBIDDEN);
         }
 
         Long artId = comment.getArt().getId();

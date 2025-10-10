@@ -22,7 +22,6 @@
     #content-section {
         display: grid;
         justify-items: center;
-        align-items: center;
         width: 100vw;
         height: 100%;
         max-height: 100%;
@@ -34,18 +33,16 @@
         display: flex;
         width: 100%;
         height: 100%;
-        max-height: 100%;
         font-family: my-font, sans-serif;
-        overflow: hidden;
         box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     #detail-content-section {
         width: 100%;
-        height: 100%;
         padding: 2% 0;
         box-sizing: border-box;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -195,11 +192,9 @@
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         box-sizing: border-box;
-        flex: 1;
-        min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        margin-bottom: 24px;
     }
 
     #comments-title {
@@ -256,9 +251,6 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
     }
 
     .comments-empty {
@@ -322,9 +314,8 @@
 
     .comment-body {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .comment-content-wrapper {
@@ -338,8 +329,6 @@
         font-size: 0.75rem;
         color: #8e8e8e;
         font-family: my-font, sans-serif;
-        white-space: nowrap;
-        align-self: flex-start;
     }
 
     .comment-content {
@@ -356,7 +345,7 @@
         padding: 8px;
         border: 1px solid #dbdbdb;
         border-radius: 6px;
-        font-size: 0.9rem;
+        font-size: 0.6rem;
         font-family: my-font, sans-serif;
         resize: vertical;
         min-height: 60px;
@@ -404,6 +393,13 @@
     }
 }
 
+
+
+
+
+
+
+
 /* 모바일 스타일 */
 @media (max-width: 768px) {
     html, body {
@@ -420,7 +416,6 @@
     #content-section {
         display: grid;
         justify-items: center;
-        align-items: center;
         width: 100vw;
         height: 100%;
         max-height: 100%;
@@ -433,16 +428,15 @@
         height: 100%;
         display: flex;
         font-family: my-font, sans-serif;
-        overflow: hidden;
         box-sizing: border-box;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 
     #detail-content-section {
         width: 100%;
-        height: 100%;
         padding: 12px;
         box-sizing: border-box;
-        overflow: hidden;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -578,11 +572,9 @@
         padding: 12px;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        flex: 1;
-        min-height: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        margin-bottom: 12px;
     }
 
     #comments-title {
@@ -608,7 +600,7 @@
         padding: 8px;
         border: 1px solid #dbdbdb;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.7rem;
         font-family: my-font, sans-serif;
         resize: none;
         height: 36px;
@@ -657,7 +649,7 @@
     }
 
     .comment-item {
-        padding: 8px;
+        padding: 10px;
         background: #f8f9fa;
         border-radius: 8px;
     }
@@ -670,8 +662,7 @@
     }
 
     .comment-author {
-        font-weight: bold;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         color: #333;
         font-family: my-font, sans-serif;
     }
@@ -699,32 +690,29 @@
 
     .comment-body {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 8px;
+        flex-direction: column;
+        gap: 6px;
     }
 
     .comment-content-wrapper {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 6px;
         flex: 1;
     }
 
     .comment-date {
         font-size: 0.65rem;
         color: #8e8e8e;
-        font-family: my-font, sans-serif;
-        white-space: nowrap;
-        align-self: flex-start;
+        font-family: Pretendard, sans-serif;
     }
 
     .comment-content {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         font-weight: normal;
         color: #333;
         line-height: 1.4;
-        font-family: my-font, sans-serif;
+        font-family: Pretendard, sans-serif;
         word-break: break-word;
         margin: 0;
     }
@@ -733,8 +721,8 @@
         padding: 8px;
         border: 1px solid #dbdbdb;
         border-radius: 6px;
-        font-size: 0.8rem;
-        font-family: my-font, sans-serif;
+        font-size: 0.7rem;
+        font-family: Pretendard, sans-serif;
         resize: vertical;
         min-height: 50px;
         outline: none;

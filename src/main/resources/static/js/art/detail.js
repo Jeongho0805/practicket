@@ -178,10 +178,11 @@ class Detail {
     }
 
     setupInfiniteScroll() {
-        if (!this.commentsList) return;
+        const artDetailSection = document.getElementById('art-detail-section');
+        if (!artDetailSection) return;
 
-        this.commentsList.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = this.commentsList;
+        artDetailSection.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = artDetailSection;
 
             // 스크롤이 하단 100px 이내로 왔을 때 다음 페이지 로드
             if (scrollTop + clientHeight >= scrollHeight - 100) {
@@ -251,13 +252,13 @@ class Detail {
 
     formatDate(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
     }
 
     async loadComments(isInitial = false) {
@@ -320,13 +321,13 @@ class Detail {
                 <div class="comment-body">
                     <div class="comment-content-wrapper">
                         <p class="comment-content">${comment.content}</p>
+                        <span class="comment-date">${this.formatDate(comment.created_at)}</span>
                         <textarea class="comment-edit-input" style="display: none;">${comment.content}</textarea>
                         <div class="comment-edit-actions" style="display: none;">
                             <button class="comment-save-btn" data-id="${comment.id}">저장</button>
                             <button class="comment-cancel-btn" data-id="${comment.id}">취소</button>
                         </div>
                     </div>
-                    <span class="comment-date">${this.formatDate(comment.created_at)}</span>
                 </div>
             `;
 
