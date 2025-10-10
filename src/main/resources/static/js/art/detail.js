@@ -370,6 +370,7 @@ class Detail {
             if (response.ok) {
                 alert('댓글이 작성되었습니다.');
                 this.commentInput.value = '';
+                this.commentInput.blur(); // 키보드 내리기
                 this.currentPage = 0;
                 this.hasMoreComments = true;
                 await this.loadComments(true);
