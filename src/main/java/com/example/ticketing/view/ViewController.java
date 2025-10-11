@@ -39,4 +39,29 @@ public class ViewController {
     public String blogContents(@PathVariable("id") String id, Model model) {
         return "blog/" + id;
     }
+
+    @GetMapping("/art")
+    public String artGallery(Model model) {
+        return "art/gallery";
+    }
+
+    @GetMapping("/art/create")
+    public String artCreate(Model model) {
+        model.addAttribute("isEdit", false);
+        model.addAttribute("artId", null);
+        return "art/create";
+    }
+
+    @GetMapping("/art/edit/{id}")
+    public String artEdit(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("isEdit", true);
+        model.addAttribute("artId", id);
+        return "art/create";
+    }
+
+    @GetMapping("/art/{id}")
+    public String artDetail(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("artId", id);
+        return "art/detail";
+    }
 }

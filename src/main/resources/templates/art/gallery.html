@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="title" content="팬아트 갤러리 - 프랙티켓">
+    <meta name="description" content="프랙티켓에서 포도알로 내 최애를 응원해보세요.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <title>포도아트 - 프랙티켓</title>
+    <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/art/gallery.css">
+</head>
+<body>
+    <div th:replace="~{fragments/header::header}"></div>
+    <div id="content-section">
+        <div th:replace="~{fragments/ad-section::ad-section}"></div>
+        <div id="art-gallery-section">
+            <div id="gallery-header-section">
+                <h1 id="gallery-title">포도알로 만드는 팬아트</h1>
+                <div id="gallery-controls">
+                    <div id="controls-top-row">
+                        <div id="search-input-wrapper">
+                            <input type="text" id="search-input" placeholder="제목 OR 닉네임 검색">
+                            <button id="search-btn" type="button">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="sort-wrapper">
+                            <div id="sort-select-type">
+                                <div id="sort-trigger">
+                                    <span id="sort-value">최신순</span>
+                                </div>
+                                <ul id="sort-options">
+                                    <li data-value="LATEST" class="selected">최신순</li>
+                                    <li data-value="LIKE">좋아요순</li>
+                                    <li data-value="VIEW">조회순</li>
+                                    <li data-value="COMMENT">댓글순</li>
+                                </ul>
+                            </div>
+                            <button id="direction-toggle" data-direction="desc" title="내림차순">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 5v14M19 12l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="controls-bottom-row">
+                        <div id="filter-buttons">
+                            <button class="glass-filter-btn" data-filter="ONLY_MINE">내 작품만</button>
+                            <button class="glass-filter-btn" data-filter="POPULAR">인기 BEST</button>
+                            <button class="glass-filter-btn" data-filter="HOT">최근 HOT</button>
+                        </div>
+                        <a href="/art/create" id="create-art-btn">만들기</a>
+                    </div>
+                </div>
+            </div>
+            <div id="gallery-content">
+                <div id="gallery-grid" class="art-gallery-grid"></div>
+            </div>
+        </div>
+        <div id="etc-section"></div>
+    </div>
+
+    <script> const HOST = "[[${host}]]"; </script>
+    <script type="module" src="/js/common.js"></script>
+    <script type="module" src="/js/art/gallery.js"></script>
+    <script type="module" src="/js/header.js"></script>
+</body>
+</html>
