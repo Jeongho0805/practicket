@@ -80,48 +80,47 @@ class Detail {
         ctx.imageSmoothingEnabled = false;
 
         const cellSize = 12;
-        const gap = 3;
-        const corner = 3;
+        const gap = 2;
+        const corner = 1.5;
         const innerSize = cellSize - gap;
+        const radius = Math.min(corner, innerSize / 2);
 
         // 배경
-        ctx.fillStyle = '#12082a';
+        ctx.fillStyle = '#251b3c';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         if (!pixelData || typeof pixelData !== 'string') {
             return;
         }
 
+        // 성능 최적화: roundRect 사용 (그림자 제거)
+        // 비활성 픽셀
+        ctx.fillStyle = '#6633cc';
+        ctx.beginPath();
         for (let i = 0; i < pixelData.length; i++) {
-            const isActive = pixelData[i] === '1';
+            if (pixelData[i] === '1') continue; // 활성은 스킵
+
             const col = i % gridWidth;
             const row = Math.floor(i / gridWidth);
-
-            const x = col * cellSize;
-            const y = row * cellSize;
-
-            const drawX = x + gap / 2;
-            const drawY = y + gap / 2;
-            const radius = Math.min(corner, innerSize / 2);
-
-            ctx.save();
-            ctx.beginPath();
-            this.roundedRectPath(ctx, drawX, drawY, innerSize, innerSize, radius);
-            ctx.fillStyle = isActive ? '#cbb5ff' : '#6633cc';
-            ctx.shadowColor = isActive ? 'rgba(161,120,255,0.35)' : 'rgba(85,34,170,0.25)';
-            ctx.shadowBlur = isActive ? 14 : 8;
-            ctx.fill();
-            ctx.restore();
+            const x = col * cellSize + gap / 2;
+            const y = row * cellSize + gap / 2;
+            ctx.roundRect(x, y, innerSize, innerSize, radius);
         }
-    }
+        ctx.fill();
 
-    roundedRectPath(ctx, x, y, width, height, radius) {
-        ctx.moveTo(x + radius, y);
-        ctx.arcTo(x + width, y, x + width, y + height, radius);
-        ctx.arcTo(x + width, y + height, x, y + height, radius);
-        ctx.arcTo(x, y + height, x, y, radius);
-        ctx.arcTo(x, y, x + width, y, radius);
-        ctx.closePath();
+        // 활성 픽셀
+        ctx.fillStyle = '#cbb5ff';
+        ctx.beginPath();
+        for (let i = 0; i < pixelData.length; i++) {
+            if (pixelData[i] !== '1') continue; // 비활성은 스킵
+
+            const col = i % gridWidth;
+            const row = Math.floor(i / gridWidth);
+            const x = col * cellSize + gap / 2;
+            const y = row * cellSize + gap / 2;
+            ctx.roundRect(x, y, innerSize, innerSize, radius);
+        }
+        ctx.fill();
     }
 
     formatCount(count) {

@@ -3,18 +3,15 @@ import * as util from "../common.js";
 const PIXEL_THEME = {
 	gridSize: 30,
 	cellSize: 24,
-	gap: 6,
-	corner: 6,
+	gap: 4,
+	corner: 3,
 	previewScale: 12,
 	colors: {
-		background: "#281d43",
+		background: "#251b3c",
 		base: "#6633cc",
 		hover: "#7c4dff",
 		active: "#cbb5ff",
 		activeHover: "#e4daff",
-		border: "rgba(255,255,255,0.55)",
-		shadow: "rgba(85,34,170,0.25)",
-		shadowActive: "rgba(161,120,255,0.35)"
 	}
 };
 
@@ -49,7 +46,6 @@ class Gallery {
 		const sortValue = document.getElementById("sort-value");
 		const sortOptions = document.getElementById("sort-options");
 		const directionToggle = document.getElementById("direction-toggle");
-		const onlyMineCheckbox = document.getElementById("only-mine-checkbox");
 
 		// 검색 버튼 클릭
 		const performSearch = () => {
@@ -59,20 +55,9 @@ class Gallery {
 
 		searchBtn.addEventListener("click", performSearch);
 
-		// 검색 입력 (디바운스 적용)
-		let searchTimeout;
-		searchInput.addEventListener("input", (e) => {
-			clearTimeout(searchTimeout);
-			searchTimeout = setTimeout(() => {
-				this.searchKeyword = e.target.value.trim();
-				this.resetAndReload();
-			}, 500);
-		});
-
 		// 엔터키로도 검색
 		searchInput.addEventListener("keypress", (e) => {
 			if (e.key === "Enter") {
-				clearTimeout(searchTimeout);
 				performSearch();
 			}
 		});
@@ -374,21 +359,33 @@ class Gallery {
 		const innerSize = pixelSize - gap;
 		const radius = Math.min(pixelSize * cornerRatio, innerSize / 2);
 
-		pixels.forEach((isActive, index) => {
+		// 성능 최적화: roundRect 사용 (그림자 제거)
+		ctx.fillStyle = PIXEL_THEME.colors.base;
+		ctx.beginPath();
+		for (let index = 0; index < pixels.length; index++) {
+			if (pixels[index]) continue; // 비활성만 먼저
+
 			const col = index % width;
 			const row = Math.floor(index / width);
 			const x = col * pixelSize + gap / 2;
 			const y = row * pixelSize + gap / 2;
+			ctx.roundRect(x, y, innerSize, innerSize, radius);
+		}
+		ctx.fill();
 
-			ctx.save();
-			ctx.beginPath();
-			this.roundedRectPath(ctx, x, y, innerSize, innerSize, radius);
-			ctx.fillStyle = isActive ? PIXEL_THEME.colors.active : PIXEL_THEME.colors.base;
-			ctx.shadowColor = isActive ? PIXEL_THEME.colors.shadowActive : PIXEL_THEME.colors.shadow;
-			ctx.shadowBlur = isActive ? 14 : 8;
-			ctx.fill();
-			ctx.restore();
-		});
+		// 활성 픽셀
+		ctx.fillStyle = PIXEL_THEME.colors.active;
+		ctx.beginPath();
+		for (let index = 0; index < pixels.length; index++) {
+			if (!pixels[index]) continue; // 활성만
+
+			const col = index % width;
+			const row = Math.floor(index / width);
+			const x = col * pixelSize + gap / 2;
+			const y = row * pixelSize + gap / 2;
+			ctx.roundRect(x, y, innerSize, innerSize, radius);
+		}
+		ctx.fill();
 	}
 
 	normalizePixelData(pixelData, width, height) {
@@ -408,21 +405,6 @@ class Gallery {
 		}
 		const padding = Array(total - pixels.length).fill(false);
 		return pixels.concat(padding);
-	}
-
-	roundedRectPath(ctx, x, y, width, height, radius) {
-		ctx.moveTo(x + radius, y);
-		ctx.arcTo(x + width, y, x + width, y + height, radius);
-		ctx.arcTo(x + width, y + height, x, y + height, radius);
-		ctx.arcTo(x, y + height, x, y, radius);
-		ctx.arcTo(x, y, x + width, y, radius);
-		ctx.closePath();
-	}
-
-	escapeHtml(text) {
-		const div = document.createElement("div");
-		div.textContent = text ?? "";
-		return div.innerHTML;
 	}
 
 	formatDate(dateString) {

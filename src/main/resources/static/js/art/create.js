@@ -3,17 +3,15 @@ import * as util from "../common.js";
 const CONFIG = {
 	gridSize: 30,
 	cellSize: 16,
-	gap: 4,
-	corner: 4,
+	gap: 2.5,
+	corner: 1.5,
 	colors: {
 		base: "#6633cc",
 		hover: "#7c4dff",
 		active: "#cbb5ff",
 		activeHover: "#e4daff",
 		border: "rgba(255,255,255,0.55)",
-		shadow: "rgba(85,34,170,0.25)",
-		shadowActive: "rgba(161,120,255,0.35)",
-		background: "#12082a"
+		background: "#251b3c"
 	}
 };
 
@@ -182,12 +180,10 @@ class GrapePalette {
 		const size = this.innerSize;
 		const radius = Math.min(this.corner, size / 2);
 
-		this.ctx.save();
+		// 성능 최적화: roundRect 사용, 그림자 제거
 		this.ctx.beginPath();
-		this.roundedRectPath(drawX, drawY, size, size, radius);
+		this.ctx.roundRect(drawX, drawY, size, size, radius);
 		this.ctx.fillStyle = color;
-		this.ctx.shadowColor = isActive ? CONFIG.colors.shadowActive : CONFIG.colors.shadow;
-		this.ctx.shadowBlur = isActive ? 14 : 8;
 		this.ctx.fill();
 
 		if (isHover) {
@@ -195,18 +191,6 @@ class GrapePalette {
 			this.ctx.strokeStyle = CONFIG.colors.border;
 			this.ctx.stroke();
 		}
-
-		this.ctx.restore();
-	}
-
-	roundedRectPath(x, y, width, height, radius) {
-		const ctx = this.ctx;
-		ctx.moveTo(x + radius, y);
-		ctx.arcTo(x + width, y, x + width, y + height, radius);
-		ctx.arcTo(x + width, y + height, x, y + height, radius);
-		ctx.arcTo(x, y + height, x, y, radius);
-		ctx.arcTo(x, y, x + width, y, radius);
-		ctx.closePath();
 	}
 
 	indexToPoint(index) {
