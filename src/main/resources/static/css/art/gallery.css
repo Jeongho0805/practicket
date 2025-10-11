@@ -187,24 +187,24 @@
     }
 
     .glass-filter-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         color: white;
         font-weight: 700;
-        transform: scale(1.05);
+        transform: scale(1.03);
         box-shadow:
-            0 8px 20px rgba(102, 126, 234, 0.5),
-            0 0 15px rgba(102, 126, 234, 0.3),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            0 4px 12px rgba(123, 133, 232, 0.35),
+            0 0 8px rgba(123, 133, 232, 0.25),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
     }
 
     .glass-filter-btn.active:hover {
-        background: linear-gradient(135deg, #5a67d8 0%, #6a42a0 100%);
-        transform: scale(1.05) translateY(-1px);
+        background: linear-gradient(135deg, #6a75dd 0%, #7c5aa4 100%);
+        transform: scale(1.03) translateY(-1px);
         box-shadow:
-            0 12px 28px rgba(102, 126, 234, 0.6),
-            0 0 20px rgba(102, 126, 234, 0.4),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            0 6px 16px rgba(123, 133, 232, 0.45),
+            0 0 12px rgba(123, 133, 232, 0.3),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
     }
 
     #search-input-wrapper {
@@ -277,14 +277,14 @@
     }
 
     #sort-trigger.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         color: white;
         font-weight: 700;
         box-shadow:
-            0 8px 20px rgba(102, 126, 234, 0.5),
-            0 0 15px rgba(102, 126, 234, 0.3),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            0 4px 12px rgba(123, 133, 232, 0.35),
+            0 0 8px rgba(123, 133, 232, 0.25),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
     }
 
     #sort-trigger.active.dropdown-open {
@@ -372,14 +372,14 @@
     }
 
     #direction-toggle.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         border-left: none;
         color: white;
         box-shadow:
-            0 8px 20px rgba(102, 126, 234, 0.5),
-            0 0 15px rgba(102, 126, 234, 0.3),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            0 4px 12px rgba(123, 133, 232, 0.35),
+            0 0 8px rgba(123, 133, 232, 0.25),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
     }
 
     #direction-toggle.active svg {
@@ -718,11 +718,11 @@
     }
 
     #sort-trigger.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         color: white;
         font-weight: 700;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 3px 10px rgba(123, 133, 232, 0.35);
     }
 
     #sort-trigger.active.dropdown-open {
@@ -804,11 +804,11 @@
     }
 
     #direction-toggle.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         border-left: none;
         color: white;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 3px 10px rgba(123, 133, 232, 0.35);
     }
 
     #direction-toggle.active svg {
@@ -853,17 +853,17 @@
     }
 
     .glass-filter-btn.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #7b85e8 0%, #8d6bb5 100%);
+        border: 2px solid #8a94ed;
         color: white;
         font-weight: 700;
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+        transform: scale(1.03);
+        box-shadow: 0 3px 10px rgba(123, 133, 232, 0.35);
     }
 
     .glass-filter-btn.active:hover {
-        background: linear-gradient(135deg, #5a67d8 0%, #6a42a0 100%);
-        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(135deg, #6a75dd 0%, #7c5aa4 100%);
+        box-shadow: 0 4px 12px rgba(123, 133, 232, 0.45);
     }
 
     #create-art-btn {
