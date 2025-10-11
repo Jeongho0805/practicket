@@ -5,6 +5,8 @@ import com.example.ticketing.common.auth.ClientInfoArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -31,7 +33,14 @@ public class WebConfig  {
 
             @Override
             public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+                // 토큰 인증
                 resolvers.add(new ClientInfoArgumentResolver(clientRepository));
+
+                // Pageable 최대 size 크기 제한
+                PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver();
+                pageableResolver.setMaxPageSize(100);
+                pageableResolver.setFallbackPageable(PageRequest.of(0, 20));
+                resolvers.add(pageableResolver);
             }
         };
     }

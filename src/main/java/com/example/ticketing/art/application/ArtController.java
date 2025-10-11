@@ -39,7 +39,6 @@ public class ArtController {
     public ResponseEntity<ArtResponse> createArt(
             @Valid @RequestBody ArtCreateRequest request,
             @Auth ClientInfo clientInfo) {
-        log.info("Request 정보 = {}", request);
         ArtResponse response = artService.createArt(request, clientInfo);
         return ResponseEntity.ok(response);
     }
