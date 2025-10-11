@@ -67,10 +67,6 @@ public class Art {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public void incrementViewCount() {
-        this.viewCount++;
-    }
-
     public void update(String title, String pixelData) {
         this.title = title;
         this.pixelData = pixelData;
