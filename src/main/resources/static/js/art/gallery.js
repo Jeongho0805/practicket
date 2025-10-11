@@ -46,6 +46,20 @@ class Gallery {
 		const sortValue = document.getElementById("sort-value");
 		const sortOptions = document.getElementById("sort-options");
 		const directionToggle = document.getElementById("direction-toggle");
+		const filterButtons = document.querySelectorAll(".glass-filter-btn");
+
+		// UI 상태 업데이트 헬퍼 함수
+		const updateActiveStates = () => {
+			if (this.filterType === "POPULAR" || this.filterType === "HOT") {
+				// 필터가 활성화됨 - 정렬 비활성화
+				sortTrigger.classList.remove("active");
+				directionToggle.classList.remove("active");
+			} else {
+				// 정렬이 활성화됨 - 정렬 활성화
+				sortTrigger.classList.add("active");
+				directionToggle.classList.add("active");
+			}
+		};
 
 		// 검색 버튼 클릭
 		const performSearch = () => {
@@ -65,8 +79,13 @@ class Gallery {
 		// 정렬 타입 셀렉트 토글
 		sortTrigger.addEventListener("click", (e) => {
 			e.stopPropagation();
-			sortTrigger.classList.toggle("active");
+			const wasActive = sortOptions.classList.contains("active");
 			sortOptions.classList.toggle("active");
+			if (!wasActive) {
+				sortTrigger.classList.add("dropdown-open");
+			} else {
+				sortTrigger.classList.remove("dropdown-open");
+			}
 		});
 
 		// 정렬 타입 옵션 선택
@@ -81,7 +100,7 @@ class Gallery {
 				option.classList.add("selected");
 				sortValue.textContent = text;
 
-				// POPULAR 또는 HOT 필터 활성화 시 필터 해제
+				// POPULAR/HOT 필터만 해제 (내작품만은 유지)
 				if (this.filterType === "POPULAR" || this.filterType === "HOT") {
 					this.filterType = null;
 					filterButtons.forEach((b) => b.classList.remove("active"));
@@ -89,10 +108,11 @@ class Gallery {
 
 				// 상태 업데이트 및 재로드
 				this.sortBy = value;
+				updateActiveStates();
 				this.resetAndReload();
 
 				// 드롭다운 닫기
-				sortTrigger.classList.remove("active");
+				sortTrigger.classList.remove("dropdown-open");
 				sortOptions.classList.remove("active");
 			});
 		});
@@ -100,14 +120,14 @@ class Gallery {
 		// 외부 클릭시 드롭다운 닫기
 		document.addEventListener("click", (e) => {
 			if (!sortSelectType.contains(e.target)) {
-				sortTrigger.classList.remove("active");
+				sortTrigger.classList.remove("dropdown-open");
 				sortOptions.classList.remove("active");
 			}
 		});
 
 		// 정렬 방향 토글
 		directionToggle.addEventListener("click", () => {
-			// POPULAR 또는 HOT 필터 활성화 시 필터 해제
+			// POPULAR/HOT 필터만 해제 (내작품만은 유지)
 			if (this.filterType === "POPULAR" || this.filterType === "HOT") {
 				this.filterType = null;
 				filterButtons.forEach((b) => b.classList.remove("active"));
@@ -132,11 +152,11 @@ class Gallery {
 					</svg>
 				`;
 			}
+			updateActiveStates();
 			this.resetAndReload();
 		});
 
 		// 필터 버튼 클릭
-		const filterButtons = document.querySelectorAll(".glass-filter-btn");
 		filterButtons.forEach((btn) => {
 			btn.addEventListener("click", () => {
 				const filter = btn.dataset.filter;
@@ -152,9 +172,13 @@ class Gallery {
 					this.filterType = filter;
 				}
 
+				updateActiveStates();
 				this.resetAndReload();
 			});
 		});
+
+		// 초기 상태 설정
+		updateActiveStates();
 	}
 
 	resetAndReload() {
