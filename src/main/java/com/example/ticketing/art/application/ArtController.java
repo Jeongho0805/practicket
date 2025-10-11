@@ -20,8 +20,6 @@ public class ArtController {
 
     private final ArtService artService;
 
-//    마스터 브랜치 다이렉트 푸시 가능 여부 확인
-
     @GetMapping
     public ResponseEntity<Page<ArtResponse>> searchArts(
             @Auth ClientInfo clientInfo,
