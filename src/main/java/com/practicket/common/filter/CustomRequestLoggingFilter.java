@@ -1,4 +1,4 @@
-package com.practicket.config;
+package com.practicket.common.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
