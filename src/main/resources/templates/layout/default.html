@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+    <link rel="icon" href="/image/logo.png" type="image/png">
+    <link rel="stylesheet" href="/css/layout/default.css">
+    <link rel="stylesheet" href="/css/fragments/header.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1YB3RZ41Z"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-Y1YB3RZ41Z');
+    </script>
+</head>
+<body>
+    <div th:replace="~{fragments/header::header}"></div>
+    <div id="content-section">
+        <div th:replace="~{fragments/ad-section::ad-section}"></div>
+        <div layout:fragment="content"></div>
+        <div th:replace="~{fragments/adsence-section::adsence-section}"></div>
+    </div>
+
+    <script> const HOST = "[[${host}]]"; </script>
+    <script type="module" src="/js/common.js"></script>
+    <script type="module" src="/js/header.js"></script>
+    <th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

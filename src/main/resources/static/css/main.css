@@ -1,47 +1,4 @@
-@font-face {
-    font-family: 'my-font';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-
 @media (min-width: 769px) {
-    html, body {
-        height: 100vh; /* 화면 전체 높이 차지 */
-        max-height: 100vh;
-        overflow: hidden;
-        width: 100vw;
-        margin: 0;
-        display: grid;
-        align-items: center;
-        justify-items: center;
-        background: white;
-        font-family: my-font, sans-serif;
-        grid-template-rows: 1fr 10fr;
-    }
-
-    /* 컨텐트 섹션 */
-    #content-section {
-        display: grid;
-        justify-items: center;
-        align-items: center;
-        width: 100vw;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        grid-template-columns: 1fr 2fr 1fr;
-    }
-
-    #ad-section {
-        width: 90%;
-        height: 70%;
-        max-height: 70%;
-        overflow: hidden;
-    }
-
-    /* 메인 내용 부분 */
     #main-section {
         display: grid;
         grid-template-rows: 1fr 1fr;
@@ -55,13 +12,14 @@
 
     #button-container {
         display: flex;
-        justify-content: center; /* 가로 중앙 정렬 */
+        justify-content: center;
         align-items: center;
         height: 100%;
         width: 100%;
         max-height: 100%;
         overflow: hidden;
     }
+
     #round-button {
         aspect-ratio: 1 / 1;
         height: 90%;
@@ -73,6 +31,7 @@
         font-size: 25px;
         font-family: my-font, sans-serif;
     }
+
     #round-button:hover {
         transform: scale(1.05);
     }
@@ -115,7 +74,7 @@
         font-size: 30px;
         text-align: center;
     }
-    /* 티켓팅 영역 */
+
     #ticketing-section {
         height: 100%;
         max-height: 100%;
@@ -127,18 +86,20 @@
         grid-template-rows: 3fr 1fr 3fr;
         overflow: hidden;
     }
+
     #modal-section {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+        background-color: rgba(0, 0, 0, 0.5);
         justify-content: center;
         align-items: center;
         z-index: 1000;
         display: none;
     }
+
     #modal-content {
         background-color: white;
         width: 40vw;
@@ -150,10 +111,12 @@
         justify-content: center;
         align-items: center;
     }
+
     #modal-title {
         font-size: 25px;
         font-weight: bold;
     }
+
     #waiting-info-section {
         background-color: #E6E6FA;
         width: 30vw;
@@ -164,16 +127,18 @@
         justify-content: center;
         padding: 20px;
     }
+
     #waiting-mention {
         font-weight: bold;
         line-height: 1.5;
-
     }
+
     #waiting-number {
         font-weight: bold;
         font-size: 25px;
         color: darkslateblue;
     }
+
     #progress-container {
         margin-top: 10px;
         width: 30vw;
@@ -181,63 +146,16 @@
         border: 3px solid darkslateblue;
         border-radius: 10px;
     }
+
     #progress-bar {
         width: 0;
         height: 100%;
         background-color: darkslateblue;
     }
-
-    #etc-section {
-        flex-grow: 0.3;
-        height: 100%;
-        width: 100%;
-        text-align: center;
-    }
 }
 
 
-
-
-
-
-/*
-============================= 모바일 구분선 ===============================
-*/
-
-
-
-
-
-
 @media (max-width: 768px) {
-    html, body {
-        height: 100dvh; /* 화면 전체 높이 차지 */
-        width: 100vw;
-        margin: 0;
-        background: white;
-        font-family: my-font, sans-serif;
-        overflow: hidden;
-        display: grid;
-        grid-template-rows: 18fr 82fr;
-    }
-
-    /* 컨텐트 섹션 */
-    #content-section {
-        overflow: hidden;
-        width: 100%;
-        display: grid;
-        grid-auto-flow: row;
-        grid-template-rows: 2fr 8fr;
-    }
-
-    #ad-section {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-    }
-
-    /* 메인 내용 부분 */
     #main-section {
         width: 100%;
         overflow: hidden;
@@ -287,7 +205,6 @@
         font-size: 12px;
     }
 
-
     #countdown-message-important {
         background: white;
         color: darkslateblue;
@@ -309,7 +226,7 @@
         justify-content: center;
         width: 100%;
     }
-    /* 티켓팅 영역 */
+
     #ticketing-section {
         width: 100%;
         overflow: hidden;
@@ -321,18 +238,20 @@
         justify-items: center;
         align-items: start;
     }
+
     #modal-section {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+        background-color: rgba(0, 0, 0, 0.5);
         justify-content: center;
         align-items: center;
         z-index: 1000;
         display: none;
     }
+
     #modal-content {
         background-color: white;
         width: 80vw;
@@ -344,6 +263,7 @@
         justify-content: center;
         align-items: center;
     }
+
     #modal-title {
         font-size: 20px;
         font-weight: bold;
@@ -371,6 +291,7 @@
         font-size: 14px;
         color: darkslateblue;
     }
+
     #progress-container {
         margin-top: 10px;
         width: 100%;
@@ -378,14 +299,11 @@
         border: 3px solid darkslateblue;
         border-radius: 10px;
     }
+
     #progress-bar {
         width: 0;
         height: 1vh;
         background-color: darkslateblue;
         border-radius: 25px;
-    }
-
-    #etc-section {
-        display: none;
     }
 }
