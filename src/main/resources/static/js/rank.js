@@ -50,6 +50,12 @@ function markMyRank() {
         if (key === util.getTokenValue()) {
             tr.style.backgroundColor = "darkslateblue"
             tr.style.color = "white"
+
+            // td 요소들에도 색상 적용
+            tr.querySelectorAll('td').forEach(td => {
+                td.style.color = "white";
+            });
+
             if (!isFirst) {
                 return;
             }

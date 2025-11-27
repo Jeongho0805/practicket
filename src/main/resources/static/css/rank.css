@@ -1,49 +1,4 @@
-@font-face {
-    font-family: 'my-font';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-
 @media (min-width: 769px) {
-    html, body {
-        height: 100vh;
-        max-height: 100vh;
-        overflow: hidden;
-        width: 100vw;
-        margin: 0;
-        display: grid;
-        justify-items: center;
-        background: white;
-        font-family: my-font, sans-serif;
-        grid-template-rows: 1fr 10fr;
-    }
-
-    #content-section {
-        display: grid;
-        justify-items: center;
-        align-items: center;
-        width: 100vw;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        grid-template-columns: 1fr 2fr 1fr;
-    }
-
-    #ad-section {
-        width: 90%;
-        height: 70%;
-        max-height: 70%;
-        overflow: hidden;
-    }
-
-    #etc-section {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-    }
-
     #main-section {
         display: grid;
         grid-template-rows: 1fr 1fr;
@@ -53,6 +8,7 @@
         max-height: 100%;
         width: 100%;
         overflow: hidden;
+        row-gap: 1em;
     }
 
     #rank-section {
@@ -66,106 +22,127 @@
         justify-items: center;
     }
 
-    #rank-details {
-        width: 80%;
-        height: 100%;
-        max-height: 100%;
-        overflow-y: scroll;
-        box-sizing: border-box;
-        border: 2px solid darkslateblue;
-    }
-
     #rank-title {
         text-align: center;
-        font-size: 20px;
+        font-size: 22px;
+        color: #514897;
+        font-weight: bold;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    #rank-details {
+        width: 85%;
+        height: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+        border-radius: 16px;
+        border: 2px solid rgba(107, 91, 154, 0.15);
+        box-shadow: 0 8px 32px rgba(107, 91, 154, 0.12),
+                    0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    #rank-details::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #rank-details::-webkit-scrollbar-track {
+        background: rgba(107, 91, 154, 0.05);
+        border-radius: 4px;
+    }
+
+    #rank-details::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        border-radius: 4px;
+    }
+
+    #rank-details::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a4a89, #7360a2);
     }
 
     #rank-table {
         width: 100%;
         text-align: center;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         font-size: 14px;
     }
 
     #rank-table thead tr {
-        background-color: darkslateblue;
+        background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
         color: #ffffff;
     }
 
+    #rank-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
 
-    #rank-table th, #rank-table td {
+    #rank-table th {
+        padding: 14px 15px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    #rank-table th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    #rank-table th:last-child {
+        border-radius: 0 10px 0 0;
+    }
+
+    #rank-table td {
         padding: 12px 15px;
-        border: 1px solid #dddddd;
+        border-bottom: 1px solid rgba(107, 91, 154, 0.1);
+        color: #2d3748;
     }
+
     th:nth-child(1), td:nth-child(1) {
-        width: 20%; /* 첫 번째 컬럼 너비 */
+        width: 20%;
     }
+
     th:nth-child(2), td:nth-child(2) {
-        width: 50%; /* 두 번째 컬럼 너비 */
+        width: 50%;
     }
+
     th:nth-child(3), td:nth-child(3) {
-        width: 30%; /* 세 번째 컬럼 너비 */
+        width: 30%;
     }
 
     #rank-table tbody tr {
-        border-bottom: 1px solid darkslateblue;
         background-color: white;
+        transition: all 0.2s ease;
     }
 
-    #rank-table tbody tr:last-of-type {
-        border-bottom: 2px solid darkslateblue;
+    #rank-table tbody tr:first-child td:first-child::before {
+        content: "🥇 ";
     }
 
-    #rank-table tbody tr:hover {
-        background-color: #f1f1f1;
+    #rank-table tbody tr:nth-child(2) td:first-child::before {
+        content: "🥈 ";
+    }
+
+    #rank-table tbody tr:nth-child(3) td:first-child::before {
+        content: "🥉 ";
     }
 }
 
 
-
-/*
-
-------------------------- 모바일 구분선 ------------------------------
-
-*/
-
-
-
-
 @media (max-width: 768px) {
-    html, body {
-        height: 100dvh; /* 화면 전체 높이 차지 */
-        width: 100vw;
-        margin: 0;
-        background: white;
-        font-family: my-font, sans-serif;
-        overflow: hidden;
-        display: grid;
-        grid-template-rows: 18fr 82fr;
-    }
-
-    #content-section {
-        overflow: hidden;
-        width: 100%;
-        display: grid;
-        grid-auto-flow: row;
-        grid-template-rows: 2fr 8fr;
-    }
-
-    #ad-section {
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-    }
-
-    /* 메인 내용 부분 */
     #main-section {
         width: 100%;
         overflow: hidden;
         display: grid;
         grid-auto-flow: row;
         grid-template-rows: 5fr 5fr;
+        row-gap: 1em;
         justify-items: center;
         align-items: start;
     }
@@ -185,46 +162,102 @@
     }
 
     #rank-details {
-        width: 80%;
-        height: 90%;
-        max-height: 90%;
-        overflow-y: scroll;
-        border: 2px solid darkslateblue;
+        width: 90%;
+        height: 95%;
+        max-height: 95%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+        border-radius: 12px;
+        border: 2px solid rgba(107, 91, 154, 0.12);
+        box-shadow: 0 6px 24px rgba(107, 91, 154, 0.1),
+                    0 3px 12px rgba(0, 0, 0, 0.04);
+        box-sizing: border-box;
+    }
+
+    #rank-details::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #rank-details::-webkit-scrollbar-track {
+        background: rgba(107, 91, 154, 0.05);
+        border-radius: 3px;
+    }
+
+    #rank-details::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        border-radius: 3px;
+    }
+
+    #rank-details::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a4a89, #7360a2);
     }
 
     #rank-table {
         width: 100%;
         max-height: 100%;
         text-align: center;
-        border-collapse: collapse;
-        font-size: 10px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 11px;
     }
 
     #rank-table thead tr {
-        background-color: darkslateblue;
+        background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
         color: #ffffff;
-        height: 1em;
+    }
+
+    #rank-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    #rank-table th {
+        padding: 10px 8px;
+        font-weight: 600;
+    }
+
+    #rank-table th:first-child {
+        border-radius: 8px 0 0 0;
+    }
+
+    #rank-table th:last-child {
+        border-radius: 0 8px 0 0;
+    }
+
+    #rank-table td {
+        padding: 10px 8px;
+        border-bottom: 1px solid rgba(107, 91, 154, 0.08);
+        color: #2d3748;
+    }
+
+    th:nth-child(1), td:nth-child(1) {
+        width: 20%;
+    }
+
+    th:nth-child(2), td:nth-child(2) {
+        width: 50%;
+    }
+
+    th:nth-child(3), td:nth-child(3) {
+        width: 30%;
     }
 
     #rank-table tbody tr {
-        height: 1em;
+        background-color: white;
+        transition: background 0.2s ease;
     }
 
-    #rank-table th, #rank-table td {
-        padding: 12px 15px;
-        border: 1px solid #dddddd;
-    }
-    th:nth-child(1), td:nth-child(1) {
-        width: 20%; /* 첫 번째 컬럼 너비 */
-    }
-    th:nth-child(2), td:nth-child(2) {
-        width: 50%; /* 두 번째 컬럼 너비 */
-    }
-    th:nth-child(3), td:nth-child(3) {
-        width: 30%; /* 세 번째 컬럼 너비 */
+    #rank-table tbody tr:first-child td:first-child::before {
+        content: "🥇 ";
     }
 
-    #etc-section {
-        display: none;
+    #rank-table tbody tr:nth-child(2) td:first-child::before {
+        content: "🥈 ";
+    }
+
+    #rank-table tbody tr:nth-child(3) td:first-child::before {
+        content: "🥉 ";
     }
 }

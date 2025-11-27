@@ -1,47 +1,37 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1, user-scalable=no">
     <title>작품 만들기 - 프랙티켓</title>
-    <link rel="icon" href="/image/logo.png" type="image/png">
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/fragments/header.css">
     <link rel="stylesheet" href="/css/art/create.css">
 </head>
 <body>
-    <div th:replace="~{fragments/header::header}"></div>
-    <div id="content-section">
-        <div th:replace="~{fragments/ad-section::ad-section}"></div>
-        <div id="art-create-section">
-            <div id="create-header-section">
-                <h1 id="header-title">포도아트 만들기</h1>
-            </div>
-            <div id="create-content-section">
-                <form id="art-form">
-                    <div id="title-section">
-                        <label for="title">작품 제목</label>
-                        <input type="text" id="title" name="title" required maxlength="20" placeholder="작품의 제목을 입력하세요">
-                    </div>
-                    <div id="canvas-section">
-                        <div id="canvas-wrapper">
-                            <canvas id="pixel-canvas"></canvas>
-                        </div>
-                    </div>
-                    <button type="submit" id="submit-btn">작품 등록</button>
-                </form>
-            </div>
+    <div layout:fragment="content" id="art-create-section">
+        <div id="create-header-section">
+            <h1 id="header-title">포도아트 만들기</h1>
         </div>
-        <div id="etc-section"></div>
+        <div id="create-content-section">
+            <form id="art-form">
+                <div id="title-section">
+                    <label for="title">작품 제목</label>
+                    <input type="text" id="title" name="title" required maxlength="20" placeholder="작품의 제목을 입력하세요">
+                </div>
+                <div id="canvas-section">
+                    <div id="canvas-wrapper">
+                        <canvas id="pixel-canvas"></canvas>
+                    </div>
+                </div>
+                <button type="submit" id="submit-btn">작품 등록</button>
+            </form>
+        </div>
     </div>
 
-    <script th:inline="javascript">
-        const HOST = /*[[${host}]]*/ "";
-        const IS_EDIT = /*[[${isEdit}]]*/ false;
-        const ART_ID = /*[[${artId}]]*/ null;
-    </script>
-    <script type="module" src="/js/common.js"></script>
-    <script type="module" src="/js/header.js"></script>
-    <script type="module" src="/js/art/create.js"></script>
+    <th:block layout:fragment="scripts">
+        <script th:inline="javascript">
+            const IS_EDIT = /*[[${isEdit}]]*/ false;
+            const ART_ID = /*[[${artId}]]*/ null;
+        </script>
+        <script type="module" src="/js/art/create.js"></script>
+    </th:block>
 </body>
 </html>

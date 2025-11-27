@@ -127,7 +127,7 @@
         height: 100%;
         max-height: 100%;
         width: 100%;
-        padding: 10px 5px 10px 5px;
+        padding: 5px 5px 5px 5px;
         box-sizing: border-box;
         font-size: 10px;
         display: grid;
@@ -142,7 +142,8 @@
         height: 100%;
         max-height: 100%;
         grid-auto-flow: column;
-        place-content: space-between;
+        align-items: stretch;
+        /*place-content: space-between;*/
     }
 
     #nav-left {
@@ -155,8 +156,11 @@
 
     /* 네비바 오른쪽 부분 */
     #nav-right {
+        width: 100%;
         display: flex;
+        height: 100%;
         align-items: center;
+        justify-content: flex-end;
     }
 
     /* 로고 */
@@ -188,7 +192,7 @@
         flex-direction: column;
         flex-grow: 1;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: flex-start;
     }
 
