@@ -14,13 +14,21 @@
 <body>
     <div layout:fragment="content" id="main-section">
         <div id="ticketing-section">
-            <div id="countdown-message-section">
-                <h1 id="countdown-message">티켓팅 연습 가능 시간</h1>
-                <span id="countdown-message-important">00초 ~ 30초</span>
-            </div>
-            <div id="countdown"></div>
-            <div id="button-container">
-                <button id="round-button">예매하기</button>
+            <div id="ticketing-info-section">
+                <div id="timeline-container">
+                    <div id="countdown"></div>
+                    <div class="timeline-wrapper">
+                        <span class="timeline-label">0초</span>
+                        <div id="timeline-bar">
+                            <div id="timeline-highlight"></div>
+                            <div id="timeline-pointer"></div>
+                        </div>
+                        <span class="timeline-label">60초</span>
+                    </div>
+                </div>
+                <button id="action-button">
+                    <span id="button-text">지금 예매하세요!</span>
+                </button>
             </div>
         </div>
         <div th:replace="~{fragments/chatting::chatting}"></div>
