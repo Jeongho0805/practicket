@@ -340,6 +340,7 @@
         border-radius: 10px;
         font-weight: 600;
         font-size: 11px;
+        white-space: nowrap;
         font-family: my-font, sans-serif;
         height: 90%;
         box-shadow: 0 3px 10px rgba(107, 91, 154, 0.25);
