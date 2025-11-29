@@ -1,144 +1,128 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
 <head>
-    <meta charset="UTF-8">
     <meta name="title" content="티켓팅 성공을 위한 정보 - 프랙티켓">
     <meta name="description" content="티켓팅 성공을 위한 필수 정보와 꿀팁들을 프랙티켓에서 확인해보세요">
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>티켓팅 성공을 위한 정보 - 프랙티켓</title>
-    <link rel="icon" href="/image/logo.png" type="image/png">
     <link rel="canonical" href="https://practicket.com/blog">
-    <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/blog.css">
-    <!-- 구글 애널리틱스 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1YB3RZ41Z"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-Y1YB3RZ41Z');
-    </script>
 </head>
 <body>
-    <div th:replace="~{fragments/header::header}"></div>
-    <div id="content-section">
-        <div th:replace="~{fragments/ad-section::ad-section}"></div>
-        <div id="main-section">
-            <h1 id="blog-title">티켓팅 성공을 위한 정보를 확인해보세요</h1>
-            <div id="blog-list">
-                <a class="blog-detail" href="/blog/1" >
-                    <img class="thumb-nail" src="/image/blog1.jpg" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 성공 비결</h2>
-                        <p class="blog-detail-description">티켓팅에 성공하기 위해선 실패 요소를 줄이는게 가장 중요합니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/2" >
-                    <img class="thumb-nail" src="/image/blog2.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 멘탈 관리 전략</h2>
-                        <p class="blog-detail-description">티켓팅 성공을 결정짓는 건 '멘탈'입니다. 멘탈 관리 비법을 배워 티켓팅에 성공해보세요.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/3" >
-                    <img class="thumb-nail" src="/image/blog3.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">예매 시작 5분 전 점검할 것</h2>
-                        <p class="blog-detail-description">티켓팅 성공을 위해 마지막 5분을 어떻게 준비해야 하는지 확인해보세요.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/4" >
-                    <img class="thumb-nail" src="/image/blog1-4.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">대기순번이 달라지는 티켓팅 비밀</h2>
-                        <p class="blog-detail-description">대기열이 떴을 때 최적의 선택은 무엇일까요? 새로고침, 유지, VPN 활용 전략을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/5" >
-                    <img class="thumb-nail" src="/image/blog5.svg" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">컴퓨터와 모바일 티켓팅 성공률은 어떻게 차이날까?</h2>
-                        <p class="blog-detail-description">대기열이 떴을 때 최적의 선택은 무엇일까요? 새로고침, 유지, VPN 활용 전략을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/6" >
-                    <img class="thumb-nail" src="/image/blog6.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅에 최적화된 웹 브라우저는 무엇일까?</h2>
-                        <p class="blog-detail-description">티켓팅에 적합한 브라우저는 무엇일까요? 크롬, 엣지, 사파리 속도를 비교하고 최적화 방법을 알아봅시다</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/7" >
-                    <img class="thumb-nail" src="/image/blog7.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">내가 티켓팅에 실패하는 이유는 무엇일까?</h2>
-                        <p class="blog-detail-description">티켓팅 실패에는 이유가 있습니다. 가장 흔한 실수를 분석하고 이를 방지하는 방법을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/8" >
-                    <img class="thumb-nail" src="/image/blog8.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">내 티켓팅 요청이 먼저 처리되도록 하는 방법</h2>
-                        <p class="blog-detail-description">티켓팅 성공을 위해서는 네트워크 트래픽을 최적화하고, 내 요청을 최우선으로 처리해야 합니다. 효과적인 설정법을 알아봅니다</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/9" >
-                    <img class="thumb-nail" src="/image/blog9.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 사이트 서버 다운 대처법</h2>
-                        <p class="blog-detail-description">티켓팅 도중 트래픽 과부하나 서버 장애가 발생할 수 있습니다. 이러한 상황에서 대처하는 방법과 최적화 전략을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/10" >
-                    <img class="thumb-nail" src="/image/blog10.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 성공의 비밀, 보안문자 입력 연습방법</h2>
-                        <p class="blog-detail-description">티켓팅 성공을 위해서는 보안 문자를 빠르게 입력하는 것이 중요합니다. 입력 속도를 늦추는 요인을 분석하고 효과적인 연습법을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/11" >
-                    <img class="thumb-nail" src="/image/blog11.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅에 앞서 긴장도를 낮추는 효과적인 방법</h2>
-                        <p class="blog-detail-description">티켓팅 중 긴장하면 실수할 가능성이 높아집니다. 신체적 긴장을 줄이고 컨디션을 최상으로 유지하는 방법을 알아봅니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/12" >
-                    <img class="thumb-nail" src="/image/blog12.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">나의 티켓팅 대기열 순서를 어떻게 결정되는걸까</h2>
-                        <p class="blog-detail-description">티켓팅 대기열에서 내 순서는 어떻게 결정될까요? 대기열 알고리즘을 분석하고, 성공 확률을 높이는 방법을 알아봅니다</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/13" >
-                    <img class="thumb-nail" src="/image/blog13.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">취켓팅 성공 비법</h2>
-                        <p class="blog-detail-description">취소표는 언제 풀릴까요? 취켓팅 성공률을 높이는 전략과 실시간 모니터링 방법을 소개합니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/14" >
-                    <img class="thumb-nail" src="/image/blog14.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 실패 후 멘탈 관리 방법</h2>
-                        <p class="blog-detail-description">티켓팅 실패 후 오는 멘탈 붕괴, 빠르게 극복하는 방법을 소개합니다.</p>
-                    </div>
-                </a>
-                <a class="blog-detail" href="/blog/15" >
-                    <img class="thumb-nail" src="/image/blog15.png" alt="이미지 준비중">
-                    <div class="blog-detail-content">
-                        <h2 class="blog-detail-title">티켓팅 새로고침 최적의 타이밍 찾는 방법</h2>
-                        <p class="blog-detail-description">티켓팅 성공률을 높이기 위한 새로고침 타이밍 최적화 방법을 소개합니다</p>
-                    </div>
-                </a>
-            </div>
+    <div layout:fragment="content" id="main-section">
+        <h1 id="blog-title">티켓팅 성공을 위한 정보를 확인해보세요</h1>
+        <div id="blog-list">
+            <a class="blog-detail" href="/blog/1" >
+                <img class="thumb-nail" src="/image/blog1.jpg" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 성공 비결</h2>
+                    <p class="blog-detail-description">티켓팅에 성공하기 위해선 실패 요소를 줄이는게 가장 중요합니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/2" >
+                <img class="thumb-nail" src="/image/blog2.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 멘탈 관리 전략</h2>
+                    <p class="blog-detail-description">티켓팅 성공을 결정짓는 건 '멘탈'입니다. 멘탈 관리 비법을 배워 티켓팅에 성공해보세요.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/3" >
+                <img class="thumb-nail" src="/image/blog3.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">예매 시작 5분 전 점검할 것</h2>
+                    <p class="blog-detail-description">티켓팅 성공을 위해 마지막 5분을 어떻게 준비해야 하는지 확인해보세요.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/4" >
+                <img class="thumb-nail" src="/image/blog1-4.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">대기순번이 달라지는 티켓팅 비밀</h2>
+                    <p class="blog-detail-description">대기열이 떴을 때 최적의 선택은 무엇일까요? 새로고침, 유지, VPN 활용 전략을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/5" >
+                <img class="thumb-nail" src="/image/blog5.svg" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">컴퓨터와 모바일 티켓팅 성공률은 어떻게 차이날까?</h2>
+                    <p class="blog-detail-description">대기열이 떴을 때 최적의 선택은 무엇일까요? 새로고침, 유지, VPN 활용 전략을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/6" >
+                <img class="thumb-nail" src="/image/blog6.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅에 최적화된 웹 브라우저는 무엇일까?</h2>
+                    <p class="blog-detail-description">티켓팅에 적합한 브라우저는 무엇일까요? 크롬, 엣지, 사파리 속도를 비교하고 최적화 방법을 알아봅시다</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/7" >
+                <img class="thumb-nail" src="/image/blog7.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">내가 티켓팅에 실패하는 이유는 무엇일까?</h2>
+                    <p class="blog-detail-description">티켓팅 실패에는 이유가 있습니다. 가장 흔한 실수를 분석하고 이를 방지하는 방법을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/8" >
+                <img class="thumb-nail" src="/image/blog8.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">내 티켓팅 요청이 먼저 처리되도록 하는 방법</h2>
+                    <p class="blog-detail-description">티켓팅 성공을 위해서는 네트워크 트래픽을 최적화하고, 내 요청을 최우선으로 처리해야 합니다. 효과적인 설정법을 알아봅니다</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/9" >
+                <img class="thumb-nail" src="/image/blog9.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 사이트 서버 다운 대처법</h2>
+                    <p class="blog-detail-description">티켓팅 도중 트래픽 과부하나 서버 장애가 발생할 수 있습니다. 이러한 상황에서 대처하는 방법과 최적화 전략을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/10" >
+                <img class="thumb-nail" src="/image/blog10.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 성공의 비밀, 보안문자 입력 연습방법</h2>
+                    <p class="blog-detail-description">티켓팅 성공을 위해서는 보안 문자를 빠르게 입력하는 것이 중요합니다. 입력 속도를 늦추는 요인을 분석하고 효과적인 연습법을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/11" >
+                <img class="thumb-nail" src="/image/blog11.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅에 앞서 긴장도를 낮추는 효과적인 방법</h2>
+                    <p class="blog-detail-description">티켓팅 중 긴장하면 실수할 가능성이 높아집니다. 신체적 긴장을 줄이고 컨디션을 최상으로 유지하는 방법을 알아봅니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/12" >
+                <img class="thumb-nail" src="/image/blog12.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">나의 티켓팅 대기열 순서를 어떻게 결정되는걸까</h2>
+                    <p class="blog-detail-description">티켓팅 대기열에서 내 순서는 어떻게 결정될까요? 대기열 알고리즘을 분석하고, 성공 확률을 높이는 방법을 알아봅니다</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/13" >
+                <img class="thumb-nail" src="/image/blog13.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">취켓팅 성공 비법</h2>
+                    <p class="blog-detail-description">취소표는 언제 풀릴까요? 취켓팅 성공률을 높이는 전략과 실시간 모니터링 방법을 소개합니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/14" >
+                <img class="thumb-nail" src="/image/blog14.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 실패 후 멘탈 관리 방법</h2>
+                    <p class="blog-detail-description">티켓팅 실패 후 오는 멘탈 붕괴, 빠르게 극복하는 방법을 소개합니다.</p>
+                </div>
+            </a>
+            <a class="blog-detail" href="/blog/15" >
+                <img class="thumb-nail" src="/image/blog15.png" alt="이미지 준비중">
+                <div class="blog-detail-content">
+                    <h2 class="blog-detail-title">티켓팅 새로고침 최적의 타이밍 찾는 방법</h2>
+                    <p class="blog-detail-description">티켓팅 성공률을 높이기 위한 새로고침 타이밍 최적화 방법을 소개합니다</p>
+                </div>
+            </a>
         </div>
-        <div id="etc-section"></div>
     </div>
-    <script> const HOST = "[[${host}]]"; </script>
-    <script type="module" src="/js/header.js"></script>
+
+    <th:block layout:fragment="scripts">
+    </th:block>
 </body>
 </html>

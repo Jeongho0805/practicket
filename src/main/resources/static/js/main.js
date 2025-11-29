@@ -2,7 +2,7 @@ import * as util from "./common.js";
 
 function addEventList() {
     // 티켓 예매 이벤트
-    const ticket_button = document.getElementById("round-button")
+    const ticket_button = document.getElementById("action-button")
     ticket_button.addEventListener("click", async () => {
         const name = await util.getNickname();
         if (!name) {
@@ -86,21 +86,31 @@ async function displayTime() {
 }
 
 function updateColor(second) {
-    const displayElement = document.getElementById('countdown');
-    if (second < 60) {
-        displayElement.style.color = "#3CB371"
-    }
-    if (second >= 50) {
-        const normalizedValue = Math.min(Math.max((second - 50) / 10, 0), 1);
+    const button = document.getElementById('action-button');
+    const buttonText = document.getElementById('button-text');
+    const pointer = document.getElementById('timeline-pointer');
 
-        const green = Math.floor(100 * (1 - normalizedValue));
-        const blue = Math.floor(100 * (1 - normalizedValue));
-        const color = `rgb(255, ${green}, ${blue})`;
+    // 타임라인 포인터 위치 업데이트 (0~60초 → 0~100%)
+    const position = (second / 60) * 100;
+    pointer.style.left = `${position}%`;
 
-        displayElement.style.color = color;
+    // 0~30초: 예매 가능 (보라)
+    if (second >= 0 && second <= 30) {
+        button.className = 'active';
+        buttonText.textContent = '지금 예매하세요!';
+        button.disabled = false;
     }
-    if (second < 50 && second >= 30) {
-        displayElement.style.color = "darkslateblue"
+    // 50~59초: 준비 (연보라)
+    else if (second >= 50) {
+        button.className = 'ready';
+        buttonText.textContent = '준비하세요!';
+        button.disabled = false;
+    }
+    // 31~49초: 대기 (회색)
+    else {
+        button.className = 'waiting';
+        buttonText.textContent = '잠시 대기';
+        button.disabled = true;
     }
 }
 

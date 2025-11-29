@@ -1,93 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
 <head>
-    <meta charset="UTF-8">
     <meta name="title" content="보안문자 연습 - 프랙티켓">
     <meta name="description" content="보안문자 연습도 프랙티켓에서 경험해보세요">
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습,보안문자,보안문자 입력연습, 보안문자 연습">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <title>보안문자 연습 - 프랙티켓</title>
-    <link rel="icon" href="/image/logo.png" type="image/png">
     <link rel="canonical" href="https://practicket.com/security">
     <link rel="stylesheet" href="/css/security.css">
-    <link rel="stylesheet" href="/css/header.css">
-    <!-- 구글 애널리틱스 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1YB3RZ41Z"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-Y1YB3RZ41Z');
-    </script>
 </head>
 <body>
-    <div th:replace="~{fragments/header::header}"></div>
-    <div id="content-section">
-        <div th:replace="~{fragments/ad-section::ad-section}"></div>
-        <div id="main-section">
-            <div id="title-section">
-                <h1>보안문자 입력 연습도 프랙티켓에서!</h1>
-                <h2>실제 사용자들과 비교하여 나의 보안문자 입력 결과를 확인해보세요.</h2>
-            </div>
-            <div id="guide-section">
-                <p class="guide-description">
-                    Start 버튼을 누르면 <span class="guide-highlight">3개</span>의 보안문자가 제시됩니다. <br/>
-                    보안문자 입력을 완료하면 나의 랭킹이 표시됩니다
-                </p>
-                <button id="start-button">Start</button>
-            </div>
-            <div id="security-section">
-                <div id="security-letter-section">
-                    <h3 id="security-letter-title">문자를 입력해주세요</h3>
-                    <div id="security-letter-guide">
-                        <p id="security-letter-count-message"></p>
-                        <h4 id="security-letter-count">맞춘 갯수&nbsp;&nbsp;  <span id="correct-count">0</span></h4>
-                    </div>
-                    <div id="security-letter-image-background">
-                        <canvas id="security-letter-image"></canvas>
-                    </div>
-                    <div id="security-input-section">
-                        <input id="security-input" placeholder="문자를 입력해주세요." autocomplete="off">
-                        <button id="security-input-button">입력완료</button>
-                    </div>
+    <div layout:fragment="content" id="main-section">
+        <div id="title-section">
+            <h1>보안문자 입력 연습도 프랙티켓에서!</h1>
+            <h2>실제 사용자들과 비교하여 나의 보안문자 입력 결과를 확인해보세요.</h2>
+        </div>
+        <div id="guide-section">
+            <p class="guide-description">
+                Start 버튼을 누르면 <span class="guide-highlight">3개</span>의 보안문자가 제시됩니다. <br/>
+                보안문자 입력을 완료하면 나의 랭킹이 표시됩니다
+            </p>
+            <button id="start-button">Start</button>
+        </div>
+        <div id="security-section">
+            <div id="security-letter-section">
+                <h3 id="security-letter-title">문자를 입력해주세요</h3>
+                <div id="security-letter-guide">
+                    <p id="security-letter-count-message"></p>
+                    <h4 id="security-letter-count">맞춘 갯수&nbsp;&nbsp;  <span id="correct-count">0</span></h4>
                 </div>
-            </div>
-            <div id="result-section">
-                <h3 id="result-title">보안문자 입력 결과</h3>
-                <div id="result-detail">
-                    <div class="result-detail-content" id="my-latest-percentile">
-                        <h4>최근 결과 상위 %</h4>
-                        <p id="my-latest-percentile-value"></p>
-                    </div>
-                    <div class="result-detail-content" id=my-latest-rank>
-                        <h4>최근 결과 순위</h4>
-                        <p id="my-latest-rank-value"></p>
-                    </div>
-                    <div class="result-detail-content" id="my-best-result">
-                        <h4>나의 최단 소요시간</h4>
-                        <p id="my-best-result-value"></p>
-                    </div>
-                    <div class="result-detail-content" id="my-latest-result">
-                        <h4>최근 소요시간</h4>
-                        <p id="my-latest-result-value"></p>
-                    </div>
-                    <div class="result-detail-content" id="my-average-result">
-                        <h4>내 평균 소요시간</h4>
-                        <p id="my-average-result-value"></p>
-                    </div>
-                    <div class="result-detail-content" id="total-average-result">
-                        <h4>전체 평균 소요시간</h4>
-                        <p id="total-average-result-value"></p>
-                    </div>
+                <div id="security-letter-image-background">
+                    <canvas id="security-letter-image"></canvas>
+                </div>
+                <div id="security-input-section">
+                    <input id="security-input" placeholder="문자를 입력해주세요." autocomplete="off">
+                    <button id="security-input-button">입력완료</button>
                 </div>
             </div>
         </div>
-        <div id="etc-section"></div>
+        <div id="result-section">
+            <h3 id="result-title">보안문자 입력 결과</h3>
+            <div id="result-detail">
+                <div class="result-detail-content" id="my-latest-percentile">
+                    <h4>최근 결과 상위 %</h4>
+                    <p id="my-latest-percentile-value"></p>
+                </div>
+                <div class="result-detail-content" id=my-latest-rank>
+                    <h4>최근 결과 순위</h4>
+                    <p id="my-latest-rank-value"></p>
+                </div>
+                <div class="result-detail-content" id="my-best-result">
+                    <h4>나의 최단 소요시간</h4>
+                    <p id="my-best-result-value"></p>
+                </div>
+                <div class="result-detail-content" id="my-latest-result">
+                    <h4>최근 소요시간</h4>
+                    <p id="my-latest-result-value"></p>
+                </div>
+                <div class="result-detail-content" id="my-average-result">
+                    <h4>내 평균 소요시간</h4>
+                    <p id="my-average-result-value"></p>
+                </div>
+                <div class="result-detail-content" id="total-average-result">
+                    <h4>전체 평균 소요시간</h4>
+                    <p id="total-average-result-value"></p>
+                </div>
+            </div>
+        </div>
     </div>
-    <script> const HOST = "[[${host}]]"; </script>
-    <script type="module" src="/js/security.js"></script>
-    <script type="module" src="/js/header.js"></script>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/security.js"></script>
+    </th:block>
 </body>
 </html>
