@@ -48,20 +48,14 @@ function markMyRank() {
     trElements.forEach(tr => {
         const key = tr.dataset.userKey;
         if (key === util.getTokenValue()) {
-            tr.style.backgroundColor = "darkslateblue"
-            tr.style.color = "white"
-
-            // td 요소들에도 색상 적용
-            tr.querySelectorAll('td').forEach(td => {
-                td.style.color = "white";
-            });
+            tr.classList.add('my-rank');
 
             if (!isFirst) {
                 return;
             }
             tr.scrollIntoView({
-                behavior: "smooth", // 부드럽게 스크롤 이동
-                block: "center"     // 화면 중앙에 해당 요소가 오도록 설정
+                behavior: "smooth",
+                block: "center"
             });
             isFirst = false;
         }

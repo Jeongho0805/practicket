@@ -140,6 +140,13 @@
         transition: all 0.2s ease;
     }
 
+    #rank-table tbody tr.my-rank {
+        background-color: rgba(107, 91, 154, 0.08);
+        border-left: 4px solid #8470b3;
+        box-shadow: 0 2px 12px rgba(107, 91, 154, 0.2);
+        font-weight: 600;
+    }
+
     #rank-table tbody tr:first-child td:first-child::before {
         content: "🥇 ";
     }
@@ -284,6 +291,13 @@
     #rank-table tbody tr {
         background-color: white;
         transition: background 0.2s ease;
+    }
+
+    #rank-table tbody tr.my-rank {
+        background-color: rgba(107, 91, 154, 0.08);
+        border-left: 4px solid #8470b3;
+        box-shadow: 0 2px 12px rgba(107, 91, 154, 0.2);
+        font-weight: 600;
     }
 
     #rank-table tbody tr:first-child td:first-child::before {
