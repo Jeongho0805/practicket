@@ -310,11 +310,14 @@
         box-sizing: border-box;
         border-radius: 0 0 12px 12px;
         gap: 8px;
+        flex-wrap: nowrap;
+        overflow: hidden;
     }
 
     #chatting-input {
         border: none;
         flex: 1;
+        min-width: 0;
         padding: 6px 10px;
         font-size: 12px;
         font-family: my-font, sans-serif;
@@ -332,7 +335,7 @@
     }
 
     #chatting-send-button {
-        padding: 8px 14px;
+        padding: clamp(6px, 1.5vw, 8px) clamp(12px, 3vw, 16px);
         border: none;
         color: white;
         background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
@@ -345,6 +348,8 @@
         height: 90%;
         box-shadow: 0 3px 10px rgba(107, 91, 154, 0.25);
         transition: all 0.2s ease;
+        min-width: 50px;
+        flex-shrink: 0;
     }
 
     #chatting-send-button:hover {
