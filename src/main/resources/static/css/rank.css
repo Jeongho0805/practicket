@@ -37,32 +37,15 @@
         width: 85%;
         height: 90%;
         max-height: 90%;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden;
         box-sizing: border-box;
         background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
         border-radius: 16px;
         border: 2px solid rgba(107, 91, 154, 0.15);
         box-shadow: 0 8px 32px rgba(107, 91, 154, 0.12),
                     0 4px 16px rgba(0, 0, 0, 0.05);
-    }
-
-    #rank-details::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    #rank-details::-webkit-scrollbar-track {
-        background: rgba(107, 91, 154, 0.05);
-        border-radius: 4px;
-    }
-
-    #rank-details::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #6b5b9a, #8470b3);
-        border-radius: 4px;
-    }
-
-    #rank-details::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #5a4a89, #7360a2);
+        display: flex;
+        flex-direction: column;
     }
 
     #rank-table {
@@ -71,17 +54,53 @@
         border-collapse: separate;
         border-spacing: 0;
         font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    #rank-table thead {
+        flex-shrink: 0;
+        display: table;
+        width: 100%;
+        table-layout: fixed;
     }
 
     #rank-table thead tr {
         background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
         color: #ffffff;
+        display: table-row;
     }
 
-    #rank-table thead {
-        position: sticky;
-        top: 0;
-        z-index: 10;
+    #rank-table tbody {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: block;
+    }
+
+    #rank-table tbody::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-track {
+        background: rgba(107, 91, 154, 0.05);
+        border-radius: 4px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        border-radius: 4px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a4a89, #7360a2);
+    }
+
+    #rank-table tbody tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
     }
 
     #rank-table th {
@@ -165,52 +184,70 @@
         width: 90%;
         height: 95%;
         max-height: 95%;
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow: hidden;
         background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
         border-radius: 12px;
         border: 2px solid rgba(107, 91, 154, 0.12);
         box-shadow: 0 6px 24px rgba(107, 91, 154, 0.1),
                     0 3px 12px rgba(0, 0, 0, 0.04);
         box-sizing: border-box;
-    }
-
-    #rank-details::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    #rank-details::-webkit-scrollbar-track {
-        background: rgba(107, 91, 154, 0.05);
-        border-radius: 3px;
-    }
-
-    #rank-details::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #6b5b9a, #8470b3);
-        border-radius: 3px;
-    }
-
-    #rank-details::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #5a4a89, #7360a2);
+        display: flex;
+        flex-direction: column;
     }
 
     #rank-table {
         width: 100%;
-        max-height: 100%;
         text-align: center;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 11px;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    #rank-table thead {
+        flex-shrink: 0;
+        display: table;
+        width: 100%;
+        table-layout: fixed;
     }
 
     #rank-table thead tr {
         background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
         color: #ffffff;
+        display: table-row;
     }
 
-    #rank-table thead {
-        position: sticky;
-        top: 0;
-        z-index: 10;
+    #rank-table tbody {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: block;
+    }
+
+    #rank-table tbody::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-track {
+        background: rgba(107, 91, 154, 0.05);
+        border-radius: 3px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        border-radius: 3px;
+    }
+
+    #rank-table tbody::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a4a89, #7360a2);
+    }
+
+    #rank-table tbody tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
     }
 
     #rank-table th {
