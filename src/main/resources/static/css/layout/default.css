@@ -42,11 +42,11 @@
         overflow: hidden;
     }
 
-    #etc-section {
-        flex-grow: 0.3;
-        height: 100%;
-        width: 100%;
-        text-align: center;
+    #adsence-section {
+        width: 60%;
+        height: 70%;
+        max-height: 70%;
+        overflow: hidden;
     }
 }
 
