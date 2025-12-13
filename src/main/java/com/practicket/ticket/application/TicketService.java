@@ -25,8 +25,8 @@ public class TicketService {
     private final TicketTimer ticketTimer;
     private final TicketManager ticketManager;
 
-    public void resetTimer() {
-        ticketTimer.resetStartTime();
+    public void adjustStartTime() {
+        ticketTimer.adjustStartTime();
     }
 
     public void initData() {

@@ -26,6 +26,8 @@ public class TicketQueueService {
 
     private final ThreadPoolTaskExecutor taskExecutor;
 
+    private static final String WAITING_QUEUE_NAME = "waiting-order";
+
     public TicketQueueService(TicketQueueEventRepository eventRepository,
                               TicketQueueEmitterRepository emitterRepository,
                               @Qualifier("ticketTaskExecutor") ThreadPoolTaskExecutor executor) {
@@ -112,7 +114,7 @@ public class TicketQueueService {
             try{
                 if (isEmitterActive(emitter)) {
                     emitter.send(SseEmitter.event()
-                            .name("waiting-order")
+                            .name(WAITING_QUEUE_NAME)
                             .data(data));
                 }
             } catch (Exception e){
@@ -123,7 +125,7 @@ public class TicketQueueService {
 
     private boolean isEmitterActive(SseEmitter emitter) {
         try {
-            emitter.send(SseEmitter.event().name("waiting-order"));
+            emitter.send(SseEmitter.event().name(WAITING_QUEUE_NAME));
             return true;
         } catch (Exception e) {
             return false;
