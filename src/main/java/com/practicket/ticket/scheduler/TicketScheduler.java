@@ -7,6 +7,7 @@ import com.practicket.ticket.component.VirtualNameLoader;
 import com.practicket.ticket.dto.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -28,21 +29,25 @@ public class TicketScheduler {
 
     private final VirtualNameLoader nameLoader;
 
-
     private final static int AI_USER_NUMBER = 200;
 
     @Scheduled(cron = "30 * * * * *")
-    public void resetTime() {
-        ticketService.resetTimer();
+    @SchedulerLock(name = "adjustStartTime")
+    public void adjustStartTime() throws InterruptedException {
+        Thread.sleep(15000);  // 15초 대기 (테스트용)
+
+        ticketService.adjustStartTime();
     }
 
     @Scheduled(cron = "59 * * * * *")
+    @SchedulerLock(name = "clearAllRecord")
     public void clearAllRecord() {
         ticketQueueService.deleteAllWaiting();
         ticketService.initData();
     }
 
     @Scheduled(cron = "0 * * * * *")
+    @SchedulerLock(name = "activateAIUserOrder")
     public void activateAIUserOrder() {
         String name = "AI-User-";
         for (int i=1; i<=AI_USER_NUMBER; i++) {
@@ -54,6 +59,7 @@ public class TicketScheduler {
     }
 
     @Scheduled(cron = "6 * * * * *")
+    @SchedulerLock(name = "activateAIUserTicket")
     public void activateAIUserTicket() {
         List<String> shuffledList = new ArrayList<>(nameLoader.getNames());
         Collections.shuffle(shuffledList);
