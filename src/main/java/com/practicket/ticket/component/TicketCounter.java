@@ -1,28 +1,34 @@
 package com.practicket.ticket.component;
 
+import com.practicket.common.exception.TicketException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import static com.practicket.common.exception.ErrorCode.TICKET_SOLD_OUT;
+
 @Component
+@RequiredArgsConstructor
 public class TicketCounter {
 
-    private int ticketCount = 120;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private static final String TICKET_COUNT_KEY = "ticket-count";
+    private static final int INITIAL_TICKET_COUNT = 100;
 
-    public synchronized void minusTicketCount(int count) {
-        if (ticketCount - count < 0) {
-            throw new RuntimeException("티켓이 모두 소진되었습니다.");
+    public void minusTicketCount(int count) {
+        Long remaining = redisTemplate.opsForValue().decrement(TICKET_COUNT_KEY, count);
+
+        if (remaining == null || remaining < 0) {
+            redisTemplate.opsForValue().increment(TICKET_COUNT_KEY, count);
+            throw new TicketException(TICKET_SOLD_OUT);
         }
-        ticketCount -= count;
     }
 
-    public boolean isAvailableCount(int count) {
-        return ticketCount - count > 0;
-    }
-
-    public synchronized int getTicketCount() {
-        return this.ticketCount;
+    public void plusTicketCount(int count) {
+        redisTemplate.opsForValue().increment(TICKET_COUNT_KEY, count);
     }
 
     public void resetCount() {
-        ticketCount = 100;
+        redisTemplate.opsForValue().set(TICKET_COUNT_KEY, INITIAL_TICKET_COUNT);
     }
 }

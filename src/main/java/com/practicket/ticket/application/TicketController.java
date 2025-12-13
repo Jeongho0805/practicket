@@ -39,26 +39,26 @@ public class TicketController {
     }
 
     @PostMapping("/ticket")
-    public ResponseEntity<?> createTicket(@Auth ClientInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
-        ticketService.issueTicket(userInfo, dto);
+    public ResponseEntity<Void> createTicket(@Auth ClientInfo clientInfo, @Valid @RequestBody TicketRequestDto dto) {
+        ticketService.issueTicket(clientInfo, dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/order")
-    public ResponseEntity<SseEmitter> streamSse(@Auth ClientInfo userInfo) {
-        SseEmitter emitter = ticketQueueService.saveEmitter(userInfo.getToken());
+    public ResponseEntity<SseEmitter> streamSse(@Auth ClientInfo clientInfo) {
+        SseEmitter emitter = ticketQueueService.saveEmitter(clientInfo.getToken());
         return ResponseEntity.ok(emitter);
     }
 
     @PostMapping("/order")
-    public ResponseEntity<?> registerTicket(@Auth ClientInfo userInfo) {
+    public ResponseEntity<Void> registerQueue(@Auth ClientInfo clientInfo) {
         ticketService.validateStartTime();
-        ticketQueueService.saveEvent(userInfo.getToken());
+        ticketQueueService.saveEvent(clientInfo.getToken());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/server-time")
-    public ResponseEntity<?> getServerTime() {
+    public ResponseEntity<ServerTimeResponseDto> getServerTime() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
         String formattedTime = now.format(formatter);

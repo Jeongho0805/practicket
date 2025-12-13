@@ -22,9 +22,7 @@ import java.util.List;
 public class TicketService {
 
     private final TicketCounter ticketCounter;
-
     private final TicketTimer ticketTimer;
-
     private final TicketManager ticketManager;
 
     public void resetTimer() {
@@ -44,9 +42,13 @@ public class TicketService {
 
     public void issueTicket(ClientInfo userInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
-        ticketCounter.isAvailableCount(seats.size());
-        ticketManager.createTickets(userInfo.getToken(), userInfo.getName(), seats);
         ticketCounter.minusTicketCount(seats.size());
+        try {
+            ticketManager.createTickets(userInfo.getToken(), userInfo.getName(), seats);
+        } catch (Exception e) {
+            ticketCounter.plusTicketCount(seats.size());
+            throw e;
+        }
     }
 
     public List<TicketRankDto> getRankInfo() {
