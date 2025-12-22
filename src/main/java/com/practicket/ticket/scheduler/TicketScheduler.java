@@ -34,28 +34,14 @@ public class TicketScheduler {
     @Scheduled(cron = "30 * * * * *")
     @SchedulerLock(name = "adjustStartTime")
     public void adjustStartTime() throws InterruptedException {
-        Thread.sleep(15000);  // 15초 대기 (테스트용)
-
         ticketService.adjustStartTime();
     }
 
     @Scheduled(cron = "59 * * * * *")
     @SchedulerLock(name = "clearAllRecord")
     public void clearAllRecord() {
-        ticketQueueService.deleteAllWaiting();
+        ticketQueueService.initData();
         ticketService.initData();
-    }
-
-    @Scheduled(cron = "0 * * * * *")
-    @SchedulerLock(name = "activateAIUserOrder")
-    public void activateAIUserOrder() {
-        String name = "AI-User-";
-        for (int i=1; i<=AI_USER_NUMBER; i++) {
-            try {
-                Thread.sleep(30);
-                ticketQueueService.saveEvent(name + i);
-            } catch (Exception ignored) {}
-        }
     }
 
     @Scheduled(cron = "6 * * * * *")
@@ -79,13 +65,31 @@ public class TicketScheduler {
                         .token(name)
                         .name(name)
                         .build();
-                ticketService.issueTicket(clientInfo, new TicketRequestDto(List.of(seat)));
+                ticketService.createTicket(clientInfo, new TicketRequestDto(List.of(seat)));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    @SchedulerLock(name = "addVirtualUserOnQueue")
+    public void addVirtualUserOnQueue() {
+        String name = "AI-User-";
+        for (int i=1; i<=AI_USER_NUMBER; i++) {
+            try {
+                Thread.sleep(30);
+                ticketQueueService.enterQueue(name + i);
             } catch (Exception ignored) {}
         }
     }
 
     @Scheduled(cron = "* * * * * *")
-    public void sendWaitingOrder() {
-        ticketQueueService.sendOrderByEmitter();
+    @SchedulerLock(name = "pollQueue")
+    public void pollQueue() {
+        ticketQueueService.pollQueue();
+    }
+
+    @Scheduled(cron = "* * * * * *")
+    public void broadcastQueueInfo() {
+        ticketQueueService.broadcastQueueInfo();
     }
 }

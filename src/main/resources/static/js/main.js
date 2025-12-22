@@ -56,7 +56,7 @@ function setWaitingOrderSse(name) {
     const eventSource = new EventSource(`${HOST}/api/order?token=${encodeURIComponent(token)}`);
     eventSource.addEventListener("waiting-order", (event) => {
         const data = JSON.parse(event.data)
-        if (data.isComplete) {
+        if (data.is_complete) {
             eventSource.close();
             document.cookie = `permission=reservation; path=/`;
             window.location.href = `${HOST}/reservation`;

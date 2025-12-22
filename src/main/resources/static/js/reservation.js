@@ -131,7 +131,6 @@ function requestReservation() {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            name: util.getNickname(),
             seats: Array.from(selected_seats.keys())
         })
     }).then(response => {

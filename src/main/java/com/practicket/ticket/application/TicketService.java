@@ -3,12 +3,11 @@ package com.practicket.ticket.application;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.TicketException;
-import com.practicket.ticket.component.TicketCounter;
-import com.practicket.ticket.component.TicketManager;
 import com.practicket.ticket.component.TicketTimer;
 import com.practicket.ticket.domain.Ticket;
 import com.practicket.ticket.dto.TicketRankDto;
 import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.infra.redis.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +20,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TicketService {
 
-    private final TicketCounter ticketCounter;
+    private final TicketRepository ticketRepository;
     private final TicketTimer ticketTimer;
-    private final TicketManager ticketManager;
 
     public void adjustStartTime() {
         ticketTimer.adjustStartTime();
     }
 
     public void initData() {
-        ticketManager.deleteAll();
-        ticketCounter.resetCount();
+        ticketRepository.deleteAll();
     }
 
     public void validateStartTime() {
@@ -40,19 +37,13 @@ public class TicketService {
         }
     }
 
-    public void issueTicket(ClientInfo userInfo, TicketRequestDto dto) {
+    public void createTicket(ClientInfo clientInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
-        ticketCounter.minusTicketCount(seats.size());
-        try {
-            ticketManager.createTickets(userInfo.getToken(), userInfo.getName(), seats);
-        } catch (Exception e) {
-            ticketCounter.plusTicketCount(seats.size());
-            throw e;
-        }
+        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats);
     }
 
     public List<TicketRankDto> getRankInfo() {
-        List<Ticket> tickets = ticketManager.findAll();
+        List<Ticket> tickets = ticketRepository.findAll();
         return tickets.stream()
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
                 .map(TicketRankDto::createFromTicket)
@@ -60,7 +51,7 @@ public class TicketService {
     }
 
     public List<String> findAllSeats() {
-        return ticketManager.findAll()
+        return ticketRepository.findAll()
                 .stream()
                 .map(Ticket::getSeat)
                 .toList();

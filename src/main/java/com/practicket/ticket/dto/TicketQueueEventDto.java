@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TicketQueueEventDto {
 
-    private String name;
+    private String clientKey;
 
     private int firstWaitingOrder;
 }

@@ -6,14 +6,14 @@ import lombok.Getter;
 @Getter
 public class TicketWaitingOrderResponse {
 
-    int currentWaitingOrder;
+    Long currentWaitingOrder;
 
-    int firstWaitingOrder;
+    Long firstWaitingOrder;
 
-    @JsonProperty("isComplete")
+    @JsonProperty("is_complete")
     boolean isComplete;
 
-    public TicketWaitingOrderResponse(int currentWaitingOrder, int firstWaitingOrder) {
+    public TicketWaitingOrderResponse(Long currentWaitingOrder, Long firstWaitingOrder) {
         this.currentWaitingOrder = currentWaitingOrder;
         this.firstWaitingOrder = firstWaitingOrder;
         this.isComplete = currentWaitingOrder <= 0;

@@ -40,7 +40,7 @@ public class TicketController {
 
     @PostMapping("/ticket")
     public ResponseEntity<Void> createTicket(@Auth ClientInfo clientInfo, @Valid @RequestBody TicketRequestDto dto) {
-        ticketService.issueTicket(clientInfo, dto);
+        ticketService.createTicket(clientInfo, dto);
         return ResponseEntity.ok().build();
     }
 
@@ -53,7 +53,7 @@ public class TicketController {
     @PostMapping("/order")
     public ResponseEntity<Void> registerQueue(@Auth ClientInfo clientInfo) {
         ticketService.validateStartTime();
-        ticketQueueService.saveEvent(clientInfo.getToken());
+        ticketQueueService.enterQueue(clientInfo.getToken());
         return ResponseEntity.ok().build();
     }
 
