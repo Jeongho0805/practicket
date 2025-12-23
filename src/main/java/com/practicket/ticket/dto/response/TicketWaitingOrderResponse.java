@@ -1,4 +1,4 @@
-package com.practicket.ticket.dto;
+package com.practicket.ticket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -13,9 +13,12 @@ public class TicketWaitingOrderResponse {
     @JsonProperty("is_complete")
     boolean isComplete;
 
-    public TicketWaitingOrderResponse(Long currentWaitingOrder, Long firstWaitingOrder) {
+    String reservationToken;
+
+    public TicketWaitingOrderResponse(Long currentWaitingOrder, Long firstWaitingOrder, String reservationToken) {
         this.currentWaitingOrder = currentWaitingOrder;
         this.firstWaitingOrder = firstWaitingOrder;
-        this.isComplete = currentWaitingOrder <= 0;
+        this.isComplete = currentWaitingOrder == null && reservationToken != null;
+        this.reservationToken = reservationToken;
     }
 }

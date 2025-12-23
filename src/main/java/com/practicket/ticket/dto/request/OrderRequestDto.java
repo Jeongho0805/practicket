@@ -1,4 +1,4 @@
-package com.practicket.ticket.dto;
+package com.practicket.ticket.dto.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

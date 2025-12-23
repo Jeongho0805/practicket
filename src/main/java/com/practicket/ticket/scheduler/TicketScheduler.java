@@ -4,7 +4,8 @@ import com.practicket.common.auth.ClientInfo;
 import com.practicket.ticket.application.TicketQueueService;
 import com.practicket.ticket.application.TicketService;
 import com.practicket.ticket.component.VirtualNameLoader;
-import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.domain.TicketToken;
+import com.practicket.ticket.dto.request.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -29,58 +30,9 @@ public class TicketScheduler {
 
     private final VirtualNameLoader nameLoader;
 
-    private final static int AI_USER_NUMBER = 200;
+    private final static int VIRTUAL_USER_COUNT = 200;
 
-    @Scheduled(cron = "30 * * * * *")
-    @SchedulerLock(name = "adjustStartTime")
-    public void adjustStartTime() throws InterruptedException {
-        ticketService.adjustStartTime();
-    }
-
-    @Scheduled(cron = "59 * * * * *")
-    @SchedulerLock(name = "clearAllRecord")
-    public void clearAllRecord() {
-        ticketQueueService.initData();
-        ticketService.initData();
-    }
-
-    @Scheduled(cron = "6 * * * * *")
-    @SchedulerLock(name = "activateAIUserTicket")
-    public void activateAIUserTicket() {
-        List<String> shuffledList = new ArrayList<>(nameLoader.getNames());
-        Collections.shuffle(shuffledList);
-        int randomNumber = ThreadLocalRandom.current().nextInt(30, 60);
-        int intervalTime = ThreadLocalRandom.current().nextInt(50, 200);
-        for (int i=1; i<=randomNumber; i++) {
-            try {
-                Thread.sleep(intervalTime);
-                String name = shuffledList.remove(0);
-                int rowSize = 10;
-                int colSize = 10;
-                Random random = new Random();
-                int row = random.nextInt(rowSize);
-                int col = random.nextInt(colSize);
-                String seat = (char) ('A' + row) + String.valueOf(col + 1);
-                ClientInfo clientInfo = ClientInfo.builder()
-                        .token(name)
-                        .name(name)
-                        .build();
-                ticketService.createTicket(clientInfo, new TicketRequestDto(List.of(seat)));
-            } catch (Exception ignored) {}
-        }
-    }
-
-    @Scheduled(cron = "0 * * * * *")
-    @SchedulerLock(name = "addVirtualUserOnQueue")
-    public void addVirtualUserOnQueue() {
-        String name = "AI-User-";
-        for (int i=1; i<=AI_USER_NUMBER; i++) {
-            try {
-                Thread.sleep(30);
-                ticketQueueService.enterQueue(name + i);
-            } catch (Exception ignored) {}
-        }
-    }
+    private static final String VIRTUAL_USER_PREFIX = "VIRTUAL-USER-";
 
     @Scheduled(cron = "* * * * * *")
     @SchedulerLock(name = "pollQueue")
@@ -91,5 +43,65 @@ public class TicketScheduler {
     @Scheduled(cron = "* * * * * *")
     public void broadcastQueueInfo() {
         ticketQueueService.broadcastQueueInfo();
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    @SchedulerLock(name = "addVirtualUserOnQueue")
+    public void addVirtualUserOnQueue() {
+        for (int i = 1; i<= VIRTUAL_USER_COUNT; i++) {
+            try {
+                Thread.sleep(30);
+                ticketQueueService.enterQueue(VIRTUAL_USER_PREFIX + i);
+            } catch (Exception ignored) {}
+        }
+    }
+
+    @Scheduled(cron = "6 * * * * *")
+    @SchedulerLock(name = "issueTicketForVirtualUser")
+    public void issueTicketForVirtualUser() {
+        List<String> shuffledList = new ArrayList<>(nameLoader.getNames());
+        Collections.shuffle(shuffledList);
+        int randomNumber = ThreadLocalRandom.current().nextInt(VIRTUAL_USER_COUNT - 50, VIRTUAL_USER_COUNT);
+        int intervalTime = ThreadLocalRandom.current().nextInt(50, 200);
+        for (int i=1; i<=randomNumber; i++) {
+            try {
+                Thread.sleep(intervalTime);
+                String name = shuffledList.remove(0);
+                // 토큰 생성
+                String virtualUserClientKey = VIRTUAL_USER_PREFIX + i;
+                TicketToken token = ticketQueueService.createToken(virtualUserClientKey);
+                if (token == null) {
+                    continue;
+                }
+                // 가상 유저 정보 세팅
+                ClientInfo clientInfo = ClientInfo.builder()
+                        .token(virtualUserClientKey)
+                        .name(name)
+                        .build();
+                // 예매 처리
+                String seat = generateRandomSeat();
+                ticketService.createTicket(clientInfo, new TicketRequestDto(List.of(seat), token.getJwt()));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    @Scheduled(cron = "30 * * * * *")
+    @SchedulerLock(name = "adjustStartTime")
+    public void adjustStartTime() {
+        ticketService.adjustStartTime();
+    }
+
+    @Scheduled(cron = "59 * * * * *")
+    @SchedulerLock(name = "clearAllRecord")
+    public void clearAllRecord() {
+        ticketQueueService.initData();
+        ticketService.initData();
+    }
+
+    private String generateRandomSeat() {
+        Random random = new Random();
+        int row = random.nextInt(10);
+        int col = random.nextInt(10);
+        return (char) ('A' + row) + String.valueOf(col + 1);
     }
 }

@@ -2,9 +2,9 @@ package com.practicket.ticket.application;
 
 import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
-import com.practicket.ticket.dto.ServerTimeResponseDto;
-import com.practicket.ticket.dto.TicketRankDto;
-import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.dto.response.ServerTimeResponseDto;
+import com.practicket.ticket.dto.response.TicketRankResponseDto;
+import com.practicket.ticket.dto.request.TicketRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ public class TicketController {
     private final TicketQueueService ticketQueueService;
 
     @GetMapping("/rank")
-    public ResponseEntity<List<TicketRankDto>> getRankInfo() {
-        List<TicketRankDto> rankInfo = ticketService.getRankInfo();
+    public ResponseEntity<List<TicketRankResponseDto>> getRankInfo() {
+        List<TicketRankResponseDto> rankInfo = ticketService.getRankInfo();
         return ResponseEntity.ok(rankInfo);
     }
 

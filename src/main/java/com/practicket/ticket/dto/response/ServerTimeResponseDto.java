@@ -1,4 +1,4 @@
-package com.practicket.ticket.dto;
+package com.practicket.ticket.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -8,9 +8,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class TicketQueueEventDto {
-
-    private String clientKey;
-
-    private int firstWaitingOrder;
+public class ServerTimeResponseDto {
+    String serverTime;
 }

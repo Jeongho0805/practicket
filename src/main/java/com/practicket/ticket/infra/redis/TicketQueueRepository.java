@@ -38,8 +38,7 @@ public class TicketQueueRepository {
     }
 
     public Long getCurrentRank(String clientKey) {
-        Long rank = redisTemplate.opsForZSet().rank(QUEUE_KEY, clientKey);
-        return rank == null ? 0L : rank;
+        return redisTemplate.opsForZSet().rank(QUEUE_KEY, clientKey);
     }
 
     public Long getInitialRank(String clientKey) {
@@ -47,8 +46,9 @@ public class TicketQueueRepository {
         return rank != null ? Long.parseLong(rank) : null;
     }
 
-    public void poll() {
-        redisTemplate.opsForZSet().popMin(QUEUE_KEY);
+    public String poll() {
+        var poppedElement = redisTemplate.opsForZSet().popMin(QUEUE_KEY);
+        return poppedElement != null ? poppedElement.getValue() : null;
     }
 
     public Long size() {

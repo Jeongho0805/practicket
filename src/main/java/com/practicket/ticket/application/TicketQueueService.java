@@ -1,7 +1,10 @@
 package com.practicket.ticket.application;
 
-import com.practicket.ticket.dto.TicketWaitingOrderResponse;
+import com.practicket.ticket.component.TicketTokenManager;
+import com.practicket.ticket.domain.TicketToken;
+import com.practicket.ticket.dto.response.TicketWaitingOrderResponse;
 import com.practicket.ticket.infra.redis.TicketQueueRepository;
+import com.practicket.ticket.infra.redis.TicketTokenRepository;
 import com.practicket.ticket.infra.sse.TicketSseEmitterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,10 @@ public class TicketQueueService {
     private final TicketQueueRepository queueRepository;
 
     private final TicketSseEmitterRepository emitterRepository;
+
+    private final TicketTokenManager tokenManager;
+
+    private final TicketTokenRepository tokenRepository;
 
     private static final int QUEUE_THROUGHPUT = 10;
 
@@ -61,7 +68,8 @@ public class TicketQueueService {
                 emitterRepository.deleteByClientKey(key);
                 return;
             }
-            TicketWaitingOrderResponse ticketWaitingOrder = new TicketWaitingOrderResponse(currentRank, initialRank);
+            String reservationToken = tokenRepository.get(key);
+            TicketWaitingOrderResponse ticketWaitingOrder = new TicketWaitingOrderResponse(currentRank, initialRank, reservationToken);
             try {
                 emitter.send(SseEmitter.event()
                         .name(WAITING_QUEUE_NAME)
@@ -82,7 +90,54 @@ public class TicketQueueService {
             return;
         }
         for (int i=0; i<QUEUE_THROUGHPUT; i++) {
-            queueRepository.poll();
+            String clientKey = queueRepository.poll();
+            if (clientKey == null) {
+                continue;
+            }
+            createToken(clientKey);
+        }
+    }
+
+    public TicketToken createToken(String clientKey) {
+        try {
+            TicketToken token = tokenManager.issue(clientKey);
+            if (token != null) {
+                tokenRepository.save(clientKey, token);
+            }
+            return token;
+        } catch (Exception e) {
+            log.error("create ticket token error", e);
+            return null;
+        }
+    }
+
+    /**
+     * 예매 권한 토큰이 유효한지 검증
+     * @param jwt JWT 토큰
+     * @return 유효하면 true, 아니면 false
+     */
+    public boolean isValidReservationToken(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return false;
+        }
+
+        try {
+            // 1. JWT 파싱 및 서명/만료 검증
+            var claims = tokenManager.parseAndValidate(jwt);
+            String clientKey = claims.getSubject();
+
+            // 2. Redis에 토큰 존재 여부 확인
+            String storedToken = tokenRepository.get(clientKey);
+            if (storedToken == null) {
+                return false;  // 토큰 없음 (만료 or 이미 사용됨)
+            }
+
+            // 3. 토큰 일치 여부 확인
+            return storedToken.equals(jwt);
+
+        } catch (Exception e) {
+            log.error("Token validation failed", e);
+            return false;
         }
     }
 }

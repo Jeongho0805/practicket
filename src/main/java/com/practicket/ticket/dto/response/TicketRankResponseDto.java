@@ -1,4 +1,4 @@
-package com.practicket.ticket.dto;
+package com.practicket.ticket.dto.response;
 
 import com.practicket.ticket.domain.Ticket;
 import lombok.Getter;
@@ -6,15 +6,15 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
-public class TicketRankDto {
+public class TicketRankResponseDto {
     private String key;
 
     private String name;
 
     private String second;
 
-    public static TicketRankDto createFromTicket(Ticket ticket) {
-        TicketRankDto ticketRankDto = new TicketRankDto();
+    public static TicketRankResponseDto createFromTicket(Ticket ticket) {
+        TicketRankResponseDto ticketRankDto = new TicketRankResponseDto();
         ticketRankDto.key = ticket.getKey();
         ticketRankDto.name = ticket.getName();
         ticketRankDto.second = reformSecond(ticket.getCreatedAt());

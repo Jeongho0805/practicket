@@ -6,6 +6,7 @@ public enum ErrorCode {
     TICKETING_TIME_IS_NOT_ALLOWED(400, "T02", "예매가능한 시간이 아닙니다."),
     TICKET_SOLD_OUT(409, "T03", "티켓 재고가 소진되었습니다."),
     ALREADY_EXIST_WAITING_QUEUE(409, "T04", "이미 대기열에 존재합니다."),
+    TICKET_TOKEN_IS_NOT_VALID(400, "T05", "옳바르지 않은 접근입니다."),
 
 
     TOKEN_IS_NOT_EXIST(404, "C01", "토큰이 존재하지 않습니다."),

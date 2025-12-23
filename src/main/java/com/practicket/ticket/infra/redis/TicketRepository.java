@@ -20,6 +20,7 @@ import java.util.Map;
 public class TicketRepository {
 
     private static final String TICKET_KEY = "ticket";
+    private static final String TOKEN_KEY_PREFIX = "ticket:token:";
 
     private final ObjectMapper objectMapper;
     private final TicketLuaScript luaScript;
@@ -51,9 +52,9 @@ public class TicketRepository {
         return tickets;
     }
 
-    public void createTickets(String key, String name, List<String> seats) {
+    public void createTickets(String clientKey, String name, List<String> seats, String reservationToken) {
         List<String> ticketsJson = seats.stream()
-                .map(seat -> new Ticket(key, name, seat))
+                .map(seat -> new Ticket(clientKey, name, seat))
                 .map(ticket -> {
                     try {
                         return objectMapper.writeValueAsString(ticket);
@@ -63,8 +64,10 @@ public class TicketRepository {
                 })
                 .toList();
 
-        List<String> keys = List.of(TICKET_KEY);
+        String tokenKey = TOKEN_KEY_PREFIX + clientKey;
+        List<String> keys = List.of(TICKET_KEY, tokenKey);
         List<String> argv = new ArrayList<>();
+        argv.add(reservationToken);
         argv.addAll(seats);
         argv.addAll(ticketsJson);
 
@@ -75,6 +78,10 @@ public class TicketRepository {
         );
 
         if (!result.isEmpty() && result.get(0) == 0) {
+            Long errorCode = result.get(1);
+            if (errorCode == -2) {
+                throw new TicketException(ErrorCode.TICKET_TOKEN_IS_NOT_VALID);
+            }
             throw new TicketException(ErrorCode.SEAT_ALREADY_BOOKED);
         }
     }

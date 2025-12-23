@@ -5,8 +5,8 @@ import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.TicketException;
 import com.practicket.ticket.component.TicketTimer;
 import com.practicket.ticket.domain.Ticket;
-import com.practicket.ticket.dto.TicketRankDto;
-import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.dto.response.TicketRankResponseDto;
+import com.practicket.ticket.dto.request.TicketRequestDto;
 import com.practicket.ticket.infra.redis.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,14 +39,15 @@ public class TicketService {
 
     public void createTicket(ClientInfo clientInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
-        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats);
+        String reservationToken = dto.getReservationToken();
+        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats, reservationToken);
     }
 
-    public List<TicketRankDto> getRankInfo() {
+    public List<TicketRankResponseDto> getRankInfo() {
         List<Ticket> tickets = ticketRepository.findAll();
         return tickets.stream()
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
-                .map(TicketRankDto::createFromTicket)
+                .map(TicketRankResponseDto::createFromTicket)
                 .toList();
     }
 
