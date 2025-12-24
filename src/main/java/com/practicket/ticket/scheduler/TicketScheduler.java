@@ -1,16 +1,21 @@
 package com.practicket.ticket.scheduler;
 
+import com.practicket.common.auth.ClientInfo;
 import com.practicket.ticket.application.TicketQueueService;
 import com.practicket.ticket.application.TicketService;
-import com.practicket.ticket.component.TicketManager;
+import com.practicket.ticket.component.VirtualNameLoader;
+import com.practicket.ticket.domain.TicketToken;
+import com.practicket.ticket.dto.request.TicketRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -23,72 +28,80 @@ public class TicketScheduler {
 
     private final TicketQueueService ticketQueueService;
 
-    private final TicketManager ticketManager;
+    private final VirtualNameLoader nameLoader;
 
-    private static final List<String> nameList = List.of(
-            "카리나 존예", "윈터보고싶다ㅏㅏㅏ", "닝닝닝닝", "에스파가즈아아", "보넥도",
-            "하이하니이", "해린쓰", "하니얌", "조슈아",
-            "민규우", "카즈하", "사꾸랑", "막둥이은채", "채원이",
-            "꼭간다", "안유진", "젭알", "지디", "티켓팅ㅇㅇㅇ",
-            "ㅁㄴㅇㄹ", "시은", "윤이최공", "세은빛나라", "아이랜드더보이즈",
-            "모라카농리ㅏㅁ", "ㄹㅈㄷ", "한빈아ㅜㅜ", "방탄", "유진언니",
-            "도겸사랑해", "최예나짱", "태용존잘", "엔하이픈", "케플러닷",
-            "원영사랑해", "가고싶다아아", "루세라핌짱", "제로베라사랑해", "이서이",
-            "aaa", "갓채원", "dkfjdk", "제노내꼬", "해린볼살",
-            "강산", "가고싶다ㅜㅜㅜ", "이선좌ㅏㅏㅏ", "뉴찐쓰", "콘가즈아",
-            "유에낭", "아이유", "티켓팅존망", "IU", "마나러",
-            "덕질덕지", "티케팅뿌셩", "차으늉", "으뉴야사랑해", "다비켜",
-            "덕후의삶", "누구냥", "아놔", "원영아기다료", "호우호우",
-            "팬싸가고싶다", "hhh", "최애콘", "방ㅋ탄ㅌ콘", "직관각",
-            "스밍중", "티켓팅달인", "너무긴장돼", "팬싸성공",
-            "리사", "덕질", "최예나사랑해", "할뚜이따", "ㅎㅇㅎㅇ",
-            "호시탐탐", "굿즈사고싶다", "태용내꼬", "ㅇㅈ", "팬질중독",
-            "최애직캠존버", "츌첵", "덕질플랜짜는중", "팬싸고고", "스밍돌리는중",
-            "딱기다려라", "오늘성공", "아이돌의길", "덕후하루시작", "티켓팅전쟁",
-            "워누야기다려", "오우", "ㄷ가ㅓ아", "winter", "ㅋㅋㅋㅋㅋ"
-    );
+    private final static int VIRTUAL_USER_COUNT = 200;
 
-    private final static int AI_USER_NUMBER = 200;
+    private static final String VIRTUAL_USER_PREFIX = "VIRTUAL-USER-";
 
-    @Scheduled(cron = "30 * * * * *")
-    public void resetTime() {
-        ticketService.resetTimer();
+    @Scheduled(cron = "* * * * * *")
+    @SchedulerLock(name = "pollQueue")
+    public void pollQueue() {
+        ticketQueueService.pollQueue();
     }
 
-    @Scheduled(cron = "59 * * * * *")
-    public void clearAllRecord() {
-        ticketQueueService.deleteAllWaiting();
-        ticketService.initData();
+    @Scheduled(cron = "* * * * * *")
+    public void broadcastQueueInfo() {
+        ticketQueueService.broadcastQueueInfo();
     }
 
     @Scheduled(cron = "0 * * * * *")
-    public void activateAIUserOrder() {
-        String name = "AI-User-";
-        for (int i=1; i<=AI_USER_NUMBER; i++) {
+    @SchedulerLock(name = "addVirtualUserOnQueue")
+    public void addVirtualUserOnQueue() {
+        for (int i = 1; i<= VIRTUAL_USER_COUNT; i++) {
             try {
                 Thread.sleep(30);
-                ticketQueueService.saveEvent(name + i);
+                ticketQueueService.enterQueue(VIRTUAL_USER_PREFIX + i);
             } catch (Exception ignored) {}
         }
     }
 
     @Scheduled(cron = "6 * * * * *")
-    public void activateAIUserTicket() {
-        List<String> shuffledList = new ArrayList<>(nameList);
+    @SchedulerLock(name = "issueTicketForVirtualUser")
+    public void issueTicketForVirtualUser() {
+        List<String> shuffledList = new ArrayList<>(nameLoader.getNames());
         Collections.shuffle(shuffledList);
-        int randomNumber = ThreadLocalRandom.current().nextInt(60, 101);
+        int randomNumber = ThreadLocalRandom.current().nextInt(VIRTUAL_USER_COUNT - 50, VIRTUAL_USER_COUNT);
         int intervalTime = ThreadLocalRandom.current().nextInt(50, 200);
         for (int i=1; i<=randomNumber; i++) {
             try {
                 Thread.sleep(intervalTime);
                 String name = shuffledList.remove(0);
-                ticketManager.createTicketForAI(name);
+                // 토큰 생성
+                String virtualUserClientKey = VIRTUAL_USER_PREFIX + i;
+                TicketToken token = ticketQueueService.createToken(virtualUserClientKey);
+                if (token == null) {
+                    continue;
+                }
+                // 가상 유저 정보 세팅
+                ClientInfo clientInfo = ClientInfo.builder()
+                        .token(virtualUserClientKey)
+                        .name(name)
+                        .build();
+                // 예매 처리
+                String seat = generateRandomSeat();
+                ticketService.createTicket(clientInfo, new TicketRequestDto(List.of(seat), token.getJwt()));
             } catch (Exception ignored) {}
         }
     }
 
-    @Scheduled(cron = "* * * * * *")
-    public void sendWaitingOrder() {
-        ticketQueueService.sendOrderByEmitter();
+    @Scheduled(cron = "30 * * * * *")
+    @SchedulerLock(name = "adjustStartTime")
+    public void adjustStartTime() {
+        ticketService.adjustStartTime();
+    }
+
+    @Scheduled(cron = "59 * * * * *")
+    @SchedulerLock(name = "clearAllRecord")
+    public void clearAllRecord() {
+        ticketQueueService.initData();
+        ticketService.initData();
+    }
+
+    private String generateRandomSeat() {
+        Random random = new Random();
+        int row = random.nextInt(10);
+        int col = random.nextInt(10);
+        return (char) ('A' + row) + String.valueOf(col + 1);
     }
 }

@@ -13,23 +13,6 @@ function checkTimeToLeave() {
     }, 1000);
 }
 
-function hasPermission() {
-    const key = "permission";
-    const cookies = document.cookie.split(';'); // 쿠키 문자열을 ;로 분리
-    cookies.forEach((c) => console.log(c));
-    return cookies.some(cookie => cookie.trim().startsWith(`${key}=`));
-}
-
-// 예매 페이지 접근 권한 확인
-function permissionCheck() {
-    if (!hasPermission()) {
-        alert("비정상적인 경로를 통하여 접근하셨습니다\n 예매페이지로 돌아갑니다.")
-        window.location.href = `${HOST}`;
-    } else {
-        document.cookie = "permission=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
-}
-
 async function createSeat() {
     const row_size = 10;
     const col_size = 10;
@@ -125,17 +108,26 @@ async function requestSeatInfo() {
     }
 }
 function requestReservation() {
+    const reservationToken = localStorage.getItem('reservationToken');
+    if (!reservationToken) {
+        alert("권한이 없습니다.");
+        window.location.href = `${HOST}`;
+        return;
+    }
+
     util.authFetch(`${HOST}/api/ticket`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            name: util.getNickname(),
-            seats: Array.from(selected_seats.keys())
+            seats: Array.from(selected_seats.keys()),
+            reservation_token: reservationToken
         })
     }).then(response => {
         if (response.ok) {
+            // 예매 성공 시 토큰 삭제
+            localStorage.removeItem('reservationToken');
             alert("예매 완료")
             window.location.href = `${HOST}/rank`;
             return Promise.resolve();
@@ -145,6 +137,11 @@ function requestReservation() {
     }).then(result => {
         if (result) {
             alert(result.message);
+            // 토큰 관련 에러 시 토큰 삭제 후 메인으로 이동
+            if (result.code === 'T04' || result.code === 'T05') {
+                localStorage.removeItem('reservationToken');
+                window.location.href = `${HOST}`;
+            }
         }
     }).catch(error => {
         console.error(error);
@@ -211,12 +208,11 @@ function activateSecurityText() {
 
 window.addEventListener("pageshow", (event) => {
     if (event.persisted) {
-        permissionCheck();
+        window.location.reload();
     }
 });
 
 checkTimeToLeave();
-permissionCheck();
 activateSecurityText();
 await createSeat();
 addButtonEventListener();

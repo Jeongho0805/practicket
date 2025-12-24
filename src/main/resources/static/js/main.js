@@ -56,10 +56,12 @@ function setWaitingOrderSse(name) {
     const eventSource = new EventSource(`${HOST}/api/order?token=${encodeURIComponent(token)}`);
     eventSource.addEventListener("waiting-order", (event) => {
         const data = JSON.parse(event.data)
-        if (data.isComplete) {
+        if (data.is_complete && data.reservation_token) {
             eventSource.close();
-            document.cookie = `permission=reservation; path=/`;
-            window.location.href = `${HOST}/reservation`;
+            // 예매 권한 토큰을 localStorage에 저장
+            localStorage.setItem('reservationToken', data.reservation_token);
+            // 토큰을 쿼리 파라미터로 전달하여 서버에서 검증
+            window.location.href = `${HOST}/reservation?token=${encodeURIComponent(data.reservation_token)}`;
             return;
         }
         console.log(event);

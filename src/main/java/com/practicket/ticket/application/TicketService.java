@@ -3,12 +3,12 @@ package com.practicket.ticket.application;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.TicketException;
-import com.practicket.ticket.component.TicketCounter;
-import com.practicket.ticket.component.TicketManager;
 import com.practicket.ticket.component.TicketTimer;
+import com.practicket.ticket.component.TicketTokenManager;
 import com.practicket.ticket.domain.Ticket;
-import com.practicket.ticket.dto.TicketRankDto;
-import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.dto.request.TicketRequestDto;
+import com.practicket.ticket.dto.response.TicketRankResponseDto;
+import com.practicket.ticket.infra.redis.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,19 +21,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TicketService {
 
-    private final TicketCounter ticketCounter;
-
+    private final TicketRepository ticketRepository;
     private final TicketTimer ticketTimer;
+    private final TicketTokenManager tokenManager;
 
-    private final TicketManager ticketManager;
-
-    public void resetTimer() {
-        ticketTimer.resetStartTime();
+    public void adjustStartTime() {
+        ticketTimer.adjustStartTime();
     }
 
     public void initData() {
-        ticketManager.deleteAll();
-        ticketCounter.resetCount();
+        ticketRepository.deleteAll();
     }
 
     public void validateStartTime() {
@@ -42,23 +39,26 @@ public class TicketService {
         }
     }
 
-    public void issueTicket(ClientInfo userInfo, TicketRequestDto dto) {
+    public void createTicket(ClientInfo clientInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
-        ticketCounter.isAvailableCount(seats.size());
-        ticketManager.createTickets(userInfo.getToken(), userInfo.getName(), seats);
-        ticketCounter.minusTicketCount(seats.size());
+        String reservationToken = dto.getReservationToken();
+
+        var claims = tokenManager.parseAndValidate(reservationToken);
+        String jti = claims.getId();
+
+        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats, jti);
     }
 
-    public List<TicketRankDto> getRankInfo() {
-        List<Ticket> tickets = ticketManager.findAll();
+    public List<TicketRankResponseDto> getRankInfo() {
+        List<Ticket> tickets = ticketRepository.findAll();
         return tickets.stream()
                 .sorted(Comparator.comparing(Ticket::getCreatedAt))
-                .map(TicketRankDto::createFromTicket)
+                .map(TicketRankResponseDto::createFromTicket)
                 .toList();
     }
 
     public List<String> findAllSeats() {
-        return ticketManager.findAll()
+        return ticketRepository.findAll()
                 .stream()
                 .map(Ticket::getSeat)
                 .toList();

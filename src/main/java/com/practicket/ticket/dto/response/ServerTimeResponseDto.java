@@ -1,4 +1,4 @@
-package com.practicket.ticket.dto;
+package com.practicket.ticket.dto.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

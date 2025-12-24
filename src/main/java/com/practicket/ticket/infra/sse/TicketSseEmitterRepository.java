@@ -1,4 +1,4 @@
-package com.practicket.ticket.domain;
+package com.practicket.ticket.infra.sse;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -7,16 +7,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
-public class TicketQueueEmitterRepository {
+public class TicketSseEmitterRepository {
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    public void save(String name, SseEmitter emitter) {
-        emitters.put(name, emitter);
+    public void save(String clientKey, SseEmitter emitter) {
+        emitters.put(clientKey, emitter);
     }
 
-    public void deleteByName(String name) {
-        emitters.remove(name);
+    public void deleteByClientKey(String clientKey) {
+        emitters.remove(clientKey);
+    }
+
+    public SseEmitter get(String clientKey) {
+        return emitters.get(clientKey);
     }
 
     public Map<String, SseEmitter> findAll() {
