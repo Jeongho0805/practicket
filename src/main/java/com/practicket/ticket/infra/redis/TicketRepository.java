@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class TicketRepository {
 
     private static final String TICKET_KEY = "ticket";
-    private static final String TOKEN_KEY_PREFIX = "ticket:token:";
+    private static final String ACTIVE_TOKENS_KEY = "ticket:active-tokens";
 
     private final ObjectMapper objectMapper;
     private final TicketLuaScript luaScript;
@@ -52,7 +53,7 @@ public class TicketRepository {
         return tickets;
     }
 
-    public void createTickets(String clientKey, String name, List<String> seats, String reservationToken) {
+    public void createTickets(String clientKey, String name, List<String> seats, String jti) {
         List<String> ticketsJson = seats.stream()
                 .map(seat -> new Ticket(clientKey, name, seat))
                 .map(ticket -> {
@@ -64,10 +65,10 @@ public class TicketRepository {
                 })
                 .toList();
 
-        String tokenKey = TOKEN_KEY_PREFIX + clientKey;
-        List<String> keys = List.of(TICKET_KEY, tokenKey);
+        List<String> keys = List.of(TICKET_KEY, ACTIVE_TOKENS_KEY);
         List<String> argv = new ArrayList<>();
-        argv.add(reservationToken);
+        argv.add(jti);
+        argv.add(String.valueOf(Instant.now().getEpochSecond()));
         argv.addAll(seats);
         argv.addAll(ticketsJson);
 

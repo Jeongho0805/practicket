@@ -19,6 +19,10 @@ public class TicketSseEmitterRepository {
         emitters.remove(clientKey);
     }
 
+    public SseEmitter get(String clientKey) {
+        return emitters.get(clientKey);
+    }
+
     public Map<String, SseEmitter> findAll() {
         return this.emitters;
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
 
 @Slf4j
@@ -28,6 +29,8 @@ public class TicketQueueService {
     private final TicketTokenRepository tokenRepository;
 
     private static final int QUEUE_THROUGHPUT = 10;
+
+    private static final int MAX_CONCURRENT_RESERVATIONS = 5000;
 
     private static final String WAITING_QUEUE_NAME = "waiting-order";
 
@@ -59,29 +62,7 @@ public class TicketQueueService {
         if (emitters.isEmpty()) {
             return;
         }
-        emitters.forEach((key, emitter) -> {
-            Long currentRank = queueRepository.getCurrentRank(key);
-            Long initialRank = queueRepository.getInitialRank(key);
-            // 초기 순위가 없으면 비정상 데이터. emitter 삭제 처리
-            if (initialRank == null) {
-                log.error("initial rank is null");
-                emitterRepository.deleteByClientKey(key);
-                return;
-            }
-            String reservationToken = tokenRepository.get(key);
-            TicketWaitingOrderResponse ticketWaitingOrder = new TicketWaitingOrderResponse(currentRank, initialRank, reservationToken);
-            try {
-                emitter.send(SseEmitter.event()
-                        .name(WAITING_QUEUE_NAME)
-                        .data(ticketWaitingOrder));
-                if (ticketWaitingOrder.isComplete()) {
-                    emitterRepository.deleteByClientKey(key);
-
-                }
-            } catch (IOException e) {
-                emitterRepository.deleteByClientKey(key);
-            }
-        });
+        emitters.forEach((key, emitter) -> sendQueueInfoToClient(key, null));
     }
 
     public void pollQueue() {
@@ -89,12 +70,65 @@ public class TicketQueueService {
         if (queueSize == null || queueSize == 0L) {
             return;
         }
-        for (int i=0; i<QUEUE_THROUGHPUT; i++) {
+
+        // 만료된 토큰 정리
+        long now = Instant.now().getEpochSecond();
+        tokenRepository.cleanupExpiredTokens(now);
+
+        // 현재 활성 토큰 개수 확인
+        long activeTokens = tokenRepository.countActiveTokens();
+
+        // 남은 작업열 공간 계산
+        long availableSlots = MAX_CONCURRENT_RESERVATIONS - activeTokens;
+        if (availableSlots <= 0) {
+            return;
+        }
+
+        // 남은 공간만큼만 poll
+        int pollCount = (int) Math.min(QUEUE_THROUGHPUT, availableSlots);
+        for (int i = 0; i < pollCount; i++) {
             String clientKey = queueRepository.poll();
             if (clientKey == null) {
                 continue;
             }
-            createToken(clientKey);
+            TicketToken token = createToken(clientKey);
+            if (token != null) {
+                sendQueueInfoToClient(clientKey, token.getJwt());
+            }
+        }
+    }
+
+    private void sendQueueInfoToClient(String clientKey, String reservationToken) {
+        SseEmitter emitter = emitterRepository.get(clientKey);
+        if (emitter == null) {
+            return;
+        }
+
+        Long initialRank = queueRepository.getInitialRank(clientKey);
+        if (initialRank == null) {
+            log.error("initial rank is null for clientKey: {}", clientKey);
+            emitterRepository.deleteByClientKey(clientKey);
+            return;
+        }
+
+        Long currentRank = queueRepository.getCurrentRank(clientKey);
+
+        TicketWaitingOrderResponse response = new TicketWaitingOrderResponse(
+                currentRank,
+                initialRank,
+                reservationToken
+        );
+
+        try {
+            emitter.send(SseEmitter.event()
+                    .name(WAITING_QUEUE_NAME)
+                    .data(response));
+
+            if (response.isComplete()) {
+                emitterRepository.deleteByClientKey(clientKey);
+            }
+        } catch (IOException e) {
+            emitterRepository.deleteByClientKey(clientKey);
         }
     }
 
@@ -111,29 +145,22 @@ public class TicketQueueService {
         }
     }
 
-    /**
-     * 예매 권한 토큰이 유효한지 검증
-     * @param jwt JWT 토큰
-     * @return 유효하면 true, 아니면 false
-     */
     public boolean isValidReservationToken(String jwt) {
         if (jwt == null || jwt.isBlank()) {
             return false;
         }
 
         try {
-            // 1. JWT 파싱 및 서명/만료 검증
             var claims = tokenManager.parseAndValidate(jwt);
-            String clientKey = claims.getSubject();
+            String jti = claims.getId();
+            long now = Instant.now().getEpochSecond();
 
-            // 2. Redis에 토큰 존재 여부 확인
-            String storedToken = tokenRepository.get(clientKey);
-            if (storedToken == null) {
-                return false;  // 토큰 없음 (만료 or 이미 사용됨)
+            Long expirationTime = tokenRepository.getExpirationTime(jti);
+            if (expirationTime == null) {
+                return false;
             }
 
-            // 3. 토큰 일치 여부 확인
-            return storedToken.equals(jwt);
+            return expirationTime >= now;
 
         } catch (Exception e) {
             log.error("Token validation failed", e);

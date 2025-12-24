@@ -4,9 +4,10 @@ import com.practicket.common.auth.ClientInfo;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.TicketException;
 import com.practicket.ticket.component.TicketTimer;
+import com.practicket.ticket.component.TicketTokenManager;
 import com.practicket.ticket.domain.Ticket;
-import com.practicket.ticket.dto.response.TicketRankResponseDto;
 import com.practicket.ticket.dto.request.TicketRequestDto;
+import com.practicket.ticket.dto.response.TicketRankResponseDto;
 import com.practicket.ticket.infra.redis.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketTimer ticketTimer;
+    private final TicketTokenManager tokenManager;
 
     public void adjustStartTime() {
         ticketTimer.adjustStartTime();
@@ -40,7 +42,11 @@ public class TicketService {
     public void createTicket(ClientInfo clientInfo, TicketRequestDto dto) {
         List<String> seats = dto.getSeats();
         String reservationToken = dto.getReservationToken();
-        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats, reservationToken);
+
+        var claims = tokenManager.parseAndValidate(reservationToken);
+        String jti = claims.getId();
+
+        ticketRepository.createTickets(clientInfo.getToken(), clientInfo.getName(), seats, jti);
     }
 
     public List<TicketRankResponseDto> getRankInfo() {
