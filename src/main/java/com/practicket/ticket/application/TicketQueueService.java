@@ -62,7 +62,7 @@ public class TicketQueueService {
         if (emitters.isEmpty()) {
             return;
         }
-        emitters.forEach((key, emitter) -> sendQueueInfoToClient(key, null));
+        emitters.forEach((key, emitter) -> sendQueueInfoToClient(key));
     }
 
     public void pollQueue() {
@@ -70,55 +70,43 @@ public class TicketQueueService {
         if (queueSize == null || queueSize == 0L) {
             return;
         }
-
-        // 만료된 토큰 정리
+        // 작업열 여유 슬롯 계산
         long now = Instant.now().getEpochSecond();
         tokenRepository.cleanupExpiredTokens(now);
-
-        // 현재 활성 토큰 개수 확인
         long activeTokens = tokenRepository.countActiveTokens();
-
-        // 남은 작업열 공간 계산
         long availableSlots = MAX_CONCURRENT_RESERVATIONS - activeTokens;
         if (availableSlots <= 0) {
             return;
         }
-
-        // 남은 공간만큼만 poll
+        // 대기열 poll
         int pollCount = (int) Math.min(QUEUE_THROUGHPUT, availableSlots);
         for (int i = 0; i < pollCount; i++) {
             String clientKey = queueRepository.poll();
             if (clientKey == null) {
                 continue;
             }
-            TicketToken token = createToken(clientKey);
-            if (token != null) {
-                sendQueueInfoToClient(clientKey, token.getJwt());
-            }
+            createToken(clientKey);
         }
     }
 
-    private void sendQueueInfoToClient(String clientKey, String reservationToken) {
+    private void sendQueueInfoToClient(String clientKey) {
         SseEmitter emitter = emitterRepository.get(clientKey);
         if (emitter == null) {
             return;
         }
-
         Long initialRank = queueRepository.getInitialRank(clientKey);
         if (initialRank == null) {
             log.error("initial rank is null for clientKey: {}", clientKey);
             emitterRepository.deleteByClientKey(clientKey);
             return;
         }
-
+        String reservationToken = queueRepository.getToken(clientKey);
         Long currentRank = queueRepository.getCurrentRank(clientKey);
-
         TicketWaitingOrderResponse response = new TicketWaitingOrderResponse(
                 currentRank,
                 initialRank,
                 reservationToken
         );
-
         try {
             emitter.send(SseEmitter.event()
                     .name(WAITING_QUEUE_NAME)
@@ -136,7 +124,7 @@ public class TicketQueueService {
         try {
             TicketToken token = tokenManager.issue(clientKey);
             if (token != null) {
-                tokenRepository.save(clientKey, token);
+                tokenRepository.saveWithQueueInfo(clientKey, token);
             }
             return token;
         } catch (Exception e) {
@@ -149,7 +137,6 @@ public class TicketQueueService {
         if (jwt == null || jwt.isBlank()) {
             return false;
         }
-
         try {
             var claims = tokenManager.parseAndValidate(jwt);
             String jti = claims.getId();

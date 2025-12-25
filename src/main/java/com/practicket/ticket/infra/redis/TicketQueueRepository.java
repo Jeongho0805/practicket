@@ -17,17 +17,21 @@ public class TicketQueueRepository {
 
     private static final String QUEUE_KEY = "ticket:queue";
     private static final String SEQ_KEY   = "ticket:queue:seq";
-    private static final String INITIAL_RANKS_KEY = "ticket:queue:info";
+    private static final String QUEUE_INFO_KEY = "ticket:queue:info";
+    private static final String INITIAL_RANK_SUFFIX = ":initial-rank";
+    private static final String TOKEN_SUFFIX = ":token";
 
     private final StringRedisTemplate redisTemplate;
     private final TicketQueueLuaScript luaScript;
 
     public void enterQueue(String clientKey) {
-        List<String> keys = List.of(QUEUE_KEY, SEQ_KEY, INITIAL_RANKS_KEY);
+        List<String> keys = List.of(QUEUE_KEY, SEQ_KEY, QUEUE_INFO_KEY);
+        String rankField = clientKey + INITIAL_RANK_SUFFIX;
         List<Long> result = redisTemplate.execute(
                 luaScript.enterQueue(),
                 keys,
-                clientKey
+                clientKey,
+                rankField
         );
         if (result == null || result.isEmpty()) {
             throw new TicketException(INTERNAL_SERVER_ERROR);
@@ -42,8 +46,14 @@ public class TicketQueueRepository {
     }
 
     public Long getInitialRank(String clientKey) {
-        String rank = (String) redisTemplate.opsForHash().get(INITIAL_RANKS_KEY, clientKey);
+        String rankField = clientKey + INITIAL_RANK_SUFFIX;
+        String rank = (String) redisTemplate.opsForHash().get(QUEUE_INFO_KEY, rankField);
         return rank != null ? Long.parseLong(rank) : null;
+    }
+
+    public String getToken(String clientKey) {
+        String tokenField = clientKey + TOKEN_SUFFIX;
+        return (String) redisTemplate.opsForHash().get(QUEUE_INFO_KEY, tokenField);
     }
 
     public String poll() {
@@ -56,7 +66,7 @@ public class TicketQueueRepository {
     }
 
     public void deleteAll() {
-        List<String> keys = List.of(QUEUE_KEY, SEQ_KEY, INITIAL_RANKS_KEY);
+        List<String> keys = List.of(QUEUE_KEY, SEQ_KEY, QUEUE_INFO_KEY);
         redisTemplate.execute(luaScript.removeFromQueue(), keys);
     }
 }
