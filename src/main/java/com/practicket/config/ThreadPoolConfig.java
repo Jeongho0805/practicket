@@ -14,7 +14,7 @@ public class ThreadPoolConfig {
         executor.setMaxPoolSize(20);
         executor.setQueueCapacity(50);
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(1);
+        executor.setAwaitTerminationSeconds(30);
         executor.initialize();
         return executor;
     }

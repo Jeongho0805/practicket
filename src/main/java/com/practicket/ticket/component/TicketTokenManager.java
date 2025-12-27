@@ -36,9 +36,6 @@ public class TicketTokenManager {
                 .minusSeconds(10);
 
         long ttlSec = Duration.between(issuedAt, expiresAt).getSeconds();
-        if (ttlSec <= 0) {
-            return null;
-        }
         String jti = UUID.randomUUID().toString();
         String jwt = Jwts.builder()
                 .setSubject(clientKey)

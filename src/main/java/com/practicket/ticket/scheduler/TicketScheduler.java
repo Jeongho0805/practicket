@@ -70,9 +70,6 @@ public class TicketScheduler {
                 // 토큰 생성
                 String virtualUserClientKey = VIRTUAL_USER_PREFIX + i;
                 TicketToken token = ticketQueueService.createToken(virtualUserClientKey);
-                if (token == null) {
-                    continue;
-                }
                 // 가상 유저 정보 세팅
                 ClientInfo clientInfo = ClientInfo.builder()
                         .token(virtualUserClientKey)

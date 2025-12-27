@@ -4,6 +4,7 @@ import com.practicket.common.exception.TicketException;
 import com.practicket.ticket.infra.redis.script.TicketQueueLuaScript;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -57,8 +58,16 @@ public class TicketQueueRepository {
     }
 
     public String poll() {
-        var poppedElement = redisTemplate.opsForZSet().popMin(QUEUE_KEY);
+        TypedTuple<String> poppedElement = redisTemplate.opsForZSet().popMin(QUEUE_KEY);
         return poppedElement != null ? poppedElement.getValue() : null;
+    }
+
+    public TypedTuple<String> pollWithScore() {
+        return redisTemplate.opsForZSet().popMin(QUEUE_KEY);
+    }
+
+    public void requeue(String clientKey, double score) {
+        redisTemplate.opsForZSet().add(QUEUE_KEY, clientKey, score);
     }
 
     public Long size() {

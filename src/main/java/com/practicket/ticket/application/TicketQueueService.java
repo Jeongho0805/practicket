@@ -6,14 +6,20 @@ import com.practicket.ticket.dto.response.TicketWaitingOrderResponse;
 import com.practicket.ticket.infra.redis.TicketQueueRepository;
 import com.practicket.ticket.infra.redis.TicketTokenRepository;
 import com.practicket.ticket.infra.sse.TicketSseEmitterRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -21,17 +27,13 @@ import java.util.Map;
 public class TicketQueueService {
 
     private final TicketQueueRepository queueRepository;
-
     private final TicketSseEmitterRepository emitterRepository;
-
     private final TicketTokenManager tokenManager;
-
     private final TicketTokenRepository tokenRepository;
+    private final ThreadPoolTaskExecutor ticketTaskExecutor;
 
     private static final int QUEUE_THROUGHPUT = 10;
-
     private static final int MAX_CONCURRENT_RESERVATIONS = 5000;
-
     private static final String WAITING_QUEUE_NAME = "waiting-order";
 
     public void enterQueue(String key) {
@@ -78,15 +80,30 @@ public class TicketQueueService {
         if (availableSlots <= 0) {
             return;
         }
-        // 대기열 poll
+        // 대기열 poll - 병렬 처리
         int pollCount = (int) Math.min(QUEUE_THROUGHPUT, availableSlots);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < pollCount; i++) {
-            String clientKey = queueRepository.poll();
-            if (clientKey == null) {
-                continue;
-            }
-            createToken(clientKey);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                TypedTuple<String> poppedElement = queueRepository.pollWithScore();
+                if (poppedElement == null) {
+                    return;
+                }
+                String clientKey = poppedElement.getValue();
+                Double score = poppedElement.getScore();
+                if (score == null) {
+                    return;
+                }
+                try {
+                    createToken(clientKey);
+                } catch (Exception e) {
+                    queueRepository.requeue(clientKey, score);
+                    log.error("Token creation failed for clientKey: {}, requeued", clientKey, e);
+                }
+            }, ticketTaskExecutor);
+            futures.add(future);
         }
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
     }
 
     private void sendQueueInfoToClient(String clientKey) {
@@ -111,7 +128,6 @@ public class TicketQueueService {
             emitter.send(SseEmitter.event()
                     .name(WAITING_QUEUE_NAME)
                     .data(response));
-
             if (response.isComplete()) {
                 emitterRepository.deleteByClientKey(clientKey);
             }
@@ -121,16 +137,9 @@ public class TicketQueueService {
     }
 
     public TicketToken createToken(String clientKey) {
-        try {
-            TicketToken token = tokenManager.issue(clientKey);
-            if (token != null) {
-                tokenRepository.saveWithQueueInfo(clientKey, token);
-            }
-            return token;
-        } catch (Exception e) {
-            log.error("create ticket token error", e);
-            return null;
-        }
+        TicketToken token = tokenManager.issue(clientKey);
+        tokenRepository.saveWithQueueInfo(clientKey, token);
+        return token;
     }
 
     public boolean isValidReservationToken(String jwt) {
@@ -138,7 +147,7 @@ public class TicketQueueService {
             return false;
         }
         try {
-            var claims = tokenManager.parseAndValidate(jwt);
+            Claims claims = tokenManager.parseAndValidate(jwt);
             String jti = claims.getId();
             long now = Instant.now().getEpochSecond();
 
