@@ -97,23 +97,23 @@ function updateColor(second) {
     pointer.style.left = `${position}%`;
 
     // 0~30초: 예매 가능 (보라)
-    if (second >= 0 && second <= 30) {
+    if (second >= 0 && second <= 60) {
         button.className = 'active';
         buttonText.textContent = '지금 예매하세요!';
         button.disabled = false;
     }
-    // 50~59초: 준비 (연보라)
-    else if (second >= 50) {
-        button.className = 'ready';
-        buttonText.textContent = '준비하세요!';
-        button.disabled = false;
-    }
-    // 31~49초: 대기 (회색)
-    else {
-        button.className = 'waiting';
-        buttonText.textContent = '잠시 대기';
-        button.disabled = true;
-    }
+    // // 50~59초: 준비 (연보라)
+    // else if (second >= 50) {
+    //     button.className = 'ready';
+    //     buttonText.textContent = '준비하세요!';
+    //     button.disabled = false;
+    // }
+    // // 31~49초: 대기 (회색)
+    // else {
+    //     button.className = 'waiting';
+    //     buttonText.textContent = '잠시 대기';
+    //     button.disabled = true;
+    // }
 }
 
 //todo 시간 확인을 위한 임시 처리

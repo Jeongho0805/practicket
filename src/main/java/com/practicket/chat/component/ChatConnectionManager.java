@@ -2,6 +2,7 @@ package com.practicket.chat.component;
 
 import com.practicket.chat.dto.ChatResponseDto;
 import lombok.Getter;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -27,6 +28,7 @@ public class ChatConnectionManager {
         emitters.remove(key);
     }
 
+    @Async("chatTaskExecutor")
     public void broadcast(ChatResponseDto data) {
         for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
             try {

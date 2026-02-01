@@ -29,9 +29,14 @@ public class ChatService {
     private final ProfanityValidator profanityValidator;
 
     public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
-        profanityValidator.validateProfanityText(dto.getText());
+//        profanityValidator.validateProfanityText(dto.getText());
         Chat chat = chatManager.save(userInfo.getToken(), userInfo.getName(), dto.getText());
         ChatResponseDto chatResponseDto = ChatResponseDto.of(chat);
+        try {
+            Thread.sleep(100000L);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         sendChatMessage(chatResponseDto);
     }
 

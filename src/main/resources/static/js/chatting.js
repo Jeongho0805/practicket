@@ -178,10 +178,37 @@ async function setChatting() {
 }
 
 function setChattingSse() {
+    const messageQueue = [];
+    let timerId = null;
+    const THROTTLE_MS = 100;
+
+    function flushQueue() {
+        const messages = messageQueue.splice(0);
+        if (messages.length === 0) {
+            timerId = null;
+            return;
+        }
+        const tokenValue = util.getTokenValue();
+        const chatBox = document.getElementById("chatting-box-section");
+        const isNearBottom = chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight <= chatBox.clientHeight * 2;
+
+        messages.forEach(chat => {
+            appendChatElementAtBottom(chat, chatBox, tokenValue);
+        });
+
+        if (isNearBottom) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        timerId = null;
+    }
+
     const eventSource = new EventSource(`${HOST}/api/chat/connection`);
     eventSource.addEventListener("chat", (event) => {
         const chat = JSON.parse(event.data);
-        renderingChatting(chat, false);
+        messageQueue.push(chat);
+        if (!timerId) {
+            timerId = setTimeout(flushQueue, THROTTLE_MS);
+        }
     });
     eventSource.onerror = () => {
         if (eventSource && eventSource.readyState !== EventSource.CLOSED) {

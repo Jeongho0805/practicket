@@ -30,10 +30,7 @@ public class TicketTokenManager {
 
     public TicketToken issue(String clientKey) {
         Instant issuedAt = Instant.now();
-        Instant expiresAt = issuedAt
-                .plus(1, ChronoUnit.MINUTES)
-                .truncatedTo(ChronoUnit.MINUTES)
-                .minusSeconds(10);
+        Instant expiresAt = issuedAt.plus(1, ChronoUnit.DAYS);
 
         long ttlSec = Duration.between(issuedAt, expiresAt).getSeconds();
         String jti = UUID.randomUUID().toString();
