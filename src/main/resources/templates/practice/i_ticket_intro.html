@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/default}">
+
+<head>
+    <title>I-Ticket 예매 - 프랙티켓</title>
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .intro-wrapper {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        /* Header */
+        .concert-header {
+            border-bottom: 1px solid #e5e5e5;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .concert-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 5px;
+        }
+
+        .concert-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .concert-meta {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* Main Content Layout */
+        .content-grid {
+            display: flex;
+            gap: 40px;
+        }
+
+        /* Left: Info Only */
+        .left-section {
+            flex: 1;
+        }
+
+        /* Info Table */
+        .info-table {
+            width: 100%;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .info-label {
+            width: 80px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .info-value.highlight {
+            color: #EC0F13;
+            font-weight: bold;
+        }
+
+        .info-value a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+
+        /* Right: Booking Panel */
+        .booking-panel {
+            width: 350px;
+            flex-shrink: 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .panel-section {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            background: #fafafa;
+            padding: 12px 15px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header .toggle {
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .panel-content {
+            padding: 15px;
+        }
+
+        /* Calendar */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-month {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+            padding: 5px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .calendar-day:hover:not(.disabled):not(.selected) {
+            background: #f0f0f0;
+        }
+
+        .calendar-day.disabled {
+            color: #ddd;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.sunday {
+            color: #ff5252;
+        }
+
+        .calendar-day.saturday {
+            color: #448aff;
+        }
+
+        .calendar-day.selected {
+            background: #448aff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .calendar-day.available {
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Time Selection */
+        .time-slot {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .time-slot:hover {
+            border-color: #448aff;
+            background: #f8f9ff;
+        }
+
+        .time-slot.selected {
+            border-color: #448aff;
+            background: #e3f2fd;
+        }
+
+        .time-slot-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #448aff;
+            margin-bottom: 5px;
+        }
+
+        .time-slot-info {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Booking Button */
+        .booking-actions {
+            padding: 15px;
+        }
+
+        .btn-booking {
+            width: 100%;
+            padding: 15px;
+            background: #448aff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-booking:hover {
+            background: #1976d2;
+        }
+
+        .btn-booking:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #448aff;
+            border: 1px solid #448aff;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .booking-notice {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+        }
+
+        .nol-notice {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #666;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body layout:fragment="content">
+    <div class="intro-wrapper">
+        <!-- Header -->
+        <div class="concert-header">
+            <h1 class="concert-title">FAM + ILY : FAMILY : FAM I LOVE YOU</h1>
+            <div class="concert-subtitle">2026 G-DRAGON 'FAM' MEETING</div>
+            <div class="concert-meta">로지스 주간 2회</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <!-- Left Section -->
+            <div class="left-section">
+                <!-- Info Table -->
+                <div class="info-table">
+                    <div class="info-row">
+                        <div class="info-label">장소</div>
+                        <div class="info-value">KSPO DOME+</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">공연기간</div>
+                        <div class="info-value">2026.02.06 ~ 2026.02.08</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">공연시간</div>
+                        <div class="info-value">120분</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">관람연령</div>
+                        <div class="info-value">전체관람가</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">가격</div>
+                        <div class="info-value">
+                            전석/좌석선택 ▶<br>
+                            <span class="highlight">전석 88,000원</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">혜택</div>
+                        <div class="info-value">
+                            무이자할부 ▶<br>
+                            <a href="#">NOL카드</a> 10일이상 할인 구매+2만원 캐시백 ›<br>
+                            <a href="#">toping</a> 카카오뱅크 즉시할인 쿠폰받기 ›
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">프로모션</div>
+                        <div class="info-value">
+                            <span
+                                style="background: #ffe500; padding: 2px 4px; border-radius: 2px; font-size: 11px; font-weight: bold;">payco</span>
+                            카카오페이 결제 시 4천원 즉시할인(앱 전용) ›
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">유의사항</div>
+                        <div class="info-value">
+                            2026년 01월 21일 00시 00분~2026년 02월 08일 23시 50분까지<br>
+                            무통장입금 결제가 불가합니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Booking Panel -->
+            <div class="booking-panel">
+                <!-- Calendar Section -->
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span>관람일</span>
+                        <span class="toggle">^</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+                            <span class="calendar-month">2026. 02</span>
+                            <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+                        </div>
+                        <div class="calendar-grid">
+                            <div class="calendar-day-header">일</div>
+                            <div class="calendar-day-header">월</div>
+                            <div class="calendar-day-header">화</div>
+                            <div class="calendar-day-header">수</div>
+                            <div class="calendar-day-header">목</div>
+                            <div class="calendar-day-header">금</div>
+                            <div class="calendar-day-header">토</div>
+
+                            <!-- Days -->
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled"></div>
+                            <div class="calendar-day disabled saturday">1</div>
+
+                            <div class="calendar-day disabled sunday">2</div>
+                            <div class="calendar-day disabled">3</div>
+                            <div class="calendar-day disabled">4</div>
+                            <div class="calendar-day disabled">5</div>
+                            <div class="calendar-day available selected" onclick="selectDate(6)">6</div>
+                            <div class="calendar-day disabled">7</div>
+                            <div class="calendar-day disabled saturday">8</div>
+
+                            <div class="calendar-day disabled sunday">9</div>
+                            <div class="calendar-day disabled">10</div>
+                            <div class="calendar-day disabled">11</div>
+                            <div class="calendar-day disabled">12</div>
+                            <div class="calendar-day disabled">13</div>
+                            <div class="calendar-day disabled">14</div>
+                            <div class="calendar-day disabled saturday">15</div>
+
+                            <div class="calendar-day disabled sunday">16</div>
+                            <div class="calendar-day disabled">17</div>
+                            <div class="calendar-day disabled">18</div>
+                            <div class="calendar-day disabled">19</div>
+                            <div class="calendar-day disabled">20</div>
+                            <div class="calendar-day disabled">21</div>
+                            <div class="calendar-day disabled saturday">22</div>
+
+                            <div class="calendar-day disabled sunday">23</div>
+                            <div class="calendar-day disabled">24</div>
+                            <div class="calendar-day disabled">25</div>
+                            <div class="calendar-day disabled">26</div>
+                            <div class="calendar-day disabled">27</div>
+                            <div class="calendar-day disabled">28</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Selection Section -->
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span>회차</span>
+                        <span class="toggle">^</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="time-slot selected" onclick="selectTime(this)">
+                            <div class="time-slot-title">1회 19:00</div>
+                            <div class="time-slot-info">잔여석 안내 서비스를 제공하지 않습니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Actions -->
+                <div class="booking-actions">
+                    <button class="btn-booking" onclick="startBooking()">예매하기</button>
+                    <button class="btn-secondary">BOOKING / 渡邊圭</button>
+                    <div class="nol-notice">NOL 카드 즉 혜택이 10% 적립 ›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with date 6 and time slot already selected
+        let selectedDate = 6;
+        let selectedTimeSlot = true; // Auto-selected on page load
+
+        function changeMonth(direction) {
+            // In a real implementation, this would change the calendar month
+            console.log('Change month:', direction);
+        }
+
+        function selectDate(day) {
+            // Only allow selecting day 6
+            if (day !== 6) {
+                return;
+            }
+
+            // Remove previous selection
+            document.querySelectorAll('.calendar-day.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // Add new selection
+            event.target.classList.add('selected');
+            selectedDate = day;
+        }
+
+        function selectTime(element) {
+            // Remove previous selection
+            document.querySelectorAll('.time-slot.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // Add new selection
+            element.classList.add('selected');
+            selectedTimeSlot = true;
+        }
+
+        function startBooking() {
+            // Only check if date is selected (time slot is auto-selected)
+            if (!selectedDate) {
+                alert('날짜를 선택해주세요.');
+                return;
+            }
+
+            // Navigate to the booking page
+            window.location.href = '/practice/i-ticket';
+        }
+    </script>
+</body>
+
+</html>
