@@ -33,6 +33,7 @@ a {
 
 /* ── NEW LAYOUT STYLES (MATCHING REFERENCE) ── */
 
+
 .ip-wrapper {
     background: #fff;
     width: 100%;
@@ -44,34 +45,56 @@ a {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-/* 1. Header Redesign */
+/* ── REFINED DESIGN TOKENS ── */
+:root {
+    /* 1. Deep Warm Red (Gradient) */
+    --ip-red-top: #cf1c24;
+    --ip-red-bottom: #9e0b0f;
+    --ip-red-grad: linear-gradient(to bottom, var(--ip-red-top), var(--ip-red-bottom));
+
+    /* 2. Neutral Grey Bar (Gradient) */
+    --ip-bar-top: #f4f4f4;
+    --ip-bar-bottom: #dcdcdc;
+    --ip-bar-grad: linear-gradient(to bottom, var(--ip-bar-top), var(--ip-bar-bottom));
+    --ip-bar-text: #333;
+
+    /* 3. Backgrounds */
+    --ip-bg-body: #fcfcfc;
+    /* Off-white */
+    --ip-bg-pure: #ffffff;
+
+    /* 4. Borders */
+    --ip-border-light: #e5e5e5;
+    --ip-border-mid: #c0c0c0;
+    --ip-border-dark: #888;
+}
+
+/* 1. Header Redesign (Single Flex Row) */
 .ip-seat-header-new {
-    background: #fff;
-    width: 100%;
-    border-bottom: 1px solid #767676;
-}
-
-.ip-header-row-1 {
     display: flex;
-    align-items: center;
-    border-bottom: 1px solid #e0e0e0;
-    height: 62px;
-    position: relative;
+    width: 100%;
+    height: 84px;
+    /* Fixed height to ensuring badge spanning */
     background: #fff;
+    border-bottom: 1px solid var(--ip-border-dark);
 }
 
-/* Red Badge "02" */
+/* Left: Red Badge (Full Height) */
 .ip-step-badge {
-    background: #cc2222;
-    /* Interpark Red */
+    flex: 0 0 auto;
+    /* Don't shrink */
+    background: var(--ip-red-grad);
     color: #fff;
     height: 100%;
+    /* Matches parent 84px */
     display: flex;
     align-items: center;
     padding: 0 20px 0 30px;
     position: relative;
     margin-right: 25px;
-    border-right: 1px solid #a01010;
+    /* Spacing for the skew */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    z-index: 10;
 }
 
 /* Slanted decorative edge */
@@ -82,70 +105,87 @@ a {
     top: 0;
     width: 0;
     height: 0;
-    border-top: 62px solid #cc2222;
+    border-top: 84px solid var(--ip-red-bottom);
+    /* Matches header height */
     border-right: 24px solid transparent;
     z-index: 10;
 }
 
 .ip-step-badge .num {
-    font-size: 36px;
+    font-size: 38px;
     font-weight: 900;
     font-style: italic;
     margin-right: 8px;
-    color: #fff;
-    /* White as per user screenshot check */
+    color: #ffd700;
+    -webkit-text-stroke: 1px #b8860b;
     line-height: 1;
 }
 
 .ip-step-badge .txt {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: bold;
     font-style: normal;
     letter-spacing: -1px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.ip-concert-info {
+/* Right: Column Wrapper */
+.ip-header-right-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    /* Prevent flex overflow */
+}
+
+/* Row 1: Title Info */
+.ip-concert-info-row {
+    flex: 1;
+    /* Takes remaining space or ~48px */
     display: flex;
     align-items: center;
-    font-size: 15px;
-    color: #333;
     padding-left: 10px;
+    background: #fff;
+    border-bottom: 1px solid var(--ip-border-light);
+}
+
+.ip-concert-info-row .title {
+    font-weight: 800;
+    margin-right: 15px;
+    font-size: 18px;
+    color: #222;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.ip-concert-info .title {
-    font-weight: bold;
-    margin-right: 10px;
-    font-size: 16px;
-}
-
-.ip-concert-info .divider {
-    color: #ddd;
-    margin: 0 10px;
-    font-size: 12px;
-}
-
-.ip-concert-info .venue {
-    color: #888;
+.ip-concert-info-row .divider {
+    color: #ccc;
+    margin: 0 12px;
     font-size: 14px;
 }
 
+.ip-concert-info-row .venue {
+    color: #666;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
 /* Row 2: Date Selection */
-.ip-header-row-2 {
+.ip-date-select-row {
+    height: 36px;
+    /* Fixed thinner height for controls */
     display: flex;
     align-items: center;
-    height: 42px;
-    background: #f8f8f8;
-    border-bottom: 1px solid #dcdcdc;
-    padding-left: 20px;
+    background: linear-gradient(to bottom, #f9f9f9, #ececec);
+    padding-left: 15px;
     font-size: 12px;
-    color: #666;
+    color: #555;
+    box-shadow: inset 0 1px 0 #fff;
 }
 
 .date-label-icon {
-    color: #ed1c24;
+    color: #cc0000;
     margin-right: 5px;
     font-size: 10px;
     vertical-align: middle;
@@ -153,25 +193,26 @@ a {
 
 .date-label-txt {
     font-weight: bold;
-    color: #333;
+    color: #444;
     margin-right: 15px;
 }
 
-.ip-header-row-2 .label {
+.ip-date-select-row .label {
     margin-right: 6px;
     font-weight: normal;
 }
 
 .ip-select-date,
 .ip-select-time {
-    border: 1px solid #ccc;
-    padding: 3px 5px;
+    border: 1px solid #aaa;
+    padding: 2px 5px;
     margin-right: 20px;
     background: #fff;
     font-size: 12px;
     height: 24px;
     cursor: pointer;
     color: #333;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -180,8 +221,7 @@ a {
     display: flex;
     width: 100%;
     min-height: 680px;
-    /* Adjusted height */
-    background: #fff;
+    background: var(--ip-bg-pure);
 }
 
 .ip-left-new {
@@ -189,17 +229,19 @@ a {
     display: flex;
     flex-direction: column;
     position: relative;
-    border-right: 1px solid #dcdcdc;
+    border-right: 1px solid var(--ip-border-light);
+    background: #fff;
 }
 
 .ip-map-notice-row {
-    background: #f9f9f9;
-    border: 1px solid #e5e5e5;
+    background: linear-gradient(to bottom, #fcfcfc, #f0f0f0);
+    border: 1px solid #ccc;
     margin: 15px 15px 10px;
     padding: 8px 15px;
     font-size: 12px;
-    color: #555;
-    border-radius: 2px;
+    color: #666;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .ip-map-notice-row .diamond {
@@ -227,8 +269,7 @@ a {
     right: 25px;
     width: 80px;
     height: 80px;
-    background: #8fa6f0;
-    /* Soft Blue/Purple */
+    background: linear-gradient(135deg, #8fa6f0, #738bd6);
     color: #fff;
     border-radius: 50%;
     display: flex;
@@ -237,38 +278,43 @@ a {
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     z-index: 50;
     text-align: center;
     line-height: 1.2;
+    border: 2px solid #fff;
 }
 
 .map-auth-badge .auth-icon {
     font-size: 18px;
     margin-bottom: 2px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
 
 /* 3. Right Panel (Fixed Width) */
 .ip-right-new {
     width: 310px;
-    /* Fixed width */
     min-width: 310px;
-    background: #fff;
+    background: #f0f0f2;
+    /* Light grey/off-white panel bg */
     display: flex;
     flex-direction: column;
+    border-left: 1px solid #c0c0c0;
 }
 
 /* Panel Header (Red) */
 .ip-panel-header {
-    background: #cc2222;
+    background: var(--ip-red-grad);
     padding: 20px;
     color: #fff;
     height: 98px;
-    /* Precise height */
     display: flex;
     flex-direction: column;
     justify-content: center;
+    border-bottom: 1px solid #900;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .ip-panel-header .ph-row1 {
@@ -277,56 +323,75 @@ a {
     margin-bottom: 6px;
     display: flex;
     align-items: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .ip-panel-header .ph-row1 .arr {
     margin-right: 12px;
-    font-size: 22px;
-    font-weight: normal;
+    font-size: 24px;
+    /* Larger arrow */
+    font-weight: 300;
+    /* Thinner */
+    opacity: 0.8;
+    font-family: "Malgun Gothic", sans-serif;
+    /* Cleaner arrow font */
 }
 
 .ip-panel-header .ph-row2 {
     font-size: 12px;
-    opacity: 0.8;
+    opacity: 0.9;
     padding-left: 36px;
     font-weight: normal;
+    color: #ffcccc;
 }
 
-/* Section Header (Dark Grey) */
+/* Section Header (Bar Style) */
 .ip-panel-section-header {
-    background: #444;
-    color: #fff;
+    background: linear-gradient(to bottom, #f7f7f7, #e2e2e2);
+    color: #333;
     padding: 0 15px;
     height: 34px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333;
+    border-top: 1px solid #fff;
+    border-bottom: 1px solid #bbb;
 }
 
 .ip-panel-section-header .sect-title {
     font-size: 12px;
     font-weight: bold;
+    text-shadow: 0 1px 0 #fff;
 }
 
 .btn-sm-gray {
-    background: #666;
-    border: 1px solid #888;
-    color: #fff;
+    background: linear-gradient(to bottom, #fff, #f4f4f4);
+    border: 1px solid #ccc;
+    color: #666;
     font-size: 11px;
-    border-radius: 12px;
-    padding: 1px 8px;
+    border-radius: 2px;
+    padding: 2px 6px;
     cursor: pointer;
     height: 20px;
-    line-height: 16px;
+    line-height: 14px;
 }
 
-/* Grade Body */
+.btn-sm-gray:hover {
+    border-color: #999;
+    color: #333;
+}
+
+/* Grade Body (Card Box) */
 .ip-panel-body-grade {
-    padding: 15px;
+    margin: 10px;
+    /* Space around the box */
+    padding: 10px;
     background: #fff;
-    border-bottom: 1px solid #ddd;
+    /* White box */
+    border: 1px solid #d5d5d5;
     min-height: 120px;
+    /* Specific height */
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
 }
 
 .price-table-row {
@@ -334,19 +399,21 @@ a {
     justify-content: space-between;
     align-items: center;
     font-size: 12px;
-    padding: 5px 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.price-table-row:last-child {
+    border-bottom: none;
 }
 
 .price-table-row .color-chip {
     width: 14px;
     height: 14px;
-    background: #3f51b5;
-    /* Official Blue */
+    background: #5d6dbe;
     display: inline-block;
     vertical-align: middle;
-    margin-right: 8px;
-    border-radius: 1px;
+    margin-right: 10px;
 }
 
 .price-table-row .seat-name {
@@ -362,103 +429,148 @@ a {
 }
 
 /* Selected Seats Section */
-.ip-panel-body-choice {
-    background: #fff;
-    flex: 1;
-    /* Take remaining height */
-    min-height: 150px;
-    display: flex;
-    flex-direction: column;
-}
-
 .ip-panel-section-header .sect-count {
     font-size: 11px;
-    color: #ffcccc;
-    /* Light red/pink text */
+    color: #d00;
+    font-weight: bold;
+}
+
+/* Choice Body (Card Box) */
+.ip-panel-body-choice {
+    flex: 1;
+    margin: 10px 10px 0 10px;
+    /* Top/Left/Right margin only, bottom is flush or minimal */
+    background: #fff;
+    border: 1px solid #d5d5d5;
+    border-bottom: none;
+    /* Connects to footer visually or just layout preference */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Fill space */
 }
 
 /* Choice Table Header */
 .choice-table-head {
-    background: #f7f7f7;
-    border-bottom: 1px solid #e0e0e0;
+    background: #f9f9f9;
+    border-bottom: 1px solid #dcdcdc;
     display: flex;
-    height: 30px;
+    height: 29px;
     align-items: center;
     font-size: 11px;
-    color: #666;
+    color: #555;
     text-align: center;
+    font-weight: bold;
 }
 
 .th-grade {
     flex: 1;
-    border-right: 1px solid #e0e0e0;
+    border-right: 1px solid #dcdcdc;
 }
 
 .th-num {
     flex: 1;
 }
 
+/* Choice Table Body (Split Background) */
 .choice-table-body.empty {
     flex: 1;
-    background: #fff;
-    /* Optional: placeholder text or visual */
+    border-bottom: 1px solid #dcdcdc;
+    /* Split background: Left Grey, Right White */
+    background: linear-gradient(to right, #fbfbfb 50%, #ffffff 50%);
+    position: relative;
 }
 
-/* Footer CTA */
+/* Vertical Divider Line */
+.choice-table-body.empty::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: #e5e5e5;
+}
+
+/* Footer CTA - Refined */
 .ip-panel-footer {
     padding: 10px;
-    background: #f2f2f2;
-    border-top: 1px solid #ccc;
+    background: #eaeaea;
+    border-top: 1px solid #aaa;
     margin-top: auto;
+    box-shadow: inset 0 1px 0 #fff;
 }
 
 .btn-big-red {
     width: 100%;
     height: 58px;
-    background: #cc2222;
+    /* Brighter, richer red gradient */
+    background: linear-gradient(to bottom, #e60000, #b30000);
     color: #fff;
     font-size: 20px;
     font-weight: bold;
-    border: 1px solid #b00;
+    border: 1px solid #990000;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    position: relative;
+    border-radius: 2px;
 }
 
 .btn-big-red:hover {
-    background: #b01010;
+    background: linear-gradient(to bottom, #ff1a1a, #cc0000);
 }
 
+.btn-big-red span.text {
+    /* Text wrapper if needed, but we used direct text node */
+}
+
+/* Divider between Text and Arrow */
 .btn-big-red .arr {
-    margin-left: 10px;
-    font-size: 24px;
-    font-family: monospace;
+    margin-left: 20px;
+    padding-left: 20px;
+    font-size: 26px;
+    font-family: "Malgun Gothic", sans-serif;
+    /* Thinner arrow look */
+    font-weight: 300;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    /* Subtle divider */
+    height: 20px;
+    /* Height of divider */
+    line-height: 20px;
+    /* Center divider vertically? flexbox centers items. */
+    display: flex;
+    align-items: center;
 }
 
 .footer-btns {
     display: flex;
-    gap: 6px;
+    gap: 5px;
 }
 
 .btn-footer-sub {
     flex: 1;
-    height: 32px;
-    background: #fff;
-    border: 1px solid #bebebe;
-    color: #444;
+    height: 28px;
+    /* Flatter */
+    background: linear-gradient(to bottom, #fff, #f2f2f2);
+    border: 1px solid #bbb;
+    color: #333;
     font-size: 11px;
-    font-weight: bold;
+    font-weight: normal;
+    /* Less bold */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 2px;
 }
 
 .btn-footer-sub:hover {
-    background: #f9f9f9;
+    background: #f8f8f8;
+    border-color: #999;
 }
 
 .footer-notice {
@@ -477,7 +589,7 @@ a {
     text-align: center;
     line-height: 13px;
     font-size: 10px;
-    border-radius: 50%;
+    border-radius: 2px;
     margin-right: 4px;
 }
 
@@ -734,6 +846,178 @@ a {
     pointer-events: none;
 }
 
+
 .ip-toast.show {
     opacity: 1;
+}
+
+/* ── SEAT MAP GRID (8 BLOCKS + CIRCULAR STAGE) ── */
+.ip-seat-map-container {
+    width: 650px;
+    height: 550px;
+    background: #fcfcfc;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+}
+
+.seat-map-grid {
+    display: grid;
+    /* 3 Columns: Left Blocks | Center Stage | Right Blocks */
+    grid-template-columns: 140px 220px 140px;
+    /* 3 Rows: Top Blocks | Middle Blocks | Bottom Blocks */
+    grid-template-rows: 100px 140px 100px;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Common Block Styles */
+.map-block {
+    background: #5d6dbe;
+    /* Muted Blue (Matches 'All Seats' chip) */
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #fff;
+    transition: none;
+    /* No Animation as requested */
+}
+
+/* Specific Positions */
+
+/* Top Row (A, B) */
+.block-a {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    width: 100px;
+    height: 70px;
+    align-self: end;
+}
+
+.block-b {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    width: 100px;
+    height: 70px;
+    align-self: end;
+}
+
+/* Middle Left (E, F) -> Vertical Stack in Col 1 */
+.block-e {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    justify-self: end;
+    width: 120px;
+    height: 65px;
+}
+
+.block-f {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    justify-self: end;
+    width: 120px;
+    height: 65px;
+}
+
+/* Middle Right (G, H) -> Vertical Stack in Col 3 */
+.block-g {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+    justify-self: start;
+    width: 120px;
+    height: 65px;
+}
+
+.block-h {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: end;
+    justify-self: start;
+    width: 120px;
+    height: 65px;
+}
+
+/* Bottom Row (C, D) */
+.block-c {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: start;
+    width: 100px;
+    height: 70px;
+    align-self: start;
+}
+
+.block-d {
+    grid-column: 2;
+    grid-row: 3;
+    justify-self: end;
+    width: 100px;
+    height: 70px;
+    align-self: start;
+}
+
+/* Center Stage: Circular & Grey */
+.map-stage {
+    grid-column: 2;
+    grid-row: 2;
+    width: 150px;
+    height: 150px;
+    background: #bbb;
+    /* Grey Stage */
+    border-radius: 50%;
+    /* Circular/Oval */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    justify-self: center;
+    align-self: center;
+    letter-spacing: 1px;
+}
+
+/* Auth Badge Position (Floating) */
+.map-auth-badge {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    width: 80px;
+    height: 80px;
+    background: #8fa6f0;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    z-index: 50;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.map-auth-badge .auth-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
 }
