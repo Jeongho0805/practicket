@@ -298,82 +298,96 @@ a {
     width: 310px;
     min-width: 310px;
     background: #f0f0f2;
-    /* Light grey/off-white panel bg */
+    /* Warm Grey */
     display: flex;
     flex-direction: column;
     border-left: 1px solid #c0c0c0;
+    font-family: 'DOTUM', 'Malgun Gothic', sans-serif;
 }
 
-/* Panel Header (Red) */
+/* Panel Header (Red) - LAYERED/BEVEL LOOK */
 .ip-panel-header {
-    background: var(--ip-red-grad);
-    padding: 20px;
+    background: linear-gradient(to bottom, #d61c23 0%, #b20e13 100%);
+    padding: 0;
     color: #fff;
     height: 98px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border-bottom: 1px solid #900;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid #7a0003;
+    /* Darkest edge */
+    box-shadow: inset 0 1px 0 #ed686c;
+    /* Top Highlight */
+    position: relative;
+    cursor: pointer;
 }
 
 .ip-panel-header .ph-row1 {
     font-size: 20px;
     font-weight: bold;
-    margin-bottom: 6px;
     display: flex;
     align-items: center;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    text-shadow: 0 -1px 0 #800000;
+    margin-bottom: 2px;
 }
 
 .ip-panel-header .ph-row1 .arr {
-    margin-right: 12px;
+    margin-right: 8px;
     font-size: 24px;
-    /* Larger arrow */
-    font-weight: 300;
-    /* Thinner */
-    opacity: 0.8;
+    font-weight: normal;
+    color: rgba(255, 255, 255, 0.7);
     font-family: "Malgun Gothic", sans-serif;
-    /* Cleaner arrow font */
+    line-height: 1;
 }
 
 .ip-panel-header .ph-row2 {
     font-size: 12px;
-    opacity: 0.9;
-    padding-left: 36px;
-    font-weight: normal;
     color: #ffcccc;
+    /* Pale Pink */
+    text-align: center;
+    font-weight: normal;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
-/* Section Header (Bar Style) */
+/* Hover Effect */
+.ip-panel-header:hover {
+    background: linear-gradient(to bottom, #e1272e 0%, #be151a 100%);
+}
+
+/* Section Header (Bar Style) - 3D BEVEL */
 .ip-panel-section-header {
-    background: linear-gradient(to bottom, #f7f7f7, #e2e2e2);
-    color: #333;
-    padding: 0 15px;
+    background: linear-gradient(to bottom, #fcfcfc 0%, #e2e2e2 100%);
     height: 34px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0 10px;
     border-top: 1px solid #fff;
-    border-bottom: 1px solid #bbb;
+    /* Highlight */
+    border-bottom: 1px solid #aaa;
+    /* Shadow */
 }
 
 .ip-panel-section-header .sect-title {
     font-size: 12px;
     font-weight: bold;
+    color: #333;
     text-shadow: 0 1px 0 #fff;
 }
 
+/* "가격 전체보기 >" Button */
 .btn-sm-gray {
-    background: linear-gradient(to bottom, #fff, #f4f4f4);
+    background: linear-gradient(to bottom, #fff 0%, #f4f4f4 100%);
     border: 1px solid #ccc;
-    color: #666;
+    color: #555;
     font-size: 11px;
     border-radius: 2px;
-    padding: 2px 6px;
+    padding: 1px 6px;
     cursor: pointer;
-    height: 20px;
-    line-height: 14px;
+    height: 22px;
+    line-height: 18px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .btn-sm-gray:hover {
@@ -384,48 +398,45 @@ a {
 /* Grade Body (Card Box) */
 .ip-panel-body-grade {
     margin: 10px;
-    /* Space around the box */
-    padding: 10px;
+    padding: 15px;
     background: #fff;
-    /* White box */
-    border: 1px solid #d5d5d5;
-    min-height: 120px;
-    /* Specific height */
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #ccc;
+    height: 140px;
+    /* Fixed height match */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .price-table-row {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     font-size: 12px;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.price-table-row:last-child {
-    border-bottom: none;
+    padding: 0;
 }
 
 .price-table-row .color-chip {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     background: #7C68EE;
     display: inline-block;
-    vertical-align: middle;
-    margin-right: 10px;
+    margin-right: 8px;
+    margin-top: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .price-table-row .seat-name {
     flex: 1;
     color: #333;
     font-weight: bold;
+    font-size: 12px;
 }
 
 .price-table-row .seat-price {
-    font-weight: bold;
+    font-weight: normal;
+    /* Less bold than name per ref */
+    color: #444;
     font-family: Tahoma, sans-serif;
-    color: #333;
+    font-size: 12px;
 }
 
 /* Selected Seats Section */
@@ -435,53 +446,53 @@ a {
     font-weight: bold;
 }
 
-/* Choice Body (Card Box) */
+/* Choice Body - NO bottom border for seamless look with footer if needed */
 .ip-panel-body-choice {
     flex: 1;
     margin: 10px 10px 0 10px;
-    /* Top/Left/Right margin only, bottom is flush or minimal */
     background: #fff;
-    border: 1px solid #d5d5d5;
+    border: 1px solid #ccc;
     border-bottom: none;
-    /* Connects to footer visually or just layout preference */
     display: flex;
     flex-direction: column;
-    height: 100%;
-    /* Fill space */
 }
 
 /* Choice Table Header */
 .choice-table-head {
-    background: #f9f9f9;
-    border-bottom: 1px solid #dcdcdc;
+    background: linear-gradient(to bottom, #f2f2f2 0%, #e0e0e0 100%);
+    border-bottom: 1px solid #d5d5d5;
     display: flex;
-    height: 29px;
+    height: 26px;
     align-items: center;
     font-size: 11px;
     color: #555;
     text-align: center;
-    font-weight: bold;
+    font-weight: normal;
 }
 
 .th-grade {
     flex: 1;
-    border-right: 1px solid #dcdcdc;
+    border-right: 1px solid #ccc;
+    border-left: 1px solid #fff;
+    /* Highlight */
 }
 
 .th-num {
     flex: 1;
+    border-left: 1px solid #fff;
 }
 
 /* Choice Table Body (Split Background) */
 .choice-table-body.empty {
     flex: 1;
-    border-bottom: 1px solid #dcdcdc;
-    /* Split background: Left Grey, Right White */
-    background: linear-gradient(to right, #fbfbfb 50%, #ffffff 50%);
+    border-top: 1px solid #fff;
+    background: #fcfcfc;
+    /* Fallback */
+    background: linear-gradient(to right, #f2f2f2 50%, #ffffff 50%);
     position: relative;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.03);
 }
 
-/* Vertical Divider Line */
 .choice-table-body.empty::after {
     content: '';
     position: absolute;
@@ -489,13 +500,14 @@ a {
     bottom: 0;
     left: 50%;
     width: 1px;
-    background: #e5e5e5;
+    background: #e0e0e0;
 }
 
-/* Footer CTA - Refined */
+/* Footer CTA - STRIPE TEXTURE & BEVEL */
 .ip-panel-footer {
     padding: 10px;
-    background: #eaeaea;
+    background: #f0f0f2;
+    /* Match panel bg */
     border-top: 1px solid #aaa;
     margin-top: auto;
     box-shadow: inset 0 1px 0 #fff;
@@ -504,46 +516,70 @@ a {
 .btn-big-red {
     width: 100%;
     height: 58px;
-    /* Brighter, richer red gradient */
-    background: linear-gradient(to bottom, #e60000, #b30000);
+    /* Red Gradient + Stripe Texture */
+    background:
+        repeating-linear-gradient(45deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.05) 1px,
+            transparent 1px,
+            transparent 6px),
+        linear-gradient(to bottom, #d61c23 0%, #a80005 100%);
+
     color: #fff;
     font-size: 20px;
     font-weight: bold;
-    border: 1px solid #990000;
+    border: 1px solid #8e0004;
+    /* Dark Red border */
     cursor: pointer;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    /* Split layout */
     align-items: center;
     margin-bottom: 8px;
-    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
-    position: relative;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 2px 3px rgba(0, 0, 0, 0.2);
+    /* Bevel highlight */
+    padding: 0;
     border-radius: 2px;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
 .btn-big-red:hover {
-    background: linear-gradient(to bottom, #ff1a1a, #cc0000);
+    background-color: #e62027;
+    /* Fallback/Blend */
+    background:
+        repeating-linear-gradient(45deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.08) 1px,
+            transparent 1px,
+            transparent 6px),
+        linear-gradient(to bottom, #e62027 0%, #b00005 100%);
 }
 
-.btn-big-red span.text {
-    /* Text wrapper if needed, but we used direct text node */
+/* Text Part (Left) */
+.btn-big-red {
+    font-family: 'DOTUM', 'Malgun Gothic', sans-serif;
+    letter-spacing: -1px;
+    /* Center test manually with padding since we used justify-between */
+    padding-left: 65px;
 }
 
-/* Divider between Text and Arrow */
+/* Arrow Part (Right) */
 .btn-big-red .arr {
-    margin-left: 20px;
-    padding-left: 20px;
-    font-size: 26px;
-    font-family: "Malgun Gothic", sans-serif;
-    /* Thinner arrow look */
-    font-weight: 300;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-    /* Subtle divider */
-    height: 20px;
-    /* Height of divider */
-    line-height: 20px;
-    /* Center divider vertically? flexbox centers items. */
+    width: 60px;
+    height: 100%;
     display: flex;
     align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 300;
+    font-family: sans-serif;
+    /* Clean chevron */
+    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    /* Dark divider */
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.2);
+    /* Light divider highlight */
+    margin: 0;
+    padding: 0;
 }
 
 .footer-btns {
@@ -554,18 +590,14 @@ a {
 .btn-footer-sub {
     flex: 1;
     height: 28px;
-    /* Flatter */
-    background: linear-gradient(to bottom, #fff, #f2f2f2);
+    background: linear-gradient(to bottom, #fff 0%, #eeeeee 100%);
     border: 1px solid #bbb;
     color: #333;
     font-size: 11px;
     font-weight: normal;
-    /* Less bold */
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border-radius: 2px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .btn-footer-sub:hover {
@@ -575,27 +607,32 @@ a {
 
 .footer-notice {
     text-align: right;
-    margin-top: 8px;
+    margin-top: 6px;
     font-size: 11px;
     color: #666;
+    letter-spacing: -0.5px;
 }
 
 .footer-notice .warn-icon {
     display: inline-block;
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     background: #cc2222;
+    /* Red Badge */
     color: #fff;
     text-align: center;
-    line-height: 13px;
-    font-size: 10px;
+    line-height: 14px;
+    font-size: 11px;
     border-radius: 2px;
-    margin-right: 4px;
+    margin-right: 3px;
+    font-family: arial;
+    font-weight: bold;
 }
 
 .footer-notice .warn-txt {
     text-decoration: underline;
     cursor: pointer;
+    color: #444;
 }
 
 
