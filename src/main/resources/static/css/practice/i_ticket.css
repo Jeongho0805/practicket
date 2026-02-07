@@ -410,7 +410,7 @@ a {
 .price-table-row .color-chip {
     width: 14px;
     height: 14px;
-    background: #5d6dbe;
+    background: #7C68EE;
     display: inline-block;
     vertical-align: middle;
     margin-right: 10px;
@@ -877,7 +877,7 @@ a {
 
 /* Common Block Styles */
 .map-block {
-    background: #5d6dbe;
+    background: #7C68EE;
     /* Muted Blue (Matches 'All Seats' chip) */
     color: #fff;
     font-size: 20px;
@@ -920,7 +920,8 @@ a {
     grid-row: 2;
     align-self: start;
     justify-self: end;
-    width: 120px;
+    width: 100px;
+    /* Was 120px */
     height: 65px;
 }
 
@@ -929,7 +930,8 @@ a {
     grid-row: 2;
     align-self: end;
     justify-self: end;
-    width: 120px;
+    width: 100px;
+    /* Was 120px */
     height: 65px;
 }
 
@@ -939,7 +941,8 @@ a {
     grid-row: 2;
     align-self: start;
     justify-self: start;
-    width: 120px;
+    width: 100px;
+    /* Was 120px */
     height: 65px;
 }
 
@@ -948,7 +951,8 @@ a {
     grid-row: 2;
     align-self: end;
     justify-self: start;
-    width: 120px;
+    width: 100px;
+    /* Was 120px */
     height: 65px;
 }
 
@@ -1020,4 +1024,135 @@ a {
 .map-auth-badge .auth-icon {
     font-size: 18px;
     margin-bottom: 2px;
+}
+
+/* ── SEAT DETAIL VIEW (ROW BASED) ── */
+.ip-seat-detail-container {
+    box-shadow: 0 0 0 1px #d5d5d5;
+}
+
+.seat-grid-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Left align rows */
+    gap: 1px;
+    /* Tiny vertical gap between rows */
+    padding: 30px;
+}
+
+.seat-row-container {
+    display: flex;
+    align-items: center;
+    /* No margin bottom */
+}
+
+.seat-row-label {
+    font-size: 11px;
+    color: #666;
+    margin-right: 15px;
+    white-space: nowrap;
+    width: 60px;
+    /* Adjust width */
+    text-align: right;
+    font-family: 'Dotum', sans-serif;
+    font-weight: bold;
+}
+
+.seat-row-units {
+    display: flex;
+    gap: 0;
+    /* Handled by margin on units */
+}
+
+/* Seat Unit Styles - UNIFIED SIZING */
+.seat-unit {
+    width: 15px;
+    /* Fixed size */
+    height: 15px;
+    /* Fixed size */
+    background: #e0e0e0;
+    border: 1px solid #ddd;
+    margin-right: 2px;
+    /* Horizontal Gap */
+    cursor: default;
+    font-size: 0;
+    box-sizing: border-box;
+    /* Include border in size */
+}
+
+.seat-unit.available {
+    background-color: #7C68EE;
+    border: 1px solid #7C68EE;
+    /* Match size logic */
+    cursor: pointer;
+    /* Remove specific width/height override, inherit 15px */
+    width: 15px;
+    height: 15px;
+    margin: 0 2px 0 0;
+    /* Keep horizontal gap */
+}
+
+/* Selected State - 3D Bevel Effect */
+.seat-unit.selected {
+    background-color: #7C68EE;
+    border-width: 3px;
+    border-style: solid;
+    border-color: gainsboro dimgray black gainsboro;
+    z-index: 10;
+    transform: none;
+    /* Box sizing ensures it stays 15px */
+}
+
+/* Make Right Panel Header Clickable */
+.ip-panel-header {
+    cursor: pointer;
+}
+
+.ip-panel-header:hover {
+    background-color: #f0f0f0;
+    /* Subtle hover effect */
+}
+
+/* Blinking Button Animation */
+@keyframes blinkOrangeRed {
+    0% {
+        background: linear-gradient(to bottom, #e60000, #b30000);
+    }
+
+    50% {
+        background: linear-gradient(to bottom, #ff9900, #cc7a00);
+    }
+
+    /* Orange */
+    100% {
+        background: linear-gradient(to bottom, #e60000, #b30000);
+    }
+}
+
+.btn-big-red.blinking {
+    animation: blinkOrangeRed 1s infinite;
+}
+
+/* Right Panel Selected Seat Item */
+.choice-seat-item {
+    display: flex;
+    font-size: 11px;
+    border-bottom: 1px solid #eee;
+    height: 24px;
+    align-items: center;
+}
+
+.choice-seat-item .c-grade {
+    flex: 1;
+    padding-left: 10px;
+    color: #5d6dbe;
+    border-right: 1px solid #eee;
+}
+
+.choice-seat-item .c-num {
+    flex: 1;
+    padding-left: 10px;
+    font-weight: bold;
+    color: #333;
 }

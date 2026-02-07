@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function init() {
     bindEvents();
-    renderSeats(20, 15); // Mock 20 rows, 15 cols
+    // renderSeats(20, 15); // Mock 20 rows, 15 cols
     updateUI();
 
     // Check navigation type to determine if we should preserve the solved state
@@ -308,7 +308,7 @@ function enterSeatDetail(areaId) {
     setSeatPhase('SEAT');
 }
 
-function renderSeats(rows, cols) {
+function renderSeatsLegacy(rows, cols) {
     if (!DOM.seatGrid) return;
     DOM.seatGrid.innerHTML = '';
     DOM.seatGrid.style.gridTemplateColumns = `repeat(2, 1fr)`; // 2 blocks

@@ -51,26 +51,26 @@
                 </div>
                 <!-- Strict Placeholder as requested -->
                 <!-- Seat Map Container -->
-                <div class="ip-seat-map-container">
+                <div class="ip-seat-map-container" id="areaMap">
                     <div class="seat-map-grid">
                         <!-- Top Row: A, B -->
-                        <div class="map-block block-a" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">A</div>
-                        <div class="map-block block-b" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">B</div>
+                        <div class="map-block block-a" onclick="toggleSeatView('show', 'A')">A</div>
+                        <div class="map-block block-b" onclick="toggleSeatView('show', 'B')">B</div>
 
                         <!-- Middle Left: E, F -->
-                        <div class="map-block block-e" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">E</div>
-                        <div class="map-block block-f" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">F</div>
+                        <div class="map-block block-e" onclick="toggleSeatView('show', 'E')">E</div>
+                        <div class="map-block block-f" onclick="toggleSeatView('show', 'F')">F</div>
 
                         <!-- Center Stage -->
                         <div class="map-stage">STAGE</div>
 
                         <!-- Middle Right: G, H -->
-                        <div class="map-block block-g" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">G</div>
-                        <div class="map-block block-h" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">H</div>
+                        <div class="map-block block-g" onclick="toggleSeatView('show', 'G')">G</div>
+                        <div class="map-block block-h" onclick="toggleSeatView('show', 'H')">H</div>
 
                         <!-- Bottom Row: C, D -->
-                        <div class="map-block block-c" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">C</div>
-                        <div class="map-block block-d" onclick="alert('좌석 선택 화면으로 이동합니다 (구현 예정)')">D</div>
+                        <div class="map-block block-c" onclick="toggleSeatView('show', 'C')">C</div>
+                        <div class="map-block block-d" onclick="toggleSeatView('show', 'D')">D</div>
                     </div>
 
                     <!-- Auth Badge (Keep floating) -->
@@ -79,6 +79,178 @@
                         <span>안심예매<br>인증</span>
                     </div>
                 </div>
+
+                <!-- Detailed Seat Selection Container (Initially Hidden) -->
+                <div class="ip-seat-detail-container" id="seatDetail"
+                    style="display:none; width: 650px; height: 550px; margin: 0 auto; background: #fff; border: 1px solid #eee; position: relative;">
+                    <div class="seat-detail-header"
+                        style="padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9;">
+                        <span class="detail-title" style="font-weight: bold; color: #333;">A구역 좌석선택</span>
+                        <!-- Back button removed -->
+                    </div>
+                    <div class="seat-grid-scroll"
+                        style="padding: 20px; overflow: auto; height: 500px; display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start; justify-content: center;">
+                        <!-- JS will populate seats here -->
+                    </div>
+                </div>
+
+                <script>
+                    // 1. Toggle between Map and Detail View
+                    function toggleSeatView(action, zoneName) {
+                        const map = document.getElementById('areaMap');
+                        const detail = document.getElementById('seatDetail');
+                        const title = detail.querySelector('.detail-title');
+                        const grid = detail.querySelector('.seat-grid-scroll');
+                        const noticeRow = document.querySelector('.ip-map-notice-row');
+
+                        if (action === 'show') {
+                            map.style.display = 'none';
+                            detail.style.display = 'block';
+                            title.innerText = '◆ ' + zoneName + '구역의 좌석배치도입니다'; // Dynamic Zone Name
+                            title.style.fontSize = '12px';
+                            title.style.color = '#666';
+
+                            // Hide Notice in Detail View
+                            noticeRow.style.display = 'none';
+
+                            // Render Rows
+                            renderSeats(grid, zoneName);
+
+                        } else {
+                            map.style.display = 'flex';
+                            detail.style.display = 'none';
+
+                            // Restore Notice
+                            noticeRow.style.display = 'block';
+                            noticeRow.innerHTML = '<span class="diamond">◆</span> 원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.';
+                        }
+                    }
+
+                    // 2. Render Seats by Row (More seats, tighter layout)
+                    function renderSeats(container, zoneName) {
+                        let html = '';
+                        // Create 15 Rows
+                        for (let r = 1; r <= 15; r++) {
+                            html += `<div class="seat-row-container">`;
+                            html += `<div class="seat-row-label">${zoneName}구역 ${r}열</div>`; // Dynamic Label
+                            html += `<div class="seat-row-units">`;
+
+                            // 20 Seats per row
+                            for (let s = 1; s <= 20; s++) {
+                                // Add random "aisle" (skip seat) for realism
+                                if (s === 6 || s === 16) {
+                                    html += `<div style="width:15px; height:15px;"></div>`; // Aisle spacer
+                                }
+
+                                // Random availability (70% available)
+                                const isAvailable = Math.random() > 0.3;
+                                const className = isAvailable ? 'seat-unit available' : 'seat-unit';
+                                const onClick = isAvailable ? `onclick="selectSeat(this, '${zoneName}', ${r}, ${s})"` : '';
+
+                                html += `<div class="${className}" ${onClick} title="${zoneName}구역 ${r}열 ${s}번"></div>`;
+                            }
+                            html += `</div></div>`;
+                        }
+                        container.innerHTML = html;
+                    }
+
+                    // 3. Handle Seat Selection
+                    function selectSeat(el, zone, row, num) {
+                        el.classList.toggle('selected');
+                        const isSelected = el.classList.contains('selected');
+                        updateRightPanel(zone, row, num, isSelected);
+                        toggleBlinkingButton();
+                    }
+
+                    // 4. Update Right Panel List
+                    function updateRightPanel(zone, row, num, isAdded) {
+                        const listContainer = document.querySelector('.choice-table-body');
+                        const countSpan = document.querySelector('.sect-count');
+
+                        if (listContainer.classList.contains('empty')) {
+                            listContainer.classList.remove('empty');
+                            listContainer.innerHTML = '';
+                            listContainer.style.background = '#fff';
+                        }
+
+                        if (isAdded) {
+                            const itemHtml = `
+                                <div class="choice-seat-item" id="seat-${zone}-${row}-${num}">
+                                    <div class="c-grade">전석</div>
+                                    <div class="c-num">${zone}구역 ${row}열 ${num}번</div>
+                                </div>
+                            `;
+                            listContainer.insertAdjacentHTML('beforeend', itemHtml);
+                        } else {
+                            const item = document.getElementById(`seat-${zone}-${row}-${num}`);
+                            if (item) item.remove();
+                        }
+
+                        const total = listContainer.children.length;
+                        countSpan.innerText = `총 ${total}석 선택되었습니다.`;
+
+                        if (total === 0) {
+                            listContainer.classList.add('empty');
+                            listContainer.style.background = '';
+                        }
+                    }
+
+                    // 5. Toggle Blinking Button
+                    function toggleBlinkingButton() {
+                        const btn = document.querySelector('.btn-big-red');
+                        const listContainer = document.querySelector('.choice-table-body');
+                        const hasSeats = listContainer.children.length > 0 && !listContainer.classList.contains('empty');
+
+                        if (hasSeats) btn.classList.add('blinking');
+                        else btn.classList.remove('blinking');
+                    }
+
+                    // 6. Reset Selection
+                    function resetSelection() {
+                        // 1. Remove .selected class from all seats
+                        const selectedSeats = document.querySelectorAll('.seat-unit.selected');
+                        selectedSeats.forEach(seat => seat.classList.remove('selected'));
+
+                        // 2. Clear Right Panel
+                        const listContainer = document.querySelector('.choice-table-body');
+                        listContainer.innerHTML = '';
+                        listContainer.classList.add('empty');
+                        listContainer.style.background = '';
+
+                        // 3. Reset Count
+                        document.querySelector('.sect-count').innerText = '총 0석 선택되었습니다.';
+
+                        // 4. Stop Blinking
+                        toggleBlinkingButton();
+                    }
+
+                    // 7. Bind Events
+                    document.addEventListener('DOMContentLoaded', () => {
+                        // Back to Map Button (Top Right Header)
+                        const backBtn = document.querySelector('.ip-panel-header');
+                        if (backBtn) {
+                            backBtn.onclick = () => toggleSeatView('hide');
+                        }
+
+                        const footerBtns = document.querySelectorAll('.btn-footer-sub');
+                        if (footerBtns.length >= 2) {
+                            // 1. Previous Step Button
+                            const prevBtn = footerBtns[0];
+                            if (prevBtn.innerText.includes('이전단계')) {
+                                prevBtn.onclick = () => {
+                                    alert('"관람일/회차선택" 으로 넘어가는 버튼이에요. 누르지마세요!');
+                                    // location.href = ... (If we were actually moving)
+                                };
+                            }
+
+                            // 2. Reset Selection Button
+                            const resetBtn = footerBtns[1];
+                            if (resetBtn.innerText.includes('다시 선택')) {
+                                resetBtn.onclick = resetSelection;
+                            }
+                        }
+                    });
+                </script>
             </section>
 
             <!-- Right: 6 Sections -->
