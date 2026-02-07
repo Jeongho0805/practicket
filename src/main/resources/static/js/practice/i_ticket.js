@@ -16,8 +16,7 @@ const DOM = {
     root: document.getElementById('ip-root'),
     captchaOverlay: document.getElementById('captcha-overlay'),
     captchaInput: document.getElementById('txtCaptcha'),
-    captchaText: document.getElementById('captcha-text'),
-    captchaPlaceholder: document.getElementById('captcha-placeholder'),
+    captchaCanvas: document.getElementById('captchaCanvas'),
 
     // Seat Phase
     seatGrid: document.getElementById('seat-grid'),
@@ -56,10 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function init() {
-    renderCaptcha();
     bindEvents();
     renderSeats(20, 15); // Mock 20 rows, 15 cols
     updateUI();
+
+    // Start with captcha
+    renderCaptcha();
 }
 
 function bindEvents() {
@@ -77,18 +78,8 @@ function bindEvents() {
             if (e.key === 'Enter') handleCaptchaSubmit();
         });
 
-        // Placeholder Logic
         DOM.captchaInput.addEventListener('focus', () => {
-            if (DOM.captchaPlaceholder) DOM.captchaPlaceholder.style.display = 'none';
             DOM.captchaInput.parentElement.classList.remove('error');
-        });
-        DOM.captchaInput.addEventListener('blur', () => {
-            if (!DOM.captchaInput.value && DOM.captchaPlaceholder) {
-                DOM.captchaPlaceholder.style.display = 'block';
-            }
-        });
-        DOM.captchaInput.addEventListener('input', () => {
-            if (DOM.captchaPlaceholder) DOM.captchaPlaceholder.style.display = 'none';
         });
     }
 
@@ -142,23 +133,97 @@ function handleAction(action, target) {
 function renderCaptcha() {
     STATE.seatPhase = 'CAPTCHA';
     DOM.root.setAttribute('data-seat-phase', 'CAPTCHA');
-    DOM.captchaOverlay.setAttribute('aria-hidden', 'false'); // Show
+    DOM.captchaOverlay.setAttribute('aria-hidden', 'false');
     if (DOM.captchaInput) {
         DOM.captchaInput.value = '';
-        DOM.captchaInput.focus();
-        if (DOM.captchaPlaceholder) DOM.captchaPlaceholder.style.display = 'none'; // Input focused
+        DOM.captchaInput.parentElement.classList.remove('error');
+        // Removed auto-focus as per request
+    }
+    drawCaptcha();
+}
+
+function drawCaptcha() {
+    if (!DOM.captchaCanvas) return;
+    const canvas = DOM.captchaCanvas;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // List of background and text colors to randomize
+    const bgColors = ['#4b4b00', '#002e1a', '#1a1a4b', '#4b1a1a', '#000000', '#2d2d2d'];
+    const textColors = ['#e5f311', '#ffffff', '#ffeb3b', '#00ff00', '#00ffff', '#ff9800'];
+
+    const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
+    const randomText = textColors[Math.floor(Math.random() * textColors.length)];
+
+    // Generate random text
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let text = '';
+    for (let i = 0; i < 6; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
+    STATE.captchaAnswer = text;
+
+    // Background
+    ctx.fillStyle = randomBg;
+    ctx.fillRect(0, 0, width, height);
+
+    // Noise - massive amount of tiny dots (stars look)
+    for (let i = 0; i < 800; i++) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+        ctx.beginPath();
+        const size = Math.random() * 0.8;
+        ctx.arc(Math.random() * width, Math.random() * height, size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Noise - lines
+    for (let i = 0; i < 15; i++) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.25})`;
+        ctx.lineWidth = Math.random() * 1.5;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * width, Math.random() * height);
+        ctx.lineTo(Math.random() * width, Math.random() * height);
+        ctx.stroke();
+    }
+
+    // Characters
+    const charWidth = width / 7;
+    ctx.font = 'bold 38px "Courier New", monospace';
+    ctx.textBaseline = 'middle';
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        ctx.save();
+
+        // Random position and rotation
+        const x = (i + 0.8) * charWidth;
+        const y = height / 2 + (Math.random() * 24 - 12);
+        const angle = (Math.random() * 45 - 22.5) * Math.PI / 180;
+
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        // Character style
+        ctx.fillStyle = randomText;
+        ctx.shadowBlur = 3;
+        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+        ctx.fillText(char, -15, 0);
+
+        ctx.restore();
+    }
+
+    // Cross-cutting thin lines
+    for (let i = 0; i < 8; i++) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(0, Math.random() * height);
+        ctx.lineTo(width, Math.random() * height);
+        ctx.stroke();
     }
 }
 
 function refreshCaptcha() {
-    // In a real app, fetch new image. Here just visual feedback.
-    showToast('보안문자가 새로고침 되었습니다. (연습)');
-    // We could randomize the text here if we wanted
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let text = '';
-    for (let i = 0; i < 6; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
-    STATE.captchaAnswer = text;
-    if (DOM.captchaText) DOM.captchaText.textContent = text;
+    drawCaptcha();
     if (DOM.captchaInput) {
         DOM.captchaInput.value = '';
         DOM.captchaInput.focus();
@@ -167,15 +232,13 @@ function refreshCaptcha() {
 
 function handleCaptchaSubmit() {
     if (!DOM.captchaInput) return;
-    const val = DOM.captchaInput.value.toUpperCase();
+    const val = DOM.captchaInput.value.toUpperCase().trim();
     if (val === STATE.captchaAnswer) {
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
         setSeatPhase('AREA');
     } else {
-        // Show error UI in new structure
         DOM.captchaInput.parentElement.classList.add('error');
-        alert('보안문자가 일치하지 않습니다. 다시 입력해주세요.');
-        DOM.captchaInput.value = '';
+        // The error text is shown via CSS
         DOM.captchaInput.focus();
     }
 }

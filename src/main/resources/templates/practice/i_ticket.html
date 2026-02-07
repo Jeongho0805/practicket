@@ -338,35 +338,40 @@
         </main>
     </div>
 
-    <div class="capchaLayer" id="captcha-overlay" aria-hidden="false">
-        <div class="capchaInner">
-            <div class="capchaImg">
-                <div class="ip-captcha-noise"
-                    style="position:absolute; width:100%; height:100%; top:0; left:0; z-index:0; background-image: radial-gradient(#cfd8dc 1px, transparent 1px); background-size: 8px 8px; opacity: 0.4;">
-                </div>
-                <div id="captcha-text"
-                    style="position:relative; z-index:1; font-size:28px; letter-spacing:4px; font-weight:bold; color:#2e7d32; text-decoration:line-through;">
-                    BXWUMU</div>
-                <a href="javascript:;" class="refreshBtn" data-action="captcha-refresh" title="새로고침"></a>
-                <a href="javascript:;" class="voiceBtn" data-action="toast" data-toast="음성안내는 연습모드입니다." id="CaptchaTts"
-                    title="음성듣기">
-                    <span>문자입력 음성</span>
-                </a>
-            </div>
-            <div id="soundPlay" style="display: none;"></div>
-            <div class="validationTxt">
-                <span id="captcha-placeholder">문자를 입력해주세요</span>
-                <input type="text" id="txtCaptcha" name="txtCaptcha" maxlength="8" style="text-transform: uppercase;">
-                <div class="alertNotice">새로운 문자로 다시 인증해주세요</div>
-            </div>
-            <div class="capchaBtns">
-                <a href="javascript:;" data-action="captcha-cancel">날짜 다시 선택</a>
-                <a href="javascript:;" data-action="captcha-submit">입력완료</a>
-            </div>
-        </div>
+    <div id="captcha-overlay" class="ip-overlay" aria-hidden="false">
+        <div class="capchaLayer">
+            <div class="capchaInner">
+                <div class="captcha-badge"><span>✔</span> 안심예매</div>
+                <h2 class="captcha-title">문자를 입력해주세요</h2>
+                <p class="captcha-desc">부정예매방지를 위해 아래의 문자를 입력해주세요.<br>인증 후 좌석을 선택할 수 있습니다.</p>
 
-        <div id="divCaptchaFolding" class="capchaFolding">
-            좌석 먼저 보고 입력하려면, <a href="javascript:;" data-action="captcha-fold">잠깐 접어두기&nbsp;&nbsp;</a>
+                <div class="capchaImgBox">
+                    <div class="capchaImgInner">
+                        <div class="capchaImg">
+                            <canvas id="captchaCanvas" width="260" height="100"></canvas>
+                        </div>
+                        <div class="captcha-side-btns">
+                            <button class="refreshBtn" data-action="captcha-refresh" title="새로고침"></button>
+                            <button class="voiceBtn" data-action="toast" data-toast="음성안내는 연습모드입니다."
+                                title="음성듣기"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="validationTxt">
+                    <input type="text" id="txtCaptcha" name="txtCaptcha" maxlength="6" autocomplete="off"
+                        placeholder="문자를 입력해주세요" style="text-transform: uppercase;">
+                    <div class="alertNotice" id="captcha-error">입력한 문자를 다시 확인해주세요</div>
+                </div>
+
+                <div class="capchaBtns">
+                    <button class="btn-cancel" data-action="captcha-cancel">날짜 다시 선택</button>
+                    <button class="btn-submit" data-action="captcha-submit">입력완료</button>
+                </div>
+            </div>
+            <div class="capchaFolding">
+                좌석 먼저 보고 입력하려면, <a href="javascript:;" data-action="captcha-fold">잠깐 접어두기</a>
+            </div>
         </div>
     </div>
 
