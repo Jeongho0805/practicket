@@ -10,330 +10,106 @@
 
 <body>
     <div class="ip-wrapper" id="ip-root" data-step="SEAT" data-seat-phase="AREA">
-        <header class="ip-top">
-            <div class="ip-top-left">NOL ticket</div>
-            <div class="ip-top-right">
-                <label class="ip-top-label">다른 관람일자 선택</label>
-                <select class="ip-top-select">
-                    <option selected>2026년 02월 06일(금)</option>
+
+        <div class="ip-seat-header-new">
+            <!-- Row 1: Title -->
+            <div class="ip-header-row-1">
+                <div class="ip-step-badge">
+                    <span class="num">02</span>
+                    <span class="txt">좌석 선택</span>
+                </div>
+                <div class="ip-concert-info">
+                    <span class="title">FAM + ILY : FAMILY : FAM I LOVE YOU</span>
+                    <span class="divider">|</span>
+                    <span class="venue">KSPO DOME</span>
+                </div>
+            </div>
+            <!-- Row 2: Date/Time -->
+            <div class="ip-header-row-2">
+                <span class="date-label-icon">▶</span>
+                <span class="date-label-txt">다른 관람일자 선택 :</span>
+                <span class="label">일자</span>
+                <select class="ip-select-date">
                     <option>2026년 02월 07일(토)</option>
-                    <option>2026년 02월 08일(일)</option>
                 </select>
-                <select class="ip-top-select">
-                    <option selected>19시 00분</option>
-                    <option>14시 00분</option>
+                <span class="label">시간</span>
+                <select class="ip-select-time">
+                    <option>18시 00분</option>
                 </select>
-            </div>
-        </header>
-
-        <nav class="ip-steps">
-            <div class="ip-step" data-step-target="DATE">
-                <span class="ip-step-num">01</span>
-                <span class="ip-step-label">관람일/회차선택</span>
-            </div>
-            <div class="ip-step ip-step-active" data-step-target="SEAT">
-                <span class="ip-step-num">02</span>
-                <span class="ip-step-label">좌석 선택</span>
-            </div>
-            <div class="ip-step" data-step-target="PRICE">
-                <span class="ip-step-num">03</span>
-                <span class="ip-step-label">가격/할인선택</span>
-            </div>
-            <div class="ip-step" data-step-target="DELIVERY">
-                <span class="ip-step-num">04</span>
-                <span class="ip-step-label">배송선택/주문자확인</span>
-            </div>
-            <div class="ip-step" data-step-target="PAYMENT">
-                <span class="ip-step-num">05</span>
-                <span class="ip-step-label">결제하기</span>
-            </div>
-        </nav>
-
-        <div class="ip-seat-header" data-visible-when="SEAT">
-            <div class="ip-seat-header-left">
-                <span class="ip-seat-step">02</span>
-                <span class="ip-seat-title">좌석 선택</span>
-            </div>
-            <div class="ip-seat-header-center">
-                <span class="ip-seat-concert">FAM + ILY : FAMILY : FAM I LOVE YOU</span>
-                <span class="ip-seat-venue">KSPO DOME</span>
-            </div>
-            <div class="ip-seat-header-right">
-                <span>일자 2026년 02월 06일(금)</span>
-                <span>시간 19시 00분</span>
             </div>
         </div>
 
-        <main class="ip-main">
-            <section class="ip-left">
-                <section class="ip-phase ip-phase-seat">
-                    <div class="ip-seat-area seat-area-view" data-seat-view="AREA">
-                        <div class="ip-seat-notice">원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.</div>
-                        <div class="ip-seat-alert">
-                            <p>※ 본 공연은 360도 원형무대로 진행되며, 무대 구성이 변경될 수 있습니다.</p>
-                            <p>※ 일부 좌석은 무대 장치/카메라로 인해 시야 제한이 발생할 수 있습니다.</p>
-                        </div>
-                        <div class="ip-seat-map">
-                            <svg viewBox="0 0 520 520" class="ip-seat-svg" role="img" aria-label="좌석 구역 선택">
-                                <circle cx="260" cy="260" r="230" class="ip-seat-ring" />
-                                <circle cx="260" cy="260" r="150" class="ip-seat-ring-inner" />
-                                <circle cx="260" cy="260" r="70" class="ip-seat-stage" />
-                                <text x="260" y="265" class="ip-seat-stage-text">STAGE</text>
-
-                                <g class="ip-seat-sections">
-                                    <path class="ip-seat-section" data-area-id="115"
-                                        d="M215 110 L305 110 L300 160 L220 160 Z" />
-                                    <text x="260" y="140" class="ip-seat-section-text">115</text>
-
-                                    <path class="ip-seat-section" data-area-id="116"
-                                        d="M320 120 L390 185 L355 220 L300 165 Z" />
-                                    <text x="345" y="175" class="ip-seat-section-text">116</text>
-
-                                    <path class="ip-seat-section" data-area-id="114"
-                                        d="M130 185 L200 120 L220 165 L160 220 Z" />
-                                    <text x="175" y="175" class="ip-seat-section-text">114</text>
-
-                                    <path class="ip-seat-section" data-area-id="109"
-                                        d="M215 410 L305 410 L300 360 L220 360 Z" />
-                                    <text x="260" y="395" class="ip-seat-section-text">109</text>
-
-                                    <path class="ip-seat-section" data-area-id="240"
-                                        d="M195 60 L325 60 L315 105 L205 105 Z" />
-                                    <text x="260" y="90" class="ip-seat-section-text">240</text>
-
-                                    <path class="ip-seat-section" data-area-id="241"
-                                        d="M340 80 L440 170 L400 210 L320 120 Z" />
-                                    <text x="385" y="140" class="ip-seat-section-text">241</text>
-
-                                    <path class="ip-seat-section" data-area-id="239"
-                                        d="M80 170 L180 80 L210 120 L125 210 Z" />
-                                    <text x="135" y="140" class="ip-seat-section-text">239</text>
-                                </g>
-
-                                <text x="35" y="270" class="ip-seat-floor">2F</text>
-                                <text x="470" y="270" class="ip-seat-floor">2F</text>
-                            </svg>
-                        </div>
+        <main class="ip-main-new">
+            <!-- Left: Seat Map Placeholder -->
+            <section class="ip-left-new">
+                <div class="ip-map-notice-row">
+                    <span class="diamond">◆</span> 원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.
+                </div>
+                <!-- Strict Placeholder as requested -->
+                <div class="ip-seat-map-placeholder"
+                    style="background-color: #f5f5f5; width: 100%; height: 600px; position: relative;">
+                    <!-- User explicitly asked for specific map content to be X (removed/placeholder).
+                         But we keep the Auth Badge as it's a critical functional overlay usually. -->
+                    <div class="map-auth-badge" style="position: absolute; bottom: 20px; right: 20px; z-index: 10;">
+                        <div class="auth-icon">✔</div>
+                        <span>안심예매<br>인증</span>
                     </div>
-
-                    <div class="ip-seat-detail seat-detail-view" data-seat-view="SEAT">
-                        <div class="ip-seat-detail-head">
-                            <span class="ip-seat-detail-title"><span class="ip-seat-area-badge"
-                                    id="seat-area-label">115</span> 영역의 좌석배치도입니다</span>
-                            <button class="ip-link" data-action="back-to-area">좌석도 전체보기</button>
-                        </div>
-                        <div class="ip-seat-detail-body">
-                            <div class="ip-seat-rows" id="seat-rows"></div>
-                            <div class="ip-seat-grid" id="seat-grid"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="ip-phase ip-phase-price">
-                    <div class="ip-left-box">
-                        <div class="ip-left-title">가격</div>
-                        <div class="ip-price-table">
-                            <div class="ip-price-row ip-price-header">
-                                <div>좌석등급</div>
-                                <div>권종</div>
-                                <div>가격</div>
-                                <div>수량</div>
-                            </div>
-                            <div class="ip-price-row">
-                                <div>전석</div>
-                                <div>일반</div>
-                                <div><span id="price-unit">88,000</span>원</div>
-                                <div>
-                                    <select id="ticket-quantity" class="ip-quantity">
-                                        <option value="1">1매</option>
-                                        <option value="2">2매</option>
-                                        <option value="3">3매</option>
-                                        <option value="4">4매</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ip-coupon">
-                            <div class="ip-coupon-title">쿠폰할인 <span class="ip-coupon-note">(중복사용불가)</span></div>
-                            <div class="ip-coupon-row">
-                                <span class="ip-coupon-brand">topping</span>
-                                <span class="ip-coupon-desc">토핑 가입 시 중복할인 쿠폰 제공</span>
-                                <button class="ip-btn-light" data-action="toast"
-                                    data-toast="쿠폰 기능은 연습모드입니다.">쿠폰받기</button>
-                            </div>
-                            <div class="ip-coupon-empty">해당 상품에 사용 가능한 쿠폰이 없습니다.</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="ip-phase ip-phase-delivery">
-                    <div class="ip-two-col">
-                        <div class="ip-left-box">
-                            <div class="ip-left-title">티켓수령방법</div>
-                            <div class="ip-option-list">
-                                <label class="ip-option"><input type="radio" name="delivery" checked />모바일티켓</label>
-                                <label class="ip-option"><input type="radio" name="delivery" />현장수령</label>
-                                <label class="ip-option"><input type="radio" name="delivery" />우편배송</label>
-                                <ul class="ip-option-note">
-                                    <li>모바일티켓은 모바일 기기에서만 이용 가능합니다.</li>
-                                    <li>모바일티켓은 예매 시, 지류티켓으로 변경할 수 없습니다.</li>
-                                    <li>결제 완료 후 예매내역에서 확인할 수 있습니다.</li>
-                                </ul>
-                            </div>
-                            <div class="ip-left-title">티켓프리미엄서비스</div>
-                            <div class="ip-option-list">
-                                <label class="ip-option"><input type="radio" name="premium" />스페셜 포장 - 화이트
-                                    (1,000원)</label>
-                                <label class="ip-option"><input type="radio" name="premium" />스페셜 포장 - 블루
-                                    (1,000원)</label>
-                                <label class="ip-option"><input type="radio" name="premium" />프리미엄 포장 - 블루
-                                    (2,000원)</label>
-                                <label class="ip-option"><input type="radio" name="premium" />topping 회원 전용 (무료)</label>
-                                <label class="ip-option"><input type="radio" name="premium" checked />선택안함</label>
-                            </div>
-                        </div>
-                        <div class="ip-left-box">
-                            <div class="ip-left-title">예매자 확인</div>
-                            <div class="ip-form">
-                                <div class="ip-form-row">
-                                    <label>이름</label>
-                                    <input type="text" id="order-name" value="박정호" />
-                                </div>
-                                <div class="ip-form-row">
-                                    <label>생년월일</label>
-                                    <div class="ip-form-inline">
-                                        <input type="text" id="order-birth" placeholder="예) 870201" maxlength="6" />
-                                        <span class="ip-form-hint">(YYMMDD)</span>
-                                    </div>
-                                </div>
-                                <div class="ip-form-row">
-                                    <label>연락처</label>
-                                    <div class="ip-form-inline">
-                                        <input type="text" id="order-phone-1" value="010" maxlength="3" />
-                                        <span>-</span>
-                                        <input type="text" id="order-phone-2" maxlength="4" />
-                                        <span>-</span>
-                                        <input type="text" id="order-phone-3" maxlength="4" />
-                                    </div>
-                                </div>
-                                <div class="ip-form-row">
-                                    <label>이메일</label>
-                                    <input type="text" id="order-email" placeholder="example@domain.com" />
-                                </div>
-                                <div class="ip-form-note">SMS 문자와 이메일로 예매 정보를 보내드립니다.</div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="ip-phase ip-phase-payment">
-                    <div class="ip-two-col">
-                        <div class="ip-left-box">
-                            <div class="ip-left-title">결제방식선택</div>
-                            <div class="ip-option-list">
-                                <label class="ip-option"><input type="radio" name="pay-method"
-                                        value="card" />신용카드</label>
-                                <label class="ip-option"><input type="radio" name="pay-method" value="kb" />KB
-                                    Pay</label>
-                                <label class="ip-option"><input type="radio" name="pay-method" value="kakao" />카카오페이
-                                    EVENT</label>
-                                <label class="ip-option"><input type="radio" name="pay-method"
-                                        value="bank" />무통장입금</label>
-                                <label class="ip-option"><input type="radio" name="pay-method"
-                                        value="phone" />휴대폰결제</label>
-                                <label class="ip-option"><input type="radio" name="pay-method"
-                                        value="payco" />PAYCO</label>
-                            </div>
-                        </div>
-                        <div class="ip-left-box">
-                            <div class="ip-left-title">결제수단입력</div>
-                            <div class="ip-pay-detail">
-                                <div class="ip-pay-row">
-                                    <label><input type="radio" name="card-type" value="general" />일반신용카드</label>
-                                    <select id="card-select" class="ip-select">
-                                        <option value="">카드종류를 선택하세요.</option>
-                                        <option value="hyundai">현대카드</option>
-                                        <option value="shinhan">신한카드</option>
-                                        <option value="kb">국민카드</option>
-                                    </select>
-                                </div>
-                                <div class="ip-pay-row">
-                                    <label><input type="radio" name="card-type" value="hana" />하나카드 (1만원 청구할인)</label>
-                                </div>
-                                <div class="ip-pay-row">
-                                    <label><input type="radio" name="card-type" value="toss" />인터파크토스카드 (5%
-                                        청구할인)</label>
-                                </div>
-                                <div class="ip-pay-row">
-                                    <label><input type="radio" name="card-type" value="nol" />NOL 카드 (10% 적립)</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                </div>
             </section>
 
-            <aside class="ip-right">
-                <div class="ip-right-seat" data-right="SEAT">
-                    <div class="ip-right-section">
-                        <div class="ip-right-header">좌석등급 / 잔여석</div>
-                        <div class="ip-right-body">
-                            <div class="ip-grade-row">
-                                <span class="ip-grade-color"></span>
-                                <span>전석</span>
-                                <span class="ip-grade-price">88,000원</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ip-right-section">
-                        <div class="ip-right-header">선택좌석</div>
-                        <div class="ip-right-body">
-                            <div class="ip-selected-count">총 <span id="seat-count">0</span>석 선택되었습니다.</div>
-                            <div class="ip-selected-list" id="seat-list"></div>
-                        </div>
-                    </div>
-                    <div class="ip-right-actions">
-                        <button class="ip-btn-primary" id="seat-complete" data-action="seat-complete"
-                            disabled>좌석선택완료</button>
-                        <div class="ip-right-sub">
-                            <button class="ip-btn-sub" data-action="prev-step">이전단계</button>
-                            <button class="ip-btn-sub" data-action="seat-reset">좌석 다시 선택</button>
-                        </div>
+            <!-- Right: 6 Sections -->
+            <aside class="ip-right-new">
+
+                <!-- 1. Header -->
+                <div class="ip-panel-header">
+                    <div class="ph-row1"><span class="arr">《</span> 좌석도 전체보기</div>
+                    <div class="ph-row2">원하시는 좌석위치를 선택하세요</div>
+                </div>
+
+                <!-- 2. Grade Label -->
+                <div class="ip-panel-section-header">
+                    <span class="sect-title">좌석등급 / 잔여석</span>
+                    <button class="btn-sm-gray">가격 전체보기 &gt;</button>
+                </div>
+
+                <!-- 3. Price Table -->
+                <div class="ip-panel-body-grade">
+                    <div class="price-table-row">
+                        <span class="color-chip"></span>
+                        <span class="seat-name">전석</span>
+                        <span class="seat-price">88,000원</span>
                     </div>
                 </div>
 
-                <div class="ip-right-summary" data-right="SUMMARY">
-                    <div class="ip-summary-top">
-                        <div class="ip-summary-poster"></div>
-                        <div class="ip-summary-info">
-                            <div class="ip-summary-title">FAM + ILY : FAMILY : FAM I LOVE YOU</div>
-                            <div class="ip-summary-date">2026.02.06 ~ 2026.02.08</div>
-                            <div class="ip-summary-venue">KSPO DOME</div>
-                            <div class="ip-summary-runtime">관람시간 : 120분</div>
-                        </div>
+                <!-- 4. Selected Seats Header -->
+                <div class="ip-panel-section-header">
+                    <span class="sect-title">선택좌석</span>
+                    <span class="sect-count">총 0석 선택되었습니다.</span>
+                </div>
+
+                <!-- 5. Selected Seats Body/CTA -->
+                <div class="ip-panel-body-choice">
+                    <!-- Table Header -->
+                    <div class="choice-table-head">
+                        <div class="th-grade">좌석등급</div>
+                        <div class="th-num">좌석번호</div>
                     </div>
-                    <div class="ip-summary-table">
-                        <div class="ip-summary-row"><span>일시</span><span>2026년 2월 6일(금) 19:00</span></div>
-                        <div class="ip-summary-row"><span>선택좌석</span><span id="summary-seat">전석</span></div>
-                        <div class="ip-summary-row"><span>티켓금액</span><span id="summary-ticket">88,000원</span></div>
-                        <div class="ip-summary-row"><span>수수료</span><span id="summary-fee">2,000원</span></div>
-                        <div class="ip-summary-row"><span>배송료</span><span id="summary-delivery">0원</span></div>
-                        <div class="ip-summary-row"><span>할인</span><span id="summary-discount">0원</span></div>
-                        <div class="ip-summary-row ip-summary-limit"><span>취소기한</span><span>2026년 2월 5일(목) 17:00</span>
-                        </div>
-                        <div class="ip-summary-row ip-summary-limit"><span>취소수수료</span><span>티켓금액의 0~30% <button
-                                    class="ip-btn-link" data-action="toast"
-                                    data-toast="상세보기는 연습모드입니다.">상세보기</button></span></div>
+                    <!-- Empty Body -->
+                    <div class="choice-table-body empty"></div>
+                </div>
+
+                <!-- 6. Footer -->
+                <div class="ip-panel-footer">
+                    <button class="btn-big-red">좌석선택완료 <span class="arr">&gt;</span></button>
+                    <div class="footer-btns">
+                        <button class="btn-footer-sub">&lt; 이전단계</button>
+                        <button class="btn-footer-sub">↻ 좌석 다시 선택</button>
                     </div>
-                    <div class="ip-summary-total">
-                        <span>총 결제금액</span>
-                        <strong id="summary-total">90,000원</strong>
-                    </div>
-                    <div class="ip-summary-actions">
-                        <button class="ip-btn-sub" data-action="prev-step">이전단계</button>
-                        <button class="ip-btn-primary" data-action="next-step">다음단계</button>
+                    <div class="footer-notice">
+                        <span class="warn-icon">!</span> <span class="warn-txt">좌석 선택시 유의사항</span>
                     </div>
                 </div>
+
             </aside>
         </main>
     </div>

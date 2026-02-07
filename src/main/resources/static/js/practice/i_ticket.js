@@ -59,8 +59,22 @@ function init() {
     renderSeats(20, 15); // Mock 20 rows, 15 cols
     updateUI();
 
-    // Start with captcha
-    renderCaptcha();
+    // Check navigation type to determine if we should preserve the solved state
+    const navEntries = performance.getEntriesByType('navigation');
+    const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
+
+    if (!isReload) {
+        // Clear solved state if it's a new entry, back/forward, etc.
+        sessionStorage.removeItem('captcha_solved');
+    }
+
+    // Check if captcha was already solved in this session
+    if (sessionStorage.getItem('captcha_solved') === 'true') {
+        DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
+        setSeatPhase('AREA');
+    } else {
+        renderCaptcha();
+    }
 }
 
 function bindEvents() {
@@ -157,7 +171,7 @@ function drawCaptcha() {
     const randomText = textColors[Math.floor(Math.random() * textColors.length)];
 
     // Generate random text
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     let text = '';
     for (let i = 0; i < 6; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
     STATE.captchaAnswer = text;
@@ -234,6 +248,7 @@ function handleCaptchaSubmit() {
     if (!DOM.captchaInput) return;
     const val = DOM.captchaInput.value.toUpperCase().trim();
     if (val === STATE.captchaAnswer) {
+        sessionStorage.setItem('captcha_solved', 'true');
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
         setSeatPhase('AREA');
     } else {
