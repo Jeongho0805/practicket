@@ -233,10 +233,10 @@ class SeatManager {
 
     shouldShowSoldOutAlertNow(nowMs = Date.now()) {
         const soldOutNow = this.computeSoldCountAt(nowMs) >= this.totalSeats;
-        if (soldOutNow && !this.soldOutAlertShown) {
-            this.soldOutAlertShown = true;
-            return true;
-        }
+        // if (soldOutNow && !this.soldOutAlertShown) {
+        //     this.soldOutAlertShown = true;
+        //     return true;
+        // }
         return false;
     }
 

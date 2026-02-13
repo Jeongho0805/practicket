@@ -10,10 +10,8 @@
 body {
     font-family: 'Malgun Gothic', 'Dotum', sans-serif;
     color: #333;
-    background: #444;
-    /* Dark outer background for popup feel */
+    background: #f5f5f5;
     overflow-y: auto;
-    /* Allow scroll if needed, but try to fit */
     font-size: 12px;
 }
 
@@ -35,14 +33,13 @@ a {
 
 
 .ip-wrapper {
-    background: #fff;
-    width: 100%;
-    max-width: 980px;
-    /* Standard Interpark width approx */
+    background: #ececec;
+    width: 980px;
     min-width: 980px;
-    margin: 0 auto;
+    margin: 0;
     position: relative;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
+    border: 1px solid #d7d7d7;
 }
 
 /* ── REFINED DESIGN TOKENS ── */
@@ -221,7 +218,7 @@ a {
     display: flex;
     width: 100%;
     min-height: 680px;
-    background: var(--ip-bg-pure);
+    background: #ececec;
 }
 
 .ip-left-new {
@@ -230,7 +227,7 @@ a {
     flex-direction: column;
     position: relative;
     border-right: 1px solid var(--ip-border-light);
-    background: #fff;
+    background: #ececec;
 }
 
 .ip-map-notice-row {
@@ -297,8 +294,7 @@ a {
 .ip-right-new {
     width: 310px;
     min-width: 310px;
-    background: #f0f0f2;
-    /* Warm Grey */
+    background: #ebebeb;
     display: flex;
     flex-direction: column;
     border-left: 1px solid #c0c0c0;
@@ -642,19 +638,14 @@ a {
 }
 
 .ip-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 99999;
+    position: absolute;
+    inset: 0;
+    z-index: 1200;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    /* Dimmed background */
-    backdrop-filter: blur(1px);
-    /* Slight blur */
+    /* Dim only inside ticket frame (not full viewport) */
+    background: rgba(0, 0, 0, 0.52);
 }
 
 .capchaLayer {
@@ -669,7 +660,7 @@ a {
     text-align: center;
     border-radius: 8px;
     /* Slightly rounded */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
     position: relative;
 }
 
