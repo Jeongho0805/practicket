@@ -584,6 +584,9 @@
                 return;
             }
 
+            // Reset seat decay attempt state for a fresh run.
+            sessionStorage.removeItem('iq.seat.decay.startedAt');
+
             // Queue Calculation Logic (0.1s Precision)
             const enabledAt = Number(sessionStorage.getItem("iq.queue.bookingEnabledAt") || Date.now());
             const now = Date.now();
