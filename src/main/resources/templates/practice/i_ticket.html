@@ -50,29 +50,77 @@
                 <div class="ip-map-notice-row">
                     <span class="diamond">◆</span> 원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.
                 </div>
-                <!-- Strict Placeholder as requested -->
-                <!-- Seat Map Container -->
+                <div class="ip-map-guide">
+                    <p class="guide-title-ko">구역 내 상단이 무대와 가까운 쪽입니다.</p>
+                    <p class="guide-title-en">The upper end of the section is the closest area to the stage.</p>
+                    <p class="guide-highlight-ko">※ 가로로 (한줄로 나란히) 예매해 주세요</p>
+                    <p class="guide-highlight-en">Please reserve seats horizontally (in a row).</p>
+                    <p class="guide-warn">※ 무대는 예매 편의를 위해 표시된 것으로 실제 무대와 다를 수 있습니다.</p>
+                    <p class="guide-warn">※ 일부 좌석은 난간, 구조물, 현장 기술 등으로 인해 시야 방해가 발생할 수 있습니다.</p>
+                    <p class="guide-warn">※ 스탠딩 구역 내 번호는 좌석 번호가 아닌 입장 순서입니다. 앞 번호를 선택할수록 입장 순서가 빨라집니다.</p>
+                </div>
+
                 <div class="ip-seat-map-container" id="areaMap">
-                    <div class="seat-map-grid">
-                        <!-- Top Row: A, B -->
-                        <div class="map-block block-a" onclick="toggleSeatView('show', 'A')">A</div>
-                        <div class="map-block block-b" onclick="toggleSeatView('show', 'B')">B</div>
+                    <svg class="seat-map-svg" viewBox="0 0 620 470" role="img" aria-label="좌석 구역 지도">
+                        <text class="level-label" x="150" y="115">2F</text>
+                        <text class="level-label" x="462" y="115">2F</text>
+                        <text class="level-label floor-label" x="306" y="332">FLOOR</text>
 
-                        <!-- Middle Left: E, F -->
-                        <div class="map-block block-e" onclick="toggleSeatView('show', 'E')">E</div>
-                        <div class="map-block block-f" onclick="toggleSeatView('show', 'F')">F</div>
+                        <path class="stage-top-shape" d="M206 110 H414 L392 142 H228 Z"></path>
+                        <text class="stage-top-text" x="310" y="136">STAGE</text>
 
-                        <!-- Center Stage -->
-                        <div class="map-stage">STAGE</div>
+                        <path class="outer-frame" d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z"></path>
 
-                        <!-- Middle Right: G, H -->
-                        <div class="map-block block-g" onclick="toggleSeatView('show', 'G')">G</div>
-                        <div class="map-block block-h" onclick="toggleSeatView('show', 'H')">H</div>
+                        <g class="svg-zone zone-orange" onclick="toggleSeatView('show', '314')">
+                            <polygon points="92,136 164,136 164,304 130,340 92,316"></polygon>
+                            <text x="126" y="222">314</text>
+                        </g>
 
-                        <!-- Bottom Row: C, D -->
-                        <div class="map-block block-c" onclick="toggleSeatView('show', 'C')">C</div>
-                        <div class="map-block block-d" onclick="toggleSeatView('show', 'D')">D</div>
-                    </div>
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', '214')">
+                            <polygon points="170,136 214,136 214,310 170,286"></polygon>
+                            <text x="191" y="222">214</text>
+                        </g>
+
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', '202')">
+                            <polygon points="406,136 450,136 450,286 406,310"></polygon>
+                            <text x="428" y="222">202</text>
+                        </g>
+
+                        <g class="svg-zone zone-orange" onclick="toggleSeatView('show', '310')">
+                            <polygon points="456,136 528,136 528,316 490,340 456,304"></polygon>
+                            <text x="491" y="222">310</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'W')">
+                            <polygon points="226,158 300,158 300,235 206,235 206,184"></polygon>
+                            <text x="255" y="198">W</text>
+                            <text class="zone-code" x="255" y="214">001</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'O')">
+                            <polygon points="320,158 394,158 414,184 414,235 320,235"></polygon>
+                            <text x="352" y="198">O</text>
+                            <text class="zone-code" x="352" y="214">002</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'D')">
+                            <polygon points="206,246 300,246 300,320 206,320"></polygon>
+                            <text x="255" y="282">D</text>
+                            <text class="zone-code" x="255" y="300">003</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'Z')">
+                            <polygon points="320,246 414,246 414,320 320,320"></polygon>
+                            <text x="352" y="282">Z</text>
+                            <text class="zone-code" x="352" y="300">004</text>
+                        </g>
+
+                        <rect class="stage-center-box" x="270" y="206" width="80" height="74"></rect>
+                        <text class="stage-center-text" x="310" y="249">STAGE</text>
+
+                        <rect class="console-box" x="254" y="350" width="112" height="28"></rect>
+                        <text class="console-text" x="310" y="370">CONSOLE</text>
+                    </svg>
 
                     <!-- Auth Badge (Keep floating) -->
                     <div class="map-auth-badge">
@@ -86,7 +134,7 @@
                     style="display:none; width: 650px; height: 550px; margin: 0 auto; background: #fff; border: 1px solid #eee; position: relative;">
                     <div class="seat-detail-header"
                         style="padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9;">
-                        <span class="detail-title" style="font-weight: bold; color: #333;">A구역 좌석선택</span>
+                        <span class="detail-title" style="font-weight: bold; color: #333;">W구역 좌석선택</span>
                         <!-- Back button removed -->
                     </div>
                     <div class="seat-grid-scroll"
@@ -97,7 +145,7 @@
 
                 <script>
                     // Global State
-                    let currentZone = 'A';
+                    let currentZone = 'W';
                     let soldOutMonitorId = null;
 
                     function refreshSeatSnapshot() {
@@ -299,7 +347,7 @@
                         let changed = false;
 
                         STATE.selectedSeats.forEach(s => {
-                            const match = s.id.match(/([A-Z])구역 (\d+)열 (\d+)번/);
+                            const match = s.id.match(/([A-Z0-9]+)구역 (\d+)열 (\d+)번/);
                             if (match) {
                                 const [_, z, r, n] = match;
                                 if (seatManager.checkAvailability(parseInt(r), parseInt(n), z)) {
@@ -424,9 +472,24 @@
                 <!-- 3. Price Table -->
                 <div class="ip-panel-body-grade">
                     <div class="price-table-row">
-                        <span class="color-chip"></span>
-                        <span class="seat-name">전석</span>
-                        <span class="seat-price">88,000원</span>
+                        <span class="color-chip chip-violet"></span>
+                        <span class="seat-name">스탠딩 R석(현장수령)</span>
+                        <span class="seat-price">154,000원</span>
+                    </div>
+                    <div class="price-table-row">
+                        <span class="color-chip chip-green"></span>
+                        <span class="seat-name">스탠딩 R석</span>
+                        <span class="seat-price">154,000원</span>
+                    </div>
+                    <div class="price-table-row">
+                        <span class="color-chip chip-blue"></span>
+                        <span class="seat-name">지정석 R석</span>
+                        <span class="seat-price">154,000원</span>
+                    </div>
+                    <div class="price-table-row">
+                        <span class="color-chip chip-orange"></span>
+                        <span class="seat-name">지정석 S석</span>
+                        <span class="seat-price">132,000원</span>
                     </div>
                 </div>
 

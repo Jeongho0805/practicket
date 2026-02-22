@@ -247,6 +247,56 @@ a {
     font-weight: bold;
 }
 
+.ip-map-guide {
+    width: 650px;
+    margin: 2px auto 8px;
+    text-align: center;
+    line-height: 1.28;
+}
+
+.ip-map-guide .guide-title-ko {
+    font-size: 14px;
+    letter-spacing: -0.2px;
+    color: #a62424;
+    font-weight: 700;
+    margin-bottom: 1px;
+}
+
+.ip-map-guide .guide-title-en {
+    font-size: 12px;
+    letter-spacing: -0.1px;
+    color: #1e1e1e;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.ip-map-guide .guide-highlight-ko {
+    display: inline-block;
+    background: #861111;
+    color: #fff;
+    padding: 1px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ip-map-guide .guide-highlight-en {
+    display: inline-block;
+    background: #861111;
+    color: #fff;
+    padding: 1px 10px 2px;
+    margin-bottom: 5px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ip-map-guide .guide-warn {
+    font-size: 11px;
+    letter-spacing: -0.1px;
+    color: #e06363;
+    font-weight: 700;
+    margin-top: 1px;
+}
+
 .ip-seat-map-check {
     width: 650px;
     height: 550px;
@@ -258,37 +308,6 @@ a {
     position: relative;
     border: 1px solid #eee;
 }
-
-/* Auth Badge Floating on Map */
-.map-auth-badge {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #8fa6f0, #738bd6);
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    z-index: 50;
-    text-align: center;
-    line-height: 1.2;
-    border: 2px solid #fff;
-}
-
-.map-auth-badge .auth-icon {
-    font-size: 18px;
-    margin-bottom: 2px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
 
 /* 3. Right Panel (Fixed Width) */
 .ip-right-new {
@@ -405,9 +424,10 @@ a {
 .price-table-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     font-size: 12px;
-    padding: 0;
+    padding: 3px 0;
+    gap: 7px;
 }
 
 .price-table-row .color-chip {
@@ -433,6 +453,26 @@ a {
     color: #444;
     font-family: Tahoma, sans-serif;
     font-size: 12px;
+}
+
+.price-table-row+.price-table-row {
+    margin-top: 5px;
+}
+
+.chip-violet {
+    background: #7065db !important;
+}
+
+.chip-green {
+    background: #44aa35 !important;
+}
+
+.chip-blue {
+    background: #4ca2e9 !important;
+}
+
+.chip-orange {
+    background: #e88958 !important;
 }
 
 /* Selected Seats Section */
@@ -879,161 +919,138 @@ a {
     opacity: 1;
 }
 
-/* ── SEAT MAP GRID (8 BLOCKS + CIRCULAR STAGE) ── */
+/* ── REALISTIC SEAT MAP (2F + FLOOR) ── */
 .ip-seat-map-container {
     width: 650px;
     height: 550px;
-    background: #fcfcfc;
+    background: #f1f1f1;
     margin: 0 auto;
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    border: 1px solid #eee;
+    border: 1px solid #dbdbdb;
+    padding-top: 6px;
 }
 
-.seat-map-grid {
-    display: grid;
-    /* 3 Columns: Left Blocks | Center Stage | Right Blocks */
-    grid-template-columns: 140px 220px 140px;
-    /* 3 Rows: Top Blocks | Middle Blocks | Bottom Blocks */
-    grid-template-rows: 100px 140px 100px;
-    gap: 15px;
-    justify-content: center;
-    align-items: center;
+.seat-map-svg {
+    width: 620px;
+    height: 470px;
 }
 
-/* Common Block Styles */
-.map-block {
-    background: #7C68EE;
-    /* Muted Blue (Matches 'All Seats' chip) */
-    color: #fff;
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
+.seat-map-svg text {
+    font-family: 'Tahoma', 'Malgun Gothic', sans-serif;
+    user-select: none;
+}
+
+.level-label {
+    font-size: 16px;
+    fill: #4d4d4d;
+    font-weight: 700;
+}
+
+.floor-label {
+    fill: #5d5d5d;
+    font-size: 14px;
+}
+
+.outer-frame {
+    fill: #fdfdfd;
+    stroke: #d8d8d8;
+    stroke-width: 2;
+}
+
+.stage-top-shape {
+    fill: #d7d7d7;
+}
+
+.stage-top-text {
+    font-size: 16px;
+    fill: #666;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.svg-zone {
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 2px solid #fff;
-    transition: none;
-    /* No Animation as requested */
+    transition: filter 0.12s ease, transform 0.12s ease;
+    transform-origin: center;
 }
 
-/* Specific Positions */
-
-/* Top Row (A, B) */
-.block-a {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: start;
-    width: 100px;
-    height: 70px;
-    align-self: end;
+.svg-zone polygon {
+    stroke: #f5f5f5;
+    stroke-width: 3;
 }
 
-.block-b {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-    width: 100px;
-    height: 70px;
-    align-self: end;
+.svg-zone text {
+    fill: #fff;
+    text-anchor: middle;
+    font-size: 22px;
+    font-weight: 700;
+    pointer-events: none;
 }
 
-/* Middle Left (E, F) -> Vertical Stack in Col 1 */
-.block-e {
-    grid-column: 1;
-    grid-row: 2;
-    align-self: start;
-    justify-self: end;
-    width: 100px;
-    /* Was 120px */
-    height: 65px;
+.svg-zone .zone-code {
+    font-size: 15px;
+    font-weight: 700;
+    opacity: 0.85;
 }
 
-.block-f {
-    grid-column: 1;
-    grid-row: 2;
-    align-self: end;
-    justify-self: end;
-    width: 100px;
-    /* Was 120px */
-    height: 65px;
+.svg-zone:hover {
+    filter: brightness(1.08);
+    transform: scale(1.015);
 }
 
-/* Middle Right (G, H) -> Vertical Stack in Col 3 */
-.block-g {
-    grid-column: 3;
-    grid-row: 2;
-    align-self: start;
-    justify-self: start;
-    width: 100px;
-    /* Was 120px */
-    height: 65px;
+.zone-orange polygon {
+    fill: #e98b5f;
 }
 
-.block-h {
-    grid-column: 3;
-    grid-row: 2;
-    align-self: end;
-    justify-self: start;
-    width: 100px;
-    /* Was 120px */
-    height: 65px;
+.zone-blue polygon {
+    fill: #4ea4ea;
 }
 
-/* Bottom Row (C, D) */
-.block-c {
-    grid-column: 2;
-    grid-row: 3;
-    justify-self: start;
-    width: 100px;
-    height: 70px;
-    align-self: start;
+.zone-floor-purple polygon {
+    fill: #7166dd;
 }
 
-.block-d {
-    grid-column: 2;
-    grid-row: 3;
-    justify-self: end;
-    width: 100px;
-    height: 70px;
-    align-self: start;
+.zone-floor-green polygon {
+    fill: #4baa34;
 }
 
-/* Center Stage: Circular & Grey */
-.map-stage {
-    grid-column: 2;
-    grid-row: 2;
-    width: 150px;
-    height: 150px;
-    background: #bbb;
-    /* Grey Stage */
-    border-radius: 50%;
-    /* Circular/Oval */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #fff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    z-index: 2;
-    justify-self: center;
-    align-self: center;
-    letter-spacing: 1px;
+.stage-center-box {
+    fill: #cecece;
+    stroke: #efefef;
+    stroke-width: 8;
+}
+
+.stage-center-text {
+    fill: #6e6e6e;
+    text-anchor: middle;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.console-box {
+    fill: #cccccc;
+    stroke: #efefef;
+    stroke-width: 4;
+}
+
+.console-text {
+    text-anchor: middle;
+    font-size: 16px;
+    fill: #707070;
+    font-weight: 700;
 }
 
 /* Auth Badge Position (Floating) */
 .map-auth-badge {
     position: absolute;
-    bottom: 25px;
-    right: 25px;
+    bottom: 14px;
+    right: 14px;
     width: 80px;
     height: 80px;
-    background: #8fa6f0;
+    background: linear-gradient(to bottom, #9aa9ea, #8699e2);
     color: #fff;
     border-radius: 50%;
     display: flex;
@@ -1047,6 +1064,7 @@ a {
     z-index: 50;
     text-align: center;
     line-height: 1.2;
+    border: 2px solid #ececec;
 }
 
 .map-auth-badge .auth-icon {

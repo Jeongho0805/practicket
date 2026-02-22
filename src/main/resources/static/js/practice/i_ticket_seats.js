@@ -12,6 +12,7 @@ class SeatManager {
         this.snapshotAtMs = 0;
         this.snapshotSoldCount = 0;
         this.soldOutAlertShown = false;
+        this.zones = ['314', '214', '202', '310', 'W', 'O', 'D', 'Z'];
 
         // Config
         this.totalSellOutDurationMs = 60000; // Fully sold out in 1 minute
@@ -20,7 +21,7 @@ class SeatManager {
 
         this.storageKeys = {
             decayStartAt: 'iq.seat.decay.startedAt',
-            zoneRanks: 'iq.seat.zoneRanks_v4'
+            zoneRanks: 'iq.seat.zoneRanks_v5'
         };
 
         this.init();
@@ -77,8 +78,7 @@ class SeatManager {
     }
 
     generateAllZoneRanks() {
-        const zones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        zones.forEach(zone => {
+        this.zones.forEach(zone => {
             this.zoneRanks[zone] = this.generateSingleZoneRank();
         });
     }
@@ -89,8 +89,7 @@ class SeatManager {
 
     isValidAllZoneRanks(ranksObj) {
         if (!ranksObj || typeof ranksObj !== 'object') return false;
-        const zones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        return zones.every(zone => this.isValidZoneRank(ranksObj[zone]));
+        return this.zones.every(zone => this.isValidZoneRank(ranksObj[zone]));
     }
 
     isValidZoneRank(rank) {
@@ -241,7 +240,7 @@ class SeatManager {
     }
 
     // Returns true if seat is available, false if sold
-    checkAvailability(row, col, zone = 'A') {
+    checkAvailability(row, col, zone = '314') {
         const globalCol = col;
         const seatId = `${row}-${globalCol}`;
 
