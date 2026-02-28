@@ -12,7 +12,7 @@ class SeatManager {
         this.snapshotAtMs = 0;
         this.snapshotSoldCount = 0;
         this.soldOutAlertShown = false;
-        this.zones = ['314', '214', '202', '310', 'W', 'O', 'D', 'Z'];
+        this.zones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
         // Config
         this.totalSellOutDurationMs = 60000; // Fully sold out in 1 minute
@@ -21,7 +21,7 @@ class SeatManager {
 
         this.storageKeys = {
             decayStartAt: 'iq.seat.decay.startedAt',
-            zoneRanks: 'iq.seat.zoneRanks_v5'
+            zoneRanks: 'iq.seat.zoneRanks_v6'
         };
 
         this.init();
@@ -56,8 +56,7 @@ class SeatManager {
     }
 
     resolveDecayStartAt(fallbackNow = Date.now()) {
-        // Prefer queue start time so seat decay starts after queue actually begins.
-        // If queue payload exists but queueStartAtMs is not set yet, wait.
+        // Prefer queue start time if it exists (legacy payload compatibility).
         const queuePayloadRaw = sessionStorage.getItem('iq.queue.payload');
         if (queuePayloadRaw) {
             try {
@@ -67,12 +66,14 @@ class SeatManager {
                     return queuePayload.queueStartAtMs;
                 }
             } catch (e) {
-                // Ignore parse failure and fall back.
+                // Ignore parse failure and fall back immediately.
             }
-            return 0;
+
+            // Queue feature is disabled. Ignore stale queue payload.
+            sessionStorage.removeItem('iq.queue.payload');
         }
 
-        // Direct access fallback: start immediately.
+        // Start immediately.
         sessionStorage.setItem(this.storageKeys.decayStartAt, String(fallbackNow));
         return fallbackNow;
     }
@@ -240,7 +241,7 @@ class SeatManager {
     }
 
     // Returns true if seat is available, false if sold
-    checkAvailability(row, col, zone = '314') {
+    checkAvailability(row, col, zone = 'A') {
         const globalCol = col;
         const seatId = `${row}-${globalCol}`;
 

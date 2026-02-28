@@ -71,48 +71,44 @@
 
                         <path class="outer-frame" d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z"></path>
 
-                        <g class="svg-zone zone-orange" onclick="toggleSeatView('show', '314')">
-                            <polygon points="92,136 164,136 164,304 130,340 92,316"></polygon>
-                            <text x="126" y="222">314</text>
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'E')">
+                            <polygon points="146,136 186,136 186,296 146,296"></polygon>
+                            <text x="166" y="216">E</text>
                         </g>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', '214')">
-                            <polygon points="170,136 214,136 214,310 170,286"></polygon>
-                            <text x="191" y="222">214</text>
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'F')">
+                            <polygon points="434,136 474,136 474,296 434,296"></polygon>
+                            <text x="454" y="216">F</text>
                         </g>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', '202')">
-                            <polygon points="406,136 450,136 450,286 406,310"></polygon>
-                            <text x="428" y="222">202</text>
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'G')">
+                            <polygon points="146,290 186,290 186,334 236,334 236,382 146,382"></polygon>
+                            <text x="192" y="352">G</text>
                         </g>
 
-                        <g class="svg-zone zone-orange" onclick="toggleSeatView('show', '310')">
-                            <polygon points="456,136 528,136 528,316 490,340 456,304"></polygon>
-                            <text x="491" y="222">310</text>
+                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'H')">
+                            <polygon points="434,290 474,290 474,382 384,382 384,334 434,334"></polygon>
+                            <text x="426" y="352">H</text>
                         </g>
 
-                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'W')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'A')">
                             <polygon points="226,158 300,158 300,235 206,235 206,184"></polygon>
-                            <text x="255" y="198">W</text>
-                            <text class="zone-code" x="255" y="214">001</text>
+                            <text x="246" y="200">A</text>
                         </g>
 
-                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'O')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'B')">
                             <polygon points="320,158 394,158 414,184 414,235 320,235"></polygon>
-                            <text x="352" y="198">O</text>
-                            <text class="zone-code" x="352" y="214">002</text>
+                            <text x="364" y="200">B</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'C')">
+                            <polygon points="206,246 300,246 300,320 226,320 206,300"></polygon>
+                            <text x="246" y="292">C</text>
                         </g>
 
                         <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'D')">
-                            <polygon points="206,246 300,246 300,320 206,320"></polygon>
-                            <text x="255" y="282">D</text>
-                            <text class="zone-code" x="255" y="300">003</text>
-                        </g>
-
-                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'Z')">
-                            <polygon points="320,246 414,246 414,320 320,320"></polygon>
-                            <text x="352" y="282">Z</text>
-                            <text class="zone-code" x="352" y="300">004</text>
+                            <polygon points="320,246 414,246 414,300 394,320 320,320"></polygon>
+                            <text x="364" y="292">D</text>
                         </g>
 
                         <rect class="stage-center-box" x="270" y="206" width="80" height="74"></rect>
@@ -134,7 +130,7 @@
                     style="display:none; width: 650px; height: 550px; margin: 0 auto; background: #fff; border: 1px solid #eee; position: relative;">
                     <div class="seat-detail-header"
                         style="padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9;">
-                        <span class="detail-title" style="font-weight: bold; color: #333;">W구역 좌석선택</span>
+                        <span class="detail-title" style="font-weight: bold; color: #333;">A구역 좌석선택</span>
                         <!-- Back button removed -->
                     </div>
                     <div class="seat-grid-scroll"
@@ -145,7 +141,7 @@
 
                 <script>
                     // Global State
-                    let currentZone = 'W';
+                    let currentZone = 'A';
                     let soldOutMonitorId = null;
 
                     function refreshSeatSnapshot() {
