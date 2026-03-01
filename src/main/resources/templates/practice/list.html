@@ -16,8 +16,7 @@
             gap: 50px;
             padding: 100px 20px 60px 20px;
             margin: 0 auto;
-            /* 핵심: 뷰포트 높이에서 헤더 높이를 뺀 만큼만 차지 → 하단 테두리가 잘리지 않음 */
-            max-height: calc(100vh - 140px);
+            height: calc(100vh - 60px);
             box-sizing: border-box;
         }
 
@@ -26,16 +25,13 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 24px;
-            /* 카드 간격 넓힘 */
         }
 
         .practice-card {
             background: #fff;
-            /* 테두리 두께 및 색상 약화 (2px -> 1px 연한 회색) */
             border: 1px solid #eef2f6;
             border-radius: 16px;
             padding: 28px 20px;
-            /* 패딩 넓혀 숨통 트임 */
             text-align: center;
             text-decoration: none;
             color: #333;
@@ -46,22 +42,18 @@
             gap: 12px;
             position: relative;
             overflow: hidden;
-            /* 은은한 기본 그림자 추가 */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
         .practice-card:hover:not(.disabled) {
             transform: translateY(-5px);
-            /* hover 시 그림자만 고급스럽게 확산, 강한 border 지양 */
             box-shadow: 0 12px 25px rgba(107, 25, 107, 0.12);
             border-color: #f1e9f1;
         }
 
         .practice-card.active {
-            /* 배경색을 흰색으로 유지하되 프랙티켓 톤의 부드러운 하이라이트 적용 */
             background-color: #fff;
             border: 2px solid #6b196b;
-            /* 활성화만 명확한 보라색(로고색) 테두리 */
             box-shadow: 0 8px 20px rgba(107, 25, 107, 0.1);
         }
 
@@ -82,7 +74,6 @@
 
         .practice-card.active .card-title {
             color: #6b196b;
-            /* 활성화 텍스트 색상 변경 */
         }
 
         .card-sub {
@@ -118,52 +109,74 @@
             display: flex;
             flex-direction: column;
             flex: 1;
+            min-height: 0;
         }
 
+        /* 뷰 모드 탭 (전체 랭킹 / 내 기록) */
         .ranking-top-bar {
             background: #fff;
-            /* 머리 부분도 깔끔하게 화이트 통일 */
             border-bottom: 1px solid #f1f5f9;
-            padding: 24px 30px;
-            /* 좀 더 여유있는 상단바 */
+            padding: 0 30px;
             display: flex;
-            flex-direction: column;
-            gap: 15px;
         }
 
-        .ranking-filters {
+        .view-mode-tab {
+            padding: 18px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #94a3b8;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            font-family: 'Pretendard', sans-serif;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .view-mode-tab.active {
+            color: #6b196b;
+            border-bottom-color: #6b196b;
+        }
+
+        /* 필터 바 */
+        .filter-bar {
+            padding: 14px 30px;
+            border-bottom: 1px solid #f1f5f9;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* 왼쪽: 티켓사 필터 (알약 형태) */
         .agency-tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .agency-tab {
-            padding: 8px 18px;
+            padding: 7px 16px;
             border-radius: 30px;
-            /* 더 둥글게 */
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             background: #f4f6f8;
             color: #64748b;
             border: 1px solid transparent;
             cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
             transition: all 0.2s;
         }
 
         .agency-tab.active {
             background: #fdf5fc;
-            /* 매우 연한 보라/자주색 배경 */
             color: #6b196b;
             border-color: #f3e6f3;
         }
 
-        /* 오른쪽: 기간 필터 (일/주/월간) */
+        .agency-tab.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
         .period-tabs {
             display: flex;
             background: #f4f6f8;
@@ -172,7 +185,7 @@
         }
 
         .period-tab {
-            padding: 8px 20px;
+            padding: 7px 18px;
             font-size: 14px;
             font-weight: 600;
             color: #64748b;
@@ -180,29 +193,40 @@
             background: none;
             border-radius: 8px;
             cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
             transition: background 0.2s, color 0.2s;
         }
 
         .period-tab.active {
             background: #fff;
-            /* 흰 박스가 스위칭되는 느낌 (iOS 토글 스타일) */
             color: #1a1a1a;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         }
 
-        /* 테이블 헤더 (고정 - 스크롤 안 함) */
-        .ranking-table-header {
+        /* 패널 토글 - flex 체인으로 보드 높이를 항상 일정하게 유지 */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ----- 전체 랭킹 테이블 ----- */
+        .ranking-table-header,
+        .ranking-table-body {
             padding: 0;
         }
 
-        /* 테이블 바디 (스크롤만 여기서 일어남) */
         .ranking-table-body {
-            padding: 0;
-            max-height: 350px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
         }
 
-        /* 스크롤바 디자인 (슬림) */
         .ranking-table-body::-webkit-scrollbar {
             width: 6px;
         }
@@ -223,9 +247,7 @@
         .ranking-table {
             width: 100%;
             border-collapse: separate;
-            /* collapse + sticky 충돌 버그 회피 */
             border-spacing: 0;
-            /* 보이는 간격을 0으로 유지 */
             text-align: center;
         }
 
@@ -234,7 +256,6 @@
             font-family: 'Pretendard', sans-serif;
             font-weight: 700;
             color: #64748b;
-            /* 차분한 슬레이트 → 헤더가 데이터보다 튀지 않게 */
             padding: 18px 15px;
             border-bottom: 1px solid #f1f5f9;
             font-size: 13px;
@@ -242,8 +263,7 @@
         }
 
         .ranking-table td {
-            padding: 20px 15px;
-            /* 데이터 셀도 여백 확장 */
+            padding: 16px 15px;
             border-bottom: 1px solid #f8fafc;
             font-size: 15px;
             font-weight: 500;
@@ -251,59 +271,51 @@
             transition: background 0.15s;
         }
 
+        .ranking-table tr:last-child td {
+            border-bottom: none;
+        }
+
         .ranking-table tr:hover td {
             background-color: #fbfbfc;
         }
 
-        /* 순위 강조 (1,2,3위) */
         .rank-num {
             font-family: 'my-font', sans-serif;
-            font-size: 18px;
+            font-size: 17px;
             color: #94a3b8;
         }
 
         .rank-1 .rank-num {
             color: #f59e0b;
-            font-size: 24px;
-        }
-
-        /* 금 */
-        .rank-2 .rank-num {
-            color: #cbd5e1;
             font-size: 22px;
-            text-shadow: 1px 1px 0px #94a3b8;
         }
 
-        /* 은 (플랫하게) */
-        .rank-3 .rank-num {
-            color: #d97706;
+        .rank-2 .rank-num {
+            color: #9ca3af;
             font-size: 20px;
         }
 
-        /* 동 */
+        .rank-3 .rank-num {
+            color: #c97c3a;
+            font-size: 18px;
+        }
 
         .rank-1 td {
             background-color: #fffcf5 !important;
             border-bottom-color: transparent;
         }
 
-        /* 닉네임 강조 (상위 랭크) */
         .rank-1 .rank-name {
             font-weight: 700;
-            color: #1a1a1a;
+            color: #111;
         }
 
-        .rank-2 .rank-name {
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
+        .rank-2 .rank-name,
         .rank-3 .rank-name {
             font-weight: 600;
             color: #1a1a1a;
         }
 
-        /* 기록 숫자 pill 뱃지 스타일 (Roboto Mono) */
         .time-record-badge {
             display: inline-block;
             background: #f5eef8;
@@ -317,6 +329,296 @@
             border: 1px solid #e9d8f4;
         }
 
+        #loadMoreWrap {
+            text-align: center;
+            padding: 16px;
+        }
+
+        #loadMoreBtn {
+            padding: 9px 28px;
+            background: #fdf5fc;
+            color: #6b196b;
+            border: 1px solid #f3e6f3;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        #loadMoreBtn:hover {
+            background: #f3e6f3;
+            border-color: #e0c8e0;
+        }
+
+        /* ----- 내 기록: 스탯 카드 ----- */
+        .my-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #f1f5f9;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 20px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .stat-value.highlight {
+            color: #6b196b;
+        }
+
+        .stat-value.muted {
+            font-family: 'Pretendard', sans-serif;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .stat-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .improve-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .improve-sec {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #16a34a;
+        }
+
+        .improve-pct {
+            display: inline-block;
+            background: #dcfce7;
+            color: #16a34a;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* ----- 내 기록: 테이블 ----- */
+        .my-record-table-header {
+            padding: 0;
+        }
+
+        .my-record-table-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        .my-record-table-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .my-record-table-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .my-record-table-body::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .record-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .record-table th {
+            background: #fff;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 700;
+            color: #64748b;
+            padding: 14px 16px;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 12px;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .record-row {
+            cursor: pointer;
+        }
+
+        .record-row td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f8fafc;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            text-align: center;
+            transition: background 0.15s;
+        }
+
+        .record-row:hover td {
+            background: #fdf5fc;
+        }
+
+        .record-row.open td {
+            background: #fdf5fc;
+            border-bottom-color: transparent;
+        }
+
+        /* 기록 배지 — 화살표 통합 */
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5eef8;
+            color: #6b196b;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 6px 10px 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #e9d8f4;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            user-select: none;
+        }
+
+        .time-badge:hover {
+            background: #ede0f5;
+            border-color: #d8bfec;
+        }
+
+        .badge-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(107, 25, 107, 0.1);
+            font-size: 9px;
+            color: #6b196b;
+            transition: transform 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .record-row.open .time-badge {
+            background: #6b196b;
+            color: #fff;
+            border-color: #6b196b;
+        }
+
+        .record-row.open .badge-arrow {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transform: rotate(180deg);
+        }
+
+        /* 상세 펼침 행 */
+        .detail-row td {
+            padding: 0;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fdf8ff;
+        }
+
+        .detail-row.hidden td {
+            display: none;
+        }
+
+        .detail-title-row {
+            padding: 12px 24px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .detail-inner {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #f3e6f3;
+            margin: 0 24px 16px 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #f3e6f3;
+        }
+
+        .detail-card {
+            background: #fff;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #6b196b;
+        }
+
+        .detail-value.neutral {
+            color: #334155;
+        }
+
+        .detail-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .attempt-num {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #94a3b8;
+        }
+
+        .date-text {
+            color: #64748b;
+            font-size: 13px;
+        }
+
         @media (max-width: 768px) {
             .practice-grid {
                 grid-template-columns: 1fr;
@@ -324,14 +626,17 @@
 
             .practice-hub-container {
                 padding: 40px 10px 20px;
-                /* 모바일은 상단 여백을 살짝 줄임 */
                 min-height: auto;
             }
 
-            .ranking-filters {
+            .filter-bar {
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
                 align-items: flex-start;
+            }
+
+            .my-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -343,20 +648,15 @@
         <!-- 1. 연습 선택 영역 -->
         <section>
             <div class="practice-grid">
-                <!-- 활성화된 I-Ticket 구버전 -->
                 <a href="/practice/i-ticket/intro" class="practice-card active">
                     <div class="card-title">I-Ticket</div>
                     <div class="card-sub">구버전 (클래식)</div>
                 </a>
-
-                <!-- 비활성화된 I-Ticket 신버전 -->
                 <div class="practice-card disabled">
                     <div class="badge-coming">준비중</div>
                     <div class="card-title">I-Ticket</div>
                     <div class="card-sub">신버전 UI</div>
                 </div>
-
-                <!-- 비활성화된 M-Ticket -->
                 <div class="practice-card disabled">
                     <div class="badge-coming">준비중</div>
                     <div class="card-title">M-Ticket</div>
@@ -365,126 +665,387 @@
             </div>
         </section>
 
-        <!-- 2. 랭킹 보드 영역 -->
-        <section style="display: flex; flex-direction: column; flex: 1;">
+        <!-- 2. 랭킹 보드 -->
+        <section style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
             <div class="ranking-board">
+
+                <!-- 뷰 모드 탭 -->
                 <div class="ranking-top-bar">
-                    <div class="ranking-filters">
-                        <!-- 티켓사 선택 탭 -->
+                    <button class="view-mode-tab active" onclick="switchMainTab('ranking', this)">전체 랭킹</button>
+                    <button class="view-mode-tab" onclick="switchMainTab('myrecord', this)">내 기록</button>
+                </div>
+
+                <!-- ── 전체 랭킹 패널 ── -->
+                <div id="panel-ranking" class="panel active">
+                    <!-- 필터 바 -->
+                    <div class="filter-bar">
                         <div class="agency-tabs">
                             <button class="agency-tab active">I-Ticket (구버전)</button>
-                            <button class="agency-tab">I-Ticket (신버전)</button>
-                            <button class="agency-tab">M-Ticket</button>
+                            <button class="agency-tab disabled" disabled>I-Ticket (신버전)</button>
+                            <button class="agency-tab disabled" disabled>M-Ticket</button>
                         </div>
-
-                        <!-- 기간 선택 탭 -->
                         <div class="period-tabs">
-                            <button class="period-tab">일간</button>
-                            <button class="period-tab active">주간</button>
-                            <button class="period-tab">월간</button>
+                            <button class="period-tab" onclick="selectPeriod(this)">일간</button>
+                            <button class="period-tab active" onclick="selectPeriod(this)">주간</button>
+                            <button class="period-tab" onclick="selectPeriod(this)">월간</button>
+                        </div>
+                    </div>
+
+                    <!-- 헤더 (고정) -->
+                    <div class="ranking-table-header">
+                        <table class="ranking-table">
+                            <colgroup>
+                                <col style="width: 15%;">
+                                <col style="width: 55%;">
+                                <col style="width: 30%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th style="text-align: left; padding-left: 30px;">닉네임</th>
+                                    <th>최고 기록</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                    <!-- 바디 (스크롤) -->
+                    <div class="ranking-table-body">
+                        <table class="ranking-table">
+                            <colgroup>
+                                <col style="width: 15%;">
+                                <col style="width: 55%;">
+                                <col style="width: 30%;">
+                            </colgroup>
+                            <tbody id="rankingTableBody">
+                                <tr>
+                                    <td colspan="3"
+                                        style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
+                                        불러오는 중...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div id="loadMoreWrap" style="display: none;">
+                            <button id="loadMoreBtn" onclick="loadRanking(false)">더 보기</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 헤더 테이블: 고정, 스크롤 없음 -->
-                <div class="ranking-table-header">
-                    <table class="ranking-table">
-                        <colgroup>
-                            <col style="width: 15%;">
-                            <col style="width: 55%;">
-                            <col style="width: 30%;">
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>순위</th>
-                                <th style="text-align: left; padding-left: 30px;">닉네임</th>
-                                <th>최고 기록</th>
-                            </tr>
-                        </thead>
-                    </table>
+                <!-- ── 내 기록 패널 ── -->
+                <div id="panel-myrecord" class="panel">
+
+                    <!-- 티켓 필터 -->
+                    <div class="filter-bar">
+                        <div class="agency-tabs">
+                            <button class="agency-tab active">I-Ticket (구버전)</button>
+                            <button class="agency-tab disabled" disabled>I-Ticket (신버전)</button>
+                            <button class="agency-tab disabled" disabled>M-Ticket</button>
+                        </div>
+                    </div>
+
+                    <!-- 스탯 카드 4개 -->
+                    <div class="my-stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">이번 달 순위</div>
+                            <div id="myRankValue" class="stat-value highlight">-</div>
+                            <div id="myRankSub" class="stat-sub">월간 기준</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">최고 기록</div>
+                            <div id="myBestRecord" class="stat-value highlight">-</div>
+                            <div class="stat-sub">전체 기록 중 최고</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">총 시도</div>
+                            <div id="myTotalCount" class="stat-value">-</div>
+                            <div class="stat-sub">I-Ticket 구버전</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">개선도</div>
+                            <div class="improve-wrap" style="padding-top: 4px;">
+                                <span id="myImproveSec" class="improve-sec">-</span>
+                                <span id="myImprovePct" class="improve-pct" style="display:none;">-</span>
+                            </div>
+                            <div class="stat-sub">첫 기록 대비</div>
+                        </div>
+                    </div>
+
+                    <!-- 내 기록 헤더 테이블 (고정) -->
+                    <div class="my-record-table-header">
+                        <table class="record-table">
+                            <colgroup>
+                                <col style="width: 13%;">
+                                <col style="width: 47%;">
+                                <col style="width: 40%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>시도</th>
+                                    <th style="text-align: left; padding-left: 20px;">날짜 / 시간</th>
+                                    <th>기록</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                    <!-- 내 기록 바디 (스크롤, JS로 채움) -->
+                    <div class="my-record-table-body">
+                        <table class="record-table">
+                            <colgroup>
+                                <col style="width: 13%;">
+                                <col style="width: 47%;">
+                                <col style="width: 40%;">
+                            </colgroup>
+                            <tbody id="myRecordTableBody">
+                                <tr>
+                                    <td colspan="3"
+                                        style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
+                                        기록을 불러오는 중...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- 바디 스크롤 컨테이너: 여기서만 스크롤 발생 -->
-                <div class="ranking-table-body">
-                    <table class="ranking-table">
-                        <colgroup>
-                            <col style="width: 15%;">
-                            <col style="width: 55%;">
-                            <col style="width: 30%;">
-                        </colgroup>
-                        <tbody>
-                            <tr class="rank-1">
-                                <td class="rank-num">1</td>
-                                <td class="rank-name" style="text-align: left; padding-left: 30px;">티켓팅마스터</td>
-                                <td><span class="time-record-badge">0.825s</span></td>
-                            </tr>
-                            <tr class="rank-2">
-                                <td class="rank-num">2</td>
-                                <td class="rank-name" style="text-align: left; padding-left: 30px;">광클장인</td>
-                                <td><span class="time-record-badge">0.912s</span></td>
-                            </tr>
-                            <tr class="rank-3">
-                                <td class="rank-num">3</td>
-                                <td class="rank-name" style="text-align: left; padding-left: 30px;">새로고침의신</td>
-                                <td><span class="time-record-badge">0.985s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">4</td>
-                                <td style="text-align: left; padding-left: 30px;">포도알사냥꾼</td>
-                                <td><span class="time-record-badge">1.102s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">5</td>
-                                <td style="text-align: left; padding-left: 30px;">이선좌피하기</td>
-                                <td><span class="time-record-badge">1.250s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">6</td>
-                                <td style="text-align: left; padding-left: 30px;">프랙티켓초보</td>
-                                <td><span class="time-record-badge">1.503s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">7</td>
-                                <td style="text-align: left; padding-left: 30px;">인터파크고수</td>
-                                <td><span class="time-record-badge">1.660s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">8</td>
-                                <td style="text-align: left; padding-left: 30px;">멜론티켓고인물</td>
-                                <td><span class="time-record-badge">1.821s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">9</td>
-                                <td style="text-align: left; padding-left: 30px;">예스24마이다스</td>
-                                <td><span class="time-record-badge">1.990s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">10</td>
-                                <td style="text-align: left; padding-left: 30px;">마지막손님</td>
-                                <td><span class="time-record-badge">2.140s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">11</td>
-                                <td style="text-align: left; padding-left: 30px;">광탈자</td>
-                                <td><span class="time-record-badge">2.441s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">12</td>
-                                <td style="text-align: left; padding-left: 30px;">눈물흘리는팬</td>
-                                <td><span class="time-record-badge">2.880s</span></td>
-                            </tr>
-                            <tr>
-                                <td class="rank-num">13</td>
-                                <td style="text-align: left; padding-left: 30px;">다음기회에</td>
-                                <td><span class="time-record-badge">3.102s</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </section>
 
     </div>
+
+    <script>
+        // ── 랭킹 상태 ──
+        const rankingState = {
+            type: 'I_TICKET_OLD',
+            period: 'WEEKLY',
+            cursor: null,
+            hasNext: false,
+            loading: false,
+            rankOffset: 0
+        };
+
+        const PERIOD_MAP = { '일간': 'DAILY', '주간': 'WEEKLY', '월간': 'MONTHLY' };
+
+        // ── 탭 전환 ──
+        function switchMainTab(target, btn) {
+            document.querySelectorAll('.view-mode-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + target).classList.add('active');
+            if (target === 'myrecord') loadMyRecords();
+        }
+
+        function selectPeriod(btn) {
+            btn.closest('.period-tabs').querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            rankingState.period = PERIOD_MAP[btn.textContent.trim()];
+            loadRanking(true);
+        }
+
+        // ── 전체 랭킹 로드 ──
+        async function loadRanking(reset) {
+            if (rankingState.loading) return;
+            if (!reset && !rankingState.hasNext) return;
+
+            if (reset) {
+                rankingState.cursor = null;
+                rankingState.hasNext = false;
+                rankingState.rankOffset = 0;
+                document.getElementById('rankingTableBody').innerHTML =
+                    '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
+                document.getElementById('loadMoreWrap').style.display = 'none';
+            }
+
+            rankingState.loading = true;
+
+            let url = `/api/practice/rank?type=${rankingState.type}&period=${rankingState.period}&limit=20`;
+            if (rankingState.cursor) {
+                url += `&cursorTotalDurationMs=${rankingState.cursor.totalDurationMs}&cursorId=${rankingState.cursor.id}`;
+            }
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+
+                const tbody = document.getElementById('rankingTableBody');
+
+                if (reset) tbody.innerHTML = '';
+
+                if (data.data.length === 0 && reset) {
+                    tbody.innerHTML =
+                        '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다.</td></tr>';
+                } else {
+                    data.data.forEach((item, i) => {
+                        const rank = rankingState.rankOffset + i + 1;
+                        tbody.appendChild(createRankRow(rank, item));
+                    });
+                    rankingState.rankOffset += data.data.length;
+                }
+
+                rankingState.hasNext = data.hasNext;
+                rankingState.cursor = data.hasNext ? data.nextCursor : null;
+                document.getElementById('loadMoreWrap').style.display = data.hasNext ? 'block' : 'none';
+
+            } catch (e) {
+                if (reset) {
+                    document.getElementById('rankingTableBody').innerHTML =
+                        '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                }
+            } finally {
+                rankingState.loading = false;
+            }
+        }
+
+        function createRankRow(rank, item) {
+            const tr = document.createElement('tr');
+            if (rank <= 3) tr.classList.add(`rank-${rank}`);
+
+            const timeStr = (item.totalDurationMs / 1000).toFixed(3) + 's';
+
+            const rankTd = document.createElement('td');
+            rankTd.className = 'rank-num';
+            rankTd.textContent = rank;
+
+            const nameTd = document.createElement('td');
+            nameTd.className = 'rank-name';
+            nameTd.style.cssText = 'text-align:left;padding-left:30px;';
+            nameTd.textContent = item.nickname;
+
+            const timeTd = document.createElement('td');
+            const badge = document.createElement('span');
+            badge.className = 'time-record-badge';
+            badge.textContent = timeStr;
+            timeTd.appendChild(badge);
+
+            tr.appendChild(rankTd);
+            tr.appendChild(nameTd);
+            tr.appendChild(timeTd);
+
+            return tr;
+        }
+
+        // ── 내 기록 로드 ──
+        function loadMyRecords() {
+            fetch('/api/practice/my-results')
+                .then(res => res.json())
+                .then(data => renderMyRecords(data))
+                .catch(() => renderMyRecords(null));
+        }
+
+        function renderMyRecords(data) {
+            const tbody = document.getElementById('myRecordTableBody');
+            const rankEl = document.getElementById('myRankValue');
+            const rankSub = document.getElementById('myRankSub');
+            const bestEl = document.getElementById('myBestRecord');
+            const countEl = document.getElementById('myTotalCount');
+            const secEl = document.getElementById('myImproveSec');
+            const pctEl = document.getElementById('myImprovePct');
+
+            if (!data || data.records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>`;
+                rankEl.textContent = '-';
+                rankEl.className = 'stat-value highlight';
+                rankSub.textContent = '이번 달 미참여';
+                bestEl.textContent = '-';
+                countEl.textContent = '-';
+                secEl.textContent = '-';
+                return;
+            }
+
+            rankEl.className = 'stat-value highlight';
+            rankEl.textContent = data.monthlyRank ? data.monthlyRank + '위' : '-';
+            rankSub.textContent = data.monthlyRank ? '월간 기준' : '이번 달 미참여';
+            bestEl.textContent = (data.bestMs / 1000).toFixed(3) + 's';
+            countEl.innerHTML = data.totalCount + '<span style="font-size:14px;color:#94a3b8;font-family:Pretendard;font-weight:500">회</span>';
+
+            if (data.totalCount >= 2) {
+                const improveSec = ((data.firstMs - data.bestMs) / 1000).toFixed(3);
+                const improvePct = ((data.firstMs - data.bestMs) / data.firstMs * 100).toFixed(1);
+                secEl.textContent = '-' + improveSec + 's';
+                pctEl.textContent = improvePct + '% 단축';
+                pctEl.style.display = 'inline-block';
+            }
+
+            tbody.innerHTML = '';
+            data.records.forEach((r, idx) => {
+                const attemptNum = data.totalCount - idx;
+                const timeStr = (r.totalDurationMs / 1000).toFixed(3) + 's';
+                const dateStr = formatDate(r.startedAt);
+
+                const tr = document.createElement('tr');
+                tr.className = 'record-row';
+                tr.innerHTML = `
+                    <td><span class="attempt-num">#${attemptNum}</span></td>
+                    <td class="date-text" style="text-align:left;padding-left:20px;">${dateStr}</td>
+                    <td>
+                        <span class="time-badge">
+                            ${timeStr}
+                            <span class="badge-arrow">&#9660;</span>
+                        </span>
+                    </td>
+                `;
+
+                const detailTr = document.createElement('tr');
+                detailTr.className = 'detail-row hidden';
+                detailTr.innerHTML = `
+                    <td colspan="3">
+                        <div class="detail-title-row">상세 소요 시간</div>
+                        <div class="detail-inner">
+                            <div class="detail-card">
+                                <div class="detail-label">반응 시간</div>
+                                <div class="detail-value">${(r.reactionTimeMs / 1000).toFixed(3)}s</div>
+                                <div class="detail-sub">클릭까지 걸린 시간</div>
+                            </div>
+                            <div class="detail-card">
+                                <div class="detail-label">큐 대기</div>
+                                <div class="detail-value">${(r.queueWaitMs / 1000).toFixed(3)}s</div>
+                                <div class="detail-sub">대기열 통과 시간</div>
+                            </div>
+                            <div class="detail-card">
+                                <div class="detail-label">좌석 선택</div>
+                                <div class="detail-value">${(r.seatSelectionMs / 1000).toFixed(3)}s</div>
+                                <div class="detail-sub">좌석 고르기 속도</div>
+                            </div>
+                            <div class="detail-card">
+                                <div class="detail-label">첫 큐 순번</div>
+                                <div class="detail-value neutral">#${r.queueInitialRank}번</div>
+                                <div class="detail-sub">진입 시 대기 순번</div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tr.addEventListener('click', () => toggleDetail(tr, detailTr));
+                tbody.appendChild(tr);
+                tbody.appendChild(detailTr);
+            });
+        }
+
+        function toggleDetail(mainRow, detailRow) {
+            const isOpen = mainRow.classList.contains('open');
+            document.querySelectorAll('.record-row.open').forEach(r => r.classList.remove('open'));
+            document.querySelectorAll('.detail-row:not(.hidden)').forEach(r => r.classList.add('hidden'));
+            if (!isOpen) {
+                mainRow.classList.add('open');
+                detailRow.classList.remove('hidden');
+                setTimeout(() => mainRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+            }
+        }
+
+        function formatDate(isoString) {
+            if (!isoString) return '-';
+            const d = new Date(isoString);
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        // ── 초기 로드 ──
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRanking(true);
+        });
+    </script>
 </body>
 
 </html>

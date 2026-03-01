@@ -133,7 +133,7 @@ function handleAction(action, target) {
         case 'back-to-area': setSeatPhase('AREA'); break;
         case 'seat-reset': resetSeats(); break;
         case 'seat-complete':
-            if (STATE.selectedSeats.length > 0) setStep('PRICE');
+            if (STATE.selectedSeats.length > 0) completePractice();
             else alert('좌석을 선택해주세요.');
             break;
         case 'prev-step': goBackStep(); break;
@@ -454,4 +454,68 @@ function showToast(msg) {
     setTimeout(() => {
         DOM.toast.classList.remove('show');
     }, 2000);
+}
+
+// ── 연습 완료 API ──
+
+async function completePractice() {
+    const sessionId = sessionStorage.getItem('pkt.sessionId');
+    const reactionTimeMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
+    const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
+    const seatStartMs = parseInt(sessionStorage.getItem('pkt.seatSelectionStartMs') || '0');
+    const seatSelectionMs = seatStartMs ? Math.max(0, Date.now() - seatStartMs) : 0;
+    const queueInitialRank = parseInt(sessionStorage.getItem('pkt.queueInitialRank') || '0');
+
+    // sessionStorage 키 정리
+    ['pkt.sessionId', 'pkt.reactionTimeMs', 'pkt.queueWaitMs',
+        'pkt.queueInitialRank', 'pkt.queueWaitStartMs',
+        'pkt.seatSelectionStartMs', 'pkt.reactionStartMs'
+    ].forEach(k => sessionStorage.removeItem(k));
+
+    // 세션 없으면 (= 직접 접근) 일반 플로우로
+    if (!sessionId) {
+        setStep('PRICE');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/practice/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank })
+        });
+
+        if (res.ok) {
+            showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+        } else {
+            const err = await res.json().catch(() => null);
+            console.warn('[Practicket] complete failed:', err);
+            // 타이밍 오류를 포함한 배서도 모달 표시 (코드된 병방)
+            showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+        }
+    } catch (e) {
+        console.error('[Practicket] complete error:', e);
+        setStep('PRICE'); // 네트워크 오류 시 기존 플로우
+    }
+}
+
+function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank }) {
+    const totalMs = reactionTimeMs + queueWaitMs + seatSelectionMs;
+    const fmt = ms => (ms / 1000).toFixed(3) + 's';
+
+    const now = new Date();
+    const dateStr = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0')
+    ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+    document.getElementById('pkt-meta').textContent = 'I-Ticket 구버전 · ' + dateStr;
+    document.getElementById('pkt-total-num').textContent = (totalMs / 1000).toFixed(3);
+    document.getElementById('pkt-reaction').textContent = fmt(reactionTimeMs);
+    document.getElementById('pkt-queue').textContent = fmt(queueWaitMs);
+    document.getElementById('pkt-seat').textContent = fmt(seatSelectionMs);
+    document.getElementById('pkt-rank').textContent = queueInitialRank ? '#' + queueInitialRank.toLocaleString() : '-';
+
+    document.getElementById('pkt-complete-overlay').classList.add('visible');
 }

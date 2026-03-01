@@ -578,31 +578,51 @@
         }
 
         function startBooking() {
-            // Only check if date is selected (time slot is auto-selected)
             if (!selectedDate) {
                 alert('날짜를 선택해주세요.');
                 return;
             }
 
-            // Reset session state for a fresh run.
+            // 4. 예매하기 클릭 시점 반응시간 계산
+            const reactionStart = parseInt(sessionStorage.getItem('pkt.reactionStartMs') || '0');
+            if (reactionStart) {
+                sessionStorage.setItem('pkt.reactionTimeMs', (Date.now() - reactionStart).toString());
+            }
+
+            // 기존 쾐시 초기화
             sessionStorage.removeItem('iq.seat.decay.startedAt');
             sessionStorage.removeItem('iq.queue.payload');
             sessionStorage.removeItem('iq.queue.bookingEnabledAt');
 
-            // Redirect immediately
             window.location.href = '/practice/i-ticket';
         }
 
-        function startPractice() {
+        async function startPractice() {
             const modal = document.getElementById('start-modal');
             const countdownUi = document.getElementById('countdown-ui');
             const bookingUi = document.getElementById('booking-ui');
             const timerDisplay = document.getElementById('timer-display');
 
-            // Hide modal
-            modal.style.display = 'none';
+            // 1. API: 연습 세션 시작
+            try {
+                const res = await fetch('/api/practice/start?type=I_TICKET_OLD', { method: 'POST' });
+                if (res.ok) {
+                    const data = await res.json();
+                    sessionStorage.setItem('pkt.sessionId', data.sessionId);
+                } else {
+                    alert('연습 세션을 시작할 수 없습니다. (토큰 발급 실패)\n다시 로그인하거나 나중에 시도해주세요.');
+                    window.location.href = '/practice';
+                    return;
+                }
+            } catch (e) {
+                console.error('[Practicket] Failed to start session:', e);
+                alert('네트워크 오류가 발생했습니다. (토큰 발급 실패)\n다시 시도해주세요.');
+                window.location.href = '/practice';
+                return;
+            }
 
-            // Ensure initial state
+            // 2. 모달 숨기기 + 카운트다운 시작
+            modal.style.display = 'none';
             countdownUi.style.display = 'block';
             bookingUi.style.display = 'none';
 
@@ -614,7 +634,7 @@
                 timerDisplay.innerText = `${m}:${s}`;
             }
 
-            updateTimer(); // Initial: 00:05
+            updateTimer();
 
             const interval = setInterval(() => {
                 seconds--;
@@ -622,7 +642,8 @@
 
                 if (seconds <= 0) {
                     clearInterval(interval);
-                    // Switch to booking UI
+                    // 3. 카운트다운 0이 되는 순간 = 예매하기 버튼 활성화 시점
+                    sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
                     countdownUi.style.display = 'none';
                     bookingUi.style.display = 'block';
                 }

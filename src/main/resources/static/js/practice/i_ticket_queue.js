@@ -69,8 +69,10 @@ const QueueManager = {
 
     createFallbackPayload() {
         const now = Date.now();
-        // Default fallabck logic if direct access
         const initialQueue = Math.floor(Math.random() * (QueueConfig.MAX_INITIAL_QUEUE - QueueConfig.MIN_INITIAL_QUEUE) + QueueConfig.MIN_INITIAL_QUEUE);
+
+        // 첫 큐 순번 기록
+        sessionStorage.setItem('pkt.queueInitialRank', initialQueue.toString());
 
         this.payload = {
             version: 2,
@@ -79,7 +81,6 @@ const QueueManager = {
             introLoadingMs: 800,
             queueStartAtMs: null,
             initialQueue: initialQueue,
-            // Calculate speed to finish in exactly 5 seconds
             dequeuePerSec: initialQueue / (QueueConfig.MAX_DURATION_MS / 1000),
             status: 'INTRO_LOADING'
         };
@@ -174,23 +175,17 @@ const QueueManager = {
     },
 
     startQueue() {
-        // Set Start Time if not set
         if (!this.payload.queueStartAtMs) {
             this.payload.queueStartAtMs = Date.now();
             this.payload.status = 'WAITING';
-
-            // Respect the dequeuePerSec passed from Intro (10,000/sec)
-            // Do NOT overwrite it here.
-
             this.savePayload();
         }
 
+        // 큐 대기 시작 시점 기록
+        sessionStorage.setItem('pkt.queueWaitStartMs', this.payload.queueStartAtMs.toString());
+
         this.renderPhase('QUEUE');
-
-        // Initial render
         this.updateLoop();
-
-        // Start Interval (200ms updates -> 2,000 reduction per tick)
         this.intervalId = setInterval(() => this.updateLoop(), 200);
     },
 
@@ -250,11 +245,15 @@ const QueueManager = {
         this.payload.status = 'PASSED';
         this.savePayload();
 
-        // Add Transition Effect (White-out)
+        // 큐 대기 종료 → 소요 시간 및 좌석 선택 시작 시점 기록
+        const queueWaitStart = parseInt(sessionStorage.getItem('pkt.queueWaitStartMs') || '0');
+        if (queueWaitStart) {
+            sessionStorage.setItem('pkt.queueWaitMs', (Date.now() - queueWaitStart).toString());
+        }
+        sessionStorage.setItem('pkt.seatSelectionStartMs', Date.now().toString());
+
         if (this.dom.overlay) {
             this.dom.overlay.classList.add('finished');
-
-            // Wait for 0.7s "white screen" then remove
             setTimeout(() => {
                 this.removeQueueDOM();
                 console.log('Queue Passed');
