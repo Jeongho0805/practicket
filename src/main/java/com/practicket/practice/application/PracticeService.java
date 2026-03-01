@@ -6,6 +6,8 @@ import com.practicket.common.exception.PracticeException;
 import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeResult;
 import com.practicket.practice.domain.PracticeType;
+import com.practicket.practice.dto.PracticeMyRecordsResponse;
+import com.practicket.practice.dto.PracticeMyStatsResponse;
 import com.practicket.practice.dto.PracticeRankItem;
 import com.practicket.practice.dto.PracticeRankResponse;
 import com.practicket.practice.dto.PracticeResultRequest;
@@ -15,6 +17,7 @@ import com.practicket.practice.infra.persistence.PracticeRankRepository;
 import com.practicket.practice.infra.persistence.PracticeResultRepository;
 import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -109,5 +113,62 @@ public class PracticeService {
                 new PracticeRankResponse.NextCursor(last.totalDurationMs(), last.id());
 
         return new PracticeRankResponse(items, nextCursor, true);
+    }
+
+    @Transactional(readOnly = true)
+    public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
+        String clientKey = clientInfo.getToken();
+
+        long totalCount = resultRepository.countByClientKeyAndType(clientKey, type);
+        if (totalCount == 0) {
+            return new PracticeMyStatsResponse(null, null, null, 0);
+        }
+
+        Integer bestMs = resultRepository.findBestMs(clientKey, type).orElse(null);
+        Integer firstMs = resultRepository.findTopByClientKeyAndTypeOrderByIdAsc(clientKey, type)
+                .map(PracticeResult::getTotalDurationMs)
+                .orElse(null);
+
+        LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1)
+                .withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime monthEnd = monthStart.plusMonths(1);
+
+        Long monthlyRank = null;
+        Optional<Integer> myMonthlyBest = resultRepository.findMonthlyBestMs(clientKey, type, monthStart, monthEnd);
+        if (myMonthlyBest.isPresent()) {
+            long betterCount = resultRepository.countUsersWithBetterMonthlyRecord(
+                    type.name(), monthStart, monthEnd, myMonthlyBest.get());
+            monthlyRank = betterCount + 1;
+        }
+
+        return new PracticeMyStatsResponse(monthlyRank, bestMs, firstMs, (int) totalCount);
+    }
+
+    @Transactional(readOnly = true)
+    public PracticeMyRecordsResponse getMyRecords(ClientInfo clientInfo, PracticeType type,
+                                                   Long cursorId, int limit) {
+        String clientKey = clientInfo.getToken();
+        PageRequest pageable = PageRequest.of(0, limit + 1);
+
+        List<PracticeResult> results = cursorId == null
+                ? resultRepository.findByClientKeyAndTypeOrderByIdDesc(clientKey, type, pageable)
+                : resultRepository.findRecordsBeforeCursor(clientKey, type, cursorId, pageable);
+
+        boolean hasNext = results.size() > limit;
+        List<PracticeResult> data = hasNext ? results.subList(0, limit) : results;
+
+        List<PracticeMyRecordsResponse.RecordItem> items = data.stream()
+                .map(r -> new PracticeMyRecordsResponse.RecordItem(
+                        r.getTotalDurationMs(),
+                        r.getReactionTimeMs(),
+                        r.getQueueWaitMs(),
+                        r.getSeatSelectionMs(),
+                        r.getQueueInitialRank(),
+                        r.getStartedAt()
+                ))
+                .toList();
+
+        Long nextCursor = hasNext ? data.get(data.size() - 1).getId() : null;
+        return new PracticeMyRecordsResponse(items, nextCursor, hasNext);
     }
 }
