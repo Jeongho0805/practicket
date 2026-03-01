@@ -22,6 +22,11 @@ public enum ErrorCode {
 
     FORBIDDEN(403, "G01", "접근 권한이 없습니다."),
 
+    PRACTICE_SESSION_NOT_FOUND(404, "PR01", "연습 세션이 존재하지 않거나 만료되었습니다."),
+    PRACTICE_SESSION_OWNER_MISMATCH(403, "PR02", "본인의 연습 세션이 아닙니다."),
+    PRACTICE_TOO_FAST(400, "PR03", "비정상적으로 빠른 요청입니다."),
+    PRACTICE_INVALID_TIMING(400, "PR04", "올바르지 않은 타이밍 데이터입니다."),
+
     ;
 
 
