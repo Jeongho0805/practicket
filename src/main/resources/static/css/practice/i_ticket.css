@@ -1202,3 +1202,254 @@ a {
     font-weight: bold;
     color: #333;
 }
+
+/* ── STEP 3: PRICING PANEL STYLES ── */
+.ip-step3-main {
+    display: flex;
+    width: 100%;
+    min-height: 680px;
+    background: #ececec;
+}
+
+.ip-step3-left {
+    flex: 1;
+    padding: 20px;
+    background: #fff;
+    border-right: 1px solid var(--ip-border-light);
+    position: relative;
+}
+
+.ip-step3-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Price Table */
+.ip-price-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-top: 2px solid #ed1b24;
+}
+
+.ip-price-table th {
+    background: #f1f1f1;
+    padding: 10px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-weight: normal;
+    color: #555;
+}
+
+.ip-price-table th span.red {
+    color: #ed1b24;
+    font-weight: bold;
+}
+
+.ip-price-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+    color: #333;
+}
+
+.td-type {
+    width: 15%;
+    text-align: center;
+    background: #fafafa;
+}
+
+.td-name {
+    width: 45%;
+}
+
+.td-price {
+    width: 25%;
+    text-align: right;
+}
+
+.td-select {
+    width: 15%;
+    text-align: center;
+}
+
+.td-select select {
+    width: 60px;
+    height: 24px;
+    padding: 2px;
+    border: 1px solid #aaa;
+    background: #fff;
+}
+
+/* Coupon Area */
+.ip-coupon-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+}
+
+.ip-coupon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #555;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.ip-coupon-header .c-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.ip-coupon-header .c-sub {
+    font-size: 11px;
+    color: #888;
+}
+
+.ip-coupon-header .btn-coupon {
+    background: #d9534f;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.ip-coupon-box {
+    border: 1px solid #ccc;
+    background: #fafafa;
+    padding: 15px;
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+}
+
+/* Right Panel Step 3 */
+.ip-step3-right {
+    width: 310px;
+    min-width: 310px;
+    background: #fdfdfd;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #c0c0c0;
+}
+
+.ip-s3-poster-area {
+    background: #333;
+    padding: 15px;
+    color: #fff;
+    display: flex;
+    gap: 10px;
+}
+
+.ip-s3-poster-img {
+    width: 70px;
+    height: 90px;
+    background: #555 url('https://ticketimage.interpark.com/Play/image/large/25/25000030_p.gif') no-repeat center/cover;
+    border: 1px solid #000;
+}
+
+.ip-s3-poster-desc {
+    font-size: 12px;
+    flex: 1;
+}
+
+.ip-s3-poster-desc h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+    word-break: break-all;
+    font-weight: bold;
+}
+
+.ip-s3-poster-desc p {
+    color: #aaa;
+    margin-bottom: 2px;
+}
+
+.ip-s3-info-title {
+    padding: 10px 15px;
+    font-weight: bold;
+    font-size: 15px;
+    border-bottom: 2px solid #333;
+    border-top: 1px solid #ddd;
+}
+
+.ip-s3-info-list {
+    padding: 0 15px;
+    flex: 1;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+.ip-s3-info-row {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.ip-s3-info-row .th {
+    width: 40%;
+    color: #666;
+}
+
+.ip-s3-info-row .td {
+    width: 60%;
+    font-weight: bold;
+    color: #333;
+    text-align: right;
+}
+
+.ip-s3-total-box {
+    background: #8e8e8e;
+    color: #fff;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ip-s3-total-box .total-price {
+    color: #ffd800;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.ip-s3-btn-group {
+    display: flex;
+    padding: 15px;
+    background: #fdfdfd;
+    gap: 5px;
+    border-top: 1px solid #ddd;
+}
+
+.ip-s3-btn-prev,
+.ip-s3-btn-next {
+    flex: 1;
+    padding: 15px 0;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    border-radius: 2px;
+}
+
+.ip-s3-btn-prev {
+    background: #555;
+}
+
+.ip-s3-btn-next {
+    background: #ed1b24;
+}
+
+.ip-s3-btn-prev:hover {
+    background: #444;
+}
+
+.ip-s3-btn-next:hover {
+    background: #d00a12;
+}

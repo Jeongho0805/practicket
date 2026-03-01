@@ -3,177 +3,335 @@
 
 <head>
     <title>실전 연습 - 프랙티켓</title>
+    <!-- Roboto Mono: 기록 숫자 전용 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        /* Layout Fixes for 100vh fit */
         .practice-hub-container {
-            max-width: 1200px;
+            max-width: 1050px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            padding: 100px 20px 60px 20px;
             margin: 0 auto;
-            min-height: calc(100vh - 140px);
-            padding: 20px;
+            /* 핵심: 뷰포트 높이에서 헤더 높이를 뺀 만큼만 차지 → 하단 테두리가 잘리지 않음 */
+            max-height: calc(100vh - 140px);
             box-sizing: border-box;
+        }
+
+        /* ----- Section 1: Practice Options ----- */
+        .practice-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            /* 카드 간격 넓힘 */
+        }
+
+        .practice-card {
+            background: #fff;
+            /* 테두리 두께 및 색상 약화 (2px -> 1px 연한 회색) */
+            border: 1px solid #eef2f6;
+            border-radius: 16px;
+            padding: 28px 20px;
+            /* 패딩 넓혀 숨통 트임 */
             text-align: center;
-            display: flex;
-            flex-direction: column;
-        }
-
-
-        .hub-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-            flex-shrink: 0;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-align: left;
-            border-left: 4px solid #6c5ce7;
-            padding-left: 10px;
-            flex-shrink: 0;
-        }
-
-        /* Agency Selection Cards */
-        .agency-list {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-shrink: 0;
-            /* Keep cards fixed size preference */
-        }
-
-        .agency-card {
-            width: 240px;
-            height: 280px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-            background-color: #fff;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-            overflow: hidden;
-            border: 1px solid #eee;
             text-decoration: none;
-            color: inherit;
+            color: #333;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
-        }
-
-        .agency-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .agency-card.disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            filter: grayscale(100%);
-        }
-
-        .card-image {
-            height: 140px;
-            background-color: #f0f0f0;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #888;
-            font-size: 22px;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            /* 은은한 기본 그림자 추가 */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
-        .card-image.i-ticket {
-            background: linear-gradient(135deg, #EC0F13 0%, #a80003 100%);
-            color: white;
+        .practice-card:hover:not(.disabled) {
+            transform: translateY(-5px);
+            /* hover 시 그림자만 고급스럽게 확산, 강한 border 지양 */
+            box-shadow: 0 12px 25px rgba(107, 25, 107, 0.12);
+            border-color: #f1e9f1;
         }
 
-        .card-info {
-            padding: 15px;
-            text-align: left;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .practice-card.active {
+            /* 배경색을 흰색으로 유지하되 프랙티켓 톤의 부드러운 하이라이트 적용 */
+            background-color: #fff;
+            border: 2px solid #6b196b;
+            /* 활성화만 명확한 보라색(로고색) 테두리 */
+            box-shadow: 0 8px 20px rgba(107, 25, 107, 0.1);
         }
 
-        .agency-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
+        .practice-card.disabled {
+            background: #f8fafc;
+            border-color: transparent;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
-        .agency-desc {
-            font-size: 13px;
-            color: #666;
-            line-height: 1.3;
+        .card-title {
+            font-family: 'my-font', sans-serif;
+            font-size: 20px;
+            letter-spacing: 0.5px;
+            color: #1a1a1a;
         }
 
-        .status-badge {
-            align-self: flex-start;
-            padding: 3px 6px;
-            border-radius: 3px;
+        .practice-card.active .card-title {
+            color: #6b196b;
+            /* 활성화 텍스트 색상 변경 */
+        }
+
+        .card-sub {
+            font-size: 14px;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .practice-card.active .card-sub {
+            color: #8b6b8b;
+        }
+
+        .badge-coming {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: #e2e8f0;
+            color: #64748b;
             font-size: 11px;
             font-weight: bold;
-            margin-top: 8px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: -0.5px;
         }
 
-        .status-badge.active {
-            background-color: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .status-badge.coming {
-            background-color: #f5f5f5;
-            color: #999;
-        }
-
-        /* Ranking Section - Fill remaining space */
-        .ranking-wrapper {
-            flex: 1;
+        /* ----- Section 2: Ranking Board ----- */
+        .ranking-board {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #f0f2f5;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 0;
-            /* Important for scroll if needed internally */
-        }
-
-        .ranking-section {
-            background-color: #f9f9f9;
-            border-radius: 12px;
             flex: 1;
+        }
+
+        .ranking-top-bar {
+            background: #fff;
+            /* 머리 부분도 깔끔하게 화이트 통일 */
+            border-bottom: 1px solid #f1f5f9;
+            padding: 24px 30px;
+            /* 좀 더 여유있는 상단바 */
             display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ranking-filters {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            border: 1px dashed #ddd;
-            /* styled distinctively */
         }
 
-        .ranking-placeholder {
-            padding: 20px;
-            color: #888;
+        /* 왼쪽: 티켓사 필터 (알약 형태) */
+        .agency-tabs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .agency-tab {
+            padding: 8px 18px;
+            border-radius: 30px;
+            /* 더 둥글게 */
             font-size: 15px;
-            line-height: 1.6;
+            font-weight: 600;
+            background: #f4f6f8;
+            color: #64748b;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        @media (max-height: 700px) {
+        .agency-tab.active {
+            background: #fdf5fc;
+            /* 매우 연한 보라/자주색 배경 */
+            color: #6b196b;
+            border-color: #f3e6f3;
+        }
 
-            /* Adjustments for smaller vertical screens */
+        /* 오른쪽: 기간 필터 (일/주/월간) */
+        .period-tabs {
+            display: flex;
+            background: #f4f6f8;
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .period-tab {
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .period-tab.active {
+            background: #fff;
+            /* 흰 박스가 스위칭되는 느낌 (iOS 토글 스타일) */
+            color: #1a1a1a;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 테이블 헤더 (고정 - 스크롤 안 함) */
+        .ranking-table-header {
+            padding: 0;
+        }
+
+        /* 테이블 바디 (스크롤만 여기서 일어남) */
+        .ranking-table-body {
+            padding: 0;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        /* 스크롤바 디자인 (슬림) */
+        .ranking-table-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ranking-table-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .ranking-table-body::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .ranking-table-body::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: separate;
+            /* collapse + sticky 충돌 버그 회피 */
+            border-spacing: 0;
+            /* 보이는 간격을 0으로 유지 */
+            text-align: center;
+        }
+
+        .ranking-table th {
+            background-color: #fff;
+            font-family: 'Pretendard', sans-serif;
+            font-weight: 700;
+            color: #64748b;
+            /* 차분한 슬레이트 → 헤더가 데이터보다 튀지 않게 */
+            padding: 18px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            letter-spacing: 0.8px;
+        }
+
+        .ranking-table td {
+            padding: 20px 15px;
+            /* 데이터 셀도 여백 확장 */
+            border-bottom: 1px solid #f8fafc;
+            font-size: 15px;
+            font-weight: 500;
+            color: #334155;
+            transition: background 0.15s;
+        }
+
+        .ranking-table tr:hover td {
+            background-color: #fbfbfc;
+        }
+
+        /* 순위 강조 (1,2,3위) */
+        .rank-num {
+            font-family: 'my-font', sans-serif;
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .rank-1 .rank-num {
+            color: #f59e0b;
+            font-size: 24px;
+        }
+
+        /* 금 */
+        .rank-2 .rank-num {
+            color: #cbd5e1;
+            font-size: 22px;
+            text-shadow: 1px 1px 0px #94a3b8;
+        }
+
+        /* 은 (플랫하게) */
+        .rank-3 .rank-num {
+            color: #d97706;
+            font-size: 20px;
+        }
+
+        /* 동 */
+
+        .rank-1 td {
+            background-color: #fffcf5 !important;
+            border-bottom-color: transparent;
+        }
+
+        /* 닉네임 강조 (상위 랭크) */
+        .rank-1 .rank-name {
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .rank-2 .rank-name {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .rank-3 .rank-name {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* 기록 숫자 pill 뱃지 스타일 (Roboto Mono) */
+        .time-record-badge {
+            display: inline-block;
+            background: #f5eef8;
+            color: #6b196b;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            border: 1px solid #e9d8f4;
+        }
+
+        @media (max-width: 768px) {
+            .practice-grid {
+                grid-template-columns: 1fr;
+            }
+
             .practice-hub-container {
-                padding: 10px;
+                padding: 40px 10px 20px;
+                /* 모바일은 상단 여백을 살짝 줄임 */
+                min-height: auto;
             }
 
-            .hub-title {
-                font-size: 20px;
-                margin-bottom: 10px;
-            }
-
-            .agency-card {
-                width: 220px;
-                height: 240px;
-            }
-
-            .card-image {
-                height: 110px;
+            .ranking-filters {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
         }
     </style>
@@ -181,56 +339,151 @@
 
 <body layout:fragment="content">
     <div class="practice-hub-container">
-        <h1 class="hub-title">실전 티켓팅 연습</h1>
 
-        <div class="section-title">연습할 티켓사를 선택하세요</div>
-        <div class="agency-list">
-            <!-- I-Ticket -->
-            <a href="/practice/i-ticket/intro" class="agency-card">
-                <div class="card-image i-ticket">I-Ticket</div>
-                <div class="card-info">
-                    <div>
-                        <div class="agency-name">I-Ticket</div>
-                        <div class="agency-desc">인터파크 스타일<br>예매 연습</div>
-                    </div>
-                    <span class="status-badge active">이용 가능</span>
+        <!-- 1. 연습 선택 영역 -->
+        <section>
+            <div class="practice-grid">
+                <!-- 활성화된 I-Ticket 구버전 -->
+                <a href="/practice/i-ticket/intro" class="practice-card active">
+                    <div class="card-title">I-Ticket</div>
+                    <div class="card-sub">구버전 (클래식)</div>
+                </a>
+
+                <!-- 비활성화된 I-Ticket 신버전 -->
+                <div class="practice-card disabled">
+                    <div class="badge-coming">준비중</div>
+                    <div class="card-title">I-Ticket</div>
+                    <div class="card-sub">신버전 UI</div>
                 </div>
-            </a>
 
-            <!-- Melon (Placeholder) -->
-            <div class="agency-card disabled">
-                <div class="card-image">M-Ticket</div>
-                <div class="card-info">
-                    <div>
-                        <div class="agency-name">M-Ticket</div>
-                        <div class="agency-desc">멜론티켓 스타일<br>(준비중)</div>
-                    </div>
-                    <span class="status-badge coming">오픈 예정</span>
+                <!-- 비활성화된 M-Ticket -->
+                <div class="practice-card disabled">
+                    <div class="badge-coming">준비중</div>
+                    <div class="card-title">M-Ticket</div>
+                    <div class="card-sub">멜론 라인</div>
                 </div>
             </div>
+        </section>
 
-            <!-- Yes24 (Placeholder) -->
-            <div class="agency-card disabled">
-                <div class="card-image">Y-Ticket</div>
-                <div class="card-info">
-                    <div>
-                        <div class="agency-name">Y-Ticket</div>
-                        <div class="agency-desc">예스24 스타일<br>(준비중)</div>
+        <!-- 2. 랭킹 보드 영역 -->
+        <section style="display: flex; flex-direction: column; flex: 1;">
+            <div class="ranking-board">
+                <div class="ranking-top-bar">
+                    <div class="ranking-filters">
+                        <!-- 티켓사 선택 탭 -->
+                        <div class="agency-tabs">
+                            <button class="agency-tab active">I-Ticket (구버전)</button>
+                            <button class="agency-tab">I-Ticket (신버전)</button>
+                            <button class="agency-tab">M-Ticket</button>
+                        </div>
+
+                        <!-- 기간 선택 탭 -->
+                        <div class="period-tabs">
+                            <button class="period-tab">일간</button>
+                            <button class="period-tab active">주간</button>
+                            <button class="period-tab">월간</button>
+                        </div>
                     </div>
-                    <span class="status-badge coming">오픈 예정</span>
+                </div>
+
+                <!-- 헤더 테이블: 고정, 스크롤 없음 -->
+                <div class="ranking-table-header">
+                    <table class="ranking-table">
+                        <colgroup>
+                            <col style="width: 15%;">
+                            <col style="width: 55%;">
+                            <col style="width: 30%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th style="text-align: left; padding-left: 30px;">닉네임</th>
+                                <th>최고 기록</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+
+                <!-- 바디 스크롤 컨테이너: 여기서만 스크롤 발생 -->
+                <div class="ranking-table-body">
+                    <table class="ranking-table">
+                        <colgroup>
+                            <col style="width: 15%;">
+                            <col style="width: 55%;">
+                            <col style="width: 30%;">
+                        </colgroup>
+                        <tbody>
+                            <tr class="rank-1">
+                                <td class="rank-num">1</td>
+                                <td class="rank-name" style="text-align: left; padding-left: 30px;">티켓팅마스터</td>
+                                <td><span class="time-record-badge">0.825s</span></td>
+                            </tr>
+                            <tr class="rank-2">
+                                <td class="rank-num">2</td>
+                                <td class="rank-name" style="text-align: left; padding-left: 30px;">광클장인</td>
+                                <td><span class="time-record-badge">0.912s</span></td>
+                            </tr>
+                            <tr class="rank-3">
+                                <td class="rank-num">3</td>
+                                <td class="rank-name" style="text-align: left; padding-left: 30px;">새로고침의신</td>
+                                <td><span class="time-record-badge">0.985s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">4</td>
+                                <td style="text-align: left; padding-left: 30px;">포도알사냥꾼</td>
+                                <td><span class="time-record-badge">1.102s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">5</td>
+                                <td style="text-align: left; padding-left: 30px;">이선좌피하기</td>
+                                <td><span class="time-record-badge">1.250s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">6</td>
+                                <td style="text-align: left; padding-left: 30px;">프랙티켓초보</td>
+                                <td><span class="time-record-badge">1.503s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">7</td>
+                                <td style="text-align: left; padding-left: 30px;">인터파크고수</td>
+                                <td><span class="time-record-badge">1.660s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">8</td>
+                                <td style="text-align: left; padding-left: 30px;">멜론티켓고인물</td>
+                                <td><span class="time-record-badge">1.821s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">9</td>
+                                <td style="text-align: left; padding-left: 30px;">예스24마이다스</td>
+                                <td><span class="time-record-badge">1.990s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">10</td>
+                                <td style="text-align: left; padding-left: 30px;">마지막손님</td>
+                                <td><span class="time-record-badge">2.140s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">11</td>
+                                <td style="text-align: left; padding-left: 30px;">광탈자</td>
+                                <td><span class="time-record-badge">2.441s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">12</td>
+                                <td style="text-align: left; padding-left: 30px;">눈물흘리는팬</td>
+                                <td><span class="time-record-badge">2.880s</span></td>
+                            </tr>
+                            <tr>
+                                <td class="rank-num">13</td>
+                                <td style="text-align: left; padding-left: 30px;">다음기회에</td>
+                                <td><span class="time-record-badge">3.102s</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="ranking-wrapper">
-            <div class="section-title">티켓사별 명예의 전당</div>
-            <div class="ranking-section">
-                <p class="ranking-placeholder">
-                    🚧 티켓사별 랭킹 시스템이 준비 중입니다.<br>
-                    곧 실전 연습 기록을 통해 랭킹을 확인하실 수 있습니다!
-                </p>
-            </div>
-        </div>
     </div>
 </body>
 

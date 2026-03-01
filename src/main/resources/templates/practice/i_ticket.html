@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <main class="ip-main-new">
+        <main class="ip-main-new" id="step2-main">
             <!-- Left: Seat Map Placeholder -->
             <section class="ip-left-new">
                 <div class="ip-map-notice-row">
@@ -69,24 +69,26 @@
                         <path class="stage-top-shape" d="M206 110 H414 L392 142 H228 Z"></path>
                         <text class="stage-top-text" x="310" y="136">STAGE</text>
 
-                        <path class="outer-frame" d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z"></path>
+                        <path class="outer-frame"
+                            d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z">
+                        </path>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'E')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'E')">
                             <polygon points="146,136 186,136 186,296 146,296"></polygon>
                             <text x="166" y="216">E</text>
                         </g>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'F')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'F')">
                             <polygon points="434,136 474,136 474,296 434,296"></polygon>
                             <text x="454" y="216">F</text>
                         </g>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'G')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'G')">
                             <polygon points="146,290 186,290 186,334 236,334 236,382 146,382"></polygon>
                             <text x="192" y="352">G</text>
                         </g>
 
-                        <g class="svg-zone zone-blue" onclick="toggleSeatView('show', 'H')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'H')">
                             <polygon points="434,290 474,290 474,382 384,382 384,334 434,334"></polygon>
                             <text x="426" y="352">H</text>
                         </g>
@@ -101,12 +103,12 @@
                             <text x="364" y="200">B</text>
                         </g>
 
-                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'C')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'C')">
                             <polygon points="206,246 300,246 300,320 226,320 206,300"></polygon>
                             <text x="246" y="292">C</text>
                         </g>
 
-                        <g class="svg-zone zone-floor-green" onclick="toggleSeatView('show', 'D')">
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'D')">
                             <polygon points="320,246 414,246 414,300 394,320 320,320"></polygon>
                             <text x="364" y="292">D</text>
                         </g>
@@ -287,8 +289,8 @@
                                 // Add to STATE
                                 const exists = STATE.selectedSeats.some(s => s.id === title);
                                 if (!exists) {
-                                    if (STATE.selectedSeats.length >= 4) {
-                                        alert('최대 4매까지만 선택 가능합니다.');
+                                    if (STATE.selectedSeats.length >= 1) {
+                                        alert('1매만 선택 가능합니다.');
                                         // Revert visual
                                         const el = document.querySelector(`.seat-unit[title="${title}"]`);
                                         if (el) el.classList.remove('selected');
@@ -428,6 +430,11 @@
 
                         // ... rest of bindings
 
+                        const nextBtnStep2 = document.querySelector('#step2-main .btn-big-red');
+                        if (nextBtnStep2) {
+                            nextBtnStep2.onclick = goToStep3;
+                        }
+
                         const backBtn = document.querySelector('.ip-panel-header');
                         if (backBtn) {
                             backBtn.onclick = () => toggleSeatView('hide');
@@ -447,6 +454,128 @@
                             }
                         }
                     });
+                    // 8. Go To Step 3 (With 이선좌 validation)
+                    function goToStep3() {
+                        if (typeof STATE === 'undefined' || STATE.selectedSeats.length === 0) {
+                            alert('좌석을 선택해주세요.');
+                            return;
+                        }
+
+                        // Refresh actual seat status at exact moment of click
+                        refreshSeatSnapshot();
+
+                        let hasTakenSeats = false;
+                        STATE.selectedSeats.forEach(s => {
+                            const match = s.id.match(/([A-Z0-9]+)구역 (\d+)열 (\d+)번/);
+                            if (match) {
+                                const [_, z, r, n] = match;
+                                if (!seatManager.checkAvailability(parseInt(r), parseInt(n), z)) {
+                                    hasTakenSeats = true;
+                                }
+                            }
+                        });
+
+                        // 🚨 이선좌 발생!
+                        if (hasTakenSeats) {
+                            alert('이미 선택된 좌석입니다.');
+                            resetSelection();
+                            return;
+                        }
+
+                        // 통과 시 3단계로 전환
+                        renderStep3();
+
+                        document.getElementById('step2-main').style.display = 'none';
+                        document.getElementById('step3-main').style.display = 'flex';
+
+                        // 상단 헤더 텍스트 변경
+                        const headerBadgeNum = document.querySelector('.ip-step-badge .num');
+                        const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
+                        if (headerBadgeNum) headerBadgeNum.innerText = '03';
+                        if (headerBadgeTxt) headerBadgeTxt.innerText = '가격/할인선택';
+                    }
+
+                    // 9. Render Step 3 Panel
+                    function renderStep3() {
+                        const s3TableBody = document.getElementById('s3-price-tbody');
+                        const totalSelected = STATE.selectedSeats.length;
+
+                        document.getElementById('s3-sect-count').innerHTML = `전석 | 좌석 <span class="red">${totalSelected}매</span>를 선택하셨습니다.`;
+                        document.getElementById('s3-my-info-seat').innerHTML = `전석<br>(${totalSelected}매)`;
+
+                        // Default price is 154000
+                        const defaultPrice = 154000;
+                        const fee = 2000 * totalSelected;
+                        let html = '';
+
+                        STATE.selectedSeats.forEach((seat, index) => {
+                            html += `
+                            <tr>
+                                <td class="td-type">${index === 0 ? '기본가' : ''}</td>
+                                <td class="td-name">${seat.id}</td>
+                                <td class="td-price">${defaultPrice.toLocaleString()}원</td>
+                                <td class="td-select">
+                                    <select onchange="updateStep3Total()">
+                                        <option value="0" selected>0매</option>
+                                        <option value="1">1매</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            `;
+                        });
+
+                        s3TableBody.innerHTML = html;
+                        updateStep3Total();
+                    }
+
+                    function updateStep3Total() {
+                        const selects = document.querySelectorAll('#s3-price-tbody select');
+                        let selectedCount = 0;
+                        selects.forEach(sel => selectedCount += parseInt(sel.value));
+
+                        const totalSelected = STATE.selectedSeats.length;
+                        if (selectedCount > totalSelected) {
+                            alert('선택하신 좌석 수보다 많습니다.');
+                            event.target.value = 0;
+                            return updateStep3Total();
+                        }
+
+                        const pricePerSeat = 154000;
+                        const feePerSeat = 2000;
+
+                        const ticketTotal = pricePerSeat * selectedCount;
+                        const feeTotal = feePerSeat * selectedCount;
+                        const finalTotal = ticketTotal + feeTotal;
+
+                        document.getElementById('s3-ticket-price').innerText = ticketTotal.toLocaleString() + '원';
+                        document.getElementById('s3-fee-price').innerText = feeTotal.toLocaleString() + '원';
+                        document.getElementById('s3-total-price').innerText = finalTotal.toLocaleString();
+                    }
+
+                    function goBackToStep2() {
+                        document.getElementById('step3-main').style.display = 'none';
+                        document.getElementById('step2-main').style.display = 'flex';
+
+                        // 상단 헤더 텍스트 원복
+                        const headerBadgeNum = document.querySelector('.ip-step-badge .num');
+                        const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
+                        if (headerBadgeNum) headerBadgeNum.innerText = '02';
+                        if (headerBadgeTxt) headerBadgeTxt.innerText = '좌석 선택';
+                    }
+
+                    function finishPractice() {
+                        const selects = document.querySelectorAll('#s3-price-tbody select');
+                        let selectedCount = 0;
+                        selects.forEach(sel => selectedCount += parseInt(sel.value));
+
+                        if (selectedCount === 0) {
+                            alert('1매를 선택해주세요.');
+                            return;
+                        }
+
+                        alert('결제 단계는 지원하지 않습니다. 훌륭히 예매에 성공하셨습니다!');
+                        window.location.href = '/practice';
+                    }
                 </script>
             </section>
 
@@ -469,23 +598,8 @@
                 <div class="ip-panel-body-grade">
                     <div class="price-table-row">
                         <span class="color-chip chip-violet"></span>
-                        <span class="seat-name">스탠딩 R석(현장수령)</span>
-                        <span class="seat-price">154,000원</span>
-                    </div>
-                    <div class="price-table-row">
-                        <span class="color-chip chip-green"></span>
-                        <span class="seat-name">스탠딩 R석</span>
-                        <span class="seat-price">154,000원</span>
-                    </div>
-                    <div class="price-table-row">
-                        <span class="color-chip chip-blue"></span>
                         <span class="seat-name">지정석 R석</span>
                         <span class="seat-price">154,000원</span>
-                    </div>
-                    <div class="price-table-row">
-                        <span class="color-chip chip-orange"></span>
-                        <span class="seat-name">지정석 S석</span>
-                        <span class="seat-price">132,000원</span>
                     </div>
                 </div>
 
@@ -520,6 +634,89 @@
 
             </aside>
         </main>
+
+        <!-- Step 3 Main (Hidden initially) -->
+        <main class="ip-step3-main" id="step3-main" style="display:none;">
+            <!-- Left Panel: Price Select -->
+            <section class="ip-step3-left">
+                <div class="ip-step3-title">가격</div>
+                <table class="ip-price-table">
+                    <thead>
+                        <tr>
+                            <th colspan="4" id="s3-sect-count">전석 | 좌석 <span class="red">0매</span>를 선택하셨습니다.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="s3-price-tbody">
+                        <!-- JS Render -->
+                    </tbody>
+                </table>
+
+                <!-- Bottom Coupon Area -->
+                <div class="ip-coupon-area">
+                    <div class="ip-coupon-header">
+                        <div>
+                            <span class="c-title">쿠폰할인</span>
+                            <span class="c-sub">(중복사용불가)</span>
+                        </div>
+                        <button class="btn-coupon">나의쿠폰모두보기</button>
+                    </div>
+                    <div class="ip-coupon-box">
+                        해당 상품에 사용 가능한 쿠폰이 없습니다.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Info -->
+            <aside class="ip-step3-right">
+                <div class="ip-s3-poster-area">
+                    <div class="ip-s3-poster-img"></div>
+                    <div class="ip-s3-poster-desc">
+                        <h3>FAM + ILY : FAMILY : FAM I LOVE YOU</h3>
+                        <p>2026.02.06 ~ 02.08</p>
+                        <p>KSPO DOME</p>
+                        <p>관람시간 : 120분</p>
+                    </div>
+                </div>
+
+                <div class="ip-s3-info-title">My 예매정보</div>
+
+                <div class="ip-s3-info-list">
+                    <div class="ip-s3-info-row">
+                        <div class="th">일시</div>
+                        <div class="td">2026년 2월 7일(토) 18:00</div>
+                    </div>
+                    <div class="ip-s3-info-row">
+                        <div class="th" style="display:flex; align-items:center;">선택좌석</div>
+                        <div class="td" id="s3-my-info-seat"
+                            style="font-weight:normal; text-align:left; padding-left:10px;">전석<br>(0매)</div>
+                    </div>
+                    <div class="ip-s3-info-row">
+                        <div class="th">티켓금액</div>
+                        <div class="td" id="s3-ticket-price">0원</div>
+                    </div>
+                    <div class="ip-s3-info-row">
+                        <div class="th">수수료</div>
+                        <div class="td" id="s3-fee-price">0원</div>
+                    </div>
+                    <div class="ip-s3-info-row">
+                        <div class="th">배송료</div>
+                        <div class="td">0원</div>
+                    </div>
+                </div>
+
+                <div class="ip-s3-total-box">
+                    <span>총 결제금액</span>
+                    <span class="total-price" id="s3-total-price">0</span><span
+                        style="font-size:14px; font-weight:normal; padding-top:6px; color:#fff;">원</span>
+                </div>
+
+                <div class="ip-s3-btn-group">
+                    <button class="ip-s3-btn-prev" onclick="goBackToStep2()">&lt; 이전단계</button>
+                    <button class="ip-s3-btn-next" onclick="finishPractice()">다음단계 &gt;</button>
+                </div>
+            </aside>
+        </main>
+
         <div id="captcha-overlay" class="ip-overlay" aria-hidden="false">
             <div class="capchaLayer">
                 <div class="capchaInner">
