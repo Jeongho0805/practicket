@@ -1,0 +1,649 @@
+.practice-hub-container {
+    max-width: 1050px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    padding: 100px 20px 60px 20px;
+    margin: 0 auto;
+    height: calc(100vh - 60px);
+    box-sizing: border-box;
+}
+
+/* ----- Section 1: Practice Options ----- */
+.practice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.practice-card {
+    background: #fff;
+    border: 1px solid #eef2f6;
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.practice-card:hover:not(.disabled) {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(107, 25, 107, 0.12);
+    border-color: #f1e9f1;
+}
+
+.practice-card.active {
+    background-color: #fff;
+    border: 2px solid #6b196b;
+    box-shadow: 0 8px 20px rgba(107, 25, 107, 0.1);
+}
+
+.practice-card.disabled {
+    background: #f8fafc;
+    border-color: transparent;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.card-title {
+    font-family: 'my-font', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: #1a1a1a;
+}
+
+.practice-card.active .card-title {
+    color: #6b196b;
+}
+
+.card-sub {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.practice-card.active .card-sub {
+    color: #8b6b8b;
+}
+
+.badge-coming {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: #e2e8f0;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: -0.5px;
+}
+
+/* ----- Section 2: Ranking Board ----- */
+.ranking-board {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #f0f2f5;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.ranking-top-bar {
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0 30px;
+    display: flex;
+}
+
+.view-mode-tab {
+    padding: 18px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #94a3b8;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    font-family: 'Pretendard', sans-serif;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.view-mode-tab.active {
+    color: #6b196b;
+    border-bottom-color: #6b196b;
+}
+
+.filter-bar {
+    padding: 14px 30px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.agency-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.agency-tab {
+    padding: 7px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #f4f6f8;
+    color: #64748b;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: all 0.2s;
+}
+
+.agency-tab.active {
+    background: #fdf5fc;
+    color: #6b196b;
+    border-color: #f3e6f3;
+}
+
+.agency-tab.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.period-tabs {
+    display: flex;
+    background: #f4f6f8;
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.period-tab {
+    padding: 7px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: background 0.2s, color 0.2s;
+}
+
+.period-tab.active {
+    background: #fff;
+    color: #1a1a1a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.panel {
+    display: none;
+}
+
+.panel.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ----- 전체 랭킹 테이블 ----- */
+.ranking-table-header,
+.ranking-table-body {
+    padding: 0;
+}
+
+.ranking-table-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.ranking-table-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ranking-table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ranking-table-body::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 3px;
+}
+
+.ranking-table-body::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+}
+
+.ranking-table th {
+    background-color: #fff;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #64748b;
+    padding: 18px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    letter-spacing: 0.8px;
+}
+
+.ranking-table td {
+    padding: 16px 15px;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 15px;
+    font-weight: 500;
+    color: #334155;
+    transition: background 0.15s;
+}
+
+.ranking-table tr:last-child td {
+    border-bottom: none;
+}
+
+.ranking-table tr:hover td {
+    background-color: #fbfbfc;
+}
+
+.rank-num {
+    font-family: 'my-font', sans-serif;
+    font-size: 17px;
+    color: #94a3b8;
+}
+
+.rank-1 .rank-num {
+    color: #f59e0b;
+    font-size: 22px;
+}
+
+.rank-2 .rank-num {
+    color: #9ca3af;
+    font-size: 20px;
+}
+
+.rank-3 .rank-num {
+    color: #c97c3a;
+    font-size: 18px;
+}
+
+.rank-1 td {
+    background-color: #fffcf5 !important;
+    border-bottom-color: transparent;
+}
+
+.rank-1 .rank-name {
+    font-weight: 700;
+    color: #111;
+}
+
+.rank-2 .rank-name,
+.rank-3 .rank-name {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.time-record-badge {
+    display: inline-block;
+    background: #f5eef8;
+    color: #6b196b;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    border: 1px solid #e9d8f4;
+}
+
+#loadMoreWrap {
+    text-align: center;
+    padding: 16px;
+}
+
+#loadMoreBtn {
+    padding: 9px 28px;
+    background: #fdf5fc;
+    color: #6b196b;
+    border: 1px solid #f3e6f3;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#loadMoreBtn:hover {
+    background: #f3e6f3;
+    border-color: #e0c8e0;
+}
+
+/* ----- 내 기록: 스탯 카드 ----- */
+.my-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: #f1f5f9;
+}
+
+.stat-card {
+    background: #fff;
+    padding: 20px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.stat-value.highlight {
+    color: #6b196b;
+}
+
+.stat-value.muted {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.stat-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.improve-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+}
+
+.improve-sec {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.improve-pct {
+    display: inline-block;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+/* ----- 내 기록: 테이블 ----- */
+.my-record-table-header {
+    padding: 0;
+}
+
+.my-record-table-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.my-record-table-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.my-record-table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.my-record-table-body::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 3px;
+}
+
+.record-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.record-table th {
+    background: #fff;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #64748b;
+    padding: 14px 16px;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.record-row {
+    cursor: pointer;
+}
+
+.record-row td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    text-align: center;
+    transition: background 0.15s;
+}
+
+.record-row:hover td {
+    background: #fdf5fc;
+}
+
+.record-row.open td {
+    background: #fdf5fc;
+    border-bottom-color: transparent;
+}
+
+.time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5eef8;
+    color: #6b196b;
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 10px 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #e9d8f4;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.time-badge:hover {
+    background: #ede0f5;
+    border-color: #d8bfec;
+}
+
+.badge-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(107, 25, 107, 0.1);
+    font-size: 9px;
+    color: #6b196b;
+    transition: transform 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+
+.record-row.open .time-badge {
+    background: #6b196b;
+    color: #fff;
+    border-color: #6b196b;
+}
+
+.record-row.open .badge-arrow {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    transform: rotate(180deg);
+}
+
+.detail-row td {
+    padding: 0;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fdf8ff;
+}
+
+.detail-row.hidden td {
+    display: none;
+}
+
+.detail-title-row {
+    padding: 12px 24px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.detail-inner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: #f3e6f3;
+    margin: 0 24px 16px 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #f3e6f3;
+}
+
+.detail-card {
+    background: #fff;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #6b196b;
+}
+
+.detail-value.neutral {
+    color: #334155;
+}
+
+.detail-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.attempt-num {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.date-text {
+    color: #64748b;
+    font-size: 13px;
+}
+
+#myRecordLoadMoreWrap {
+    text-align: center;
+    padding: 16px;
+}
+
+#myRecordLoadMoreBtn {
+    padding: 9px 28px;
+    background: #fdf5fc;
+    color: #6b196b;
+    border: 1px solid #f3e6f3;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Pretendard', sans-serif;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+#myRecordLoadMoreBtn:hover {
+    background: #f3e6f3;
+    border-color: #e0c8e0;
+}
+
+@media (max-width: 768px) {
+    .practice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .practice-hub-container {
+        padding: 40px 10px 20px;
+        min-height: auto;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .my-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

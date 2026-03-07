@@ -36,6 +36,7 @@ public class PracticeService {
 
     private static final int MIN_ELAPSED_MS = 3_000;
     private static final int TIMING_TOLERANCE_MS = 2_000;
+    private static final int COUNTDOWN_MS = 5_000;
 
     private final PracticeSessionRepository sessionRepository;
     private final PracticeResultRepository resultRepository;
@@ -61,14 +62,13 @@ public class PracticeService {
 
         long startAt = sessionRepository.getStartAt(session);
         long now = Instant.now().toEpochMilli();
-        int serverElapsedMs = (int) (now - startAt);
+        int serverElapsedMs = (int) (now - startAt) - COUNTDOWN_MS;
 
         if (serverElapsedMs < MIN_ELAPSED_MS) {
             throw new PracticeException(ErrorCode.PRACTICE_TOO_FAST);
         }
 
-        int phaseSum = request.getReactionTimeMs() + request.getQueueWaitMs() + request.getSeatSelectionMs();
-        if (Math.abs(phaseSum - serverElapsedMs) > TIMING_TOLERANCE_MS) {
+        if (Math.abs(request.getTotalDurationMs() - serverElapsedMs) > TIMING_TOLERANCE_MS) {
             throw new PracticeException(ErrorCode.PRACTICE_INVALID_TIMING);
         }
 

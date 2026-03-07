@@ -750,64 +750,49 @@ a {
 
 /* Image + Right Buttons Layout */
 .capchaImgBox {
-    background: #fdfdfd;
-    border: 1px solid #e0e0e0;
-    padding: 10px;
+    position: relative;
+    height: 175px;
+    background-color: #fff;
+    border: 1px solid #ccc;
     margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    overflow: hidden;
 }
 
-.capchaImgInner {
-    display: flex;
-    align-items: center;
-}
-
-.capchaImg canvas {
+#captchaImg {
+    position: absolute;
+    width: 260px;
+    height: 100px;
     display: block;
-    background: #000;
-    /* Dark background for canvas (starry/noise) based on screenshot */
-    border-radius: 2px;
 }
 
 .captcha-side-btns {
+    position: absolute;
+    right: 10px;
+    top: 10px;
     display: flex;
     flex-direction: column;
-    margin-left: 12px;
     gap: 8px;
 }
 
 .refreshBtn,
 .voiceBtn {
-    width: 32px;
-    height: 32px;
-    border: 1px solid #ccc;
-    background-color: #f7f7f7;
+    width: 34px;
+    height: 34px;
+    border: none;
+    background-color: #747474;
     border-radius: 50%;
-    /* Circle icons */
     cursor: pointer;
-    font-size: 16px;
-    color: #555;
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
 }
 
 .refreshBtn:hover,
 .voiceBtn:hover {
-    background: #eee;
+    background: #555;
 }
-
-.refreshBtn::after {
-    content: '↻';
-}
-
-.voiceBtn::after {
-    content: '🔊';
-    font-size: 14px;
-}
-
 
 /* Input Field (Large Box) */
 .validationTxt {
@@ -818,25 +803,34 @@ a {
     width: 100%;
     height: 50px;
     border: 1px solid #ccc;
-    /* Simple grey border */
     padding: 0 15px;
     font-size: 16px;
     text-align: left;
-    /* Screenshot looks left-aligned with placeholder */
     color: #333;
     outline: none;
+    box-sizing: border-box;
 }
 
 .validationTxt input::placeholder {
     color: #999;
 }
 
+.validationTxt.error input {
+    border-color: #ed1c24;
+}
+
 .alertNotice {
-    display: none;
+    display: block;
+    visibility: hidden;
+    height: 18px;
     color: #ed1c24;
     font-size: 12px;
     margin-top: 5px;
     text-align: left;
+}
+
+.validationTxt.error .alertNotice {
+    visibility: visible;
 }
 
 /* Bottom Buttons (Dark Grey / Dark Navy) */
@@ -1452,4 +1446,434 @@ a {
 
 .ip-s3-btn-next:hover {
     background: #d00a12;
+}
+
+/* ════════════════════════════════════════
+   Queue Overlay (i_ticket_queue.css 통합)
+   ════════════════════════════════════════ */
+
+.queue-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 200000;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Malgun Gothic', 'Dotum', sans-serif;
+    color: #333;
+}
+
+.queue-overlay[aria-hidden="true"] {
+    display: none !important;
+}
+
+.queue-loading-container {
+    text-align: center;
+}
+
+.queue-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+}
+
+.queue-header-group {
+    text-align: left;
+    width: 100%;
+    margin-bottom: 30px;
+    padding-left: 10px;
+}
+
+.queue-header-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #222;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.queue-header-subtitle {
+    font-size: 32px;
+    font-weight: 800;
+    color: #2e64fe;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+}
+
+.queue-concert-name {
+    font-size: 16px;
+    color: #888;
+    font-weight: normal;
+}
+
+.queue-card {
+    background: #fff;
+    width: 100%;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    padding: 40px 30px;
+    text-align: center;
+    margin-bottom: 25px;
+    position: relative;
+    border: 1px solid #f0f0f0;
+}
+
+.queue-my-order-label {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.queue-number-display {
+    font-size: 64px;
+    font-weight: 900;
+    color: #000;
+    font-family: 'Tahoma', sans-serif;
+    line-height: 1;
+    margin-bottom: 30px;
+    letter-spacing: -2px;
+}
+
+.queue-progress-track {
+    width: 100%;
+    height: 30px;
+    background: #f0f2f5;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.queue-overlay.finished {
+    background: #ffffff !important;
+}
+
+.queue-overlay.finished > * {
+    display: none !important;
+}
+
+.queue-progress-fill {
+    height: 100%;
+    background: #1a5aff;
+    width: 0%;
+    border-radius: 15px;
+    transition: width 0.3s linear, background-color 0.3s;
+}
+
+.queue-progress-fill.urgent {
+    background: #ff4d4d;
+}
+
+.queue-info-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 25px;
+}
+
+.queue-info-item {
+    text-align: left;
+}
+
+.queue-info-item.right {
+    text-align: right;
+}
+
+.q-label {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.q-value {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1a5aff;
+}
+
+.q-status-badge {
+    color: #1a5aff;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.queue-footer-desc {
+    width: 100%;
+    padding: 0 10px;
+}
+
+.queue-footer-desc p {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 6px;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 10px;
+}
+
+.queue-footer-desc p::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* ════════════════════════════════════════
+   연습 완료 모달 (i_ticket.html 인라인 CSS 통합)
+   ════════════════════════════════════════ */
+
+@keyframes pkt-fadeIn {
+    from { opacity: 0 }
+    to { opacity: 1 }
+}
+
+@keyframes pkt-slideUp {
+    from { transform: translateY(24px); opacity: 0 }
+    to { transform: translateY(0); opacity: 1 }
+}
+
+#pkt-complete-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 4, 18, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: pkt-fadeIn 0.2s ease;
+}
+
+#pkt-complete-overlay.visible {
+    display: flex;
+}
+
+.pkt-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    width: 400px;
+    box-shadow:
+        0 0 0 1px rgba(107, 25, 107, 0.08),
+        0 20px 60px rgba(107, 25, 107, 0.14),
+        0 4px 16px rgba(0, 0, 0, 0.06);
+    animation: pkt-slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+}
+
+.pkt-modal-header {
+    background: #6b196b;
+    padding: 28px 28px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pkt-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+}
+
+.pkt-modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 50%;
+}
+
+.pkt-header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.pkt-header-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+}
+
+.pkt-header-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+}
+
+.pkt-total-section {
+    padding: 24px 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.pkt-total-label-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pkt-total-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.pkt-total-desc {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.pkt-total-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    background: #fdf5fc;
+    border: 1.5px solid #e8d5e8;
+    border-radius: 12px;
+    padding: 8px 18px;
+}
+
+.pkt-total-num {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: #6b196b;
+    letter-spacing: -1px;
+}
+
+.pkt-total-unit {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: #a855f7;
+}
+
+.pkt-divider {
+    margin: 20px 28px 0;
+    height: 1px;
+    background: #f1f5f9;
+}
+
+.pkt-detail-grid {
+    padding: 18px 28px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.pkt-dc {
+    background: #fafbfc;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pkt-dc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.pkt-dc-value {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    color: #6b196b;
+}
+
+.pkt-dc-value.neutral {
+    color: #475569;
+}
+
+.pkt-dc-sub {
+    font-size: 10px;
+    color: #cfd8dc;
+    font-weight: 500;
+}
+
+.pkt-btn-section {
+    padding: 20px 28px 24px;
+    display: flex;
+    gap: 10px;
+}
+
+.pkt-btn-retry {
+    flex: 1;
+    padding: 12px;
+    background: #fff;
+    border: 1.5px solid #e8d5e8;
+    color: #6b196b;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+}
+
+.pkt-btn-retry:hover {
+    background: #fdf5fc;
+    border-color: #c084c5;
+}
+
+.pkt-btn-rank {
+    flex: 1.5;
+    padding: 12px;
+    background: #6b196b;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    box-shadow: 0 4px 14px rgba(107, 25, 107, 0.3);
+}
+
+.pkt-btn-rank:hover {
+    background: #5a1459;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(107, 25, 107, 0.42);
 }

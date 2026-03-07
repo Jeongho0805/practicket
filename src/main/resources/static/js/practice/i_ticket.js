@@ -1,12 +1,467 @@
+import { authFetch } from '/js/common.js';
 
-// I-Ticket Booking Logic
-// Implements the specific flow described in plan.md
-// CAPTCHA -> AREA_SELECT -> SEAT_SELECT -> PRICE_DISCOUNT -> DELIVERY_ORDER -> PAYMENT
+// ════════════════════════════════════════
+// Queue System
+// ════════════════════════════════════════
+
+const QueueConfig = {
+    MIN_QUEUE: 5_000,
+    MAX_QUEUE: 200_000,
+    MAX_REACTION_MS: 3_000,        // 3초 이상은 최대 대기로 처리
+    FIXED_DEQUEUE_PER_SEC: 20_000, // MAX_QUEUE / 10초 → 항상 10초 이내 통과
+    STORAGE_KEY: 'iq.queue.payload'
+};
+
+const QueueManager = {
+    payload: null,
+    intervalId: null,
+    dom: {},
+
+    init() {
+        this.createQueueDOM();
+
+        const stored = sessionStorage.getItem(QueueConfig.STORAGE_KEY);
+        if (stored) {
+            try {
+                this.payload = JSON.parse(stored);
+            } catch (e) {
+                console.error('Queue Payload Corrupted', e);
+                this.createFallbackPayload();
+            }
+        } else {
+            console.warn('No Queue Payload Found. Creating Fallback.');
+            this.createFallbackPayload();
+        }
+
+        const now = Date.now();
+        if (now - this.payload.createdAtMs > 15 * 60 * 1000) {
+            console.warn('Queue Payload Expired. Resetting.');
+            sessionStorage.removeItem(QueueConfig.STORAGE_KEY);
+            this.createFallbackPayload();
+        }
+
+        if (this.payload.status === 'PASSED') {
+            this.removeQueueDOM();
+            return;
+        }
+
+        this.renderPhase('LOADING');
+
+        if (!this.payload.queueStartAtMs) {
+            setTimeout(() => {
+                this.startQueue();
+            }, this.payload.introLoadingMs || 800);
+        } else {
+            this.startQueue();
+        }
+    },
+
+    createFallbackPayload() {
+        const now = Date.now();
+        const reactionTimeMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
+        const step = Math.min(Math.floor(reactionTimeMs / 100), 30); // 0.1초 단위, 최대 30단계
+        const initialQueue = Math.round(
+            QueueConfig.MIN_QUEUE + (step / 30) * (QueueConfig.MAX_QUEUE - QueueConfig.MIN_QUEUE)
+        );
+
+        sessionStorage.setItem('pkt.queueInitialRank', initialQueue.toString());
+
+        this.payload = {
+            version: 2,
+            createdAtMs: now,
+            introClickedAtMs: now,
+            introLoadingMs: 800,
+            queueStartAtMs: null,
+            initialQueue: initialQueue,
+            dequeuePerSec: QueueConfig.FIXED_DEQUEUE_PER_SEC,
+            status: 'INTRO_LOADING'
+        };
+        this.savePayload();
+    },
+
+    savePayload() {
+        sessionStorage.setItem(QueueConfig.STORAGE_KEY, JSON.stringify(this.payload));
+    },
+
+    createQueueDOM() {
+        if (document.getElementById('queue-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'queue-overlay';
+        overlay.className = 'queue-overlay';
+        overlay.innerHTML = `
+            <div id="queue-loading" class="queue-loading-container" style="display:none;">
+                <div style="width: 50px; height: 50px; border: 5px solid #e0e0e0; border-top: 5px solid #448aff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                <div style="font-size: 18px; font-weight: bold; color: #333;">예매 정보를 불러오는 중입니다.</div>
+                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+            </div>
+
+            <div id="queue-card-container" class="queue-container" style="display:none;">
+                <div class="queue-header-group">
+                    <h1 class="queue-header-title">접속 인원이 많아 대기 중입니다.</h1>
+                    <h2 class="queue-header-subtitle">조금만 기다려주세요.</h2>
+                    <p class="queue-concert-name">2026 G-DRAGON 'FAM' MEETING</p>
+                </div>
+                <div class="queue-card">
+                    <div class="queue-my-order-label">나의 대기순서</div>
+                    <div id="queue-count" class="queue-number-display">---</div>
+                    <div class="queue-progress-track">
+                        <div id="queue-progress" class="queue-progress-fill"></div>
+                    </div>
+                    <div class="queue-info-grid">
+                        <div class="queue-info-item">
+                            <span class="q-label">예상 대기시간</span>
+                            <span id="queue-time-left" class="q-value">계산 중...</span>
+                        </div>
+                        <div class="queue-info-item right">
+                            <span class="q-label">상태</span>
+                            <span class="q-status-badge">대기 중</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="queue-footer-desc">
+                    <p>잠시만 기다려주시면, 예매하기 페이지로 연결됩니다.</p>
+                    <p>새로고침 하거나 재접속 하시면 대기순서가 초기화 되어 대기시간이 더 길어집니다.</p>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        this.dom = {
+            overlay: overlay,
+            loading: document.getElementById('queue-loading'),
+            cardContainer: document.getElementById('queue-card-container'),
+            count: document.getElementById('queue-count'),
+            progress: document.getElementById('queue-progress'),
+            timeLeft: document.getElementById('queue-time-left')
+        };
+    },
+
+    removeQueueDOM() {
+        const overlay = document.getElementById('queue-overlay');
+        if (overlay) overlay.remove();
+    },
+
+    renderPhase(phase) {
+        if (!this.dom.overlay) return;
+
+        if (phase === 'LOADING') {
+            this.dom.loading.style.display = 'block';
+            this.dom.cardContainer.style.display = 'none';
+        } else if (phase === 'QUEUE') {
+            this.dom.loading.style.display = 'none';
+            this.dom.cardContainer.style.display = 'flex';
+        }
+    },
+
+    startQueue() {
+        if (!this.payload.queueStartAtMs) {
+            this.payload.queueStartAtMs = Date.now();
+            this.payload.status = 'WAITING';
+            this.savePayload();
+        }
+
+        sessionStorage.setItem('pkt.queueWaitStartMs', this.payload.queueStartAtMs.toString());
+
+        this.renderPhase('QUEUE');
+        this.updateLoop();
+        this.intervalId = setInterval(() => this.updateLoop(), 200);
+    },
+
+    updateLoop() {
+        const now = Date.now();
+        const elapsedSec = (now - this.payload.queueStartAtMs) / 1000;
+        let currentQueue = Math.max(0, Math.floor(
+            this.payload.initialQueue - (elapsedSec * this.payload.dequeuePerSec)
+        ));
+
+        this.renderQueue(currentQueue);
+
+        if (currentQueue <= 0) {
+            this.finishQueue();
+        }
+    },
+
+    renderQueue(num) {
+        if (!this.dom.count) return;
+
+        this.dom.count.innerText = num.toLocaleString();
+
+        const total = this.payload.initialQueue;
+        const percent = total > 0 ? Math.min(100, Math.max(0, ((total - num) / total) * 100)) : 100;
+        this.dom.progress.style.width = percent + '%';
+
+        const secondsLeft = this.payload.dequeuePerSec > 0 ? Math.ceil(num / this.payload.dequeuePerSec) : 0;
+        this.dom.timeLeft.innerText = secondsLeft + '초';
+
+        if (num <= 5000 && num > 0) {
+            this.dom.progress.classList.add('urgent');
+        } else {
+            this.dom.progress.classList.remove('urgent');
+        }
+    },
+
+    finishQueue() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+        }
+
+        this.payload.status = 'PASSED';
+        this.savePayload();
+
+        const queueWaitStart = parseInt(sessionStorage.getItem('pkt.queueWaitStartMs') || '0');
+        if (queueWaitStart) {
+            sessionStorage.setItem('pkt.queueWaitMs', (Date.now() - queueWaitStart).toString());
+        }
+        sessionStorage.setItem('pkt.seatSelectionStartMs', Date.now().toString());
+
+        if (this.dom.overlay) {
+            this.dom.overlay.classList.add('finished');
+            setTimeout(() => {
+                this.removeQueueDOM();
+            }, 700);
+        } else {
+            this.removeQueueDOM();
+        }
+    }
+};
+
+// ════════════════════════════════════════
+// Seat Manager
+// ════════════════════════════════════════
+
+class SeatManager {
+    constructor(totalRows, totalCols) {
+        this.totalRows = totalRows;
+        this.totalCols = totalCols;
+        this.totalSeats = totalRows * totalCols;
+        this.zoneRanks = {};
+        this.decayStartAtMs = 0;
+        this.snapshotAtMs = 0;
+        this.snapshotSoldCount = 0;
+        this.soldOutAlertShown = false;
+        this.zones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+        this.totalSellOutDurationMs = 60000;
+        this.rushDurationMs = 20000;
+        this.rushSoldRatio = 0.80;
+
+        this.storageKeys = {
+            decayStartAt: 'iq.seat.decay.startedAt',
+            zoneRanks: 'iq.seat.zoneRanks_v6'
+        };
+
+        this.init();
+    }
+
+    init() {
+        const storedDecay = Number(sessionStorage.getItem(this.storageKeys.decayStartAt));
+        if (Number.isFinite(storedDecay) && storedDecay > 0) {
+            this.decayStartAtMs = storedDecay;
+        }
+
+        let loaded = false;
+        const savedRanks = sessionStorage.getItem(this.storageKeys.zoneRanks);
+        if (savedRanks) {
+            try {
+                const parsed = JSON.parse(savedRanks);
+                if (this.isValidAllZoneRanks(parsed)) {
+                    this.zoneRanks = parsed;
+                    loaded = true;
+                }
+            } catch (e) {
+                // fall through
+            }
+        }
+
+        if (!loaded) {
+            this.generateAllZoneRanks();
+            this.persistZoneRanks();
+        }
+        this.refreshSnapshot();
+    }
+
+    resolveDecayStartAt(fallbackNow = Date.now()) {
+        const queuePayloadRaw = sessionStorage.getItem('iq.queue.payload');
+        if (queuePayloadRaw) {
+            try {
+                const queuePayload = JSON.parse(queuePayloadRaw);
+                if (Number.isFinite(queuePayload.queueStartAtMs) && queuePayload.queueStartAtMs > 0) {
+                    sessionStorage.setItem(this.storageKeys.decayStartAt, String(queuePayload.queueStartAtMs));
+                    return queuePayload.queueStartAtMs;
+                }
+            } catch (e) {
+                // ignore
+            }
+            sessionStorage.removeItem('iq.queue.payload');
+        }
+
+        sessionStorage.setItem(this.storageKeys.decayStartAt, String(fallbackNow));
+        return fallbackNow;
+    }
+
+    generateAllZoneRanks() {
+        this.zones.forEach(zone => {
+            this.zoneRanks[zone] = this.generateSingleZoneRank();
+        });
+    }
+
+    persistZoneRanks() {
+        sessionStorage.setItem(this.storageKeys.zoneRanks, JSON.stringify(this.zoneRanks));
+    }
+
+    isValidAllZoneRanks(ranksObj) {
+        if (!ranksObj || typeof ranksObj !== 'object') return false;
+        return this.zones.every(zone => this.isValidZoneRank(ranksObj[zone]));
+    }
+
+    isValidZoneRank(rank) {
+        if (!Array.isArray(rank) || rank.length !== this.totalSeats) return false;
+        const uniq = new Set(rank);
+        if (uniq.size !== this.totalSeats) return false;
+
+        for (let r = 1; r <= this.totalRows; r++) {
+            for (let c = 1; c <= this.totalCols; c++) {
+                if (!uniq.has(`${r}-${c}`)) return false;
+            }
+        }
+        return true;
+    }
+
+    generateSingleZoneRank() {
+        const front = [], middle = [], back = [];
+
+        for (let r = 1; r <= this.totalRows; r++) {
+            for (let c = 1; c <= this.totalCols; c++) {
+                const seatId = `${r}-${c}`;
+                if (r <= 5) front.push(seatId);
+                else if (r <= 10) middle.push(seatId);
+                else back.push(seatId);
+            }
+        }
+
+        this.shuffle(front);
+        this.shuffle(middle);
+        this.shuffle(back);
+
+        const pickN = (arr, n) => {
+            const out = [];
+            for (let i = 0; i < n && arr.length > 0; i++) out.push(arr.shift());
+            return out;
+        };
+
+        const earlyFront = pickN(front, 96);
+        const earlyMiddle = pickN(middle, 80);
+        const earlyBack = pickN(back, 64);
+
+        const tailFront = pickN(front, front.length);
+        const tailMiddle = pickN(middle, middle.length);
+        const tailBack = pickN(back, back.length);
+
+        const interleave = (a, b, c, weights) => {
+            const out = [];
+            const pools = [
+                { arr: [...a], w: weights[0] },
+                { arr: [...b], w: weights[1] },
+                { arr: [...c], w: weights[2] }
+            ];
+
+            const popFrom = (idx) => pools[idx].arr.shift();
+
+            while (pools.some(p => p.arr.length > 0)) {
+                const alive = pools
+                    .map((p, idx) => ({ idx, w: p.arr.length > 0 ? p.w : 0 }))
+                    .filter(p => p.w > 0);
+
+                const totalW = alive.reduce((sum, p) => sum + p.w, 0);
+                let rv = Math.random() * totalW;
+                let chosen = alive[0].idx;
+                for (const p of alive) {
+                    rv -= p.w;
+                    if (rv <= 0) {
+                        chosen = p.idx;
+                        break;
+                    }
+                }
+                out.push(popFrom(chosen));
+            }
+            return out;
+        };
+
+        const earlyOrder = interleave(earlyFront, earlyMiddle, earlyBack, [5.0, 2.4, 1.0]);
+        const tailOrder = [...tailFront, ...interleave([], tailMiddle, tailBack, [0, 2.2, 3.2])];
+
+        return [...earlyOrder, ...tailOrder];
+    }
+
+    shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    computeSoldCountAt(nowMs) {
+        if (!this.decayStartAtMs) {
+            const resolved = this.resolveDecayStartAt(nowMs);
+            if (!resolved) return 0;
+            this.decayStartAtMs = resolved;
+        }
+
+        const elapsed = Math.max(0, nowMs - this.decayStartAtMs);
+        if (elapsed >= this.totalSellOutDurationMs) return this.totalSeats;
+
+        if (elapsed <= this.rushDurationMs) {
+            const t = elapsed / this.rushDurationMs;
+            const eased = 1 - Math.pow(1 - t, 3);
+            return Math.floor(this.totalSeats * this.rushSoldRatio * eased);
+        }
+
+        const remainingWindow = this.totalSellOutDurationMs - this.rushDurationMs;
+        const postElapsed = elapsed - this.rushDurationMs;
+        const t = Math.min(1, postElapsed / remainingWindow);
+        const easedSlow = Math.pow(t, 1.9);
+        const progress = this.rushSoldRatio + (1 - this.rushSoldRatio) * easedSlow;
+        return Math.floor(this.totalSeats * progress);
+    }
+
+    refreshSnapshot(nowMs = Date.now()) {
+        this.snapshotAtMs = nowMs;
+        this.snapshotSoldCount = this.computeSoldCountAt(nowMs);
+        return this.snapshotSoldCount;
+    }
+
+    getSoldSeatsCount() {
+        return this.snapshotSoldCount;
+    }
+
+    isSoldOut() {
+        return this.snapshotSoldCount >= this.totalSeats;
+    }
+
+    shouldShowSoldOutAlertNow() {
+        return false;
+    }
+
+    checkAvailability(row, col, zone = 'A') {
+        const seatId = `${row}-${col}`;
+        const ranks = this.zoneRanks[zone] || [];
+        const rankIndex = ranks.indexOf(seatId);
+        if (rankIndex === -1) return true;
+        return rankIndex >= this.snapshotSoldCount;
+    }
+}
+
+let seatManager = null;
+
+// ════════════════════════════════════════
+// Main Booking State
+// ════════════════════════════════════════
 
 const STATE = {
-    step: 'SEAT', // SEAT, PRICE, DELIVERY, PAYMENT
-    seatPhase: 'CAPTCHA', // CAPTCHA, AREA, SEAT, FOLDED
-    selectedSeats: [], // Array of {row, col, grade, price, id}
+    step: 'SEAT',
+    seatPhase: 'CAPTCHA',
+    selectedSeats: [],
     ticketPrice: 88000,
     fee: 2000,
     captchaAnswer: 'BXWUMU'
@@ -16,22 +471,18 @@ const DOM = {
     root: document.getElementById('ip-root'),
     captchaOverlay: document.getElementById('captcha-overlay'),
     captchaInput: document.getElementById('txtCaptcha'),
-    captchaCanvas: document.getElementById('captchaCanvas'),
+    captchaImg: document.getElementById('captchaImg'),
 
-    // Seat Phase
     seatGrid: document.getElementById('seat-grid'),
     seatRows: document.getElementById('seat-rows'),
     seatAreaLabel: document.getElementById('seat-area-label'),
 
-    // Right Panel (Seat)
     seatCount: document.getElementById('seat-count'),
     seatList: document.getElementById('seat-list'),
     seatCompleteBtn: document.getElementById('seat-complete'),
 
-    // Price Phase
     quantitySelect: document.getElementById('ticket-quantity'),
 
-    // Forms
     orderName: document.getElementById('order-name'),
     orderBirth: document.getElementById('order-birth'),
     orderPhone1: document.getElementById('order-phone-1'),
@@ -39,7 +490,6 @@ const DOM = {
     orderPhone3: document.getElementById('order-phone-3'),
     orderEmail: document.getElementById('order-email'),
 
-    // Summary
     summarySeat: document.getElementById('summary-seat'),
     summaryTicket: document.getElementById('summary-ticket'),
     summaryFee: document.getElementById('summary-fee'),
@@ -50,25 +500,359 @@ const DOM = {
     toast: document.getElementById('ip-toast')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    init();
-});
+// ════════════════════════════════════════
+// Seat Detail (복잡 좌석 그리드)
+// ════════════════════════════════════════
+
+let currentZone = 'A';
+let soldOutMonitorId = null;
+
+function refreshSeatSnapshot() {
+    if (!seatManager || typeof seatManager.refreshSnapshot !== 'function') return;
+    seatManager.refreshSnapshot();
+}
+
+function checkGlobalSoldOutAndRedirect() {
+    if (!seatManager || typeof seatManager.shouldShowSoldOutAlertNow !== 'function') return;
+    if (seatManager.shouldShowSoldOutAlertNow()) {
+        alert('모든 좌석이 소진되었습니다.');
+        window.location.href = '/practice/i-ticket/intro';
+    }
+}
+
+function startSoldOutMonitor() {
+    if (soldOutMonitorId) return;
+    soldOutMonitorId = setInterval(() => {
+        checkGlobalSoldOutAndRedirect();
+    }, 500);
+}
+
+function toggleSeatView(action, zoneName) {
+    const map = document.getElementById('areaMap');
+    const detail = document.getElementById('seatDetail');
+    const title = detail.querySelector('.detail-title');
+    const grid = detail.querySelector('.seat-grid-scroll');
+    const noticeRow = document.querySelector('.ip-map-notice-row');
+
+    if (action === 'show') {
+        currentZone = zoneName;
+        map.style.display = 'none';
+        detail.style.display = 'block';
+        title.innerText = '◆ ' + zoneName + '구역의 좌석배치도입니다';
+        title.style.fontSize = '12px';
+        title.style.color = '#666';
+
+        noticeRow.style.display = 'none';
+
+        renderSeats(grid, zoneName);
+        validateSelectedSeats();
+    } else {
+        map.style.display = 'flex';
+        detail.style.display = 'none';
+        noticeRow.style.display = 'block';
+        noticeRow.innerHTML = '<span class="diamond">◆</span> 원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.';
+    }
+}
+
+function renderSeats(container, zoneName) {
+    let html = '';
+
+    let selectedIds = [];
+    if (STATE.selectedSeats) {
+        selectedIds = STATE.selectedSeats.map(s => s.id);
+    }
+
+    refreshSeatSnapshot();
+
+    for (let r = 1; r <= 15; r++) {
+        html += `<div class="seat-row-container">`;
+        html += `<div class="seat-row-label">${zoneName}구역 ${r}열</div>`;
+        html += `<div class="seat-row-units">`;
+
+        for (let s = 1; s <= 20; s++) {
+            if (s === 6 || s === 16) {
+                html += `<div style="width:15px; height:15px;"></div>`;
+            }
+
+            let isAvailable = true;
+            if (seatManager) {
+                isAvailable = seatManager.checkAvailability(r, s, zoneName);
+            }
+
+            let className = 'seat-unit';
+            let onClick = '';
+            const seatTitle = `${zoneName}구역 ${r}열 ${s}번`;
+            const isSelected = selectedIds.includes(seatTitle);
+
+            if (isAvailable) {
+                className += ' available';
+                if (isSelected) className += ' selected';
+                onClick = `onclick="selectSeat(this, '${zoneName}', ${r}, ${s})"`;
+            } else {
+                className += ' taken';
+            }
+
+            html += `<div class="${className}" ${onClick} title="${seatTitle}"></div>`;
+        }
+        html += `</div></div>`;
+    }
+    container.innerHTML = html;
+}
+
+function selectSeat(el, zone, row, num) {
+    if (seatManager && !seatManager.checkAvailability(row, num, zone)) {
+        alert('이미 선택된 좌석입니다.');
+        return;
+    }
+
+    el.classList.toggle('selected');
+    const isSelected = el.classList.contains('selected');
+    updateRightPanel(zone, row, num, isSelected);
+    toggleBlinkingButton();
+}
+
+function updateRightPanel(zone, row, num, isAdded) {
+    const seatId = `seat-${zone}-${row}-${num}`;
+    const listContainer = document.querySelector('.choice-table-body');
+    const countSpan = document.querySelector('.sect-count');
+
+    if (listContainer.classList.contains('empty')) {
+        listContainer.classList.remove('empty');
+        listContainer.innerHTML = '';
+        listContainer.style.background = '#fff';
+    }
+
+    const title = `${zone}구역 ${row}열 ${num}번`;
+    if (isAdded) {
+        const exists = STATE.selectedSeats.some(s => s.id === title);
+        if (!exists) {
+            if (STATE.selectedSeats.length >= 1) {
+                alert('1매만 선택 가능합니다.');
+                const targetEl = document.querySelector(`.seat-unit[title="${title}"]`);
+                if (targetEl) targetEl.classList.remove('selected');
+                return;
+            }
+            STATE.selectedSeats.push({ id: title, row: row, col: num, price: 88000 });
+        }
+    } else {
+        STATE.selectedSeats = STATE.selectedSeats.filter(s => s.id !== title);
+    }
+
+    if (isAdded) {
+        if (!document.getElementById(seatId)) {
+            listContainer.insertAdjacentHTML('beforeend', `
+                <div class="choice-seat-item" id="${seatId}">
+                    <div class="c-grade">전석</div>
+                    <div class="c-num">${title}</div>
+                </div>
+            `);
+        }
+    } else {
+        const item = document.getElementById(seatId);
+        if (item) item.remove();
+    }
+
+    const total = listContainer.children.length;
+    countSpan.innerText = `총 ${total}석 선택되었습니다.`;
+
+    if (total === 0) {
+        listContainer.classList.add('empty');
+        listContainer.style.background = '';
+    }
+}
+
+function validateSelectedSeats() {
+    if (!seatManager) return;
+
+    const stillValid = [];
+    let changed = false;
+
+    STATE.selectedSeats.forEach(s => {
+        const match = s.id.match(/([A-Z0-9]+)구역 (\d+)열 (\d+)번/);
+        if (match) {
+            const [, z, r, n] = match;
+            if (seatManager.checkAvailability(parseInt(r), parseInt(n), z)) {
+                stillValid.push(s);
+            } else {
+                changed = true;
+                const seatId = `seat-${z}-${r}-${n}`;
+                const item = document.getElementById(seatId);
+                if (item) item.remove();
+            }
+        } else {
+            stillValid.push(s);
+        }
+    });
+
+    if (changed) {
+        STATE.selectedSeats = stillValid;
+        const countSpan = document.querySelector('.sect-count');
+        const listContainer = document.querySelector('.choice-table-body');
+        const total = STATE.selectedSeats.length;
+        countSpan.innerText = `총 ${total}석 선택되었습니다.`;
+        if (total === 0) {
+            listContainer.classList.add('empty');
+            listContainer.style.background = '';
+        }
+        toggleBlinkingButton();
+    }
+}
+
+function toggleBlinkingButton() {
+    const btn = document.querySelector('.btn-big-red');
+    if (!btn) return;
+    const hasSeats = STATE.selectedSeats.length > 0;
+    if (hasSeats) btn.classList.add('blinking');
+    else btn.classList.remove('blinking');
+}
+
+function resetSelection() {
+    STATE.selectedSeats = [];
+
+    const listContainer = document.querySelector('.choice-table-body');
+    listContainer.innerHTML = '';
+    listContainer.classList.add('empty');
+    listContainer.style.background = '';
+
+    document.querySelector('.sect-count').innerText = '총 0석 선택되었습니다.';
+
+    toggleBlinkingButton();
+
+    const grid = document.querySelector('.seat-grid-scroll');
+    if (grid) {
+        renderSeats(grid, currentZone);
+    }
+}
+
+function goToStep3() {
+    if (STATE.selectedSeats.length === 0) {
+        alert('좌석을 선택해주세요.');
+        return;
+    }
+
+    refreshSeatSnapshot();
+
+    let hasTakenSeats = false;
+    STATE.selectedSeats.forEach(s => {
+        const match = s.id.match(/([A-Z0-9]+)구역 (\d+)열 (\d+)번/);
+        if (match) {
+            const [, z, r, n] = match;
+            if (!seatManager.checkAvailability(parseInt(r), parseInt(n), z)) {
+                hasTakenSeats = true;
+            }
+        }
+    });
+
+    if (hasTakenSeats) {
+        alert('이미 선택된 좌석입니다.');
+        resetSelection();
+        return;
+    }
+
+    renderStep3();
+
+    document.getElementById('step2-main').style.display = 'none';
+    document.getElementById('step3-main').style.display = 'flex';
+
+    const headerBadgeNum = document.querySelector('.ip-step-badge .num');
+    const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
+    if (headerBadgeNum) headerBadgeNum.innerText = '03';
+    if (headerBadgeTxt) headerBadgeTxt.innerText = '가격/할인선택';
+}
+
+function renderStep3() {
+    const s3TableBody = document.getElementById('s3-price-tbody');
+    const totalSelected = STATE.selectedSeats.length;
+
+    document.getElementById('s3-sect-count').innerHTML =
+        `전석 | 좌석 <span class="red">${totalSelected}매</span>를 선택하셨습니다.`;
+    document.getElementById('s3-my-info-seat').innerHTML = `전석<br>(${totalSelected}매)`;
+
+    const defaultPrice = 154000;
+    let html = '';
+
+    STATE.selectedSeats.forEach((seat, index) => {
+        html += `
+            <tr>
+                <td class="td-type">${index === 0 ? '기본가' : ''}</td>
+                <td class="td-name">${seat.id}</td>
+                <td class="td-price">${defaultPrice.toLocaleString()}원</td>
+                <td class="td-select">
+                    <select onchange="updateStep3Total()">
+                        <option value="0" selected>0매</option>
+                        <option value="1">1매</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+    });
+
+    s3TableBody.innerHTML = html;
+    updateStep3Total();
+}
+
+function updateStep3Total() {
+    const selects = document.querySelectorAll('#s3-price-tbody select');
+    let selectedCount = 0;
+    selects.forEach(sel => selectedCount += parseInt(sel.value));
+
+    const totalSelected = STATE.selectedSeats.length;
+    if (selectedCount > totalSelected) {
+        alert('선택하신 좌석 수보다 많습니다.');
+        event.target.value = 0;
+        return updateStep3Total();
+    }
+
+    const pricePerSeat = 154000;
+    const feePerSeat = 2000;
+
+    const ticketTotal = pricePerSeat * selectedCount;
+    const feeTotal = feePerSeat * selectedCount;
+    const finalTotal = ticketTotal + feeTotal;
+
+    document.getElementById('s3-ticket-price').innerText = ticketTotal.toLocaleString() + '원';
+    document.getElementById('s3-fee-price').innerText = feeTotal.toLocaleString() + '원';
+    document.getElementById('s3-total-price').innerText = finalTotal.toLocaleString();
+}
+
+function goBackToStep2() {
+    document.getElementById('step3-main').style.display = 'none';
+    document.getElementById('step2-main').style.display = 'flex';
+
+    const headerBadgeNum = document.querySelector('.ip-step-badge .num');
+    const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
+    if (headerBadgeNum) headerBadgeNum.innerText = '02';
+    if (headerBadgeTxt) headerBadgeTxt.innerText = '좌석 선택';
+}
+
+function finishPractice() {
+    const selects = document.querySelectorAll('#s3-price-tbody select');
+    let selectedCount = 0;
+    selects.forEach(sel => selectedCount += parseInt(sel.value));
+
+    if (selectedCount === 0) {
+        alert('1매를 선택해주세요.');
+        return;
+    }
+
+    completePractice();
+}
+
+// ════════════════════════════════════════
+// Main Booking Functions
+// ════════════════════════════════════════
 
 function init() {
     bindEvents();
-    // renderSeats(20, 15); // Mock 20 rows, 15 cols
     updateUI();
 
-    // Check navigation type to determine if we should preserve the solved state
     const navEntries = performance.getEntriesByType('navigation');
     const isReload = navEntries.length > 0 && navEntries[0].type === 'reload';
 
     if (!isReload) {
-        // Clear solved state if it's a new entry, back/forward, etc.
         sessionStorage.removeItem('captcha_solved');
     }
 
-    // Check if captcha was already solved in this session
     if (sessionStorage.getItem('captcha_solved') === 'true') {
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
         setSeatPhase('AREA');
@@ -78,7 +862,6 @@ function init() {
 }
 
 function bindEvents() {
-    // Global Action Handling (Delegation)
     document.addEventListener('click', (e) => {
         const actionBtn = e.target.closest('[data-action]');
         if (actionBtn) {
@@ -86,7 +869,6 @@ function bindEvents() {
         }
     });
 
-    // Captcha Input Enter Key
     if (DOM.captchaInput) {
         DOM.captchaInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleCaptchaSubmit();
@@ -97,22 +879,17 @@ function bindEvents() {
         });
     }
 
-    // Seat Section Click
     document.querySelectorAll('.ip-seat-section').forEach(path => {
         path.addEventListener('click', (e) => {
             if (STATE.seatPhase === 'CAPTCHA' || STATE.seatPhase === 'FOLDED') {
-                if (STATE.seatPhase === 'FOLDED') {
-                    // Bring back captcha
-                    renderCaptcha();
-                }
-                return; // Block interaction
+                if (STATE.seatPhase === 'FOLDED') renderCaptcha();
+                return;
             }
             const areaId = e.target.dataset.areaId;
             enterSeatDetail(areaId);
         });
     });
 
-    // Quantity Change
     if (DOM.quantitySelect) {
         DOM.quantitySelect.addEventListener('change', updateSummary);
     }
@@ -142,8 +919,6 @@ function handleAction(action, target) {
     }
 }
 
-// --- Captcha ---
-
 function renderCaptcha() {
     STATE.seatPhase = 'CAPTCHA';
     DOM.root.setAttribute('data-seat-phase', 'CAPTCHA');
@@ -151,96 +926,86 @@ function renderCaptcha() {
     if (DOM.captchaInput) {
         DOM.captchaInput.value = '';
         DOM.captchaInput.parentElement.classList.remove('error');
-        // Removed auto-focus as per request
     }
     drawCaptcha();
 }
 
-function drawCaptcha() {
-    if (!DOM.captchaCanvas) return;
-    const canvas = DOM.captchaCanvas;
+const CAPTCHA_LIST = [
+    { file: '001.png', answer: 'NPXLUE' },
+    { file: '002.png', answer: 'TBBLQK' },
+    { file: '003.png', answer: 'RLBLDU' },
+    { file: '004.png', answer: 'RPZTCA' },
+    { file: '005.png', answer: 'TMTKKM' },
+    { file: '006.png', answer: 'RTMXXA' },
+    { file: '007.png', answer: 'PUKRMU' },
+    { file: '008.png', answer: 'CXPWLN' },
+    { file: '009.png', answer: 'LBNLND' },
+    { file: '010.png', answer: 'NEXDRX' },
+    { file: '011.png', answer: 'NZCTZP' },
+    { file: '012.png', answer: 'BBMSWW' },
+    { file: '013.png', answer: 'LBUBXB' },
+    { file: '014.png', answer: 'ZZAMUL' },
+    { file: '015.png', answer: 'NDCUWA' },
+    { file: '016.png', answer: 'XPAAXE' },
+    { file: '017.png', answer: 'SCRNKK' },
+    { file: '018.png', answer: 'ASSQLR' },
+    { file: '019.png', answer: 'ZCEBZQ' },
+    { file: '020.png', answer: 'DPPSXP' },
+];
+
+let lastCaptchaIndex = -1;
+
+function renderCaptchaNoise(box) {
+    const W = 600, H = 200;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // List of background and text colors to randomize
-    const bgColors = ['#4b4b00', '#002e1a', '#1a1a4b', '#4b1a1a', '#000000', '#2d2d2d'];
-    const textColors = ['#e5f311', '#ffffff', '#ffeb3b', '#00ff00', '#00ffff', '#ff9800'];
-
-    const randomBg = bgColors[Math.floor(Math.random() * bgColors.length)];
-    const randomText = textColors[Math.floor(Math.random() * textColors.length)];
-
-    // Generate random text
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let text = '';
-    for (let i = 0; i < 6; i++) text += chars.charAt(Math.floor(Math.random() * chars.length));
-    STATE.captchaAnswer = text;
-
-    // Background
-    ctx.fillStyle = randomBg;
-    ctx.fillRect(0, 0, width, height);
-
-    // Noise - massive amount of tiny dots (stars look)
-    for (let i = 0; i < 800; i++) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+    const count = Math.floor(W * H / 16);
+    for (let i = 0; i < count; i++) {
+        const x = Math.random() * W;
+        const y = Math.random() * H;
+        const r = Math.random() * 0.6 + 0.2;
+        const a = (Math.random() * 0.45 + 0.25).toFixed(2);
         ctx.beginPath();
-        const size = Math.random() * 0.8;
-        ctx.arc(Math.random() * width, Math.random() * height, size, 0, Math.PI * 2);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(80,80,80,${a})`;
         ctx.fill();
     }
+    box.style.backgroundImage = `url(${canvas.toDataURL()})`;
+    box.style.backgroundSize = 'cover';
+}
 
-    // Noise - lines
-    for (let i = 0; i < 15; i++) {
-        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.25})`;
-        ctx.lineWidth = Math.random() * 1.5;
-        ctx.beginPath();
-        ctx.moveTo(Math.random() * width, Math.random() * height);
-        ctx.lineTo(Math.random() * width, Math.random() * height);
-        ctx.stroke();
-    }
+function drawCaptcha() {
+    if (!DOM.captchaImg) return;
 
-    // Characters
-    const charWidth = width / 7;
-    ctx.font = 'bold 38px "Courier New", monospace';
-    ctx.textBaseline = 'middle';
+    let idx;
+    do {
+        idx = Math.floor(Math.random() * CAPTCHA_LIST.length);
+    } while (CAPTCHA_LIST.length > 1 && idx === lastCaptchaIndex);
 
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        ctx.save();
+    lastCaptchaIndex = idx;
+    const picked = CAPTCHA_LIST[idx];
+    STATE.captchaAnswer = picked.answer;
 
-        // Random position and rotation
-        const x = (i + 0.8) * charWidth;
-        const y = height / 2 + (Math.random() * 24 - 12);
-        const angle = (Math.random() * 45 - 22.5) * Math.PI / 180;
+    const box = DOM.captchaImg.closest('.capchaImgBox');
+    if (box) renderCaptchaNoise(box);
 
-        ctx.translate(x, y);
-        ctx.rotate(angle);
+    const imgW = 260, imgH = 100;
+    const boxW = box ? box.clientWidth : 400;
+    const boxH = box ? box.clientHeight : 175;
+    DOM.captchaImg.style.left = Math.floor(Math.random() * Math.max(0, boxW - imgW)) + 'px';
+    DOM.captchaImg.style.top  = Math.floor(Math.random() * Math.max(0, boxH - imgH)) + 'px';
 
-        // Character style
-        ctx.fillStyle = randomText;
-        ctx.shadowBlur = 3;
-        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-        ctx.fillText(char, -15, 0);
-
-        ctx.restore();
-    }
-
-    // Cross-cutting thin lines
-    for (let i = 0; i < 8; i++) {
-        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(0, Math.random() * height);
-        ctx.lineTo(width, Math.random() * height);
-        ctx.stroke();
-    }
+    DOM.captchaImg.src = `/image/i-captch/${picked.file}`;
 }
 
 function refreshCaptcha() {
     drawCaptcha();
     if (DOM.captchaInput) {
         DOM.captchaInput.value = '';
-        DOM.captchaInput.focus();
     }
 }
 
@@ -253,24 +1018,19 @@ function handleCaptchaSubmit() {
         setSeatPhase('AREA');
     } else {
         DOM.captchaInput.parentElement.classList.add('error');
-        // The error text is shown via CSS
         DOM.captchaInput.focus();
     }
 }
-
-// --- Navigation & State ---
 
 function setStep(step) {
     STATE.step = step;
     DOM.root.setAttribute('data-step', step);
 
-    // Update Active Nav
     document.querySelectorAll('.ip-step').forEach(el => {
         if (el.dataset.stepTarget === step) el.classList.add('ip-step-active');
         else el.classList.remove('ip-step-active');
     });
 
-    // Special handling for phases
     if (step === 'PRICE') {
         DOM.summarySeat.textContent = STATE.selectedSeats.length + '석';
         updateSummary();
@@ -301,68 +1061,9 @@ function goNextStep() {
     }
 }
 
-// --- Seat Selection ---
-
 function enterSeatDetail(areaId) {
     DOM.seatAreaLabel.textContent = areaId;
     setSeatPhase('SEAT');
-}
-
-function renderSeatsLegacy(rows, cols) {
-    if (!DOM.seatGrid) return;
-    DOM.seatGrid.innerHTML = '';
-    DOM.seatGrid.style.gridTemplateColumns = `repeat(2, 1fr)`; // 2 blocks
-    DOM.seatRows.innerHTML = '';
-
-    // Create Row Labels
-    for (let r = 1; r <= rows; r++) {
-        const span = document.createElement('span');
-        span.textContent = r;
-        DOM.seatRows.appendChild(span);
-    }
-
-    // Create 2 Blocks of seats
-    for (let b = 0; b < 2; b++) {
-        const block = document.createElement('div');
-        block.className = 'ip-seat-block';
-        block.style.gridTemplateColumns = `repeat(${cols}, 12px)`;
-
-        for (let r = 1; r <= rows; r++) {
-            for (let c = 1; c <= cols; c++) {
-                const seat = document.createElement('div');
-                seat.className = 'ip-seat-item';
-                seat.dataset.row = r;
-                seat.dataset.col = (b * cols) + c; // Continuous column numbering
-                seat.title = `${r}열 ${(b * cols) + c}번`;
-
-                seat.addEventListener('click', () => toggleSeat(seat));
-                block.appendChild(seat);
-            }
-        }
-        DOM.seatGrid.appendChild(block);
-    }
-}
-
-function toggleSeat(el) {
-    const isSelected = el.classList.contains('is-selected');
-
-    if (isSelected) {
-        el.classList.remove('is-selected');
-        STATE.selectedSeats = STATE.selectedSeats.filter(s => s.id !== el.title);
-    } else {
-        if (STATE.selectedSeats.length >= 4) {
-            alert('최대 4매까지만 선택 가능합니다.');
-            return;
-        }
-        el.classList.add('is-selected');
-        STATE.selectedSeats.push({
-            id: el.title,
-            row: el.dataset.row,
-            col: el.dataset.col,
-            price: STATE.ticketPrice
-        });
-    }
-    updateSeatSidePanel();
 }
 
 function resetSeats() {
@@ -374,32 +1075,28 @@ function resetSeats() {
 function updateSeatSidePanel() {
     DOM.seatCount.textContent = STATE.selectedSeats.length;
     DOM.seatList.innerHTML = '';
-    STATE.ticketPrice = 88000; // Reset price base
+    STATE.ticketPrice = 88000;
 
     STATE.selectedSeats.forEach(s => {
         const div = document.createElement('div');
         div.textContent = `[전석] ${s.row}열 ${s.col}번`;
-        div.style.marginBottom = "4px";
+        div.style.marginBottom = '4px';
         DOM.seatList.appendChild(div);
     });
 
     DOM.seatCompleteBtn.disabled = STATE.selectedSeats.length === 0;
 }
 
-// --- Validation & Calculation ---
-
 function updateUI() {
-    // Initial UI Setup
-    if (DOM.captchaPlaceholder) DOM.captchaPlaceholder.style.display = 'block';
+    // Initial UI setup placeholder
 }
 
 function updateSummary() {
     const count = STATE.selectedSeats.length;
-    // Force quantity to match seat count (since we are reserving specific seats)
 
     if (DOM.quantitySelect) {
         DOM.quantitySelect.value = count > 0 ? count : 1;
-        DOM.quantitySelect.disabled = true; // Fixed to seat count
+        DOM.quantitySelect.disabled = true;
     }
 
     const qty = count;
@@ -422,7 +1119,6 @@ function validateDelivery() {
     const p3 = DOM.orderPhone3.value;
     if (p2.length < 3 || p3.length < 4) { alert('연락처를 정확히 입력해주세요.'); DOM.orderPhone2.focus(); return false; }
 
-    // Email basic check
     if (!DOM.orderEmail.value.includes('@')) { alert('이메일 형식이 올바르지 않습니다.'); DOM.orderEmail.focus(); return false; }
 
     return true;
@@ -445,8 +1141,6 @@ function validatePayment() {
     return true;
 }
 
-// --- Utils ---
-
 function showToast(msg) {
     if (!msg) return;
     DOM.toast.textContent = msg;
@@ -456,8 +1150,6 @@ function showToast(msg) {
     }, 2000);
 }
 
-// ── 연습 완료 API ──
-
 async function completePractice() {
     const sessionId = sessionStorage.getItem('pkt.sessionId');
     const reactionTimeMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
@@ -465,24 +1157,24 @@ async function completePractice() {
     const seatStartMs = parseInt(sessionStorage.getItem('pkt.seatSelectionStartMs') || '0');
     const seatSelectionMs = seatStartMs ? Math.max(0, Date.now() - seatStartMs) : 0;
     const queueInitialRank = parseInt(sessionStorage.getItem('pkt.queueInitialRank') || '0');
+    const reactionStartMs = parseInt(sessionStorage.getItem('pkt.reactionStartMs') || '0');
+    const totalDurationMs = reactionStartMs ? Math.max(0, Date.now() - reactionStartMs) : 0;
 
-    // sessionStorage 키 정리
     ['pkt.sessionId', 'pkt.reactionTimeMs', 'pkt.queueWaitMs',
         'pkt.queueInitialRank', 'pkt.queueWaitStartMs',
         'pkt.seatSelectionStartMs', 'pkt.reactionStartMs'
     ].forEach(k => sessionStorage.removeItem(k));
 
-    // 세션 없으면 (= 직접 접근) 일반 플로우로
     if (!sessionId) {
         setStep('PRICE');
         return;
     }
 
     try {
-        const res = await fetch('/api/practice/complete', {
+        const res = await authFetch('/api/practice/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank })
+            body: JSON.stringify({ session_id: sessionId, total_duration_ms: totalDurationMs, reaction_time_ms: reactionTimeMs, queue_wait_ms: queueWaitMs, seat_selection_ms: seatSelectionMs, queue_initial_rank: queueInitialRank })
         });
 
         if (res.ok) {
@@ -490,12 +1182,11 @@ async function completePractice() {
         } else {
             const err = await res.json().catch(() => null);
             console.warn('[Practicket] complete failed:', err);
-            // 타이밍 오류를 포함한 배서도 모달 표시 (코드된 병방)
             showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
         }
     } catch (e) {
         console.error('[Practicket] complete error:', e);
-        setStep('PRICE'); // 네트워크 오류 시 기존 플로우
+        setStep('PRICE');
     }
 }
 
@@ -508,7 +1199,7 @@ function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queue
         now.getFullYear(),
         String(now.getMonth() + 1).padStart(2, '0'),
         String(now.getDate()).padStart(2, '0')
-    ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
     document.getElementById('pkt-meta').textContent = 'I-Ticket 구버전 · ' + dateStr;
     document.getElementById('pkt-total-num').textContent = (totalMs / 1000).toFixed(3);
@@ -519,3 +1210,50 @@ function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queue
 
     document.getElementById('pkt-complete-overlay').classList.add('visible');
 }
+
+// ════════════════════════════════════════
+// DOMContentLoaded
+// ════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Queue
+    if (document.getElementById('ip-root')) {
+        QueueManager.init();
+    }
+
+    // 2. Seat Manager
+    seatManager = new SeatManager(15, 20);
+    startSoldOutMonitor();
+    checkGlobalSoldOutAndRedirect();
+
+    // 버튼 바인딩 (인라인 스크립트에서 이동)
+    const nextBtnStep2 = document.querySelector('#step2-main .btn-big-red');
+    if (nextBtnStep2) nextBtnStep2.onclick = goToStep3;
+
+    const backBtn = document.querySelector('.ip-panel-header');
+    if (backBtn) backBtn.onclick = () => toggleSeatView('hide');
+
+    const footerBtns = document.querySelectorAll('.btn-footer-sub');
+    if (footerBtns.length >= 2) {
+        const prevBtn = footerBtns[0];
+        if (prevBtn.innerText.includes('이전단계')) {
+            prevBtn.onclick = () => alert('"관람일/회차선택" 으로 넘어가는 버튼이에요. 누르지마세요!');
+        }
+        const resetBtn = footerBtns[1];
+        if (resetBtn.innerText.includes('다시 선택')) {
+            resetBtn.onclick = resetSelection;
+        }
+    }
+
+    // 3. Main init
+    init();
+});
+
+// ── onclick 속성에서 호출되는 함수 전역 노출 ──
+window.toggleSeatView = toggleSeatView;
+window.selectSeat = selectSeat;
+window.resetSelection = resetSelection;
+window.goToStep3 = goToStep3;
+window.updateStep3Total = updateStep3Total;
+window.goBackToStep2 = goBackToStep2;
+window.finishPractice = finishPractice;

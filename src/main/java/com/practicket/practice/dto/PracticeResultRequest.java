@@ -11,6 +11,9 @@ public class PracticeResultRequest {
     private String sessionId;
 
     @Min(0)
+    private int totalDurationMs;
+
+    @Min(0)
     private int reactionTimeMs;
 
     @Min(0)
