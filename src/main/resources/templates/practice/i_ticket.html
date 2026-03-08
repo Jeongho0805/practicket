@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>I-Ticket 예매 연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/i_ticket.css" />
+</head>
+
+<body>
+    <div class="ip-wrapper" id="ip-root" data-step="SEAT" data-seat-phase="AREA">
+
+
+        <div class="ip-seat-header-new">
+            <!-- Left: Red Badge (Spans 2 rows) -->
+            <div class="ip-step-badge">
+                <span class="num">02</span>
+                <span class="txt">좌석 선택</span>
+            </div>
+
+            <!-- Right: Column for Title & Date/Time -->
+            <div class="ip-header-right-col">
+                <!-- Row 1: Title -->
+                <div class="ip-concert-info-row">
+                    <span class="title">HO + YA : HOYA : HO I LOVE YOU</span>
+                    <span class="divider">|</span>
+                    <span class="venue">프랙티켓홀</span>
+                </div>
+                <!-- Row 2: Date/Time -->
+                <div class="ip-date-select-row">
+                    <span class="date-label-icon">▶</span>
+                    <span class="date-label-txt">다른 관람일자 선택 :</span>
+                    <span class="label">일자</span>
+                    <select class="ip-select-date">
+                        <option>2026년 02월 08일(토)</option>
+                    </select>
+                    <span class="label">시간</span>
+                    <select class="ip-select-time">
+                        <option>19시 00분</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <main class="ip-main-new" id="step2-main">
+            <!-- Left: Seat Map Placeholder -->
+            <section class="ip-left-new">
+                <div class="ip-map-notice-row">
+                    <span class="diamond">◆</span> 원하시는 영역을 선택해주세요. 공연장에서 위치를 클릭하거나, 오른쪽의 좌석을 선택해주세요.
+                </div>
+                <div class="ip-map-guide">
+                    <p class="guide-title-ko">구역 내 상단이 무대와 가까운 쪽입니다.</p>
+                    <p class="guide-title-en">The upper end of the section is the closest area to the stage.</p>
+                    <p class="guide-highlight-ko">※ 가로로 (한줄로 나란히) 예매해 주세요</p>
+                    <p class="guide-highlight-en">Please reserve seats horizontally (in a row).</p>
+                    <p class="guide-warn">※ 무대는 예매 편의를 위해 표시된 것으로 실제 무대와 다를 수 있습니다.</p>
+                    <p class="guide-warn">※ 일부 좌석은 난간, 구조물, 현장 기술 등으로 인해 시야 방해가 발생할 수 있습니다.</p>
+                    <p class="guide-warn">※ 스탠딩 구역 내 번호는 좌석 번호가 아닌 입장 순서입니다. 앞 번호를 선택할수록 입장 순서가 빨라집니다.</p>
+                </div>
+
+                <div class="ip-seat-map-container" id="areaMap">
+                    <svg class="seat-map-svg" viewBox="0 0 620 470" role="img" aria-label="좌석 구역 지도">
+                        <text class="level-label" x="150" y="115">2F</text>
+                        <text class="level-label" x="462" y="115">2F</text>
+                        <text class="level-label floor-label" x="306" y="332">FLOOR</text>
+
+                        <path class="stage-top-shape" d="M206 110 H414 L392 142 H228 Z"></path>
+                        <text class="stage-top-text" x="310" y="136">STAGE</text>
+
+                        <path class="outer-frame"
+                            d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z">
+                        </path>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'E')">
+                            <polygon points="146,136 186,136 186,296 146,296"></polygon>
+                            <text x="166" y="216">E</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'F')">
+                            <polygon points="434,136 474,136 474,296 434,296"></polygon>
+                            <text x="454" y="216">F</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'G')">
+                            <polygon points="146,290 186,290 186,334 236,334 236,382 146,382"></polygon>
+                            <text x="192" y="352">G</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'H')">
+                            <polygon points="434,290 474,290 474,382 384,382 384,334 434,334"></polygon>
+                            <text x="426" y="352">H</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'A')">
+                            <polygon points="226,158 300,158 300,235 206,235 206,184"></polygon>
+                            <text x="246" y="200">A</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'B')">
+                            <polygon points="320,158 394,158 414,184 414,235 320,235"></polygon>
+                            <text x="364" y="200">B</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'C')">
+                            <polygon points="206,246 300,246 300,320 226,320 206,300"></polygon>
+                            <text x="246" y="292">C</text>
+                        </g>
+
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'D')">
+                            <polygon points="320,246 414,246 414,300 394,320 320,320"></polygon>
+                            <text x="364" y="292">D</text>
+                        </g>
+
+                        <rect class="stage-center-box" x="270" y="206" width="80" height="74"></rect>
+                        <text class="stage-center-text" x="310" y="249">STAGE</text>
+
+                        <rect class="console-box" x="254" y="350" width="112" height="28"></rect>
+                        <text class="console-text" x="310" y="370">CONSOLE</text>
+                    </svg>
+
+                    <!-- Auth Badge (Keep floating) -->
+                    <div class="map-auth-badge">
+                        <div class="auth-icon">✔</div>
+                        <span>안심예매<br>인증</span>
+                    </div>
+                </div>
+
+                <!-- Detailed Seat Selection Container (Initially Hidden) -->
+                <div class="ip-seat-detail-container" id="seatDetail"
+                    style="display:none; width: 650px; height: 550px; margin: 0 auto; background: #fff; border: 1px solid #eee; position: relative;">
+                    <div class="seat-detail-header"
+                        style="padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; background: #f9f9f9;">
+                        <span class="detail-title" style="font-weight: bold; color: #333;">A구역 좌석선택</span>
+                        <!-- Back button removed -->
+                    </div>
+                    <div class="seat-grid-scroll"
+                        style="padding: 20px; overflow: auto; height: 500px; display: flex; flex-wrap: wrap; gap: 5px; align-content: flex-start; justify-content: center;">
+                        <!-- JS will populate seats here -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Right: 6 Sections -->
+            <aside class="ip-right-new">
+
+                <!-- 1. Header -->
+                <div class="ip-panel-header">
+                    <div class="ph-row1"><span class="arr">《</span> 좌석도 전체보기</div>
+                    <div class="ph-row2">원하시는 좌석위치를 선택하세요</div>
+                </div>
+
+                <!-- 2. Grade Label -->
+                <div class="ip-panel-section-header">
+                    <span class="sect-title">좌석등급 / 잔여석</span>
+                    <button class="btn-sm-gray">가격 전체보기 &gt;</button>
+                </div>
+
+                <!-- 3. Price Table -->
+                <div class="ip-panel-body-grade">
+                    <div class="price-table-row">
+                        <span class="color-chip chip-violet"></span>
+                        <span class="seat-name">전석</span>
+                        <span class="seat-price">88,000원</span>
+                    </div>
+                </div>
+
+                <!-- 4. Selected Seats Header -->
+                <div class="ip-panel-section-header">
+                    <span class="sect-title">선택좌석</span>
+                    <span class="sect-count">총 0석 선택되었습니다.</span>
+                </div>
+
+                <!-- 5. Selected Seats Body/CTA -->
+                <div class="ip-panel-body-choice">
+                    <!-- Table Header -->
+                    <div class="choice-table-head">
+                        <div class="th-grade">좌석등급</div>
+                        <div class="th-num">좌석번호</div>
+                    </div>
+                    <!-- Empty Body -->
+                    <div class="choice-table-body empty"></div>
+                </div>
+
+                <!-- 6. Footer -->
+                <div class="ip-panel-footer">
+                    <button class="btn-big-red">좌석선택완료 <span class="arr">&gt;</span></button>
+                    <div class="footer-btns">
+                        <button class="btn-footer-sub">&lt; 이전단계</button>
+                        <button class="btn-footer-sub">↻ 좌석 다시 선택</button>
+                    </div>
+                    <div class="footer-notice">
+                        <span class="warn-icon">!</span> <span class="warn-txt">좌석 선택시 유의사항</span>
+                    </div>
+                </div>
+
+            </aside>
+        </main>
+
+        <div id="captcha-overlay" class="ip-overlay" aria-hidden="false">
+            <div class="capchaLayer">
+                <div class="capchaInner">
+                    <div class="captcha-badge"><span>✔</span> 안심예매</div>
+                    <h2 class="captcha-title">문자를 입력해주세요</h2>
+                    <p class="captcha-desc">부정예매방지를 위해 아래의 문자를 입력해주세요.<br>인증 후 좌석을 선택할 수 있습니다.</p>
+
+                    <div class="capchaImgBox">
+                        <img id="captchaImg" alt="보안문자" />
+                        <div class="captcha-side-btns">
+                            <button class="refreshBtn" data-action="captcha-refresh" title="새로고침">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                            </button>
+                            <button class="voiceBtn" data-action="toast" data-toast="음성안내는 연습모드입니다." title="음성듣기">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="validationTxt">
+                        <input type="text" id="txtCaptcha" name="txtCaptcha" maxlength="6" autocomplete="off"
+                            placeholder="문자를 입력해주세요" style="text-transform: uppercase;">
+                        <div class="alertNotice" id="captcha-error">입력한 문자를 다시 확인해주세요</div>
+                    </div>
+
+                    <div class="capchaBtns">
+                        <button class="btn-cancel" data-action="captcha-cancel">날짜 다시 선택</button>
+                        <button class="btn-submit" data-action="captcha-submit">입력완료</button>
+                    </div>
+                </div>
+                <div class="capchaFolding">
+                    좌석 먼저 보고 입력하려면, <a href="javascript:;" data-action="captcha-fold">잠깐 접어두기</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ip-toast" id="ip-toast"></div>
+
+    <!-- 연습 완료 모달 -->
+    <div id="pkt-complete-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header">
+                <div class="pkt-header-tag">✓ &nbsp;Practice Complete</div>
+                <div class="pkt-header-title">연습 완료!</div>
+                <div class="pkt-header-meta" id="pkt-meta">I-Ticket 구버전</div>
+            </div>
+            <div class="pkt-total-section">
+                <div class="pkt-total-label-group">
+                    <span class="pkt-total-label">총 소요 시간</span>
+                </div>
+                <div class="pkt-total-badge">
+                    <span class="pkt-total-num" id="pkt-total-num">-</span>
+                    <span class="pkt-total-unit">s</span>
+                </div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-detail-grid">
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">반응 속도</span>
+                    <span class="pkt-dc-value" id="pkt-reaction">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 소요 시간</span>
+                    <span class="pkt-dc-value" id="pkt-queue">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">좌석 선택 속도</span>
+                    <span class="pkt-dc-value" id="pkt-seat">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 초기 순번</span>
+                    <span class="pkt-dc-value neutral" id="pkt-rank">-</span>
+                </div>
+            </div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 연습</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매진 실패 모달 -->
+    <div id="pkt-soldout-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header pkt-modal-header--fail">
+                <div class="pkt-header-tag">✕ &nbsp;Sold Out</div>
+                <div class="pkt-header-title">아쉽네요!</div>
+                <div class="pkt-header-meta">I-Ticket 구버전</div>
+            </div>
+            <div class="pkt-total-section">
+                <div class="pkt-fail-soldout-txt">모든 좌석이 소진되었습니다</div>
+                <div class="pkt-fail-msg">티켓팅은 0.1초 싸움! 다음엔 더 빠르게 도전해보세요</div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-detail-grid">
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">반응 속도</span>
+                    <span class="pkt-dc-value" id="pkt-fail-reaction">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 소요 시간</span>
+                    <span class="pkt-dc-value" id="pkt-fail-queue">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 초기 순번</span>
+                    <span class="pkt-dc-value neutral" id="pkt-fail-rank">-</span>
+                </div>
+            </div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 도전</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>const HOST = '';</script>
+    <script type="module" src="/js/practice/i_ticket.js"></script>
+</body>
+
+</html>

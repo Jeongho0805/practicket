@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/default}">
+
+<head>
+    <title>I-Ticket 예매 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/i_ticket_intro.css" />
+</head>
+
+<body layout:fragment="content">
+    <div class="intro-wrapper">
+        <!-- Header -->
+        <div class="concert-header">
+            <h1 class="concert-title">HO + YA : HOYA : HO I LOVE YOU</h1>
+            <div class="concert-subtitle">2026 HOYA SOLO CONCERT 'HOWL'</div>
+            <div class="concert-meta">프랙티켓 주간 1위</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-grid">
+            <!-- Left Section -->
+            <div class="left-section">
+                <!-- Info Table -->
+                <div class="info-table">
+                    <div class="info-row">
+                        <div class="info-label">장소</div>
+                        <div class="info-value">프랙티켓홀</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">공연기간</div>
+                        <div class="info-value">2026.02.08</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">공연시간</div>
+                        <div class="info-value">120분</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">관람연령</div>
+                        <div class="info-value">전체관람가</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">가격</div>
+                        <div class="info-value">
+                            전석/좌석선택 ▶<br>
+                            <span class="highlight">전석 88,000원</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">혜택</div>
+                        <div class="info-value">
+                            무이자할부 ▶<br>
+                            <a href="#">NOL카드</a> 10일이상 할인 구매+2만원 캐시백 ›<br>
+                            <a href="#">toping</a> 카카오뱅크 즉시할인 쿠폰받기 ›
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">프로모션</div>
+                        <div class="info-value">
+                            <span
+                                style="background: #ffe500; padding: 2px 4px; border-radius: 2px; font-size: 11px; font-weight: bold;">payco</span>
+                            카카오페이 결제 시 4천원 즉시할인(앱 전용) ›
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">유의사항</div>
+                        <div class="info-value">
+                            2026년 01월 21일 00시 00분~2026년 02월 08일 23시 50분까지<br>
+                            무통장입금 결제가 불가합니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Booking Panel -->
+            <div class="booking-panel" style="position: relative; min-height: 500px;">
+                <!-- Countdown UI -->
+                <div id="countdown-ui" style="padding: 30px 20px; text-align: center;">
+                    <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 30px; color: #333;">티켓오픈안내</h2>
+
+                    <div style="margin-bottom: 30px; text-align: left; padding: 0 10px;">
+                        <div style="display: flex; margin-bottom: 20px; align-items: flex-start;">
+                            <span
+                                style="color: #ff5252; font-weight: bold; font-size: 28px; margin-right: 15px; line-height: 1;">D-1</span>
+                            <div style="font-size: 14px;">
+                                <div style="font-weight: bold; margin-bottom: 4px;">멤버십 선예매</div>
+                                <div style="color: #888; letter-spacing: 0.5px;">2026.01.22 20:00</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span
+                                style="color: #ff5252; font-weight: bold; font-size: 28px; margin-right: 15px; line-height: 1;">D-2</span>
+                            <div style="font-size: 14px;">
+                                <div style="font-weight: bold; margin-bottom: 4px;">일반예매</div>
+                                <div style="color: #888; letter-spacing: 0.5px;">2026.01.23 20:00</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 25px; font-size: 12px; color: #999; text-align: center;">
+                            티켓 오픈 시간은 예고없이 변경될 수 있습니다.
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #cccccc; color: white; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+                        <span>남은시간</span>
+                        <span id="timer-display" style="font-family: 'Malgun Gothic', sans-serif;">00:05</span>
+                    </div>
+
+                    <button class="btn-secondary"
+                        style="width: 100%; padding: 15px; font-size: 16px; border: 1px solid #448aff; color: #448aff; background: white; font-weight: bold; cursor: pointer; border-radius: 8px;">
+                        BOOKING / 外国語
+                    </button>
+                </div>
+
+                <!-- Booking UI (Hidden Initially) -->
+                <div id="booking-ui" style="display: none;">
+                    <!-- Calendar Section -->
+                    <div class="panel-section">
+                        <div class="panel-header">
+                            <span>관람일</span>
+                            <span class="toggle">^</span>
+                        </div>
+                        <div class="panel-content">
+                            <div class="calendar-header">
+                                <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+                                <span class="calendar-month">2026. 02</span>
+                                <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="calendar-day-header">일</div>
+                                <div class="calendar-day-header">월</div>
+                                <div class="calendar-day-header">화</div>
+                                <div class="calendar-day-header">수</div>
+                                <div class="calendar-day-header">목</div>
+                                <div class="calendar-day-header">금</div>
+                                <div class="calendar-day-header">토</div>
+
+                                <!-- Days -->
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled"></div>
+                                <div class="calendar-day disabled saturday">1</div>
+
+                                <div class="calendar-day disabled sunday">2</div>
+                                <div class="calendar-day disabled">3</div>
+                                <div class="calendar-day disabled">4</div>
+                                <div class="calendar-day disabled">5</div>
+                                <div class="calendar-day disabled">6</div>
+                                <div class="calendar-day disabled">7</div>
+                                <div class="calendar-day available selected saturday" onclick="selectDate(8)">8</div>
+
+                                <div class="calendar-day disabled sunday">9</div>
+                                <div class="calendar-day disabled">10</div>
+                                <div class="calendar-day disabled">11</div>
+                                <div class="calendar-day disabled">12</div>
+                                <div class="calendar-day disabled">13</div>
+                                <div class="calendar-day disabled">14</div>
+                                <div class="calendar-day disabled saturday">15</div>
+
+                                <div class="calendar-day disabled sunday">16</div>
+                                <div class="calendar-day disabled">17</div>
+                                <div class="calendar-day disabled">18</div>
+                                <div class="calendar-day disabled">19</div>
+                                <div class="calendar-day disabled">20</div>
+                                <div class="calendar-day disabled">21</div>
+                                <div class="calendar-day disabled saturday">22</div>
+
+                                <div class="calendar-day disabled sunday">23</div>
+                                <div class="calendar-day disabled">24</div>
+                                <div class="calendar-day disabled">25</div>
+                                <div class="calendar-day disabled">26</div>
+                                <div class="calendar-day disabled">27</div>
+                                <div class="calendar-day disabled">28</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Selection Section -->
+                    <div class="panel-section">
+                        <div class="panel-header">
+                            <span>회차</span>
+                            <span class="toggle">^</span>
+                        </div>
+                        <div class="panel-content">
+                            <div class="time-slot selected" onclick="selectTime(this)">
+                                <div class="time-slot-title">1회 19:00</div>
+                                <div class="time-slot-info">잔여석 안내 서비스를 제공하지 않습니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Actions (데스크톱용, booking-panel 안에 위치) -->
+                <div class="booking-actions">
+                    <button class="btn-booking" onclick="startBooking()">예매하기</button>
+                    <button class="btn-secondary">BOOKING / 外国語</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모바일 전용 고정 버튼 (intro-wrapper 밖에 위치해야 fixed 정상 동작) -->
+    <div class="mobile-booking-actions">
+        <button class="mobile-btn-booking" onclick="startBooking()">예매하기</button>
+    </div>
+
+    <div id="start-modal" class="modal-overlay">
+        <div class="modal-card">
+<h2 class="modal-title">티켓팅 연습 시작</h2>
+            <p class="modal-desc">
+                실제 예매와 동일한 환경에서 연습해보세요.<br>
+                <strong class="modal-highlight">시작하기</strong>를 누르면 카운트다운이 시작됩니다.
+            </p>
+            <div class="modal-actions">
+                <button onclick="startPractice()" class="modal-btn-primary">연습 시작하기</button>
+                <button onclick="location.href='/practice'" class="modal-btn-secondary">돌아가기</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/js/practice/i_ticket_intro.js"></script>
+</body>
+
+</html>

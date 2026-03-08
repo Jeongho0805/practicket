@@ -7,6 +7,7 @@
             </div>
             <a href="/" id="ticketing-desktop-btn" class="nav-text mobile-invisible">예매연습</a>
             <a href="/rank" id="rank-desktop-btn" class="nav-text mobile-invisible">순위표</a>
+            <a href="/practice" id="practice-desktop-btn" class="nav-text mobile-invisible">실전연습</a>
             <a href="/security" id="security-desktop-btn" class="nav-text mobile-invisible">보안문자</a>
             <a href="/art" id="art-desktop-btn" class="nav-text mobile-invisible">포도아트</a>
             <a href="/blog" id="blog-desktop-btn" class="nav-text mobile-invisible">블로그</a>
@@ -18,16 +19,28 @@
                     <button id="reset-button">닉네임 변경</button>
                 </div>
                 <div id="name-input-section">
-                    <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요."/>
+                    <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요." />
                     <button id="name-input-button" type="button">완료</button>
                 </div>
             </div>
         </div>
     </div>
     <div id="nav-bottom" class="desktop-invisible">
-        <a href="/" id="ticketing-page-btn" class="nav-text">예매연습</a>
-        <a href="/rank" id="rank-page-btn" class="nav-text">순위표</a>
-        <a href="/security"  id="security-page-btn" class="nav-text">보안문자</a>
-        <a href="/art" id="art-page-btn" class="nav-text">포도아트</a>
+        <button id="nav-prev" class="nav-arrow" aria-label="이전">&#10094;</button>
+        <div id="nav-pages">
+            <div class="nav-track">
+                <div class="nav-page">
+                    <a href="/" id="ticketing-page-btn" class="nav-text">예매연습</a>
+                    <a href="/rank" id="rank-page-btn" class="nav-text">순위표</a>
+                    <a href="/practice" id="practice-page-btn" class="nav-text">실전연습</a>
+                </div>
+                <div class="nav-page">
+                    <a href="/security" id="security-page-btn" class="nav-text">보안문자</a>
+                    <a href="/art" id="art-page-btn" class="nav-text">포도아트</a>
+                    <a href="/blog" id="blog-page-btn" class="nav-text">블로그</a>
+                </div>
+            </div>
+        </div>
+        <button id="nav-next" class="nav-arrow" aria-label="다음">&#10095;</button>
     </div>
 </div>

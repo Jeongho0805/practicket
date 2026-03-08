@@ -5,6 +5,7 @@ let name;
 const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
     rank: document.getElementById("rank-page-btn"),
+    practice: document.getElementById("practice-page-btn"),
     security: document.getElementById("security-page-btn"),
     blog: document.getElementById("blog-page-btn"),
     art: document.getElementById("art-page-btn")
@@ -13,6 +14,7 @@ const mobilePageInfos = {
 const desktopPageInfos = {
     ticketing: document.getElementById("ticketing-desktop-btn"),
     rank: document.getElementById("rank-desktop-btn"),
+    practice: document.getElementById("practice-desktop-btn"),
     security: document.getElementById("security-desktop-btn"),
     blog: document.getElementById("blog-desktop-btn"),
     art: document.getElementById("art-desktop-btn")
@@ -107,30 +109,73 @@ function markCurrentPage() {
     currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
 
     let pageName = currentPath;
-    if (currentPath.startsWith("art")) {
-        pageName = "art";
-    }
+    if (currentPath.startsWith("art")) pageName = "art";
+    if (currentPath.startsWith("practice")) pageName = "practice";
+    if (currentPath.startsWith("rank")) pageName = "rank";
+    if (currentPath.startsWith("security")) pageName = "security";
+    if (currentPath.startsWith("blog")) pageName = "blog";
 
     // 모바일 버튼 처리
-    const mobileButton = mobilePageInfos[pageName];
     Object.values(mobilePageInfos).forEach(btn => {
-        if (btn) {
-            btn.style.backgroundColor = "white";
-        }
+        if (btn) btn.classList.remove('nav-current');
     });
-    if (mobileButton) {
-        mobileButton.style.backgroundColor = "darkslateblue";
-        mobileButton.style.color = "white";
-    }
+    const mobileButton = mobilePageInfos[pageName];
+    if (mobileButton) mobileButton.classList.add('nav-current');
 
     // 데스크탑 버튼 처리
     const desktopButton = desktopPageInfos[pageName];
-    if (desktopButton) {
-        desktopButton.style.color = "darkslateblue";
+    if (desktopButton) desktopButton.style.color = "darkslateblue";
+}
+
+function initNavPager() {
+    const pagesEl = document.getElementById('nav-pages');
+    const prevBtn = document.getElementById('nav-prev');
+    const nextBtn = document.getElementById('nav-next');
+    if (!pagesEl || !prevBtn || !nextBtn) return;
+
+    const track = pagesEl.querySelector('.nav-track');
+    const pages = Array.from(pagesEl.querySelectorAll('.nav-page'));
+    const totalPages = pages.length;
+    let currentPage = 0;
+
+    function showPage(page, animated = true) {
+        currentPage = page;
+        if (!animated) track.style.transition = 'none';
+        track.style.transform = `translateX(-${page * (100 / totalPages)}%)`;
+        if (!animated) {
+            track.getBoundingClientRect(); // force reflow
+            track.style.transition = '';
+        }
+        prevBtn.disabled = page === 0;
+        nextBtn.disabled = page === totalPages - 1;
     }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 0) showPage(currentPage - 1);
+    });
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages - 1) showPage(currentPage + 1);
+    });
+
+    // 스와이프 지원
+    let touchStartX = 0;
+    pagesEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    pagesEl.addEventListener('touchend', e => {
+        const dx = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(dx) > 40) {
+            if (dx > 0 && currentPage < totalPages - 1) showPage(currentPage + 1);
+            else if (dx < 0 && currentPage > 0) showPage(currentPage - 1);
+        }
+    }, { passive: true });
+
+    // 현재 활성 항목이 있는 페이지로 시작 (애니메이션 없이)
+    const activeEl = pagesEl.querySelector('.nav-current');
+    const startPage = activeEl ? pages.findIndex(p => p.contains(activeEl)) : 0;
+    showPage(Math.max(0, startPage), false);
 }
 
 await util.getOrCreateToken();
 displayNickName();
 addHeaderEventList();
 markCurrentPage();
+initNavPager();

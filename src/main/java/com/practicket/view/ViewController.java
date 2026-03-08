@@ -73,4 +73,18 @@ public class ViewController {
         model.addAttribute("artId", id);
         return "art/detail";
     }
+    @GetMapping("/practice")
+    public String practiceList(Model model) {
+        return "practice/list";
+    }
+
+    @GetMapping("/practice/i-ticket")
+    public String practiceITicket(Model model) {
+        return "practice/i_ticket";
+    }
+
+    @GetMapping("/practice/i-ticket/intro")
+    public String practiceITicketIntro(Model model) {
+        return "practice/i_ticket_intro";
+    }
 }
