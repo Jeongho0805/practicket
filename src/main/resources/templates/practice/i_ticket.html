@@ -23,9 +23,9 @@
             <div class="ip-header-right-col">
                 <!-- Row 1: Title -->
                 <div class="ip-concert-info-row">
-                    <span class="title">FAM + ILY : FAMILY : FAM I LOVE YOU</span>
+                    <span class="title">HO + YA : HOYA : HO I LOVE YOU</span>
                     <span class="divider">|</span>
-                    <span class="venue">KSPO DOME</span>
+                    <span class="venue">프랙티켓홀</span>
                 </div>
                 <!-- Row 2: Date/Time -->
                 <div class="ip-date-select-row">
@@ -33,11 +33,11 @@
                     <span class="date-label-txt">다른 관람일자 선택 :</span>
                     <span class="label">일자</span>
                     <select class="ip-select-date">
-                        <option>2026년 02월 07일(토)</option>
+                        <option>2026년 02월 08일(토)</option>
                     </select>
                     <span class="label">시간</span>
                     <select class="ip-select-time">
-                        <option>18시 00분</option>
+                        <option>19시 00분</option>
                     </select>
                 </div>
             </div>
@@ -161,8 +161,8 @@
                 <div class="ip-panel-body-grade">
                     <div class="price-table-row">
                         <span class="color-chip chip-violet"></span>
-                        <span class="seat-name">지정석 R석</span>
-                        <span class="seat-price">154,000원</span>
+                        <span class="seat-name">전석</span>
+                        <span class="seat-price">88,000원</span>
                     </div>
                 </div>
 
@@ -275,6 +275,40 @@
             </div>
             <div class="pkt-btn-section">
                 <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 연습</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 매진 실패 모달 -->
+    <div id="pkt-soldout-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header pkt-modal-header--fail">
+                <div class="pkt-header-tag">✕ &nbsp;Sold Out</div>
+                <div class="pkt-header-title">아쉽네요!</div>
+                <div class="pkt-header-meta">I-Ticket 구버전</div>
+            </div>
+            <div class="pkt-total-section">
+                <div class="pkt-fail-soldout-txt">모든 좌석이 소진되었습니다</div>
+                <div class="pkt-fail-msg">티켓팅은 0.1초 싸움! 다음엔 더 빠르게 도전해보세요</div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-detail-grid">
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">반응 속도</span>
+                    <span class="pkt-dc-value" id="pkt-fail-reaction">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 소요 시간</span>
+                    <span class="pkt-dc-value" id="pkt-fail-queue">-</span>
+                </div>
+                <div class="pkt-dc">
+                    <span class="pkt-dc-label">대기열 초기 순번</span>
+                    <span class="pkt-dc-value neutral" id="pkt-fail-rank">-</span>
+                </div>
+            </div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 도전</button>
                 <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
             </div>
         </div>

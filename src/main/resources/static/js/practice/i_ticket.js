@@ -103,7 +103,7 @@ const QueueManager = {
                 <div class="queue-header-group">
                     <h1 class="queue-header-title">접속 인원이 많아 대기 중입니다.</h1>
                     <h2 class="queue-header-subtitle">조금만 기다려주세요.</h2>
-                    <p class="queue-concert-name">2026 G-DRAGON 'FAM' MEETING</p>
+                    <p class="queue-concert-name">2026 HOYA SOLO CONCERT 'HOWL'</p>
                 </div>
                 <div class="queue-card">
                     <div class="queue-my-order-label">나의 대기순서</div>
@@ -268,59 +268,68 @@ const MobileDateScreen = {
                 <button class="mob-close-btn" id="mob-date-close">✕</button>
             </div>
             <div class="mob-concert-info">
-                <div class="mob-concert-title">FAM + ILY : FAMILY : FAM I LOVE YOU</div>
-                <div class="mob-concert-venue">KSPO DOME</div>
+                <div class="mob-concert-title">HO + YA : HOYA : HO I LOVE YOU</div>
+                <div class="mob-concert-venue">프랙티켓홀</div>
             </div>
             <div class="mob-calendar">
                 <div class="mob-cal-month">2026.02</div>
                 <div class="mob-cal-grid">
-                    <div class="mob-cal-head">일</div>
+                    <div class="mob-cal-head mob-head-sun">일</div>
                     <div class="mob-cal-head">월</div>
                     <div class="mob-cal-head">화</div>
                     <div class="mob-cal-head">수</div>
                     <div class="mob-cal-head">목</div>
                     <div class="mob-cal-head">금</div>
                     <div class="mob-cal-head">토</div>
-                    <div class="mob-cal-day disabled mob-sun">1</div>
-                    <div class="mob-cal-day disabled">2</div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled"></div>
+                    <div class="mob-cal-day disabled">1</div>
+                    <div class="mob-cal-day disabled mob-sun">2</div>
                     <div class="mob-cal-day disabled">3</div>
                     <div class="mob-cal-day disabled">4</div>
                     <div class="mob-cal-day disabled">5</div>
-                    <div class="mob-cal-day mob-available mob-selected">6</div>
-                    <div class="mob-cal-day disabled mob-sat">7</div>
-                    <div class="mob-cal-day disabled mob-sun">8</div>
-                    <div class="mob-cal-day disabled">9</div>
+                    <div class="mob-cal-day disabled">6</div>
+                    <div class="mob-cal-day disabled">7</div>
+                    <div class="mob-cal-day mob-available mob-sat" id="mob-day-8">8</div>
+                    <div class="mob-cal-day disabled mob-sun">9</div>
                     <div class="mob-cal-day disabled">10</div>
                     <div class="mob-cal-day disabled">11</div>
                     <div class="mob-cal-day disabled">12</div>
                     <div class="mob-cal-day disabled">13</div>
-                    <div class="mob-cal-day disabled mob-sat">14</div>
-                    <div class="mob-cal-day disabled mob-sun">15</div>
-                    <div class="mob-cal-day disabled">16</div>
+                    <div class="mob-cal-day disabled">14</div>
+                    <div class="mob-cal-day disabled">15</div>
+                    <div class="mob-cal-day disabled mob-sun">16</div>
                     <div class="mob-cal-day disabled">17</div>
                     <div class="mob-cal-day disabled">18</div>
                     <div class="mob-cal-day disabled">19</div>
                     <div class="mob-cal-day disabled">20</div>
-                    <div class="mob-cal-day disabled mob-sat">21</div>
-                    <div class="mob-cal-day disabled mob-sun">22</div>
-                    <div class="mob-cal-day disabled">23</div>
+                    <div class="mob-cal-day disabled">21</div>
+                    <div class="mob-cal-day disabled">22</div>
+                    <div class="mob-cal-day disabled mob-sun">23</div>
                     <div class="mob-cal-day disabled">24</div>
                     <div class="mob-cal-day disabled">25</div>
                     <div class="mob-cal-day disabled">26</div>
                     <div class="mob-cal-day disabled">27</div>
-                    <div class="mob-cal-day disabled mob-sat">28</div>
+                    <div class="mob-cal-day disabled">28</div>
                 </div>
             </div>
-            <div class="mob-cal-notes">
-                <div class="mob-cal-note">⊙ 예매대기가 불가한 상품입니다.</div>
-                <div class="mob-cal-note">※ 본 공연은 잔여석 안내서비스를 제공하지 않습니다.</div>
-            </div>
-            <div class="mob-time-row">
-                <span class="mob-time-label">오후 7:00</span>
-                <button class="mob-select-btn" id="mob-date-select">선택 ›</button>
-            </div>
-            <div class="mob-grade-list">
-                <div class="mob-grade-item">전석 R석</div>
+            <div class="mob-date-placeholder" id="mob-date-placeholder">날짜를 선택해 주세요.</div>
+            <div class="mob-date-info" id="mob-date-info">
+                <div class="mob-cal-notes">
+                    <div class="mob-cal-note">⊙ 예매대기가 불가한 상품입니다.</div>
+                    <div class="mob-cal-note">※ 본 공연은 잔여석 안내서비스를 제공하지 않습니다.</div>
+                </div>
+                <div class="mob-time-row">
+                    <span class="mob-time-label">오후 7:00</span>
+                    <button class="mob-select-btn" id="mob-date-select">선택 ›</button>
+                </div>
+                <div class="mob-grade-list">
+                    <div class="mob-grade-item">전석</div>
+                </div>
             </div>
         `;
         document.body.appendChild(el);
@@ -330,6 +339,13 @@ const MobileDateScreen = {
             if (confirm('날짜 선택을 취소하시겠습니까?')) {
                 location.href = '/practice/i-ticket/intro';
             }
+        });
+
+        el.querySelector('#mob-day-8').addEventListener('click', () => {
+            el.querySelectorAll('.mob-cal-day.mob-selected').forEach(d => d.classList.remove('mob-selected'));
+            el.querySelector('#mob-day-8').classList.add('mob-selected');
+            el.querySelector('#mob-date-placeholder').style.display = 'none';
+            el.querySelector('#mob-date-info').style.display = 'flex';
         });
 
         el.querySelector('#mob-date-select').addEventListener('click', () => {
@@ -357,7 +373,7 @@ const MobileCaptchaScreen = {
         el.className = 'mob-overlay';
         el.innerHTML = `
             <div class="mob-cap-header">
-                <button class="mob-back-btn" id="mob-cap-back">‹</button>
+                <button class="mob-back-btn" id="mob-cap-back"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
                 <div class="mob-cap-badge">✔ 안심예매</div>
             </div>
             <div class="mob-cap-body">
@@ -426,9 +442,14 @@ const MobileCaptchaScreen = {
 
         renderCaptchaNoise(box);
 
-        const boxW = box.clientWidth || 300;
-        img.style.left = Math.floor(Math.random() * Math.max(0, boxW - 260)) + 'px';
-        img.style.top = Math.floor(Math.random() * Math.max(0, 160 - 100)) + 'px';
+        const imgW = 150;
+        const imgH = 60;
+        img.style.width = imgW + 'px';
+        const boxW = box.clientWidth || 280;
+        const boxH = box.clientHeight || 110;
+        const btnAreaW = 48; // 오른쪽 버튼 영역 제외
+        img.style.left = Math.floor(Math.random() * Math.max(0, boxW - imgW - btnAreaW)) + 'px';
+        img.style.top = Math.floor(Math.random() * Math.max(0, boxH - imgH)) + 'px';
     },
 
     _submit() {
@@ -444,9 +465,217 @@ const MobileCaptchaScreen = {
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             setSeatPhase('AREA');
+            MobileSeatScreen.show();
         } else {
             if (error) error.style.visibility = 'visible';
             input.focus();
+        }
+    }
+};
+
+// ════════════════════════════════════════
+// Mobile Seat Area Screen (모바일 전용)
+// ════════════════════════════════════════
+
+const MobileSeatScreen = {
+    overlay: null,
+
+    show() {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+
+        if (this.overlay) {
+            this.overlay.style.display = 'flex';
+            return;
+        }
+
+        const el = document.createElement('div');
+        el.id = 'mob-seat-overlay';
+        el.className = 'mob-overlay';
+        el.innerHTML = `
+            <div class="mob-seat-nav">
+                <button class="mob-seat-nav-btn" id="mob-seat-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="mob-seat-tabs">
+                    <button class="mob-seat-tab active" id="mob-tab-remain">잔여좌석보기</button>
+                    <button class="mob-seat-tab" id="mob-tab-price">좌석가격보기</button>
+                </div>
+                <button class="mob-seat-nav-btn" id="mob-seat-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                </button>
+            </div>
+            <div class="mob-seat-guide-area">
+                <div class="mob-seat-guide-top">구역내 상단이 무대와 가까운 쪽입니다. <small>The upper end of the section is the closest area to the stage.</small></div>
+                <div class="mob-seat-guide-warn">※ 가로로 (한줄로 나란히) 예매해 주세요 &nbsp; Please reserve seats horizontally (in a row).</div>
+            </div>
+            <div class="mob-seat-map-wrap">
+                <div class="mob-seat-svg-scroll">
+                    <svg class="mob-seat-svg" viewBox="0 0 620 470" role="img" aria-label="좌석 구역 지도">
+                        <text class="level-label" x="150" y="115">2F</text>
+                        <text class="level-label" x="462" y="115">2F</text>
+                        <text class="level-label floor-label" x="306" y="332">FLOOR</text>
+                        <path class="stage-top-shape" d="M206 110 H414 L392 142 H228 Z"></path>
+                        <text class="stage-top-text" x="310" y="136">STAGE</text>
+                        <path class="outer-frame" d="M112 128 L170 128 L170 320 L222 382 H398 L450 320 L450 128 L508 128 L508 340 L420 426 H200 L112 340 Z"></path>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'E')">
+                            <polygon points="146,136 186,136 186,296 146,296"></polygon>
+                            <text x="166" y="216">E</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'F')">
+                            <polygon points="434,136 474,136 474,296 434,296"></polygon>
+                            <text x="454" y="216">F</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'G')">
+                            <polygon points="146,290 186,290 186,334 236,334 236,382 146,382"></polygon>
+                            <text x="192" y="352">G</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'H')">
+                            <polygon points="434,290 474,290 474,382 384,382 384,334 434,334"></polygon>
+                            <text x="426" y="352">H</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'A')">
+                            <polygon points="226,158 300,158 300,235 206,235 206,184"></polygon>
+                            <text x="246" y="200">A</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'B')">
+                            <polygon points="320,158 394,158 414,184 414,235 320,235"></polygon>
+                            <text x="364" y="200">B</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'C')">
+                            <polygon points="206,246 300,246 300,320 226,320 206,300"></polygon>
+                            <text x="246" y="292">C</text>
+                        </g>
+                        <g class="svg-zone zone-floor-purple" onclick="toggleSeatView('show', 'D')">
+                            <polygon points="320,246 414,246 414,300 394,320 320,320"></polygon>
+                            <text x="364" y="292">D</text>
+                        </g>
+                        <rect class="stage-center-box" x="270" y="206" width="80" height="74"></rect>
+                        <text class="stage-center-text" x="310" y="249">STAGE</text>
+                        <rect class="console-box" x="254" y="350" width="112" height="28"></rect>
+                        <text class="console-text" x="310" y="370">CONSOLE</text>
+                    </svg>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        this.overlay = el;
+
+        el.querySelector('#mob-seat-back').addEventListener('click', () => {
+            this.overlay.style.display = 'none';
+            if (MobileDateScreen.overlay) {
+                MobileDateScreen.overlay.style.display = 'flex';
+            } else {
+                MobileDateScreen.show();
+            }
+        });
+
+        el.querySelector('#mob-seat-refresh').addEventListener('click', () => {
+            refreshSeatSnapshot();
+        });
+
+        el.querySelector('#mob-tab-price').addEventListener('click', () => {
+            showToast('좌석 가격 보기는 연습 모드에서 지원하지 않습니다.');
+        });
+    }
+};
+
+// ════════════════════════════════════════
+// Mobile Seat Detail Screen (모바일 전용)
+// ════════════════════════════════════════
+
+const MobileSeatDetailScreen = {
+    overlay: null,
+
+    show(zoneName) {
+        currentZone = zoneName;
+        refreshSeatSnapshot();
+        validateSelectedSeats();
+
+        if (this.overlay) {
+            document.getElementById('mob-detail-title').textContent = zoneName + '구역 좌석선택';
+            this._renderGrid(zoneName);
+            this.overlay.style.display = 'flex';
+            return;
+        }
+
+        const el = document.createElement('div');
+        el.id = 'mob-detail-overlay';
+        el.className = 'mob-overlay';
+        el.innerHTML = `
+            <div class="mob-seat-nav">
+                <button class="mob-seat-nav-btn" id="mob-detail-back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="mob-seat-tabs">
+                    <button class="mob-seat-tab active">잔여좌석보기</button>
+                    <button class="mob-seat-tab" id="mob-detail-tab-price">좌석가격보기</button>
+                </div>
+                <button class="mob-seat-nav-btn" id="mob-detail-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                </button>
+            </div>
+            <div class="mob-detail-zone-title" id="mob-detail-title">${zoneName}구역 좌석선택</div>
+            <div class="mob-detail-grid-wrap" id="mob-detail-grid"></div>
+            <div class="mob-detail-bottom-bar" id="mob-seat-detail-bar" style="display:none;">
+                <div class="mob-bar-info">
+                    <div class="mob-bar-row1">
+                        <span class="mob-bar-grade" id="mob-bar-grade"></span>
+                    </div>
+                    <div class="mob-bar-row2">
+                        <span class="mob-bar-seat-detail" id="mob-bar-seat-info"></span>
+                    </div>
+                </div>
+                <button class="mob-bar-complete-btn" id="mob-detail-complete">
+                    <span class="mob-bar-count" id="mob-bar-count">총 0 매</span>
+                    <span class="mob-bar-price-label">티켓가격선택</span>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(el);
+        this.overlay = el;
+
+        this._renderGrid(zoneName);
+
+        el.querySelector('#mob-detail-back').addEventListener('click', () => {
+            this.overlay.style.display = 'none';
+        });
+
+        el.querySelector('#mob-detail-refresh').addEventListener('click', () => {
+            refreshSeatSnapshot();
+            this._renderGrid(currentZone);
+        });
+
+        el.querySelector('#mob-detail-tab-price').addEventListener('click', () => {
+            showToast('좌석 가격 보기는 연습 모드에서 지원하지 않습니다.');
+        });
+
+        el.querySelector('#mob-detail-complete').addEventListener('click', () => {
+            goToStep3();
+        });
+    },
+
+    _renderGrid(zoneName) {
+        const grid = document.getElementById('mob-detail-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        renderSeats(grid, zoneName);
+        this._syncBar();
+    },
+
+    _syncBar() {
+        const bar = document.getElementById('mob-seat-detail-bar');
+        if (!bar) return;
+        const total = STATE.selectedSeats.length;
+
+        if (total > 0) {
+            const seat = STATE.selectedSeats[0];
+            bar.querySelector('#mob-bar-grade').textContent = `⊙ R석 ${total}매`;
+            bar.querySelector('#mob-bar-seat-info').textContent = `R석 ${seat.id}`;
+            bar.querySelector('#mob-bar-count').textContent = `총 ${total} 매`;
+            bar.style.display = 'flex';
+        } else {
+            bar.style.display = 'none';
         }
     }
 };
@@ -469,7 +698,7 @@ class SeatManager {
 
         this.totalSellOutDurationMs = 60000;
         this.rushDurationMs = 20000;
-        this.rushSoldRatio = 0.80;
+        this.rushSoldRatio = 0.90;
 
         this.storageKeys = {
             decayStartAt: 'iq.seat.decay.startedAt',
@@ -665,6 +894,11 @@ class SeatManager {
     }
 
     shouldShowSoldOutAlertNow() {
+        if (this.soldOutAlertShown) return false;
+        if (this.isSoldOut()) {
+            this.soldOutAlertShown = true;
+            return true;
+        }
         return false;
     }
 
@@ -740,9 +974,28 @@ function refreshSeatSnapshot() {
 function checkGlobalSoldOutAndRedirect() {
     if (!seatManager || typeof seatManager.shouldShowSoldOutAlertNow !== 'function') return;
     if (seatManager.shouldShowSoldOutAlertNow()) {
-        alert('모든 좌석이 소진되었습니다.');
-        window.location.href = '/practice/i-ticket/intro';
+        showSoldOutModal();
     }
+}
+
+function showSoldOutModal() {
+    const overlay = document.getElementById('pkt-soldout-overlay');
+    if (!overlay) return;
+
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+
+    const fmt = ms => ms > 0 ? (ms / 1000).toFixed(2) + 's' : '-';
+
+    const reactionMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
+    const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
+    const initialRank = sessionStorage.getItem('pkt.queueInitialRank');
+
+    document.getElementById('pkt-fail-reaction').textContent = fmt(reactionMs);
+    document.getElementById('pkt-fail-queue').textContent = fmt(queueWaitMs);
+    document.getElementById('pkt-fail-rank').textContent = initialRank ? '#' + initialRank : '-';
+
+    overlay.classList.add('visible');
 }
 
 function startSoldOutMonitor() {
@@ -753,6 +1006,10 @@ function startSoldOutMonitor() {
 }
 
 function toggleSeatView(action, zoneName) {
+    if (action === 'show' && window.matchMedia('(max-width: 768px)').matches) {
+        MobileSeatDetailScreen.show(zoneName);
+        return;
+    }
     const map = document.getElementById('areaMap');
     const detail = document.getElementById('seatDetail');
     const title = detail.querySelector('.detail-title');
@@ -884,6 +1141,10 @@ function updateRightPanel(zone, row, num, isAdded) {
         listContainer.classList.add('empty');
         listContainer.style.background = '';
     }
+
+    if (window.matchMedia('(max-width: 768px)').matches) {
+        MobileSeatDetailScreen._syncBar();
+    }
 }
 
 function validateSelectedSeats() {
@@ -996,6 +1257,7 @@ function init() {
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
         if (sessionStorage.getItem('captcha_solved') === 'true') {
             setSeatPhase('AREA');
+            MobileSeatScreen.show();
         }
         // else: MobileDateScreen이 대기열 종료 후 트리거됨
     } else {
@@ -1313,6 +1575,8 @@ async function completePractice() {
     ].forEach(k => sessionStorage.removeItem(k));
 
     if (!sessionId) {
+        alert('에러가 발생하였습니다. 다시 시도해주세요.');
+        location.href = '/practice';
         return;
     }
 
