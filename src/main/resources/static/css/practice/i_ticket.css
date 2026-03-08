@@ -1456,8 +1456,9 @@ a {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     z-index: 200000;
     background: #f8f9fa;
     display: flex;
@@ -1466,6 +1467,7 @@ a {
     justify-content: center;
     font-family: 'Malgun Gothic', 'Dotum', sans-serif;
     color: #333;
+    overflow: hidden;
 }
 
 .queue-overlay[aria-hidden="true"] {
@@ -1876,4 +1878,393 @@ a {
     background: #5a1459;
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(107, 25, 107, 0.42);
+}
+
+/* ════════════════════════════════════════
+   Mobile Date / Captcha Overlay Screens
+   ════════════════════════════════════════ */
+
+.mob-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300000;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Malgun Gothic', 'Dotum', sans-serif;
+}
+
+/* ── Date Screen ── */
+.mob-date-header {
+    background: linear-gradient(160deg, #2a2a4a 0%, #1a1a32 100%);
+    padding: 14px 16px 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.mob-steps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.mob-step {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    box-sizing: border-box;
+}
+
+.mob-step.active {
+    background: #fff;
+    border-color: #fff;
+}
+
+.mob-close-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mob-concert-info {
+    background: linear-gradient(160deg, #2a2a4a 0%, #1a1a32 100%);
+    padding: 0 20px 20px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.mob-concert-title {
+    font-size: 17px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mob-concert-venue {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.mob-calendar {
+    padding: 20px 20px 0;
+    flex-shrink: 0;
+}
+
+.mob-cal-month {
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    color: #111;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+}
+
+.mob-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px 0;
+}
+
+.mob-cal-head {
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+    padding: 5px 0;
+}
+
+.mob-cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ccc;
+    border-radius: 50%;
+    width: 80%;
+    margin: 2px auto;
+}
+
+.mob-cal-day.mob-sun { color: #ffb3b3; }
+.mob-cal-day.mob-sat { color: #b3ccff; }
+
+.mob-cal-day.mob-available.mob-selected {
+    background: #6633cc;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.mob-cal-notes {
+    padding: 10px 20px;
+    background: #f8f8f8;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.mob-cal-note {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.7;
+}
+
+.mob-time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+}
+
+.mob-time-label {
+    font-size: 20px;
+    font-weight: bold;
+    color: #111;
+}
+
+.mob-select-btn {
+    background: #6633cc;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.mob-grade-list {
+    padding: 14px 20px;
+    flex: 1;
+}
+
+.mob-grade-item {
+    font-size: 14px;
+    color: #555;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+/* ── Mobile Captcha Screen ── */
+.mob-cap-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.mob-back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #efefef;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    flex-shrink: 0;
+    line-height: 1;
+    padding: 0 0 2px 0;
+}
+
+.mob-cap-badge {
+    background: #8fa6f0;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.mob-cap-body {
+    padding: 24px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.mob-cap-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #8fa6f0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.mob-cap-img-box {
+    width: 100%;
+    height: 160px;
+    border: 1px solid #ccc;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.mob-cap-img-box img {
+    position: absolute;
+    width: 260px;
+    height: 100px;
+    display: block;
+}
+
+.mob-cap-side-btns {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mob-cap-icon-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #747474;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.mob-cap-body input[type="text"] {
+    width: 100%;
+    height: 50px;
+    border: 1px solid #ccc;
+    padding: 0 15px;
+    font-size: 16px;
+    box-sizing: border-box;
+    outline: none;
+    margin-bottom: 6px;
+}
+
+.mob-cap-error {
+    visibility: hidden;
+    color: #ed1c24;
+    font-size: 12px;
+    margin-bottom: 14px;
+    height: 16px;
+}
+
+.mob-cap-submit {
+    width: 100%;
+    height: 54px;
+    background: #3a3f51;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.mob-cap-notes {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.8;
+}
+
+/* ════════════════════════════════════════
+   모바일 대기열: 스크롤 없이 뷰포트 내 정중앙 표시
+   ════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .queue-overlay {
+        overflow: hidden;
+        padding: 24px 20px;
+        box-sizing: border-box;
+    }
+
+    .queue-container {
+        max-width: 100%;
+    }
+
+    .queue-header-group {
+        margin-bottom: 16px;
+        padding-left: 4px;
+    }
+
+    .queue-header-title {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .queue-header-subtitle {
+        font-size: 22px;
+        margin-bottom: 8px;
+    }
+
+    .queue-concert-name {
+        font-size: 13px;
+    }
+
+    .queue-card {
+        padding: 24px 20px;
+        border-radius: 16px;
+        margin-bottom: 0;
+    }
+
+    .queue-my-order-label {
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    .queue-number-display {
+        font-size: 72px;
+        letter-spacing: -2px;
+        margin-bottom: 20px;
+    }
+
+    .queue-progress-track {
+        height: 22px;
+        margin-bottom: 20px;
+    }
+
+    .queue-info-grid {
+        padding-top: 16px;
+    }
+
+    .q-label {
+        font-size: 13px;
+    }
+
+    .q-value,
+    .q-status-badge {
+        font-size: 15px;
+    }
+
+    .queue-footer-desc {
+        display: none;
+    }
 }

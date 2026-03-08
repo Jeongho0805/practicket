@@ -189,40 +189,32 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Booking Actions -->
-                    <div class="booking-actions">
-                        <button class="btn-booking" onclick="startBooking()">예매하기</button>
-                        <button class="btn-secondary">BOOKING / 外国語</button>
-                    </div>
+                <!-- Booking Actions (데스크톱용, booking-panel 안에 위치) -->
+                <div class="booking-actions">
+                    <button class="btn-booking" onclick="startBooking()">예매하기</button>
+                    <button class="btn-secondary">BOOKING / 外国語</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="start-modal"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-        <div
-            style="background: white; padding: 40px 30px; border-radius: 12px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.2); width: 380px; font-family: 'Malgun Gothic', 'Dotum', sans-serif;">
+    <!-- 모바일 전용 고정 버튼 (intro-wrapper 밖에 위치해야 fixed 정상 동작) -->
+    <div class="mobile-booking-actions">
+        <button class="mobile-btn-booking" onclick="startBooking()">예매하기</button>
+    </div>
 
-            <h2 style="margin-bottom: 20px; font-size: 26px; color: #222; letter-spacing: -1px; font-weight: 800;">티켓팅
-                연습 시작</h2>
-
-            <p style="margin-bottom: 30px; color: #666; font-size: 15px; line-height: 1.6; letter-spacing: -0.5px;">
+    <div id="start-modal" class="modal-overlay">
+        <div class="modal-card">
+<h2 class="modal-title">티켓팅 연습 시작</h2>
+            <p class="modal-desc">
                 실제 예매와 동일한 환경에서 연습해보세요.<br>
-                <strong style="color: #448aff;">시작하기</strong>를 누르면 카운트다운이 시작됩니다.
+                <strong class="modal-highlight">시작하기</strong>를 누르면 카운트다운이 시작됩니다.
             </p>
-
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <button onclick="startPractice()"
-                    style="background: #448aff; color: white; border: none; padding: 16px 0; width: 100%; font-size: 17px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 6px rgba(68, 138, 255, 0.25);">
-                    연습 시작하기
-                </button>
-
-                <button onclick="location.href='/practice'"
-                    style="background: #f5f5f5; color: #666; border: 1px solid #ddd; padding: 14px 0; width: 100%; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
-                    돌아가기
-                </button>
+            <div class="modal-actions">
+                <button onclick="startPractice()" class="modal-btn-primary">연습 시작하기</button>
+                <button onclick="location.href='/practice'" class="modal-btn-secondary">돌아가기</button>
             </div>
         </div>
     </div>

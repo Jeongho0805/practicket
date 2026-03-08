@@ -68,30 +68,60 @@ async function startPractice() {
     }
 
     modal.style.display = 'none';
-    countdownUi.style.display = 'block';
-    bookingUi.style.display = 'none';
 
+    const isMobile = window.innerWidth <= 768;
+    const bookingActions = document.querySelector('.booking-actions');
     let seconds = 5;
 
-    function updateTimer() {
-        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        timerDisplay.innerText = `${m}:${s}`;
+    function formatTime(s) {
+        const m = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        return `${m}:${sec}`;
     }
 
-    updateTimer();
+    if (isMobile) {
+        const bookingBtn = document.querySelector('.mobile-btn-booking');
+        bookingBtn.disabled = true;
+        bookingBtn.textContent = `남은시간 ${formatTime(seconds)}`;
+        bookingBtn.style.background = '#ccc';
+        bookingBtn.style.cursor = 'not-allowed';
 
-    const interval = setInterval(() => {
-        seconds--;
+        const interval = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
+                bookingBtn.disabled = false;
+                bookingBtn.textContent = '예매하기';
+                bookingBtn.style.background = '';
+                bookingBtn.style.cursor = '';
+            } else {
+                bookingBtn.textContent = `남은시간 ${formatTime(seconds)}`;
+            }
+        }, 1000);
+    } else {
+        countdownUi.style.display = 'block';
+        bookingUi.style.display = 'none';
+
+        function updateTimer() {
+            timerDisplay.innerText = formatTime(seconds);
+        }
+
         updateTimer();
 
-        if (seconds <= 0) {
-            clearInterval(interval);
-            sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
-            countdownUi.style.display = 'none';
-            bookingUi.style.display = 'block';
-        }
-    }, 1000);
+        const interval = setInterval(() => {
+            seconds--;
+            updateTimer();
+
+            if (seconds <= 0) {
+                clearInterval(interval);
+                sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
+                countdownUi.style.display = 'none';
+                bookingUi.style.display = 'block';
+                bookingActions.style.display = 'block';
+            }
+        }, 1000);
+    }
 }
 
 window.changeMonth = changeMonth;

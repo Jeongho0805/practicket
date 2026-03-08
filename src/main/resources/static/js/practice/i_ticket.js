@@ -42,6 +42,9 @@ const QueueManager = {
 
         if (this.payload.status === 'PASSED') {
             this.removeQueueDOM();
+            if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
+                setTimeout(() => MobileDateScreen.show(), 0);
+            }
             return;
         }
 
@@ -126,6 +129,8 @@ const QueueManager = {
             </div>
         `;
         document.body.appendChild(overlay);
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
 
         this.dom = {
             overlay: overlay,
@@ -140,6 +145,8 @@ const QueueManager = {
     removeQueueDOM() {
         const overlay = document.getElementById('queue-overlay');
         if (overlay) overlay.remove();
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
     },
 
     renderPhase(phase) {
@@ -215,13 +222,231 @@ const QueueManager = {
         }
         sessionStorage.setItem('pkt.seatSelectionStartMs', Date.now().toString());
 
+        const afterQueue = () => {
+            this.removeQueueDOM();
+            if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
+                MobileDateScreen.show();
+            }
+        };
+
         if (this.dom.overlay) {
             this.dom.overlay.classList.add('finished');
-            setTimeout(() => {
-                this.removeQueueDOM();
-            }, 700);
+            setTimeout(afterQueue, 700);
         } else {
-            this.removeQueueDOM();
+            afterQueue();
+        }
+    }
+};
+
+// ════════════════════════════════════════
+// Mobile Date / Captcha Screens (모바일 전용)
+// ════════════════════════════════════════
+
+const MobileDateScreen = {
+    overlay: null,
+
+    show() {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+
+        if (this.overlay) {
+            this.overlay.style.display = 'flex';
+            return;
+        }
+
+        const el = document.createElement('div');
+        el.id = 'mobile-date-overlay';
+        el.className = 'mob-overlay';
+        el.innerHTML = `
+            <div class="mob-date-header">
+                <div class="mob-steps">
+                    <span class="mob-step active"></span>
+                    <span class="mob-step"></span>
+                    <span class="mob-step"></span>
+                    <span class="mob-step"></span>
+                </div>
+                <button class="mob-close-btn" id="mob-date-close">✕</button>
+            </div>
+            <div class="mob-concert-info">
+                <div class="mob-concert-title">FAM + ILY : FAMILY : FAM I LOVE YOU</div>
+                <div class="mob-concert-venue">KSPO DOME</div>
+            </div>
+            <div class="mob-calendar">
+                <div class="mob-cal-month">2026.02</div>
+                <div class="mob-cal-grid">
+                    <div class="mob-cal-head">일</div>
+                    <div class="mob-cal-head">월</div>
+                    <div class="mob-cal-head">화</div>
+                    <div class="mob-cal-head">수</div>
+                    <div class="mob-cal-head">목</div>
+                    <div class="mob-cal-head">금</div>
+                    <div class="mob-cal-head">토</div>
+                    <div class="mob-cal-day disabled mob-sun">1</div>
+                    <div class="mob-cal-day disabled">2</div>
+                    <div class="mob-cal-day disabled">3</div>
+                    <div class="mob-cal-day disabled">4</div>
+                    <div class="mob-cal-day disabled">5</div>
+                    <div class="mob-cal-day mob-available mob-selected">6</div>
+                    <div class="mob-cal-day disabled mob-sat">7</div>
+                    <div class="mob-cal-day disabled mob-sun">8</div>
+                    <div class="mob-cal-day disabled">9</div>
+                    <div class="mob-cal-day disabled">10</div>
+                    <div class="mob-cal-day disabled">11</div>
+                    <div class="mob-cal-day disabled">12</div>
+                    <div class="mob-cal-day disabled">13</div>
+                    <div class="mob-cal-day disabled mob-sat">14</div>
+                    <div class="mob-cal-day disabled mob-sun">15</div>
+                    <div class="mob-cal-day disabled">16</div>
+                    <div class="mob-cal-day disabled">17</div>
+                    <div class="mob-cal-day disabled">18</div>
+                    <div class="mob-cal-day disabled">19</div>
+                    <div class="mob-cal-day disabled">20</div>
+                    <div class="mob-cal-day disabled mob-sat">21</div>
+                    <div class="mob-cal-day disabled mob-sun">22</div>
+                    <div class="mob-cal-day disabled">23</div>
+                    <div class="mob-cal-day disabled">24</div>
+                    <div class="mob-cal-day disabled">25</div>
+                    <div class="mob-cal-day disabled">26</div>
+                    <div class="mob-cal-day disabled">27</div>
+                    <div class="mob-cal-day disabled mob-sat">28</div>
+                </div>
+            </div>
+            <div class="mob-cal-notes">
+                <div class="mob-cal-note">⊙ 예매대기가 불가한 상품입니다.</div>
+                <div class="mob-cal-note">※ 본 공연은 잔여석 안내서비스를 제공하지 않습니다.</div>
+            </div>
+            <div class="mob-time-row">
+                <span class="mob-time-label">오후 7:00</span>
+                <button class="mob-select-btn" id="mob-date-select">선택 ›</button>
+            </div>
+            <div class="mob-grade-list">
+                <div class="mob-grade-item">전석 R석</div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        this.overlay = el;
+
+        el.querySelector('#mob-date-close').addEventListener('click', () => {
+            if (confirm('날짜 선택을 취소하시겠습니까?')) {
+                location.href = '/practice/i-ticket/intro';
+            }
+        });
+
+        el.querySelector('#mob-date-select').addEventListener('click', () => {
+            this.overlay.style.display = 'none';
+            MobileCaptchaScreen.show();
+        });
+    }
+};
+
+const MobileCaptchaScreen = {
+    overlay: null,
+
+    show() {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+
+        if (this.overlay) {
+            this.overlay.style.display = 'flex';
+            this._drawCaptcha();
+            return;
+        }
+
+        const el = document.createElement('div');
+        el.id = 'mobile-captcha-overlay';
+        el.className = 'mob-overlay';
+        el.innerHTML = `
+            <div class="mob-cap-header">
+                <button class="mob-back-btn" id="mob-cap-back">‹</button>
+                <div class="mob-cap-badge">✔ 안심예매</div>
+            </div>
+            <div class="mob-cap-body">
+                <h2 class="mob-cap-title">문자를 입력해주세요</h2>
+                <div class="mob-cap-img-box" id="mob-cap-box">
+                    <img id="mob-cap-img" alt="보안문자" />
+                    <div class="mob-cap-side-btns">
+                        <button class="mob-cap-icon-btn" id="mob-cap-refresh">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        </button>
+                        <button class="mob-cap-icon-btn" id="mob-cap-voice">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <input type="text" id="mob-cap-input" maxlength="6" autocomplete="off"
+                    placeholder="문자를 입력해주세요 (대소문자구분없음)" style="text-transform:uppercase;">
+                <div id="mob-cap-error" class="mob-cap-error">입력한 문자를 다시 확인해주세요</div>
+                <button class="mob-cap-submit" id="mob-cap-submit-btn">입력완료</button>
+                <div class="mob-cap-notes">
+                    <div>· 부정예매방지를 위해 화면의 문자를 입력해주세요.</div>
+                    <div>· 인증 후 좌석을 선택할 수 있습니다.</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        this.overlay = el;
+        this._drawCaptcha();
+
+        el.querySelector('#mob-cap-back').addEventListener('click', () => {
+            this.overlay.style.display = 'none';
+            if (MobileDateScreen.overlay) MobileDateScreen.overlay.style.display = 'flex';
+        });
+
+        el.querySelector('#mob-cap-refresh').addEventListener('click', () => {
+            this._drawCaptcha();
+            el.querySelector('#mob-cap-input').value = '';
+            el.querySelector('#mob-cap-error').style.visibility = 'hidden';
+        });
+
+        el.querySelector('#mob-cap-voice').addEventListener('click', () => {
+            showToast('음성안내는 연습모드입니다.');
+        });
+
+        el.querySelector('#mob-cap-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this._submit();
+        });
+
+        el.querySelector('#mob-cap-submit-btn').addEventListener('click', () => this._submit());
+    },
+
+    _drawCaptcha() {
+        const img = document.getElementById('mob-cap-img');
+        const box = document.getElementById('mob-cap-box');
+        if (!img || !box) return;
+
+        let idx;
+        do {
+            idx = Math.floor(Math.random() * CAPTCHA_LIST.length);
+        } while (CAPTCHA_LIST.length > 1 && idx === lastCaptchaIndex);
+        lastCaptchaIndex = idx;
+
+        const picked = CAPTCHA_LIST[idx];
+        STATE.captchaAnswer = picked.answer;
+        img.src = `/image/i-captch/${picked.file}`;
+
+        renderCaptchaNoise(box);
+
+        const boxW = box.clientWidth || 300;
+        img.style.left = Math.floor(Math.random() * Math.max(0, boxW - 260)) + 'px';
+        img.style.top = Math.floor(Math.random() * Math.max(0, 160 - 100)) + 'px';
+    },
+
+    _submit() {
+        const input = document.getElementById('mob-cap-input');
+        const error = document.getElementById('mob-cap-error');
+        if (!input) return;
+
+        const val = input.value.toUpperCase().trim();
+        if (val === STATE.captchaAnswer) {
+            sessionStorage.setItem('captcha_solved', 'true');
+            if (this.overlay) { this.overlay.remove(); this.overlay = null; }
+            if (MobileDateScreen.overlay) { MobileDateScreen.overlay.remove(); MobileDateScreen.overlay = null; }
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            setSeatPhase('AREA');
+        } else {
+            if (error) error.style.visibility = 'visible';
+            input.focus();
         }
     }
 };
@@ -749,92 +974,6 @@ function goToStep3() {
         return;
     }
 
-    renderStep3();
-
-    document.getElementById('step2-main').style.display = 'none';
-    document.getElementById('step3-main').style.display = 'flex';
-
-    const headerBadgeNum = document.querySelector('.ip-step-badge .num');
-    const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
-    if (headerBadgeNum) headerBadgeNum.innerText = '03';
-    if (headerBadgeTxt) headerBadgeTxt.innerText = '가격/할인선택';
-}
-
-function renderStep3() {
-    const s3TableBody = document.getElementById('s3-price-tbody');
-    const totalSelected = STATE.selectedSeats.length;
-
-    document.getElementById('s3-sect-count').innerHTML =
-        `전석 | 좌석 <span class="red">${totalSelected}매</span>를 선택하셨습니다.`;
-    document.getElementById('s3-my-info-seat').innerHTML = `전석<br>(${totalSelected}매)`;
-
-    const defaultPrice = 154000;
-    let html = '';
-
-    STATE.selectedSeats.forEach((seat, index) => {
-        html += `
-            <tr>
-                <td class="td-type">${index === 0 ? '기본가' : ''}</td>
-                <td class="td-name">${seat.id}</td>
-                <td class="td-price">${defaultPrice.toLocaleString()}원</td>
-                <td class="td-select">
-                    <select onchange="updateStep3Total()">
-                        <option value="0" selected>0매</option>
-                        <option value="1">1매</option>
-                    </select>
-                </td>
-            </tr>
-        `;
-    });
-
-    s3TableBody.innerHTML = html;
-    updateStep3Total();
-}
-
-function updateStep3Total() {
-    const selects = document.querySelectorAll('#s3-price-tbody select');
-    let selectedCount = 0;
-    selects.forEach(sel => selectedCount += parseInt(sel.value));
-
-    const totalSelected = STATE.selectedSeats.length;
-    if (selectedCount > totalSelected) {
-        alert('선택하신 좌석 수보다 많습니다.');
-        event.target.value = 0;
-        return updateStep3Total();
-    }
-
-    const pricePerSeat = 154000;
-    const feePerSeat = 2000;
-
-    const ticketTotal = pricePerSeat * selectedCount;
-    const feeTotal = feePerSeat * selectedCount;
-    const finalTotal = ticketTotal + feeTotal;
-
-    document.getElementById('s3-ticket-price').innerText = ticketTotal.toLocaleString() + '원';
-    document.getElementById('s3-fee-price').innerText = feeTotal.toLocaleString() + '원';
-    document.getElementById('s3-total-price').innerText = finalTotal.toLocaleString();
-}
-
-function goBackToStep2() {
-    document.getElementById('step3-main').style.display = 'none';
-    document.getElementById('step2-main').style.display = 'flex';
-
-    const headerBadgeNum = document.querySelector('.ip-step-badge .num');
-    const headerBadgeTxt = document.querySelector('.ip-step-badge .txt');
-    if (headerBadgeNum) headerBadgeNum.innerText = '02';
-    if (headerBadgeTxt) headerBadgeTxt.innerText = '좌석 선택';
-}
-
-function finishPractice() {
-    const selects = document.querySelectorAll('#s3-price-tbody select');
-    let selectedCount = 0;
-    selects.forEach(sel => selectedCount += parseInt(sel.value));
-
-    if (selectedCount === 0) {
-        alert('1매를 선택해주세요.');
-        return;
-    }
-
     completePractice();
 }
 
@@ -853,11 +992,19 @@ function init() {
         sessionStorage.removeItem('captcha_solved');
     }
 
-    if (sessionStorage.getItem('captcha_solved') === 'true') {
+    if (window.matchMedia('(max-width: 768px)').matches) {
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
-        setSeatPhase('AREA');
+        if (sessionStorage.getItem('captcha_solved') === 'true') {
+            setSeatPhase('AREA');
+        }
+        // else: MobileDateScreen이 대기열 종료 후 트리거됨
     } else {
-        renderCaptcha();
+        if (sessionStorage.getItem('captcha_solved') === 'true') {
+            DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
+            setSeatPhase('AREA');
+        } else {
+            renderCaptcha();
+        }
     }
 }
 
@@ -1166,7 +1313,6 @@ async function completePractice() {
     ].forEach(k => sessionStorage.removeItem(k));
 
     if (!sessionId) {
-        setStep('PRICE');
         return;
     }
 
@@ -1186,7 +1332,6 @@ async function completePractice() {
         }
     } catch (e) {
         console.error('[Practicket] complete error:', e);
-        setStep('PRICE');
     }
 }
 
@@ -1254,6 +1399,3 @@ window.toggleSeatView = toggleSeatView;
 window.selectSeat = selectSeat;
 window.resetSelection = resetSelection;
 window.goToStep3 = goToStep3;
-window.updateStep3Total = updateStep3Total;
-window.goBackToStep2 = goBackToStep2;
-window.finishPractice = finishPractice;

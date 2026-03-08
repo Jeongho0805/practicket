@@ -18,8 +18,6 @@
 }
 
 .practice-card {
-    background: #fff;
-    border: 1px solid #eef2f6;
     border-radius: 16px;
     padding: 28px 20px;
     text-align: center;
@@ -32,24 +30,29 @@
     gap: 12px;
     position: relative;
     overflow: hidden;
+    border: 1.5px solid transparent;
+    background-image: linear-gradient(#fff, #fff),
+        linear-gradient(135deg, rgba(132, 112, 179, 0.2) 0%, rgba(107, 91, 154, 0.2) 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .practice-card:hover:not(.disabled) {
     transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(107, 25, 107, 0.12);
-    border-color: #f1e9f1;
+    box-shadow: 0 12px 25px rgba(132, 112, 179, 0.15);
+    background-image: linear-gradient(#fff, #fff),
+        linear-gradient(135deg, rgba(132, 112, 179, 0.5) 0%, rgba(107, 91, 154, 0.5) 100%);
 }
 
 .practice-card.active {
-    background-color: #fff;
-    border: 2px solid #6b196b;
-    box-shadow: 0 8px 20px rgba(107, 25, 107, 0.1);
+    border-width: 2px;
+    background-image: linear-gradient(#fff, #fff),
+        linear-gradient(135deg, #8470b3 0%, #6b5b9a 100%);
+    box-shadow: 0 8px 20px rgba(132, 112, 179, 0.15);
 }
 
 .practice-card.disabled {
-    background: #f8fafc;
-    border-color: transparent;
     color: #94a3b8;
     cursor: not-allowed;
     box-shadow: none;
@@ -77,11 +80,19 @@
 }
 
 .badge-coming {
-    position: absolute;
-    top: 14px;
-    right: 14px;
     background: #e2e8f0;
     color: #64748b;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: -0.5px;
+}
+
+.badge-available {
+    background: rgba(132, 112, 179, 0.1);
+    color: #6b5b9a;
+    border: 1px solid rgba(132, 112, 179, 0.3);
     font-size: 11px;
     font-weight: bold;
     padding: 4px 10px;
@@ -383,9 +394,7 @@
 }
 
 .stat-sub {
-    font-size: 11px;
-    color: #94a3b8;
-    font-weight: 500;
+    display: none;
 }
 
 .improve-wrap {
@@ -628,22 +637,165 @@
 }
 
 @media (max-width: 768px) {
-    .practice-grid {
-        grid-template-columns: 1fr;
+    .practice-hub-container {
+        padding: 16px 12px 0;
+        height: 100%;
+        gap: 16px;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
-    .practice-hub-container {
-        padding: 40px 10px 20px;
-        min-height: auto;
+    .practice-grid {
+        gap: 8px;
+    }
+
+    .practice-card {
+        padding: 16px 8px;
+        gap: 6px;
+    }
+
+    .card-title {
+        font-size: 13px;
+    }
+
+    .badge-coming,
+    .badge-available {
+        font-size: 9px;
+        padding: 3px 8px;
+    }
+
+    .practice-card {
+        justify-content: center;
+    }
+
+    .practice-card.disabled {
+        gap: 6px;
+    }
+
+    .ranking-top-bar {
+        padding: 0 12px;
+    }
+
+    .view-mode-tab {
+        padding: 10px 12px;
+        font-size: 12px;
     }
 
     .filter-bar {
-        flex-direction: column;
-        gap: 12px;
-        align-items: flex-start;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        padding: 8px 12px;
+        gap: 8px;
+        overflow: hidden;
+    }
+
+    .agency-tabs {
+        flex: 1;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 5px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .agency-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .agency-tab {
+        padding: 4px 9px;
+        font-size: 11px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .period-tabs {
+        flex-shrink: 0;
+    }
+
+    .period-tab {
+        padding: 4px 9px;
+        font-size: 11px;
+    }
+
+    .ranking-table th {
+        padding: 8px 6px;
+        font-size: 11px;
+    }
+
+    .ranking-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+
+    .record-table th {
+        padding: 8px 6px;
+        font-size: 10px;
+    }
+
+    .record-row td {
+        padding: 8px 6px;
+        font-size: 11px;
     }
 
     .my-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .stat-card {
+        padding: 8px 4px;
+        gap: 3px;
+    }
+
+    .stat-label {
+        font-size: 8px;
+        letter-spacing: 0.2px;
+    }
+
+    .stat-value {
+        font-size: 12px;
+    }
+
+    .improve-sec {
+        font-size: 11px;
+    }
+
+    .improve-pct {
+        display: inline-block;
+        white-space: nowrap;
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+
+    .date-text {
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .detail-inner {
+        grid-template-columns: repeat(4, 1fr);
+        margin: 0 8px 10px;
+    }
+
+    .detail-card {
+        padding: 8px 4px;
+        gap: 2px;
+    }
+
+    .detail-label {
+        font-size: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+    }
+
+    .detail-value {
+        font-size: 11px;
+    }
+
+    .detail-sub {
+        font-size: 8px;
     }
 }
