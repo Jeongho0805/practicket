@@ -85,7 +85,7 @@ class GrapePalette {
 			}
 		} catch (error) {
 			console.error('작품 로딩 실패:', error);
-			alert('작품을 불러오는데 실패했습니다.');
+			await util.showAlert({ title: '오류', msg: '작품을 불러오는데 실패했습니다.' });
 			window.location.href = '/art';
 		}
 	}
@@ -215,7 +215,7 @@ class GrapePalette {
 		const title = this.form.querySelector("#title")?.value.trim();
 
 		if (!title) {
-			alert("제목을 입력해주세요.");
+			await util.showAlert({ title: '입력 오류', msg: '제목을 입력해주세요.' });
 			return;
 		}
 
@@ -223,7 +223,7 @@ class GrapePalette {
 
 		// pixelData가 모두 0인지 확인 (아무것도 그리지 않은 경우)
 		if (!pixelData.includes('1')) {
-			alert("작품을 그려주세요.");
+			await util.showAlert({ title: '입력 오류', msg: '작품을 그려주세요.' });
 			return;
 		}
 
@@ -250,7 +250,7 @@ class GrapePalette {
 			window.location.href = `/art/${result.id}`;
 		} catch (error) {
 			console.error("작품 등록/수정 실패:", error);
-			alert("작품 등록/수정에 실패했습니다. 다시 시도해주세요.");
+			await util.showAlert({ title: '오류', msg: '작품 등록/수정에 실패했습니다. 다시 시도해주세요.' });
 		}
 	}
 }

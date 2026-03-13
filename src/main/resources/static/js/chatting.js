@@ -195,25 +195,25 @@ function setChattingSse() {
 
 async function isSendChatPossible(chatting) {
     if (!chatting) {
-        alert("채팅을 입력해주세요.")
+        await util.showAlert({ title: '입력 오류', msg: '채팅을 입력해주세요.' });
         return false;
     }
     if (chatting.trim().length === 0) {
-        alert("공백 입력은 불가합니다.")
+        await util.showAlert({ title: '입력 오류', msg: '공백 입력은 불가합니다.' });
         return false;
     }
     if (chatting.length > 100) {
-        alert("채팅은 최대 100 글자까지 가능합니다.")
+        await util.showAlert({ title: '입력 오류', msg: '채팅은 최대 100 글자까지 가능합니다.' });
         return false;
     }
     const clientInfo = await util.getClientInfo();
     console.log("clientInfo =", clientInfo);
     if (!clientInfo.name) {
-        alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+        await util.showAlert({ title: '닉네임 필요', msg: '채팅을 입력하려면 닉네임을 입력해주세요.' });
         return false;
     }
     if (clientInfo.banned) {
-        alert("채팅 전송이 불가합니다.")
+        await util.showAlert({ title: '전송 불가', msg: '채팅 전송이 불가합니다.' });
         return false;
     }
     return true;
@@ -249,7 +249,7 @@ async function setChatEventListener() {
     inputBox.addEventListener("click", async () => {
         const name = await util.getNickname();
         if (!name) {
-            alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+            await util.showAlert({ title: '닉네임 필요', msg: '채팅을 입력하려면 닉네임을 입력해주세요.' });
         }
     })
 
@@ -272,7 +272,7 @@ async function setChatEventListener() {
         document.getElementById("chatting-input").value = "";
         if (!response.ok) {
             const errorResponse = await response.json();
-            alert(errorResponse.message);
+            await util.showAlert({ title: '오류', msg: errorResponse.message });
         }
     });
     document.getElementById("chatting-input").addEventListener("keypress", function (e) {

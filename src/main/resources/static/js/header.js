@@ -37,17 +37,17 @@ async function displayNickName() {
     reset_button.style.display = "block";
 }
 
-function isValidNickname(name) {
+async function isValidNickname(name) {
     if (!name) {
-        alert("닉네임을 입력해주세요");
+        await util.showAlert({ title: '입력 오류', msg: '닉네임을 입력해주세요.' });
         return false;
     }
     if (name.trim() === "") {
-        alert("공백 입력은 불가합니다")
+        await util.showAlert({ title: '입력 오류', msg: '공백 입력은 불가합니다.' });
         return false;
     }
     if (name.length > 10) {
-        alert("닉네임은 최대 10 글자까지 입력가능합니다")
+        await util.showAlert({ title: '입력 오류', msg: '닉네임은 최대 10 글자까지 입력가능합니다.' });
         return false;
     }
     return true;
@@ -58,7 +58,7 @@ function addHeaderEventList() {
     const name_button = document.getElementById("name-input-button");
     name_button.addEventListener("click", async () => {
         const name = document.getElementById("name-input-box").value;
-        if (!isValidNickname(name)) {
+        if (!await isValidNickname(name)) {
             return;
         }
         await updateClient(name);
@@ -70,7 +70,7 @@ function addHeaderEventList() {
     name_input_box.addEventListener("keyup", async (event) => {
         if (event.key === "Enter") {
             const name = document.getElementById("name-input-box").value;
-            if (!isValidNickname(name)) {
+            if (!await isValidNickname(name)) {
                 return;
             }
             await updateClient(name);
@@ -100,7 +100,7 @@ async function updateClient(name) {
 
     if (!response.ok) {
         const errorResponse = await response.json();
-        alert(errorResponse.message);
+        await util.showAlert({ title: '오류', msg: errorResponse.message });
     }
 }
 

@@ -1,4 +1,4 @@
-import { authFetch } from '/js/common.js';
+import { authFetch, showAlert } from '/js/common.js';
 
 let selectedDate = 6;
 let selectedTimeSlot = true;
@@ -26,9 +26,9 @@ function selectTime(element) {
     selectedTimeSlot = true;
 }
 
-function startBooking() {
+async function startBooking() {
     if (!selectedDate) {
-        alert('날짜를 선택해주세요.');
+        await showAlert({ title: '날짜 선택 필요', msg: '날짜를 선택해주세요.' });
         return;
     }
 
@@ -56,13 +56,13 @@ async function startPractice() {
             const data = await res.json();
             sessionStorage.setItem('pkt.sessionId', data.session_id);
         } else {
-            alert('연습 세션을 시작할 수 없습니다.\n다시 로그인하거나 나중에 시도해주세요.');
+            await showAlert({ title: '세션 오류', msg: '연습 세션을 시작할 수 없습니다.\n다시 로그인하거나 나중에 시도해주세요.' });
             window.location.href = '/practice';
             return;
         }
     } catch (e) {
         console.error('[Practicket] Failed to start session:', e);
-        alert('네트워크 오류가 발생했습니다.\n다시 시도해주세요.');
+        await showAlert({ title: '네트워크 오류', msg: '네트워크 오류가 발생했습니다.\n다시 시도해주세요.' });
         window.location.href = '/practice';
         return;
     }
@@ -134,5 +134,19 @@ window.startPractice = startPractice;
 window.addEventListener('pageshow', function (event) {
     if (event.persisted) {
         window.location.reload();
+    }
+});
+
+// 페이지 진입 시점에 닉네임 검증
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
+            window.location.href = '/practice';
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
     }
 });
