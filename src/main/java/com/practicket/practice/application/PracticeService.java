@@ -80,7 +80,7 @@ public class PracticeService {
                 clientInfo.getName(),
                 type,
                 startedAt,
-                serverElapsedMs,
+                request.getTotalDurationMs(),
                 request.getReactionTimeMs(),
                 request.getQueueWaitMs(),
                 request.getSeatSelectionMs(),
