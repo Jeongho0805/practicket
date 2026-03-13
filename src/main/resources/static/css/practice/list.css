@@ -81,7 +81,6 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     padding: 14px 14px 12px 14px;
 }
 
@@ -99,44 +98,36 @@
     color: #ccc;
 }
 
+.card-title-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .card-title {
     font-family: 'my-font', sans-serif;
     font-size: 22px;
     font-weight: 900;
     letter-spacing: -0.5px;
     line-height: 1.1;
-    margin-top: 6px;
 }
 .practice-card.active   .card-title { color: #2e1065; }
 .practice-card.disabled .card-title { color: #c8c8d4; }
 
-.card-row-bot {
-    display: flex;
-    gap: 16px;
-    margin-top: 10px;
-}
-
-.card-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.card-info-label {
-    font-size: 7px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
+.badge-new-ui {
+    font-size: 8px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #f3e8ff;
+    color: #7c3aed;
+    border: 1px solid #e9d5ff;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
-    color: #d8d8e4;
+    align-self: center;
 }
-
-.card-info-val {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 11px;
-    font-weight: 700;
-}
-.practice-card.active   .card-info-val { color: #9f7aea; }
-.practice-card.disabled .card-info-val { color: #d0d0dc; }
 
 .badge-available {
     font-size: 9px;
@@ -711,43 +702,48 @@
     }
 
     .practice-grid {
-        gap: 8px;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .practice-grid::-webkit-scrollbar {
+        display: none;
     }
 
     .practice-card {
-        min-height: 90px;
+        flex: 0 0 160px;
+        min-height: 100px;
     }
 
     .card-main {
-        padding: 10px 10px 8px 10px;
+        padding: 10px 12px 10px 12px;
     }
 
     .card-label {
         display: none;
     }
 
+    .card-row-top {
+        justify-content: flex-end;
+    }
+
     .card-title {
-        font-size: 15px;
-        margin-top: 4px;
+        font-size: 16px;
+    }
+
+    .badge-new-ui {
+        font-size: 7px;
+        padding: 1px 4px;
     }
 
     .badge-coming,
     .badge-available {
         font-size: 8px;
         padding: 2px 7px;
-    }
-
-    .card-row-bot {
-        gap: 10px;
-        margin-top: 6px;
-    }
-
-    .card-info-label {
-        font-size: 6px;
-    }
-
-    .card-info-val {
-        font-size: 10px;
     }
 
     .ranking-top-bar {
