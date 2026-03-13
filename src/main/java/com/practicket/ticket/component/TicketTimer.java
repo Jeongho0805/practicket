@@ -28,6 +28,6 @@ public class TicketTimer {
     }
 
     public void adjustStartTime() {
-        startTime = startTime.plusMinutes(1);
+        startTime = LocalDateTime.now().plusMinutes(1).withSecond(0).withNano(0);
     }
 }

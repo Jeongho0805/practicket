@@ -6,7 +6,7 @@ function addEventList() {
     ticket_button.addEventListener("click", async () => {
         const name = await util.getNickname();
         if (!name) {
-            alert("닉네임을 입력해주세요.");
+            await util.showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
             return
         }
 
@@ -23,7 +23,7 @@ function addEventList() {
             if(!response.ok) {
                 const data = await response.json();
                 if(data.code === "T02") {
-                    alert(timeErrorMessage);
+                    await util.showAlert({ title: '예매 불가', msg: timeErrorMessage });
                     return;
                 }
                 throw new Error(data.message);
@@ -31,7 +31,7 @@ function addEventList() {
             activateModalToggle();
             setWaitingOrderSse(name);
         } catch(error) {
-            alert("일시적인 서버 장애로 예매에 실패하였습니다.")
+            await util.showAlert({ title: '서버 오류', msg: '일시적인 서버 장애로 예매에 실패하였습니다.' });
         }
     })
 }

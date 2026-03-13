@@ -268,13 +268,13 @@
         display: flex;
         align-items: center;
         gap: 2px;
-        padding: 4px 4px;
+        padding: 2px 4px;
     }
 
     #nav-pages {
         flex: 1;
         overflow: hidden;
-        height: 34px;
+        height: 28px;
     }
 
     .nav-track {
@@ -289,13 +289,13 @@
         height: 100%;
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: space-evenly;
         padding: 0 2px;
     }
 
     .nav-text {
-        flex: 1;
-        height: 34px;
+        flex: 0 1 80px;
+        height: 28px;
         box-sizing: border-box;
         display: flex;
         align-items: center;
@@ -306,7 +306,7 @@
         text-decoration: none;
         color: #999;
         background: transparent;
-        border-radius: 14px;
+        border-radius: 10px;
         border: 1.5px solid #ddd;
         white-space: nowrap;
         transition: background 0.2s, color 0.2s, border-color 0.2s;
@@ -324,34 +324,32 @@
     }
 
     .nav-arrow {
-        width: 20px;
-        height: 34px;
+        width: 24px;
+        height: 24px;
         flex-shrink: 0;
-        background: none;
         border: none;
-        font-size: 12px;
+        font-size: 11px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 0;
-        transition: opacity 0.2s;
-        color: transparent;
+        border-radius: 50%;
+        transition: background 0.2s, opacity 0.2s;
     }
 
     .nav-arrow:not(:disabled) {
-        color: #8470b3;
-        background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        opacity: 1;
+        background: rgba(107, 91, 154, 0.12);
+        color: #6b5b9a;
+    }
+
+    .nav-arrow:not(:disabled):active {
+        background: rgba(107, 91, 154, 0.25);
     }
 
     .nav-arrow:disabled {
-        -webkit-text-fill-color: #ccc;
-        color: #ccc;
-        opacity: 1;
+        background: transparent;
+        color: #ddd;
         cursor: default;
     }
 

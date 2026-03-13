@@ -1,4 +1,4 @@
-import {authFetch} from "../common.js";
+import { authFetch, showAlert } from "../common.js";
 
 class Detail {
     constructor() {
@@ -52,7 +52,7 @@ class Detail {
             }
         } catch (error) {
             console.error('작품 로딩 실패:', error);
-            alert('작품을 불러오는데 실패했습니다.');
+            await showAlert({ title: '오류', msg: '작품을 불러오는데 실패했습니다.' });
             window.location.href = '/art';
         }
     }
@@ -218,7 +218,7 @@ class Detail {
             this.artData.is_liked_by_current_user = isLiked;
         } catch (error) {
             console.error('좋아요 토글 실패:', error);
-            alert('좋아요 처리에 실패했습니다.');
+            await showAlert({ title: '오류', msg: '좋아요 처리에 실패했습니다.' });
         }
     }
 
@@ -238,14 +238,14 @@ class Detail {
             });
 
             if (response.ok) {
-                alert('작품이 성공적으로 삭제되었습니다.');
+                await showAlert({ title: '삭제 완료', msg: '작품이 성공적으로 삭제되었습니다.' });
                 window.location.href = '/art';
             } else {
                 throw new Error('작품 삭제에 실패했습니다.');
             }
         } catch (error) {
             console.error('작품 삭제 실패:', error);
-            alert('작품 삭제에 실패했습니다. 다시 시도해주세요.');
+            await showAlert({ title: '오류', msg: '작품 삭제에 실패했습니다. 다시 시도해주세요.' });
         }
     }
 
@@ -354,7 +354,7 @@ class Detail {
     async createComment() {
         const content = this.commentInput.value.trim();
         if (!content) {
-            alert('댓글 내용을 입력해주세요.');
+            await showAlert({ title: '입력 오류', msg: '댓글 내용을 입력해주세요.' });
             return;
         }
 
@@ -367,9 +367,8 @@ class Detail {
             });
 
             if (response.ok) {
-                alert('댓글이 작성되었습니다.');
                 this.commentInput.value = '';
-                this.commentInput.blur(); // 키보드 내리기
+                this.commentInput.blur();
                 this.currentPage = 0;
                 this.hasMoreComments = true;
                 await this.loadComments(true);
@@ -378,7 +377,7 @@ class Detail {
             }
         } catch (error) {
             console.error('댓글 작성 실패:', error);
-            alert('댓글 작성에 실패했습니다.');
+            await showAlert({ title: '오류', msg: '댓글 작성에 실패했습니다.' });
         }
     }
 
@@ -412,7 +411,7 @@ class Detail {
         const newContent = editInput.value.trim();
 
         if (!newContent) {
-            alert('댓글 내용을 입력해주세요.');
+            await showAlert({ title: '입력 오류', msg: '댓글 내용을 입력해주세요.' });
             return;
         }
 
@@ -433,7 +432,7 @@ class Detail {
             }
         } catch (error) {
             console.error('댓글 수정 실패:', error);
-            alert('댓글 수정에 실패했습니다.');
+            await showAlert({ title: '오류', msg: '댓글 수정에 실패했습니다.' });
         }
     }
 
@@ -454,7 +453,7 @@ class Detail {
             }
         } catch (error) {
             console.error('댓글 삭제 실패:', error);
-            alert('댓글 삭제에 실패했습니다.');
+            await showAlert({ title: '오류', msg: '댓글 삭제에 실패했습니다.' });
         }
     }
 }

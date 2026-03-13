@@ -2568,4 +2568,44 @@ a {
     .queue-footer-desc {
         display: none;
     }
+
+    /* html을 device-width로 고정, body에서 가로스크롤 제공 */
+    html {
+        overflow-x: hidden;
+    }
+
+    body {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    /* 상단 헤더 viewport 상단 고정 */
+    .ip-seat-header-new {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 500;
+    }
+
+    /* fixed 헤더 높이(84px)만큼 메인 콘텐츠 오프셋 */
+    .ip-main-new {
+        margin-top: 84px;
+        padding-bottom: 134px;
+    }
+
+    /* 하단 푸터(빨간 버튼 영역) viewport 하단 고정 */
+    .ip-panel-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 500;
+    }
+
+    /* 모달 카드 실제 화면 너비에 맞춤 */
+    .pkt-modal-card {
+        width: calc(100% - 32px);
+        max-width: 400px;
+    }
 }

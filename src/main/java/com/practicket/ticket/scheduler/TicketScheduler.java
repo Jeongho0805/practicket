@@ -83,7 +83,6 @@ public class TicketScheduler {
     }
 
     @Scheduled(cron = "30 * * * * *")
-    @SchedulerLock(name = "adjustStartTime")
     public void adjustStartTime() {
         ticketService.adjustStartTime();
     }

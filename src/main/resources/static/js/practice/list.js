@@ -1,11 +1,11 @@
-import { authFetch } from '/js/common.js';
+import { authFetch, showAlert } from '/js/common.js';
 
 const RANKING_TYPE = 'I_TICKET_OLD';
 
 // ── 전체 랭킹 상태 ──
 const rankingState = {
     type: RANKING_TYPE,
-    period: 'WEEKLY',
+    period: 'DAILY',
     cursor: null,
     hasNext: false,
     loading: false,
@@ -23,6 +23,22 @@ const myState = {
 };
 
 const PERIOD_MAP = { '일간': 'DAILY', '주간': 'WEEKLY', '월간': 'MONTHLY' };
+
+// ── I-Ticket 카드 클릭 시 닉네임 검증 후 이동 ──
+async function goToITicket(event) {
+    event.preventDefault();
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임을 설정해주세요', msg: '랭킹 기록을 남기려면 닉네임이 필요합니다.\n우측 상단에서 닉네임 설정 후 다시 시도해주세요.' });
+            return;
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
+    }
+    window.location.href = '/practice/i-ticket/intro';
+}
 
 // ── 탭 전환 ──
 function switchMainTab(target, btn) {
@@ -94,6 +110,8 @@ async function loadRanking(reset) {
     }
 }
 
+const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
 function createRankRow(rank, item) {
     const tr = document.createElement('tr');
     if (rank <= 3) tr.classList.add(`rank-${rank}`);
@@ -107,7 +125,19 @@ function createRankRow(rank, item) {
     const nameTd = document.createElement('td');
     nameTd.className = 'rank-name';
     nameTd.style.cssText = 'text-align:left;padding-left:30px;';
-    nameTd.textContent = item.nickname;
+
+    if (RANK_MEDALS[rank]) {
+        const wrap = document.createElement('span');
+        wrap.className = 'rank-name-wrap';
+        const medal = document.createElement('span');
+        medal.className = 'rank-medal';
+        medal.textContent = RANK_MEDALS[rank];
+        wrap.appendChild(medal);
+        wrap.appendChild(document.createTextNode(item.nickname));
+        nameTd.appendChild(wrap);
+    } else {
+        nameTd.textContent = item.nickname;
+    }
 
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
@@ -308,6 +338,7 @@ function formatDate(isoString) {
 }
 
 // ── 전역 노출 (onclick 속성용) ──
+window.goToITicket = goToITicket;
 window.switchMainTab = switchMainTab;
 window.selectPeriod = selectPeriod;
 window.loadRanking = loadRanking;

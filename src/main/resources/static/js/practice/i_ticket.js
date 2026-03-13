@@ -1,4 +1,4 @@
-import { authFetch } from '/js/common.js';
+import { authFetch, showAlert } from '/js/common.js';
 
 // ════════════════════════════════════════
 // Queue System
@@ -921,8 +921,8 @@ const STATE = {
     step: 'SEAT',
     seatPhase: 'CAPTCHA',
     selectedSeats: [],
-    ticketPrice: 88000,
-    fee: 2000,
+    ticketPrice: 0,
+    fee: 0,
     captchaAnswer: 'BXWUMU'
 };
 
@@ -1083,7 +1083,7 @@ function renderSeats(container, zoneName) {
 
 function selectSeat(el, zone, row, num) {
     if (seatManager && !seatManager.checkAvailability(row, num, zone)) {
-        alert('이미 선택된 좌석입니다.');
+        showToast('이미 선택된 좌석입니다.');
         return;
     }
 
@@ -1109,12 +1109,12 @@ function updateRightPanel(zone, row, num, isAdded) {
         const exists = STATE.selectedSeats.some(s => s.id === title);
         if (!exists) {
             if (STATE.selectedSeats.length >= 1) {
-                alert('1매만 선택 가능합니다.');
+                showToast('1매만 선택 가능합니다.');
                 const targetEl = document.querySelector(`.seat-unit[title="${title}"]`);
                 if (targetEl) targetEl.classList.remove('selected');
                 return;
             }
-            STATE.selectedSeats.push({ id: title, row: row, col: num, price: 88000 });
+            STATE.selectedSeats.push({ id: title, row: row, col: num, price: 0 });
         }
     } else {
         STATE.selectedSeats = STATE.selectedSeats.filter(s => s.id !== title);
@@ -1212,7 +1212,7 @@ function resetSelection() {
 
 function goToStep3() {
     if (STATE.selectedSeats.length === 0) {
-        alert('좌석을 선택해주세요.');
+        showToast('좌석을 선택해주세요.');
         return;
     }
 
@@ -1230,7 +1230,7 @@ function goToStep3() {
     });
 
     if (hasTakenSeats) {
-        alert('이미 선택된 좌석입니다.');
+        showToast('이미 선택된 좌석입니다.');
         resetSelection();
         return;
     }
@@ -1320,7 +1320,7 @@ function handleAction(action, target) {
         case 'seat-reset': resetSeats(); break;
         case 'seat-complete':
             if (STATE.selectedSeats.length > 0) completePractice();
-            else alert('좌석을 선택해주세요.');
+            else showToast('좌석을 선택해주세요.');
             break;
         case 'prev-step': goBackStep(); break;
         case 'next-step': goNextStep(); break;
@@ -1464,7 +1464,7 @@ function goNextStep() {
         if (validateDelivery()) setStep('PAYMENT');
     } else if (STATE.step === 'PAYMENT') {
         if (validatePayment()) {
-            alert('예매가 완료되었습니다!');
+            await showAlert({ title: '예매 완료', msg: '예매가 완료되었습니다!' });
             location.reload();
         }
     }
@@ -1484,7 +1484,7 @@ function resetSeats() {
 function updateSeatSidePanel() {
     DOM.seatCount.textContent = STATE.selectedSeats.length;
     DOM.seatList.innerHTML = '';
-    STATE.ticketPrice = 88000;
+    STATE.ticketPrice = 0;
 
     STATE.selectedSeats.forEach(s => {
         const div = document.createElement('div');
@@ -1513,37 +1513,37 @@ function updateSummary() {
     const feeTotal = STATE.fee * qty;
     const total = ticketTotal + feeTotal;
 
-    DOM.summaryTicket.textContent = ticketTotal.toLocaleString() + '원';
-    DOM.summaryFee.textContent = feeTotal.toLocaleString() + '원';
-    DOM.summaryTotal.textContent = total.toLocaleString() + '원';
+    DOM.summaryTicket.textContent = '무료';
+    DOM.summaryFee.textContent = '무료';
+    DOM.summaryTotal.textContent = '무료';
 }
 
 function validateDelivery() {
-    if (!DOM.orderName.value.trim()) { alert('이름을 입력해주세요.'); DOM.orderName.focus(); return false; }
+    if (!DOM.orderName.value.trim()) { showToast('이름을 입력해주세요.'); DOM.orderName.focus(); return false; }
 
     const birthVal = DOM.orderBirth.value;
-    if (!/^\d{6}$/.test(birthVal)) { alert('생년월일 6자리를 정확히 입력해주세요.'); DOM.orderBirth.focus(); return false; }
+    if (!/^\d{6}$/.test(birthVal)) { showToast('생년월일 6자리를 정확히 입력해주세요.'); DOM.orderBirth.focus(); return false; }
 
     const p2 = DOM.orderPhone2.value;
     const p3 = DOM.orderPhone3.value;
-    if (p2.length < 3 || p3.length < 4) { alert('연락처를 정확히 입력해주세요.'); DOM.orderPhone2.focus(); return false; }
+    if (p2.length < 3 || p3.length < 4) { showToast('연락처를 정확히 입력해주세요.'); DOM.orderPhone2.focus(); return false; }
 
-    if (!DOM.orderEmail.value.includes('@')) { alert('이메일 형식이 올바르지 않습니다.'); DOM.orderEmail.focus(); return false; }
+    if (!DOM.orderEmail.value.includes('@')) { showToast('이메일 형식이 올바르지 않습니다.'); DOM.orderEmail.focus(); return false; }
 
     return true;
 }
 
 function validatePayment() {
     const method = document.querySelector('input[name="pay-method"]:checked');
-    if (!method) { alert('결제방식을 선택해주세요.'); return false; }
+    if (!method) { showToast('결제방식을 선택해주세요.'); return false; }
 
     if (method.value === 'card') {
         const cardType = document.querySelector('input[name="card-type"]:checked');
-        if (!cardType) { alert('카드 종류를 선택해주세요.'); return false; }
+        if (!cardType) { showToast('카드 종류를 선택해주세요.'); return false; }
 
         if (cardType.value === 'general') {
             const select = document.getElementById('card-select');
-            if (!select.value) { alert('카드사를 선택해주세요.'); return false; }
+            if (!select.value) { showToast('카드사를 선택해주세요.'); return false; }
         }
     }
 
@@ -1575,7 +1575,7 @@ async function completePractice() {
     ].forEach(k => sessionStorage.removeItem(k));
 
     if (!sessionId) {
-        alert('에러가 발생하였습니다. 다시 시도해주세요.');
+        await showAlert({ title: '오류', msg: '에러가 발생하였습니다. 다시 시도해주세요.' });
         location.href = '/practice';
         return;
     }
@@ -1588,19 +1588,18 @@ async function completePractice() {
         });
 
         if (res.ok) {
-            showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+            showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
         } else {
             const err = await res.json().catch(() => null);
             console.warn('[Practicket] complete failed:', err);
-            showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+            showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
         }
     } catch (e) {
         console.error('[Practicket] complete error:', e);
     }
 }
 
-function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank }) {
-    const totalMs = reactionTimeMs + queueWaitMs + seatSelectionMs;
+function showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank }) {
     const fmt = ms => (ms / 1000).toFixed(3) + 's';
 
     const now = new Date();
@@ -1610,8 +1609,8 @@ function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queue
         String(now.getDate()).padStart(2, '0')
     ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-    document.getElementById('pkt-meta').textContent = 'I-Ticket 구버전 · ' + dateStr;
-    document.getElementById('pkt-total-num').textContent = (totalMs / 1000).toFixed(3);
+    document.getElementById('pkt-meta').textContent = 'I-Ticket · ' + dateStr;
+    document.getElementById('pkt-total-num').textContent = (totalDurationMs / 1000).toFixed(3);
     document.getElementById('pkt-reaction').textContent = fmt(reactionTimeMs);
     document.getElementById('pkt-queue').textContent = fmt(queueWaitMs);
     document.getElementById('pkt-seat').textContent = fmt(seatSelectionMs);
@@ -1625,6 +1624,11 @@ function showCompleteModal({ reactionTimeMs, queueWaitMs, seatSelectionMs, queue
 // ════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('pkt.sessionId')) {
+        window.location.href = '/practice/i-ticket/intro';
+        return;
+    }
+
     // 1. Queue
     if (document.getElementById('ip-root')) {
         QueueManager.init();
@@ -1646,7 +1650,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (footerBtns.length >= 2) {
         const prevBtn = footerBtns[0];
         if (prevBtn.innerText.includes('이전단계')) {
-            prevBtn.onclick = () => alert('"관람일/회차선택" 으로 넘어가는 버튼이에요. 누르지마세요!');
+            prevBtn.onclick = () => showAlert({ title: '안내', msg: '"관람일/회차선택" 으로 넘어가는 버튼이에요. 누르지마세요!' });
         }
         const resetBtn = footerBtns[1];
         if (resetBtn.innerText.includes('다시 선택')) {

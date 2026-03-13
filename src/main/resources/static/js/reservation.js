@@ -7,7 +7,7 @@ function checkTimeToLeave() {
     setInterval(async () => {
         const serverTime = await util.getSyncTime();
         if (serverTime.getSeconds() >= 50) {
-            alert("예매 가능 시간이 지났습니다.\n 예매페이지로 돌아갑니다.")
+            await util.showAlert({ title: '예매 불가', msg: '예매 가능 시간이 지났습니다.\n예매페이지로 돌아갑니다.' });
             window.location.href = `${HOST}`;
         }
     }, 1000);
@@ -68,9 +68,9 @@ function displaySelectSeat() {
 function addButtonEventListener() {
     // 좌석 선택 완료 처리
     const completeButton = document.getElementById("complete-button");
-    completeButton.addEventListener("click", () => {
+    completeButton.addEventListener("click", async () => {
         if (selected_seats.size === 0) {
-            alert("좌석을 선택해주세요");
+            await util.showAlert({ title: '좌석 선택 필요', msg: '좌석을 선택해주세요.' });
             return;
         }
         requestReservation();
@@ -107,46 +107,40 @@ async function requestSeatInfo() {
         return [];
     }
 }
-function requestReservation() {
+async function requestReservation() {
     const reservationToken = localStorage.getItem('reservationToken');
     if (!reservationToken) {
-        alert("권한이 없습니다.");
+        await util.showAlert({ title: '권한 없음', msg: '권한이 없습니다.' });
         window.location.href = `${HOST}`;
         return;
     }
 
-    util.authFetch(`${HOST}/api/ticket`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            seats: Array.from(selected_seats.keys()),
-            reservation_token: reservationToken
-        })
-    }).then(response => {
+    try {
+        const response = await util.authFetch(`${HOST}/api/ticket`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                seats: Array.from(selected_seats.keys()),
+                reservation_token: reservationToken
+            })
+        });
+
         if (response.ok) {
-            // 예매 성공 시 토큰 삭제
             localStorage.removeItem('reservationToken');
-            alert("예매 완료")
+            await util.showAlert({ title: '예매 완료', msg: '예매가 완료되었습니다!' });
             window.location.href = `${HOST}/rank`;
-            return Promise.resolve();
         } else {
-            return response.json();
-        }
-    }).then(result => {
-        if (result) {
-            alert(result.message);
-            // 토큰 관련 에러 시 토큰 삭제 후 메인으로 이동
+            const result = await response.json();
+            await util.showAlert({ title: '예매 실패', msg: result.message });
             if (result.code === 'T04' || result.code === 'T05') {
                 localStorage.removeItem('reservationToken');
                 window.location.href = `${HOST}`;
             }
         }
-    }).catch(error => {
+    } catch (error) {
         console.error(error);
-        alert("일시적인 서버 오류로 예매에 실패하였습니다.")
-    })
+        await util.showAlert({ title: '서버 오류', msg: '일시적인 서버 오류로 예매에 실패하였습니다.' });
+    }
 }
 
 function createRandomSecurityText() {

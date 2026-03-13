@@ -2,6 +2,7 @@ package com.practicket.chat.application;
 
 import com.practicket.chat.component.ChatConnectionManager;
 import com.practicket.chat.component.ChatManager;
+import com.practicket.chat.component.ChatMessagePublisher;
 import com.practicket.common.component.ProfanityValidator;
 import com.practicket.chat.domain.Chat;
 import com.practicket.chat.dto.ChatRequestDto;
@@ -23,16 +24,15 @@ import java.util.UUID;
 public class ChatService {
 
     private final ChatManager chatManager;
-
     private final ChatConnectionManager chatConnectionStore;
-
     private final ProfanityValidator profanityValidator;
+    private final ChatMessagePublisher chatMessagePublisher;
 
     public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
         profanityValidator.validateProfanityText(dto.getText());
         Chat chat = chatManager.save(userInfo.getToken(), userInfo.getName(), dto.getText());
         ChatResponseDto chatResponseDto = ChatResponseDto.of(chat);
-        sendChatMessage(chatResponseDto);
+        chatMessagePublisher.publish(chatResponseDto);
     }
 
     public List<ChatResponseDto> findAllChat(LocalDateTime dateTime) {
@@ -46,9 +46,5 @@ public class ChatService {
     public SseEmitter createConnection() {
         String key = UUID.randomUUID().toString();
         return chatConnectionStore.save(key);
-    }
-
-    public void sendChatMessage(ChatResponseDto data) {
-        chatConnectionStore.broadcast(data);
     }
 }
