@@ -1457,7 +1457,7 @@ function goBackStep() {
     else if (STATE.step === 'PAYMENT') setStep('DELIVERY');
 }
 
-function goNextStep() {
+async function goNextStep() {
     if (STATE.step === 'PRICE') {
         setStep('DELIVERY');
     } else if (STATE.step === 'DELIVERY') {
