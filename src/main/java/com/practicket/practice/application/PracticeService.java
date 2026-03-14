@@ -43,6 +43,9 @@ public class PracticeService {
     private final PracticeRankRepository rankRepository;
 
     public PracticeStartResponse start(ClientInfo clientInfo, PracticeType type) {
+        if (clientInfo.getName() == null || clientInfo.getName().isBlank()) {
+            throw new PracticeException(ErrorCode.NICKNAME_REQUIRED);
+        }
         String sessionId = UUID.randomUUID().toString();
         long startAt = Instant.now().toEpochMilli();
         sessionRepository.create(sessionId, clientInfo.getToken(), type.name(), startAt);

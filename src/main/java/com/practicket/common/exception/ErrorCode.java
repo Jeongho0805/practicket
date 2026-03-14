@@ -20,12 +20,17 @@ public enum ErrorCode {
 
     INAPPROPRIATE_CONTENT(400, "V01", "부적절한 내용이 포함되어 있습니다."),
 
+    CHAT_RATE_LIMIT_EXCEEDED(429, "CH01", "메시지를 너무 빠르게 전송하고 있습니다."),
+    CHAT_BANNED_USER(403, "CH02", "채팅 전송이 불가합니다."),
+    CHAT_TEMP_BANNED(403, "CH03", "도배로 인해 채팅이 10분 정지되었습니다."),
+
     FORBIDDEN(403, "G01", "접근 권한이 없습니다."),
 
     PRACTICE_SESSION_NOT_FOUND(404, "PR01", "연습 세션이 존재하지 않거나 만료되었습니다."),
     PRACTICE_SESSION_OWNER_MISMATCH(403, "PR02", "본인의 연습 세션이 아닙니다."),
     PRACTICE_TOO_FAST(400, "PR03", "비정상적으로 빠른 요청입니다."),
     PRACTICE_INVALID_TIMING(400, "PR04", "올바르지 않은 타이밍 데이터입니다."),
+    NICKNAME_REQUIRED(400, "PR05", "닉네임을 설정한 후 이용해주세요."),
 
     ;
 
