@@ -1,6 +1,7 @@
 import * as util from "./common.js";
 
 let name;
+let editingFromUnset = false;
 
 const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
@@ -22,19 +23,50 @@ const desktopPageInfos = {
 
 async function displayNickName() {
     name = await util.getNickname();
-    const name_input_section = document.getElementById("name-input-section");
-    const name_value = document.getElementById("name-value");
-    const reset_button = document.getElementById("reset-button");
+    const chip = document.getElementById("nickname-chip");
+    const chipUnset = document.getElementById("nickname-chip-unset");
+    const inputSection = document.getElementById("name-input-section");
+
+    inputSection.style.display = "none";
+
     if (!name) {
-        const name_section = document.getElementById("name-section");
-        name_section.style.display = "none";
-        name_input_section.style.display = "flex";
+        chip.style.display = "none";
+        chipUnset.style.display = "flex";
         return;
     }
-    name_input_section.style.display = "none";
-    name_value.style.display = "block";
-    name_value.textContent = name;
-    reset_button.style.display = "block";
+
+    chipUnset.style.display = "none";
+    document.getElementById("name-value").textContent = name;
+    chip.style.display = "flex";
+}
+
+function showInputSection(prefill = "") {
+    const chip = document.getElementById("nickname-chip");
+    const chipUnset = document.getElementById("nickname-chip-unset");
+    const inputSection = document.getElementById("name-input-section");
+    const inputBox = document.getElementById("name-input-box");
+
+    chip.style.display = "none";
+    chipUnset.style.display = "none";
+    inputSection.style.display = "flex";
+    inputBox.value = prefill;
+    inputBox.focus();
+    if (prefill) inputBox.select();
+}
+
+function hideInputSection() {
+    const chip = document.getElementById("nickname-chip");
+    const chipUnset = document.getElementById("nickname-chip-unset");
+    const inputSection = document.getElementById("name-input-section");
+
+    inputSection.style.display = "none";
+
+    if (editingFromUnset) {
+        chipUnset.style.display = "flex";
+    } else {
+        chip.style.display = "flex";
+    }
+    editingFromUnset = false;
 }
 
 async function isValidNickname(name) {
@@ -53,38 +85,39 @@ async function isValidNickname(name) {
     return true;
 }
 
-function addHeaderEventList() {
-    // 닉네임 입력 이벤트
-    const name_button = document.getElementById("name-input-button");
-    name_button.addEventListener("click", async () => {
-        const name = document.getElementById("name-input-box").value;
-        if (!await isValidNickname(name)) {
-            return;
-        }
-        await updateClient(name);
-        location.reload();
-    })
+async function submitNickname() {
+    const inputName = document.getElementById("name-input-box").value;
+    if (!await isValidNickname(inputName)) return;
+    await updateClient(inputName);
+    location.reload();
+}
 
-    // 엔터 키 이벤트 추가
-    const name_input_box = document.getElementById("name-input-box");
-    name_input_box.addEventListener("keyup", async (event) => {
-        if (event.key === "Enter") {
-            const name = document.getElementById("name-input-box").value;
-            if (!await isValidNickname(name)) {
-                return;
-            }
-            await updateClient(name);
-            location.reload();
-        }
+function addHeaderEventList() {
+    // chip 클릭 → 현재 닉네임 pre-fill 후 편집
+    document.getElementById("nickname-chip").addEventListener("click", () => {
+        editingFromUnset = false;
+        showInputSection(name || "");
     });
 
+    // chip-unset 클릭 → 빈 인풋으로 편집
+    document.getElementById("nickname-chip-unset").addEventListener("click", () => {
+        editingFromUnset = true;
+        showInputSection("");
+    });
 
-    // 닉네임 변경 이벤트
-    const name_reset_button = document.getElementById("reset-button");
-    name_reset_button.addEventListener("click", async () => {
-        await updateClient(null);
-        location.reload();
-    })
+    // 취소
+    document.getElementById("name-input-cancel").addEventListener("click", () => {
+        hideInputSection();
+    });
+
+    // 완료 버튼
+    document.getElementById("name-input-button").addEventListener("click", submitNickname);
+
+    // 엔터 / ESC 키
+    document.getElementById("name-input-box").addEventListener("keydown", async (event) => {
+        if (event.key === "Enter") await submitNickname();
+        if (event.key === "Escape") hideInputSection();
+    });
 }
 
 async function updateClient(name) {

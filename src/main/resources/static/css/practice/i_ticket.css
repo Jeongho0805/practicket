@@ -1928,6 +1928,7 @@ a {
     flex-direction: column;
     overflow: hidden;
     font-family: 'Malgun Gothic', 'Dotum', sans-serif;
+    touch-action: pan-x pan-y;
 }
 
 /* ── Date Screen ── */
@@ -2347,7 +2348,7 @@ a {
     overflow: auto;
     background: #f0f0f0;
     padding: 24px 16px;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .mob-seat-svg-scroll {
@@ -2379,8 +2380,11 @@ a {
     flex: 1;
     overflow: auto;
     padding: 12px 8px;
-    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     background: #f9f9f9;
+}
+
+#mob-detail-grid-inner {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -2410,9 +2414,9 @@ a {
 
 .mob-detail-grid-wrap .seat-unit,
 .mob-detail-grid-wrap .seat-unit.available {
-    width: 20px;
-    height: 20px;
-    margin-right: 3px;
+    width: 12px;
+    height: 12px;
+    margin-right: 1px;
 }
 
 .mob-detail-bottom-bar {

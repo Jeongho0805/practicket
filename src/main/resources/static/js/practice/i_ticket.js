@@ -361,6 +361,7 @@ const MobileCaptchaScreen = {
     show() {
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
+        document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0, user-scalable=no';
 
         if (this.overlay) {
             this.overlay.style.display = 'flex';
@@ -405,6 +406,7 @@ const MobileCaptchaScreen = {
 
         el.querySelector('#mob-cap-back').addEventListener('click', () => {
             this.overlay.style.display = 'none';
+            document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0';
             if (MobileDateScreen.overlay) MobileDateScreen.overlay.style.display = 'flex';
         });
 
@@ -464,6 +466,7 @@ const MobileCaptchaScreen = {
             if (MobileDateScreen.overlay) { MobileDateScreen.overlay.remove(); MobileDateScreen.overlay = null; }
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
+            document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0';
             setSeatPhase('AREA');
             MobileSeatScreen.show();
         } else {
@@ -472,6 +475,83 @@ const MobileCaptchaScreen = {
         }
     }
 };
+
+// ════════════════════════════════════════
+// PinchZoomScroll — 콘텐츠 영역 전용 핀치 줌
+// 브라우저 기본 줌 대신 JS가 직접 처리.
+// scrollEl: overflow:auto 스크롤 컨테이너
+// contentEl: zoom을 적용할 내부 콘텐츠 요소
+// ════════════════════════════════════════
+
+class PinchZoomScroll {
+    constructor(scrollEl, contentEl) {
+        this.scrollEl = scrollEl;
+        this.contentEl = contentEl;
+        this.scale = 1;
+        this.MIN = 1;
+        this.MAX = 3;
+        this.startDist = 0;
+        this.startScale = 1;
+        this.lastX = 0;
+        this.lastY = 0;
+        this.pinching = false;
+
+        // touch-action: none → JS가 1손가락 스크롤 + 2손가락 줌 모두 직접 처리
+        scrollEl.style.touchAction = 'none';
+
+        scrollEl.addEventListener('touchstart',  this._onStart.bind(this), { passive: false });
+        scrollEl.addEventListener('touchmove',   this._onMove.bind(this),  { passive: false });
+        scrollEl.addEventListener('touchend',    this._onEnd.bind(this),   { passive: true });
+    }
+
+    _dist(touches) {
+        return Math.hypot(
+            touches[0].clientX - touches[1].clientX,
+            touches[0].clientY - touches[1].clientY
+        );
+    }
+
+    _onStart(e) {
+        if (e.touches.length === 2) {
+            this.pinching = true;
+            this.startDist = this._dist(e.touches);
+            this.startScale = this.scale;
+        } else if (e.touches.length === 1) {
+            this.pinching = false;
+            this.lastX = e.touches[0].clientX;
+            this.lastY = e.touches[0].clientY;
+        }
+    }
+
+    _onMove(e) {
+        e.preventDefault();
+        if (e.touches.length === 2 && this.pinching) {
+            const dist = this._dist(e.touches);
+            this.scale = Math.min(Math.max(this.startScale * (dist / this.startDist), this.MIN), this.MAX);
+            this.contentEl.style.zoom = this.scale;
+        } else if (e.touches.length === 1 && !this.pinching) {
+            const dx = this.lastX - e.touches[0].clientX;
+            const dy = this.lastY - e.touches[0].clientY;
+            this.scrollEl.scrollLeft += dx;
+            this.scrollEl.scrollTop  += dy;
+            this.lastX = e.touches[0].clientX;
+            this.lastY = e.touches[0].clientY;
+        }
+    }
+
+    _onEnd(e) {
+        if (e.touches.length < 2) this.pinching = false;
+        if (e.touches.length === 1) {
+            this.lastX = e.touches[0].clientX;
+            this.lastY = e.touches[0].clientY;
+        }
+    }
+
+    reset() {
+        this.scale = 1;
+        this.contentEl.style.zoom = 1;
+    }
+}
 
 // ════════════════════════════════════════
 // Mobile Seat Area Screen (모바일 전용)
@@ -561,7 +641,14 @@ const MobileSeatScreen = {
         document.body.appendChild(el);
         this.overlay = el;
 
+        // 구역 지도 영역에 핀치 줌 적용 (nav/footer 영향 없이 지도만 확대)
+        this._pinchZoom = new PinchZoomScroll(
+            el.querySelector('.mob-seat-map-wrap'),
+            el.querySelector('.mob-seat-svg-scroll')
+        );
+
         el.querySelector('#mob-seat-back').addEventListener('click', () => {
+            this._pinchZoom.reset();
             this.overlay.style.display = 'none';
             if (MobileDateScreen.overlay) {
                 MobileDateScreen.overlay.style.display = 'flex';
@@ -635,9 +722,20 @@ const MobileSeatDetailScreen = {
         document.body.appendChild(el);
         this.overlay = el;
 
+        // 줌 대상 inner wrapper 생성 (scroll 컨테이너와 분리)
+        const gridWrap = el.querySelector('.mob-detail-grid-wrap');
+        const gridInner = document.createElement('div');
+        gridInner.id = 'mob-detail-grid-inner';
+        gridWrap.appendChild(gridInner);
+
+        this._gridInner = gridInner;
         this._renderGrid(zoneName);
 
+        // 좌석 그리드 영역에 핀치 줌 적용 (nav/하단바 영향 없이 그리드만 확대)
+        this._pinchZoom = new PinchZoomScroll(gridWrap, gridInner);
+
         el.querySelector('#mob-detail-back').addEventListener('click', () => {
+            this._pinchZoom.reset();
             this.overlay.style.display = 'none';
         });
 
@@ -656,10 +754,10 @@ const MobileSeatDetailScreen = {
     },
 
     _renderGrid(zoneName) {
-        const grid = document.getElementById('mob-detail-grid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        renderSeats(grid, zoneName);
+        const target = this._gridInner || document.getElementById('mob-detail-grid');
+        if (!target) return;
+        target.innerHTML = '';
+        renderSeats(target, zoneName);
         this._syncBar();
     },
 
@@ -702,7 +800,7 @@ class SeatManager {
 
         this.storageKeys = {
             decayStartAt: 'iq.seat.decay.startedAt',
-            zoneRanks: 'iq.seat.zoneRanks_v6'
+            zoneRanks: 'iq.seat.zoneRanks_v7'
         };
 
         this.init();
@@ -804,9 +902,9 @@ class SeatManager {
             return out;
         };
 
-        const earlyFront = pickN(front, 96);
-        const earlyMiddle = pickN(middle, 80);
-        const earlyBack = pickN(back, 64);
+        const earlyFront = pickN(front, Math.floor(front.length * 0.96));
+        const earlyMiddle = pickN(middle, Math.floor(middle.length * 0.80));
+        const earlyBack = pickN(back, Math.floor(back.length * 0.64));
 
         const tailFront = pickN(front, front.length);
         const tailMiddle = pickN(middle, middle.length);
@@ -1051,9 +1149,9 @@ function renderSeats(container, zoneName) {
         html += `<div class="seat-row-label">${zoneName}구역 ${r}열</div>`;
         html += `<div class="seat-row-units">`;
 
-        for (let s = 1; s <= 20; s++) {
-            if (s === 6 || s === 16) {
-                html += `<div style="width:15px; height:15px;"></div>`;
+        for (let s = 1; s <= 30; s++) {
+            if (s === 11 || s === 21) {
+                html += `<div style="width:8px; height:12px;"></div>`;
             }
 
             let isAvailable = true;
@@ -1181,6 +1279,7 @@ function validateSelectedSeats() {
             listContainer.style.background = '';
         }
         toggleBlinkingButton();
+        showAlert({ title: '안내', msg: '이미 선택된 좌석입니다.' });
     }
 }
 
@@ -1210,7 +1309,7 @@ function resetSelection() {
     }
 }
 
-function goToStep3() {
+async function goToStep3() {
     if (STATE.selectedSeats.length === 0) {
         showToast('좌석을 선택해주세요.');
         return;
@@ -1230,7 +1329,7 @@ function goToStep3() {
     });
 
     if (hasTakenSeats) {
-        showToast('이미 선택된 좌석입니다.');
+        await showAlert({ title: '안내', msg: '이미 선택된 좌석입니다.' });
         resetSelection();
         return;
     }
@@ -1635,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2. Seat Manager
-    seatManager = new SeatManager(15, 20);
+    seatManager = new SeatManager(15, 30);
     startSoldOutMonitor();
     checkGlobalSoldOutAndRedirect();
 

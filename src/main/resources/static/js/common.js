@@ -14,7 +14,7 @@ export async function getNickname() {
 }
 
 export async function getClientInfo() {
-    return await this.authFetch(`${HOST}/api/client`, {
+    return await authFetch(`${HOST}/api/client`, {
         method: "GET",
         credentials: 'same-origin',
         headers: {
@@ -25,7 +25,7 @@ export async function getClientInfo() {
         .then(data => {
             return data;
         })
-        .catch();
+        .catch(() => null);
 }
 
 
@@ -166,8 +166,22 @@ export function showAlert({ title, msg }) {
         msgEl.textContent   = msg;
         overlay.classList.add('show');
 
-        confirmBtn.onclick = () => { overlay.classList.remove('show'); resolve(); };
-        overlay.onclick    = (e) => { if (e.target === overlay) { overlay.classList.remove('show'); resolve(); } };
+        function close() {
+            overlay.classList.remove('show');
+            document.removeEventListener('keydown', onKeydown);
+            resolve();
+        }
+
+        function onKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                close();
+            }
+        }
+
+        confirmBtn.onclick = close;
+        overlay.onclick    = (e) => { if (e.target === overlay) close(); };
+        document.addEventListener('keydown', onKeydown);
     });
 }
 
