@@ -13,15 +13,18 @@
             <a href="/blog" id="blog-desktop-btn" class="nav-text mobile-invisible">블로그</a>
         </div>
         <div id="nav-right">
-            <div id="info-section">
-                <div id="name-section">
-                    <p id="name-value"></p>
-                    <button id="reset-button">닉네임 변경</button>
-                </div>
-                <div id="name-input-section">
-                    <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요." />
-                    <button id="name-input-button" type="button">완료</button>
-                </div>
+            <div id="nickname-chip">
+                <span id="name-value"></span>
+                <span class="chip-icon">✎</span>
+            </div>
+            <div id="nickname-chip-unset">
+                <span>닉네임 설정</span>
+                <span class="chip-plus">+</span>
+            </div>
+            <div id="name-input-section">
+                <input id="name-input-box" type="text" name="name" placeholder="닉네임을 입력해주세요." maxlength="10" />
+                <button id="name-input-cancel" type="button">✕</button>
+                <button id="name-input-button" type="button">완료</button>
             </div>
         </div>
     </div>
