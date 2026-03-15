@@ -204,12 +204,7 @@ async function getOrFetchClientInfo() {
 }
 
 async function isSendChatPossible(chatting) {
-    if (!chatting) {
-        await util.showAlert({ title: '입력 오류', msg: '채팅을 입력해주세요.' });
-        return false;
-    }
-    if (chatting.trim().length === 0) {
-        await util.showAlert({ title: '입력 오류', msg: '공백 입력은 불가합니다.' });
+    if (!chatting || chatting.trim().length === 0) {
         return false;
     }
     if (chatting.length > 100) {
