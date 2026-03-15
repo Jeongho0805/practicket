@@ -4,6 +4,7 @@ import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeType;
+import com.practicket.practice.dto.PracticeCompleteResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
 import com.practicket.practice.dto.PracticeMyStatsResponse;
 import com.practicket.practice.dto.PracticeRankResponse;
@@ -32,12 +33,11 @@ public class PracticeController {
     }
 
     @PostMapping("/complete")
-    public ResponseEntity<Void> complete(
+    public ResponseEntity<PracticeCompleteResponse> complete(
             @Auth ClientInfo clientInfo,
             @Valid @RequestBody PracticeResultRequest request
     ) {
-        practiceService.complete(clientInfo, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(practiceService.complete(clientInfo, request));
     }
 
     @GetMapping("/rank")

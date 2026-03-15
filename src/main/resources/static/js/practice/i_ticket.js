@@ -741,7 +741,7 @@ const MobileSeatDetailScreen = {
 
         el.querySelector('#mob-detail-refresh').addEventListener('click', () => {
             refreshSeatSnapshot();
-            this._renderGrid(currentZone);
+            resetSelection();
         });
 
         el.querySelector('#mob-detail-tab-price').addEventListener('click', () => {
@@ -796,7 +796,7 @@ class SeatManager {
 
         this.totalSellOutDurationMs = 60000;
         this.rushDurationMs = 20000;
-        this.rushSoldRatio = 0.90;
+        this.rushSoldRatio = 0.95;
 
         this.storageKeys = {
             decayStartAt: 'iq.seat.decay.startedAt',
@@ -1071,6 +1071,7 @@ function refreshSeatSnapshot() {
 
 function checkGlobalSoldOutAndRedirect() {
     if (!seatManager || typeof seatManager.shouldShowSoldOutAlertNow !== 'function') return;
+    refreshSeatSnapshot();
     if (seatManager.shouldShowSoldOutAlertNow()) {
         showSoldOutModal();
     }
@@ -1180,11 +1181,6 @@ function renderSeats(container, zoneName) {
 }
 
 function selectSeat(el, zone, row, num) {
-    if (seatManager && !seatManager.checkAvailability(row, num, zone)) {
-        showToast('이미 선택된 좌석입니다.');
-        return;
-    }
-
     el.classList.toggle('selected');
     const isSelected = el.classList.contains('selected');
     updateRightPanel(zone, row, num, isSelected);
@@ -1306,6 +1302,10 @@ function resetSelection() {
     const grid = document.querySelector('.seat-grid-scroll');
     if (grid) {
         renderSeats(grid, currentZone);
+    }
+
+    if (MobileSeatDetailScreen.overlay) {
+        MobileSeatDetailScreen._renderGrid(currentZone);
     }
 }
 
@@ -1686,19 +1686,20 @@ async function completePractice() {
             body: JSON.stringify({ session_id: sessionId, total_duration_ms: totalDurationMs, reaction_time_ms: reactionTimeMs, queue_wait_ms: queueWaitMs, seat_selection_ms: seatSelectionMs, queue_initial_rank: queueInitialRank })
         });
 
+        clearInterval(soldOutMonitorId);
+
         if (res.ok) {
-            showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+            showCompleteModal(await res.json());
         } else {
-            const err = await res.json().catch(() => null);
-            console.warn('[Practicket] complete failed:', err);
-            showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank });
+            console.warn('[Practicket] complete failed');
+            showCompleteModal({ total_duration_ms: totalDurationMs, reaction_time_ms: reactionTimeMs, queue_wait_ms: queueWaitMs, seat_selection_ms: seatSelectionMs, queue_initial_rank: queueInitialRank });
         }
     } catch (e) {
         console.error('[Practicket] complete error:', e);
     }
 }
 
-function showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatSelectionMs, queueInitialRank }) {
+function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
     const fmt = ms => (ms / 1000).toFixed(3) + 's';
 
     const now = new Date();
@@ -1709,11 +1710,20 @@ function showCompleteModal({ totalDurationMs, reactionTimeMs, queueWaitMs, seatS
     ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
     document.getElementById('pkt-meta').textContent = 'I-Ticket · ' + dateStr;
-    document.getElementById('pkt-total-num').textContent = (totalDurationMs / 1000).toFixed(3);
-    document.getElementById('pkt-reaction').textContent = fmt(reactionTimeMs);
-    document.getElementById('pkt-queue').textContent = fmt(queueWaitMs);
-    document.getElementById('pkt-seat').textContent = fmt(seatSelectionMs);
-    document.getElementById('pkt-rank').textContent = queueInitialRank ? '#' + queueInitialRank.toLocaleString() : '-';
+    document.getElementById('pkt-total-num').textContent = (total_duration_ms / 1000).toFixed(3);
+    document.getElementById('pkt-reaction').textContent = fmt(reaction_time_ms);
+    document.getElementById('pkt-queue').textContent = fmt(queue_wait_ms);
+    document.getElementById('pkt-seat').textContent = fmt(seat_selection_ms);
+    document.getElementById('pkt-rank').textContent = queue_initial_rank ? '#' + queue_initial_rank.toLocaleString() : '-';
+
+    const bar = document.getElementById('pkt-percentile-bar');
+    if (percentile != null && total_users >= 2) {
+        document.getElementById('pkt-percentile-value').innerHTML =
+            `상위 ${percentile}%<span class="pb-sub">/ ${total_users.toLocaleString()}명 중 ${my_rank}위</span>`;
+        bar.style.display = 'flex';
+    } else {
+        bar.style.display = 'none';
+    }
 
     document.getElementById('pkt-complete-overlay').classList.add('visible');
 }

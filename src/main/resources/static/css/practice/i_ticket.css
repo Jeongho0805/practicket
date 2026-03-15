@@ -1768,6 +1768,50 @@ a {
     font-weight: 500;
 }
 
+.pkt-percentile-bar {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+.pkt-percentile-bar .pb-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.pkt-percentile-bar .pb-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pkt-percentile-bar .pb-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.5px;
+}
+
+.pkt-percentile-bar .pb-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.3px;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+}
+
+.pkt-percentile-bar .pb-sub {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.45);
+    margin-left: 4px;
+}
+
 .pkt-total-section {
     padding: 24px 28px 0;
     display: flex;
