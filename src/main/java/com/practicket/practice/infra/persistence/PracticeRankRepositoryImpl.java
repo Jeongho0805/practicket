@@ -31,7 +31,7 @@ public class PracticeRankRepositoryImpl implements PracticeRankRepository {
                 + "           ROW_NUMBER() OVER (PARTITION BY client_key ORDER BY total_duration_ms ASC, id ASC) AS rn "
                 + "    FROM practice_result "
                 + "    WHERE type = :type "
-                + "      AND created_at >= :startDateTime "
+                + "      AND started_at >= :startDateTime "
                 + ") ranked "
                 + "WHERE rn = 1 "
                 + cursorClause

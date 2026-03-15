@@ -3,9 +3,14 @@ package com.practicket.practice.application;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.PracticeException;
+import com.practicket.practice.component.PracticeRankCalculator;
+import com.practicket.practice.component.PracticeRankCalculator.MonthlyRank;
+import com.practicket.practice.component.PracticeSessionValidator;
+import com.practicket.practice.component.PracticeSessionValidator.ValidatedSession;
 import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeResult;
 import com.practicket.practice.domain.PracticeType;
+import com.practicket.practice.dto.PracticeCompleteResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
 import com.practicket.practice.dto.PracticeMyStatsResponse;
 import com.practicket.practice.dto.PracticeRankItem;
@@ -23,9 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,63 +37,39 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PracticeService {
 
-    private static final int MIN_ELAPSED_MS = 3_000;
-    private static final int TIMING_TOLERANCE_MS = 2_000;
-    private static final int COUNTDOWN_MS = 5_000;
-
     private final PracticeSessionRepository sessionRepository;
     private final PracticeResultRepository resultRepository;
     private final PracticeRankRepository rankRepository;
+    private final PracticeSessionValidator sessionValidator;
+    private final PracticeRankCalculator rankCalculator;
 
     public PracticeStartResponse start(ClientInfo clientInfo, PracticeType type) {
         if (clientInfo.getName() == null || clientInfo.getName().isBlank()) {
             throw new PracticeException(ErrorCode.NICKNAME_REQUIRED);
         }
         String sessionId = UUID.randomUUID().toString();
-        long startAt = Instant.now().toEpochMilli();
-        sessionRepository.create(sessionId, clientInfo.getToken(), type.name(), startAt);
+        sessionRepository.create(sessionId, clientInfo.getToken(), type.name(), Instant.now().toEpochMilli());
         return new PracticeStartResponse(sessionId);
     }
 
-    public void complete(ClientInfo clientInfo, PracticeResultRequest request) {
-        Map<Object, Object> session = sessionRepository.find(request.getSessionId());
-        if (session.isEmpty()) {
-            throw new PracticeException(ErrorCode.PRACTICE_SESSION_NOT_FOUND);
-        }
+    public PracticeCompleteResponse complete(ClientInfo clientInfo, PracticeResultRequest request) {
+        ValidatedSession vs = sessionValidator.validate(clientInfo, request);
 
-        String sessionClientKey = sessionRepository.getClientKey(session);
-        if (!clientInfo.getToken().equals(sessionClientKey)) {
-            throw new PracticeException(ErrorCode.PRACTICE_SESSION_OWNER_MISMATCH);
-        }
+        resultRepository.save(vs.toResult(clientInfo, request));
+        sessionRepository.delete(request.getSessionId());
 
-        long startAt = sessionRepository.getStartAt(session);
-        long now = Instant.now().toEpochMilli();
-        int serverElapsedMs = (int) (now - startAt) - COUNTDOWN_MS;
+        MonthlyRank rank = rankCalculator.calculate(vs.type(), request.getTotalDurationMs());
 
-        if (serverElapsedMs < MIN_ELAPSED_MS) {
-            throw new PracticeException(ErrorCode.PRACTICE_TOO_FAST);
-        }
-
-        if (Math.abs(request.getTotalDurationMs() - serverElapsedMs) > TIMING_TOLERANCE_MS) {
-            throw new PracticeException(ErrorCode.PRACTICE_INVALID_TIMING);
-        }
-
-        PracticeType type = PracticeType.valueOf(sessionRepository.getType(session));
-        LocalDateTime startedAt = LocalDateTime.ofInstant(Instant.ofEpochMilli(startAt), ZoneId.systemDefault());
-
-        resultRepository.save(new PracticeResult(
-                clientInfo.getToken(),
-                clientInfo.getName(),
-                type,
-                startedAt,
+        return new PracticeCompleteResponse(
                 request.getTotalDurationMs(),
                 request.getReactionTimeMs(),
                 request.getQueueWaitMs(),
                 request.getSeatSelectionMs(),
-                request.getQueueInitialRank()
-        ));
-
-        sessionRepository.delete(request.getSessionId());
+                request.getQueueInitialRank(),
+                rank.percentile(),
+                rank.myRank(),
+                rank.totalUsers()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -112,10 +91,8 @@ public class PracticeService {
         }
 
         PracticeRankEntry last = data.get(data.size() - 1);
-        PracticeRankResponse.NextCursor nextCursor =
-                new PracticeRankResponse.NextCursor(last.totalDurationMs(), last.id());
-
-        return new PracticeRankResponse(items, nextCursor, true);
+        return new PracticeRankResponse(items,
+                new PracticeRankResponse.NextCursor(last.totalDurationMs(), last.id()), true);
     }
 
     @Transactional(readOnly = true)

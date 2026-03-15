@@ -32,7 +32,7 @@ public interface PracticeResultRepository extends JpaRepository<PracticeResult, 
                                         @Param("start") LocalDateTime start,
                                         @Param("end") LocalDateTime end);
 
-    // 나보다 좋은 최고기록을 가진 유저 수 — GROUP BY HAVING 방식 (행마다 서브쿼리 실행 방지)
+    // 나보다 좋은 최고기록을 가진 유저 수 — getMyStats 용 (유저별 최고기록 기준)
     @Query(value = "SELECT COUNT(*) FROM (" +
                    "SELECT client_key FROM practice_result " +
                    "WHERE type = :type AND started_at >= :start AND started_at < :end " +
@@ -43,6 +43,21 @@ public interface PracticeResultRepository extends JpaRepository<PracticeResult, 
                                            @Param("start") LocalDateTime start,
                                            @Param("end") LocalDateTime end,
                                            @Param("myBestMs") int myBestMs);
+
+    // 완료 모달 퍼센타일 용 — 기록 전체 기준
+    @Query("SELECT COUNT(pr) FROM PracticeResult pr " +
+           "WHERE pr.type = :type AND pr.startedAt >= :start AND pr.startedAt < :end " +
+           "AND pr.totalDurationMs < :score")
+    long countRecordsBetterThan(@Param("type") PracticeType type,
+                                @Param("start") LocalDateTime start,
+                                @Param("end") LocalDateTime end,
+                                @Param("score") int score);
+
+    @Query("SELECT COUNT(pr) FROM PracticeResult pr " +
+           "WHERE pr.type = :type AND pr.startedAt >= :start AND pr.startedAt < :end")
+    long countRecordsInMonth(@Param("type") PracticeType type,
+                             @Param("start") LocalDateTime start,
+                             @Param("end") LocalDateTime end);
 
     // ── 내 기록 목록 (최신순, cursor = id DESC) ──
 
