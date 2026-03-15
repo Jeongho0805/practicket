@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>완료 모달 미리보기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* ── 오버레이 ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 4, 18, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ── 카드 ── */
+        .modal-card {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 400px;
+            box-shadow:
+                0 0 0 1px rgba(107, 25, 107, 0.08),
+                0 20px 60px rgba(107, 25, 107, 0.14),
+                0 4px 16px rgba(0, 0, 0, 0.06);
+            animation: slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(24px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ── 상단 퍼플 헤더 영역 ── */
+        .modal-header {
+            background: #6b196b;
+            padding: 28px 28px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 배경 원형 장식 */
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 130px;
+            height: 130px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+        }
+
+        .modal-header::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 50%;
+        }
+
+        .header-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header-meta {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 500;
+        }
+
+        /* ── 총 기록 ── */
+        .total-section {
+            padding: 24px 28px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .total-label-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .total-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .total-desc {
+            font-size: 12px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .total-time-badge {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 2px;
+            background: #fdf5fc;
+            border: 1.5px solid #e8d5e8;
+            border-radius: 12px;
+            padding: 8px 18px;
+        }
+
+        .total-time-num {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: #6b196b;
+            letter-spacing: -1px;
+        }
+
+        .total-time-unit {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 16px;
+            font-weight: 500;
+            color: #a855f7;
+        }
+
+        /* ── 구분선 ── */
+        .divider {
+            margin: 20px 28px 0;
+            height: 1px;
+            background: #f1f5f9;
+        }
+
+        /* ── 상세 그리드 ── */
+        .detail-section {
+            padding: 18px 28px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .detail-card {
+            background: #fafbfc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 13px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .dc-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #b0bec5;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+
+        .dc-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 17px;
+            font-weight: 700;
+            color: #6b196b;
+        }
+
+        .dc-value.neutral {
+            color: #475569;
+        }
+
+        .dc-sub {
+            font-size: 10px;
+            color: #cfd8dc;
+            font-weight: 500;
+        }
+
+        /* ── 버튼 영역 ── */
+        .btn-section {
+            padding: 20px 28px 24px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-retry {
+            flex: 1;
+            padding: 12px;
+            background: #fff;
+            border: 1.5px solid #e8d5e8;
+            color: #6b196b;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
+            transition: all 0.18s;
+        }
+
+        .btn-retry:hover {
+            background: #fdf5fc;
+            border-color: #c084c5;
+        }
+
+        .btn-rank {
+            flex: 1.5;
+            padding: 12px;
+            background: #6b196b;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Pretendard', sans-serif;
+            transition: all 0.18s;
+            box-shadow: 0 4px 14px rgba(107, 25, 107, 0.3);
+        }
+
+        .btn-rank:hover {
+            background: #5a1459;
+            box-shadow: 0 6px 18px rgba(107, 25, 107, 0.42);
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="modal-overlay">
+        <div class="modal-card">
+
+            <!-- 헤더 -->
+            <div class="modal-header">
+                <div class="header-tag">✓ &nbsp;Practice Complete</div>
+                <div class="header-title">연습 완료!</div>
+                <div class="header-meta">I-Ticket 구버전 &nbsp;·&nbsp; 2026.03.01 &nbsp;14:05</div>
+            </div>
+
+            <!-- 총 기록 -->
+            <div class="total-section">
+                <div class="total-label-group">
+                    <span class="total-label">총 소요 시간</span>
+                    <span class="total-desc">반응 + 큐 대기 + 좌석 선택</span>
+                </div>
+                <div class="total-time-badge">
+                    <span class="total-time-num">1.825</span>
+                    <span class="total-time-unit">s</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- 상세 분석 -->
+            <div class="detail-section">
+                <div class="detail-card">
+                    <span class="dc-label">반응 시간</span>
+                    <span class="dc-value">0.312s</span>
+                    <span class="dc-sub">버튼 활성화 → 클릭</span>
+                </div>
+                <div class="detail-card">
+                    <span class="dc-label">큐 대기</span>
+                    <span class="dc-value">0.804s</span>
+                    <span class="dc-sub">대기열 통과</span>
+                </div>
+                <div class="detail-card">
+                    <span class="dc-label">좌석 선택</span>
+                    <span class="dc-value">0.709s</span>
+                    <span class="dc-sub">캡차 → 선택완료</span>
+                </div>
+                <div class="detail-card">
+                    <span class="dc-label">첫 큐 순번</span>
+                    <span class="dc-value neutral">#182,341</span>
+                    <span class="dc-sub">진입 시 대기 순번</span>
+                </div>
+            </div>
+
+            <!-- 버튼 -->
+            <div class="btn-section">
+                <button class="btn-retry">다시 연습</button>
+                <button class="btn-rank">순위표 보기 →</button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

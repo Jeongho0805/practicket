@@ -1,14 +1,20 @@
 package com.practicket.view;
 
+import com.practicket.ticket.application.TicketQueueService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class ViewController {
+
+    private final TicketQueueService ticketQueueService;
 
     @GetMapping("/")
     public String main(Model model) {
@@ -21,7 +27,10 @@ public class ViewController {
     }
 
     @GetMapping("/reservation")
-    public String reservationPage(Model model) {
+    public String reservationPage(@RequestParam(required = false) String token, Model model) {
+        if (!ticketQueueService.isValidReservationToken(token)) {
+            return "redirect:/";
+        }
         return "reservation";
     }
 
@@ -63,5 +72,19 @@ public class ViewController {
     public String artDetail(@PathVariable("id") Long id, Model model) {
         model.addAttribute("artId", id);
         return "art/detail";
+    }
+    @GetMapping("/practice")
+    public String practiceList(Model model) {
+        return "practice/list";
+    }
+
+    @GetMapping("/practice/i-ticket")
+    public String practiceITicket(Model model) {
+        return "practice/i_ticket";
+    }
+
+    @GetMapping("/practice/i-ticket/intro")
+    public String practiceITicketIntro(Model model) {
+        return "practice/i_ticket_intro";
     }
 }

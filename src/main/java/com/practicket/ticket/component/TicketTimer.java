@@ -27,7 +27,7 @@ public class TicketTimer {
         return now.isAfter(startTime);
     }
 
-    public void resetStartTime() {
-        startTime = startTime.plusMinutes(1);
+    public void adjustStartTime() {
+        startTime = LocalDateTime.now().plusMinutes(1).withSecond(0).withNano(0);
     }
 }

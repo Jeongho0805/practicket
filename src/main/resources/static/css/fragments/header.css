@@ -26,7 +26,6 @@
         align-items: center;
     }
 
-    /* 네비바 오른쪽 부분 */
     #nav-right {
         display: flex;
         align-items: center;
@@ -52,59 +51,122 @@
         font-family: my-font, sans-serif;
     }
 
-    #name-section{
-        flex-grow: 0.1;
-    }
-    #info-section {
-        flex-direction: column;
-        flex-grow: 1;
-        display: flex;
+    /* 닉네임 chip (설정됨) */
+    #nickname-chip {
+        display: none;
         align-items: center;
-        justify-content: flex-start;
-    }
-
-    #reset-button {
-        width: 100px;
-        height: 40px;
-        border: none;
-        color: white;
-        background: darkslateblue;
+        gap: 7px;
+        height: 36px;
+        padding: 0 14px;
+        border: 1.5px solid #c9b8e8;
+        border-radius: 999px;
+        background: transparent;
         cursor: pointer;
-        border-radius: 10px;
-        margin-left: 10px;
-        font-weight: bold;
+        color: #6b5b9a;
+        transition: border-color 0.15s, background 0.15s;
     }
-    #reset-button:hover {
-        transform: scale(1.1); /* 크기를 10% 정도 확대 */
-    }
-    #name-section {
-        display: flex;
-        align-items: center;
+    #nickname-chip:hover {
+        border-color: #6b5b9a;
+        background: rgba(107, 91, 154, 0.06);
     }
     #name-value {
+        font-size: 14px;
+        font-weight: 700;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .chip-icon {
+        font-size: 13px;
+        opacity: 0.55;
+        flex-shrink: 0;
+    }
+
+    /* 닉네임 chip (미설정) */
+    #nickname-chip-unset {
         display: none;
-        text-align: center;
-        font-size: 20px;
-        font-weight: bold;
-        color: #2C2C2C;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 14px;
+        border: 1.5px dashed #c9b8e8;
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+        color: #aaa;
+        font-size: 13px;
+        font-weight: 600;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    #nickname-chip-unset:hover {
+        border-color: #6b5b9a;
+        color: #6b5b9a;
+    }
+    .chip-plus {
+        font-size: 15px;
+    }
+
+    /* 닉네임 인풋 */
+    #name-input-section {
+        display: none;
+        align-items: center;
+        height: 36px;
+        border: 1.5px solid #6b5b9a;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #f8f6ff;
+        box-shadow: 0 0 0 3px rgba(107, 91, 154, 0.1);
+        animation: chipExpand 0.18s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+    @keyframes chipExpand {
+        from { opacity: 0; transform: scaleX(0.85); transform-origin: right; }
+        to   { opacity: 1; transform: scaleX(1); }
     }
     #name-input-box {
-        border-color: darkslateblue;
-        padding: 10px 20px;
-        font-size: 15px;
-        font-weight: bold;
-        border-radius: 10px;
+        border: none;
+        background: transparent;
+        padding: 0 14px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #2C2C2C;
+        outline: none;
+        width: 180px;
+        height: 100%;
+    }
+    #name-input-box::placeholder {
+        font-size: 12px;
+        font-weight: 500;
+        color: #bbb;
+    }
+    #name-input-cancel {
+        border: none;
+        background: transparent;
+        color: #bbb;
+        font-size: 14px;
+        padding: 0 8px;
+        height: 100%;
+        cursor: pointer;
+        transition: color 0.15s;
+        flex-shrink: 0;
+    }
+    #name-input-cancel:hover {
+        color: #888;
     }
     #name-input-button {
-        width: 60px;
-        height: 40px;
         border: none;
-        color: white;
-        background: darkslateblue;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 0 16px;
+        height: 100%;
         cursor: pointer;
-        border-radius: 10px;
-        margin-left: 10px;
-        font-weight: bold;
+        flex-shrink: 0;
+        transition: opacity 0.15s;
+    }
+    #name-input-button:hover {
+        opacity: 0.88;
     }
 
     .nav-text {
@@ -133,7 +195,7 @@
         display: grid;
         grid-auto-flow: row;
         grid-template-rows: 1fr 1fr;
-        overflow: hidden;
+        overflow: visible;
     }
 
     #nav-upper {
@@ -143,7 +205,6 @@
         max-height: 100%;
         grid-auto-flow: column;
         align-items: stretch;
-        /*place-content: space-between;*/
     }
 
     #nav-left {
@@ -154,7 +215,6 @@
         justify-content: flex-start;
     }
 
-    /* 네비바 오른쪽 부분 */
     #nav-right {
         width: 100%;
         display: flex;
@@ -184,116 +244,217 @@
         font-size: 13px;
     }
 
-    #name-section{
-        display: flex;
-    }
-
-    #info-section {
-        flex-direction: column;
-        flex-grow: 1;
-        display: flex;
-        align-items: flex-end;
-        justify-content: flex-start;
-    }
-
-    #reset-button {
-        box-sizing: border-box;
-        border: none;
-        color: white;
-        background: darkslateblue;
-        padding: 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        margin-left: 10px;
-        font-weight: bold;
-        font-size: 8px;
+    /* 닉네임 chip (설정됨) */
+    #nickname-chip {
         display: none;
-    }
-    #reset-button:hover {
-        transform: scale(1.1); /* 크기를 10% 정도 확대 */
-    }
-    #name-section {
-        display: flex;
         align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 10px;
+        border: 1.5px solid #c9b8e8;
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+        color: #6b5b9a;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.15s;
+    }
+    #nickname-chip:active {
+        background: rgba(107, 91, 154, 0.1);
+        transform: scale(0.96);
     }
     #name-value {
-        display: none;
-        text-align: center;
-        font-weight: bold;
-        color: darkslateblue;
+        font-size: 11px;
+        font-weight: 700;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .chip-icon {
         font-size: 10px;
-
+        opacity: 0.55;
+        flex-shrink: 0;
     }
 
+    /* 닉네임 chip (미설정) */
+    #nickname-chip-unset {
+        display: none;
+        align-items: center;
+        gap: 4px;
+        height: 26px;
+        padding: 0 10px;
+        border: 1.5px dashed #c9b8e8;
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+        color: #aaa;
+        font-size: 10px;
+        font-weight: 600;
+        -webkit-tap-highlight-color: transparent;
+    }
+    #nickname-chip-unset:active {
+        border-color: #6b5b9a;
+        color: #6b5b9a;
+    }
+    .chip-plus {
+        font-size: 13px;
+    }
+
+    /* 닉네임 인풋 */
     #name-input-section {
         display: none;
-        align-items: flex-end;
-        height: 30px;
-    }
-
-    #name-input-box {
-        border-color: darkslateblue;
-        padding: 5px 10px;
-        font-size: 8px;
-        font-weight: bold;
-        border-radius: 5px 0px 0px 5px;
-        height: 100%;
-        box-sizing: border-box;
-        width: 100px;
-    }
-
-    #name-input-box:focus {
-        outline: none; /* 기본 outline 제거 */
-        border-color: darkslateblue; /* 기존 테두리 색상 유지 */
-        box-shadow: none; /* 그림자 효과 제거 */
-        background-color: inherit; /* 배경색 변경 방지 */
-    }
-
-
-    #name-input-button {
-        width: 30px;
-        border: none;
-        height: 100%;
-        color: white;
-        background: darkslateblue;
-        border-radius: 0 5px 5px 0;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 8px;
-    }
-
-    .nav-text {
-        box-sizing: border-box;
-        font-family: my-font, sans-serif;
-        text-decoration: none;
-        cursor: pointer;
-        color: darkslateblue;
-        width: 8em;
-        height: 3em;
-        background-color: white;
-        border-radius: 10px;
-        border: 2px solid darkslateblue;
-        display: grid;
         align-items: center;
-        justify-items: center;
-        box-shadow: 0 4px 3px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+        height: 26px;
+        border: 1.5px solid #6b5b9a;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #f8f6ff;
+        box-shadow: 0 0 0 3px rgba(107, 91, 154, 0.12);
+        animation: chipExpand 0.18s cubic-bezier(0.34, 1.2, 0.64, 1);
     }
-
-    .nav-text:hover {
-        color: darkslateblue;
+    @keyframes chipExpand {
+        from { opacity: 0; transform: scaleX(0.8); transform-origin: right; }
+        to   { opacity: 1; transform: scaleX(1); }
+    }
+    #name-input-box {
+        border: none;
+        background: transparent;
+        padding: 0 10px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #2C2C2C;
+        outline: none;
+        width: 100px;
+        height: 100%;
+    }
+    #name-input-box::placeholder {
+        font-size: 9px;
+        font-weight: 500;
+        color: #bbb;
+    }
+    #name-input-box:focus {
+        outline: none;
+        box-shadow: none;
+        background-color: inherit;
+    }
+    #name-input-cancel {
+        border: none;
+        background: transparent;
+        color: #bbb;
+        font-size: 12px;
+        padding: 0 5px;
+        height: 100%;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+    #name-input-button {
+        border: none;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 0 10px;
+        height: 100%;
+        cursor: pointer;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
 
     #nav-bottom {
         height: 100%;
         max-height: 100%;
-        display: grid;
-        grid-auto-flow: column;
+        display: flex;
         align-items: center;
-        justify-items: center;
+        gap: 2px;
+        padding: 2px 4px;
+    }
+
+    #nav-pages {
+        flex: 1;
+        overflow: hidden;
+        height: 28px;
+    }
+
+    .nav-track {
+        display: flex;
+        width: 200%;
+        height: 100%;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .nav-page {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        padding: 0 2px;
+    }
+
+    .nav-text {
+        flex: 0 1 80px;
+        height: 28px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: my-font, sans-serif;
+        font-size: 10px;
+        font-weight: bold;
+        text-decoration: none;
+        color: #999;
+        background: transparent;
+        border-radius: 10px;
+        border: 1.5px solid #ddd;
+        white-space: nowrap;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .nav-text:active {
+        opacity: 0.7;
+    }
+
+    .nav-text.nav-current {
+        background: linear-gradient(135deg, #6b5b9a 0%, #8470b3 100%);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 3px 12px rgba(107, 91, 154, 0.45);
+    }
+
+    .nav-arrow {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        border: none;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+        transition: background 0.2s, opacity 0.2s;
+    }
+
+    .nav-arrow:not(:disabled) {
+        background: rgba(107, 91, 154, 0.12);
+        color: #6b5b9a;
+    }
+
+    .nav-arrow:not(:disabled):active {
+        background: rgba(107, 91, 154, 0.25);
+    }
+
+    .nav-arrow:disabled {
+        background: transparent;
+        color: #ddd;
+        cursor: default;
     }
 
     .mobile-invisible {
         display: none;
     }
 }
-

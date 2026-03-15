@@ -7,6 +7,8 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
+let cachedClientInfo = null;
+
 function appendChatElementAtBottom(chat, chatBox, tokenValue) {
     const lastChatUnit = chatBox.lastElementChild;
 
@@ -193,27 +195,24 @@ function setChattingSse() {
     };
 }
 
-async function isSendChatPossible(chatting) {
-    if (!chatting) {
-        alert("채팅을 입력해주세요.")
-        return false;
+async function getOrFetchClientInfo() {
+    if (!cachedClientInfo) {
+        const info = await util.getClientInfo();
+        if (info) cachedClientInfo = info;
     }
-    if (chatting.trim().length === 0) {
-        alert("공백 입력은 불가합니다.")
+    return cachedClientInfo;
+}
+
+async function isSendChatPossible(chatting) {
+    if (!chatting || chatting.trim().length === 0) {
         return false;
     }
     if (chatting.length > 100) {
-        alert("채팅은 최대 100 글자까지 가능합니다.")
+        await util.showAlert({ title: '입력 오류', msg: '채팅은 최대 100 글자까지 가능합니다.' });
         return false;
     }
-    const clientInfo = await util.getClientInfo();
-    console.log("clientInfo =", clientInfo);
-    if (!clientInfo.name) {
-        alert("채팅을 입력하려면 닉네임을 입력해주세요.")
-        return false;
-    }
-    if (clientInfo.banned) {
-        alert("채팅 전송이 불가합니다.")
+    if (!(await getOrFetchClientInfo())?.name) {
+        await util.showAlert({ title: '닉네임 필요', msg: '채팅을 입력하려면 닉네임을 입력해주세요.' });
         return false;
     }
     return true;
@@ -247,9 +246,8 @@ async function setChatEventListener() {
 
     const inputBox = document.getElementById("chatting-input");
     inputBox.addEventListener("click", async () => {
-        const name = await util.getNickname();
-        if (!name) {
-            alert("채팅을 입력하려면 닉네임을 입력해주세요.")
+        if (!(await getOrFetchClientInfo())?.name) {
+            await util.showAlert({ title: '닉네임 필요', msg: '채팅을 입력하려면 닉네임을 입력해주세요.' });
         }
     })
 
@@ -272,7 +270,7 @@ async function setChatEventListener() {
         document.getElementById("chatting-input").value = "";
         if (!response.ok) {
             const errorResponse = await response.json();
-            alert(errorResponse.message);
+            await util.showAlert({ title: '오류', msg: errorResponse.message });
         }
     });
     document.getElementById("chatting-input").addEventListener("keypress", function (e) {
@@ -283,6 +281,11 @@ async function setChatEventListener() {
     });
 }
 
+async function initClientInfo() {
+    cachedClientInfo = await util.getClientInfo();
+}
+
+initClientInfo();
 setChatting();
 setChatEventListener();
 setChattingSse();

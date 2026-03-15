@@ -7,27 +7,10 @@ function checkTimeToLeave() {
     setInterval(async () => {
         const serverTime = await util.getSyncTime();
         if (serverTime.getSeconds() >= 50) {
-            alert("예매 가능 시간이 지났습니다.\n 예매페이지로 돌아갑니다.")
+            await util.showAlert({ title: '예매 불가', msg: '예매 가능 시간이 지났습니다.\n예매페이지로 돌아갑니다.' });
             window.location.href = `${HOST}`;
         }
     }, 1000);
-}
-
-function hasPermission() {
-    const key = "permission";
-    const cookies = document.cookie.split(';'); // 쿠키 문자열을 ;로 분리
-    cookies.forEach((c) => console.log(c));
-    return cookies.some(cookie => cookie.trim().startsWith(`${key}=`));
-}
-
-// 예매 페이지 접근 권한 확인
-function permissionCheck() {
-    if (!hasPermission()) {
-        alert("비정상적인 경로를 통하여 접근하셨습니다\n 예매페이지로 돌아갑니다.")
-        window.location.href = `${HOST}`;
-    } else {
-        document.cookie = "permission=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
 }
 
 async function createSeat() {
@@ -85,9 +68,9 @@ function displaySelectSeat() {
 function addButtonEventListener() {
     // 좌석 선택 완료 처리
     const completeButton = document.getElementById("complete-button");
-    completeButton.addEventListener("click", () => {
+    completeButton.addEventListener("click", async () => {
         if (selected_seats.size === 0) {
-            alert("좌석을 선택해주세요");
+            await util.showAlert({ title: '좌석 선택 필요', msg: '좌석을 선택해주세요.' });
             return;
         }
         requestReservation();
@@ -124,32 +107,40 @@ async function requestSeatInfo() {
         return [];
     }
 }
-function requestReservation() {
-    util.authFetch(`${HOST}/api/ticket`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            name: util.getNickname(),
-            seats: Array.from(selected_seats.keys())
-        })
-    }).then(response => {
+async function requestReservation() {
+    const reservationToken = localStorage.getItem('reservationToken');
+    if (!reservationToken) {
+        await util.showAlert({ title: '권한 없음', msg: '권한이 없습니다.' });
+        window.location.href = `${HOST}`;
+        return;
+    }
+
+    try {
+        const response = await util.authFetch(`${HOST}/api/ticket`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                seats: Array.from(selected_seats.keys()),
+                reservation_token: reservationToken
+            })
+        });
+
         if (response.ok) {
-            alert("예매 완료")
+            localStorage.removeItem('reservationToken');
+            await util.showAlert({ title: '예매 완료', msg: '예매가 완료되었습니다!' });
             window.location.href = `${HOST}/rank`;
-            return Promise.resolve();
         } else {
-            return response.json();
+            const result = await response.json();
+            await util.showAlert({ title: '예매 실패', msg: result.message });
+            if (result.code === 'T04' || result.code === 'T05') {
+                localStorage.removeItem('reservationToken');
+                window.location.href = `${HOST}`;
+            }
         }
-    }).then(result => {
-        if (result) {
-            alert(result.message);
-        }
-    }).catch(error => {
+    } catch (error) {
         console.error(error);
-        alert("일시적인 서버 오류로 예매에 실패하였습니다.")
-    })
+        await util.showAlert({ title: '서버 오류', msg: '일시적인 서버 오류로 예매에 실패하였습니다.' });
+    }
 }
 
 function createRandomSecurityText() {
@@ -211,12 +202,11 @@ function activateSecurityText() {
 
 window.addEventListener("pageshow", (event) => {
     if (event.persisted) {
-        permissionCheck();
+        window.location.reload();
     }
 });
 
 checkTimeToLeave();
-permissionCheck();
 activateSecurityText();
 await createSeat();
 addButtonEventListener();

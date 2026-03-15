@@ -2,11 +2,15 @@ package com.practicket.chat.application;
 
 import com.practicket.chat.component.ChatConnectionManager;
 import com.practicket.chat.component.ChatManager;
-import com.practicket.common.component.ProfanityValidator;
+import com.practicket.chat.component.ChatMessagePublisher;
+import com.practicket.chat.component.ChatRateLimiter;
 import com.practicket.chat.domain.Chat;
 import com.practicket.chat.dto.ChatRequestDto;
 import com.practicket.chat.dto.ChatResponseDto;
 import com.practicket.common.auth.ClientInfo;
+import com.practicket.common.component.ProfanityValidator;
+import com.practicket.common.exception.ErrorCode;
+import com.practicket.common.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,16 +27,20 @@ import java.util.UUID;
 public class ChatService {
 
     private final ChatManager chatManager;
-
     private final ChatConnectionManager chatConnectionStore;
-
     private final ProfanityValidator profanityValidator;
+    private final ChatMessagePublisher chatMessagePublisher;
+    private final ChatRateLimiter chatRateLimiter;
 
     public void saveChat(ClientInfo userInfo, ChatRequestDto dto) {
+        if (userInfo.getBanned()) {
+            throw new GlobalException(ErrorCode.CHAT_BANNED_USER);
+        }
+        chatRateLimiter.validate(userInfo.getToken());
         profanityValidator.validateProfanityText(dto.getText());
         Chat chat = chatManager.save(userInfo.getToken(), userInfo.getName(), dto.getText());
         ChatResponseDto chatResponseDto = ChatResponseDto.of(chat);
-        sendChatMessage(chatResponseDto);
+        chatMessagePublisher.publish(chatResponseDto);
     }
 
     public List<ChatResponseDto> findAllChat(LocalDateTime dateTime) {
@@ -46,9 +54,5 @@ public class ChatService {
     public SseEmitter createConnection() {
         String key = UUID.randomUUID().toString();
         return chatConnectionStore.save(key);
-    }
-
-    public void sendChatMessage(ChatResponseDto data) {
-        chatConnectionStore.broadcast(data);
     }
 }

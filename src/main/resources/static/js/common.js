@@ -14,7 +14,7 @@ export async function getNickname() {
 }
 
 export async function getClientInfo() {
-    return await this.authFetch(`${HOST}/api/client`, {
+    return await authFetch(`${HOST}/api/client`, {
         method: "GET",
         credentials: 'same-origin',
         headers: {
@@ -25,7 +25,7 @@ export async function getClientInfo() {
         .then(data => {
             return data;
         })
-        .catch();
+        .catch(() => null);
 }
 
 
@@ -96,7 +96,7 @@ export async function getOrCreateToken() {
     const response = await fetch(`${HOST}/api/client`, { method: "POST" });
     if (!response.ok) {
         const errorResponse = await response.json();
-        alert(errorResponse.message);
+        await showAlert({ title: '오류', msg: errorResponse.message });
         return;
     }
     const data = await response.json();
@@ -105,7 +105,7 @@ export async function getOrCreateToken() {
         await saveTokenToIndexedDB(token);
         localStorage.setItem("token", token);
     } catch (e) {
-        alert("서버 에러로 사이트를 정상적으로 활용할 수 없습니다.")
+        await showAlert({ title: '서버 오류', msg: '서버 에러로 사이트를 정상적으로 활용할 수 없습니다.' });
     }
     return token;
 }
@@ -152,6 +152,36 @@ function saveTokenToIndexedDB(token) {
             console.error("DB open error:", event.target.error);
             reject(event.target.error);
         };
+    });
+}
+
+export function showAlert({ title, msg }) {
+    return new Promise(resolve => {
+        const overlay    = document.getElementById('pkt-alert-overlay');
+        const titleEl    = document.getElementById('pkt-alert-title');
+        const msgEl      = document.getElementById('pkt-alert-msg');
+        const confirmBtn = document.getElementById('pkt-alert-confirm');
+
+        titleEl.textContent = title;
+        msgEl.textContent   = msg;
+        overlay.classList.add('show');
+
+        function close() {
+            overlay.classList.remove('show');
+            document.removeEventListener('keydown', onKeydown);
+            resolve();
+        }
+
+        function onKeydown(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                close();
+            }
+        }
+
+        confirmBtn.onclick = close;
+        overlay.onclick    = (e) => { if (e.target === overlay) close(); };
+        document.addEventListener('keydown', onKeydown);
     });
 }
 

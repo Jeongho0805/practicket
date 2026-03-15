@@ -2,9 +2,9 @@ package com.practicket.ticket.application;
 
 import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
-import com.practicket.ticket.dto.ServerTimeResponseDto;
-import com.practicket.ticket.dto.TicketRankDto;
-import com.practicket.ticket.dto.TicketRequestDto;
+import com.practicket.ticket.dto.response.ServerTimeResponseDto;
+import com.practicket.ticket.dto.response.TicketRankResponseDto;
+import com.practicket.ticket.dto.request.TicketRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ public class TicketController {
     private final TicketQueueService ticketQueueService;
 
     @GetMapping("/rank")
-    public ResponseEntity<List<TicketRankDto>> getRankInfo() {
-        List<TicketRankDto> rankInfo = ticketService.getRankInfo();
+    public ResponseEntity<List<TicketRankResponseDto>> getRankInfo() {
+        List<TicketRankResponseDto> rankInfo = ticketService.getRankInfo();
         return ResponseEntity.ok(rankInfo);
     }
 
@@ -39,26 +39,26 @@ public class TicketController {
     }
 
     @PostMapping("/ticket")
-    public ResponseEntity<?> createTicket(@Auth ClientInfo userInfo, @Valid @RequestBody TicketRequestDto dto) {
-        ticketService.issueTicket(userInfo, dto);
+    public ResponseEntity<Void> createTicket(@Auth ClientInfo clientInfo, @Valid @RequestBody TicketRequestDto dto) {
+        ticketService.createTicket(clientInfo, dto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/order")
-    public ResponseEntity<SseEmitter> streamSse(@Auth ClientInfo userInfo) {
-        SseEmitter emitter = ticketQueueService.saveEmitter(userInfo.getToken());
+    public ResponseEntity<SseEmitter> streamSse(@Auth ClientInfo clientInfo) {
+        SseEmitter emitter = ticketQueueService.saveEmitter(clientInfo.getToken());
         return ResponseEntity.ok(emitter);
     }
 
     @PostMapping("/order")
-    public ResponseEntity<?> registerTicket(@Auth ClientInfo userInfo) {
+    public ResponseEntity<Void> registerQueue(@Auth ClientInfo clientInfo) {
         ticketService.validateStartTime();
-        ticketQueueService.saveEvent(userInfo.getToken());
+        ticketQueueService.enterQueue(clientInfo.getToken());
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/server-time")
-    public ResponseEntity<?> getServerTime() {
+    public ResponseEntity<ServerTimeResponseDto> getServerTime() {
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
         String formattedTime = now.format(formatter);

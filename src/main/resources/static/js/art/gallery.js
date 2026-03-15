@@ -241,7 +241,7 @@ class Gallery {
 			}
 		} catch (error) {
 			console.error("failed to load arts", error);
-			alert("작품을 불러오는데 실패했습니다.");
+			await util.showAlert({ title: '오류', msg: '작품을 불러오는데 실패했습니다.' });
 		} finally {
 			this.isLoading = false;
 		}
@@ -361,7 +361,7 @@ class Gallery {
 			countSpan.textContent = this.formatCount(likeCount);
 		} catch (error) {
 			console.error("좋아요 토글 실패:", error);
-			alert("좋아요 처리에 실패했습니다.");
+			await util.showAlert({ title: '오류', msg: '좋아요 처리에 실패했습니다.' });
 		}
 	}
 

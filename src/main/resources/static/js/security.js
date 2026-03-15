@@ -223,7 +223,7 @@ async function fetchCreateElapsedTime(startTime, endTime) {
         body: JSON.stringify({ elapsed_time: elapsedTime }) // ✅ JSON 키를 snake_case로 변환
     });
     if (!response.ok) {
-        alert("서버 오류로 전송 실패");
+        await util.showAlert({ title: '서버 오류', msg: '서버 오류로 전송에 실패했습니다.' });
     }
 }
 
@@ -282,7 +282,7 @@ function addEventList() {
     // 보안문자 입력 테스트 시작 이벤트 등록
     startButton.addEventListener("click", async () => {
         if (!await util.getNickname()) {
-            alert("닉네임을 입력해주세요.")
+            await util.showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
             return;
         }
         await startCountDown();
