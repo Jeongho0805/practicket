@@ -246,7 +246,18 @@ flowchart LR
 - **노이즈 필터** — broken pipe·재시작 등은 LLM 호출 전에 걸러 진짜 버그만 분석
 - **컨벤션 준수 Draft PR** — 한글 커밋·PR, 사람 리뷰 후 머지 (auto-merge 없음)
 - **알림 · 중복관리** — Gmail 메일 + Sentry 코멘트로 통지, Sentry assign 기반으로 이슈당 1회만 처리
-- **무인 운영** — 홈 서버 systemd timer 주기 실행, Claude Max 구독으로 추가 비용 없음
+- **무인 운영** — 홈 서버 systemd timer 로 주기 실행
+
+#### 동작 예시
+
+자동 생성된 원인분석 메일과 수정 PR입니다.
+
+<table>
+  <tr>
+    <td align="center" width="50%">원인분석 메일<br/><img src="screenshots/sentinel-email.png" width="100%"/></td>
+    <td align="center" width="50%">자동 생성 PR<br/><img src="screenshots/sentinel-pr.png" width="100%"/></td>
+  </tr>
+</table>
 
 자세한 구조는 [practicket-sentinel](https://github.com/Jeongho0805/practicket-sentinel) 참고.
 
