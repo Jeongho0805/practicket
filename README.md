@@ -227,6 +227,31 @@ CPU·메모리·디스크·네트워크 등 호스트 자원을 실시간 모니
 
 <br/>
 
+## Sentry 자동 원인분석 (Sentinel)
+
+운영 중 발생하는 Sentry 에러를 사람이 일일이 확인하던 과정을 자동화했습니다. 홈 서버가 에러를 주기적으로 탐지해 원인을 분석하고, 수정 PR 생성과 메일 알림까지 무인으로 처리합니다.
+
+```mermaid
+flowchart LR
+    S["Sentry 에러"] --> P{"3분 폴링"}
+    P --> F["노이즈 필터"]
+    F -->|노이즈| X["무시"]
+    F -->|진짜 버그| C["Claude<br/>원인분석·수정·빌드"]
+    C --> PR["Draft PR<br/>base: stage"]
+    C --> M["메일 알림"]
+    C --> SC["Sentry 코멘트"]
+```
+
+- **분석가 = Claude Code (headless)** — 에러 확인 → 코드 분석 → 수정 → PR 까지 사람의 디버깅 과정을 그대로 자동 재생
+- **노이즈 필터** — broken pipe·재시작 등은 LLM 호출 전에 걸러 진짜 버그만 분석
+- **컨벤션 준수 Draft PR** — 한글 커밋·PR, 사람 리뷰 후 머지 (auto-merge 없음)
+- **알림 · 중복관리** — Gmail 메일 + Sentry 코멘트로 통지, Sentry assign 기반으로 이슈당 1회만 처리
+- **무인 운영** — 홈 서버 systemd timer 주기 실행, Claude Max 구독으로 추가 비용 없음
+
+자세한 구조는 [practicket-sentinel](https://github.com/Jeongho0805/practicket-sentinel) 참고.
+
+<br/>
+
 ## Project Structure
 
 도메인 단위 패키지 구조 (`com.practicket`)
@@ -248,3 +273,4 @@ client     익명 사용자 (JWT)
 |------------|------|
 | [profanity-filter](https://github.com/Jeongho0805/profanity-filter) | 채팅 욕설 탐지 ML 마이크로서비스 — Python · FastAPI · HuggingFace Transformers (직접 파인튜닝한 모델을 서빙, Docker·K8s 배포) |
 | [practicket-deploy](https://github.com/Jeongho0805/practicket-deploy) | ArgoCD GitOps 배포 레포 — Helm 차트 · HPA · prod/stage 오버레이로 Kubernetes 선언적 배포 |
+| [practicket-sentinel](https://github.com/Jeongho0805/practicket-sentinel) | Sentry 에러 자동 원인분석 파이프라인 — 홈 서버에서 Claude Code(headless)로 분석 → 수정 PR → 메일까지 무인 처리 |
