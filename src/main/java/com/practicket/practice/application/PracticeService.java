@@ -24,6 +24,7 @@ import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -52,6 +53,7 @@ public class PracticeService {
         return new PracticeStartResponse(sessionId);
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PracticeCompleteResponse complete(ClientInfo clientInfo, PracticeResultRequest request) {
         ValidatedSession vs = sessionValidator.validate(clientInfo, request);
 
