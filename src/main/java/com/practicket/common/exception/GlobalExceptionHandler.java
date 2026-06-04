@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
@@ -49,4 +50,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
     public void handle(AsyncRequestNotUsableException e) {}
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErrorResponse> handle(MultipartException e) {
+        log.warn("멀티파트 요청 파싱 실패: {}", e.getMessage());
+        ErrorCode errorCode = ErrorCode.PARAMETER_IS_NOT_VALID;
+        ErrorResponse response = ErrorResponse.of(errorCode);
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
 }
