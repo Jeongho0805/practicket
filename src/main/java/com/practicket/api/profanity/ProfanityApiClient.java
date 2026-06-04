@@ -7,10 +7,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Component
 public class ProfanityApiClient {
 
     private final WebClient webClient;
+
+    private static final Duration TIMEOUT = Duration.ofMillis(500);
 
     public ProfanityApiClient(WebClient.Builder webClientBuilder, @Value("${api.profanity.url}") String baseUrl) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
@@ -22,6 +26,7 @@ public class ProfanityApiClient {
                 .uri("/")
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(ValidationResponse.class);
+                .bodyToMono(ValidationResponse.class)
+                .timeout(TIMEOUT);
     }
 }
