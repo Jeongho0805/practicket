@@ -22,7 +22,10 @@ import com.practicket.practice.infra.persistence.PracticeRankRepository;
 import com.practicket.practice.infra.persistence.PracticeResultRepository;
 import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +75,7 @@ public class PracticeService {
         );
     }
 
+    @Retryable(retryFor = DataAccessResourceFailureException.class, maxAttempts = 2, backoff = @Backoff(delay = 300))
     @Transactional(readOnly = true)
     public PracticeRankResponse getRanking(PracticeType type, PeriodType period,
                                            Integer cursorTotalDurationMs, Long cursorId,
