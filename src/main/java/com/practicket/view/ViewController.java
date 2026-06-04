@@ -3,11 +3,13 @@ package com.practicket.view;
 import com.practicket.ticket.application.TicketQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @Controller
@@ -46,6 +48,12 @@ public class ViewController {
 
     @GetMapping("/blog/{id}")
     public String blogContents(@PathVariable("id") String id, Model model) {
+        try {
+            long numId = Long.parseLong(id);
+            if (numId < 1) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         return "blog/" + id;
     }
 
