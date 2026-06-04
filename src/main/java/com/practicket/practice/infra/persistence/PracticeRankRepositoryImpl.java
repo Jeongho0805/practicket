@@ -22,20 +22,31 @@ public class PracticeRankRepositoryImpl implements PracticeRankRepository {
         LocalDateTime startDateTime = period.getStartDateTime();
 
         String cursorClause = cursorTotalDurationMs != null
-                ? "AND (total_duration_ms > :cursorTotalDurationMs OR (total_duration_ms = :cursorTotalDurationMs AND id > :cursorId)) "
+                ? "AND (pr.total_duration_ms > :cursorTotalDurationMs OR (pr.total_duration_ms = :cursorTotalDurationMs AND pr.id > :cursorId)) "
                 : "";
 
-        String sql = "SELECT id, nickname, total_duration_ms "
-                + "FROM ( "
-                + "    SELECT id, nickname, total_duration_ms, "
-                + "           ROW_NUMBER() OVER (PARTITION BY client_key ORDER BY total_duration_ms ASC, id ASC) AS rn "
+        // ROW_NUMBER() 윈도우 함수는 sort_buffer_size를 초과하는 대용량 정렬을 유발함.
+        // CTE + GROUP BY 방식으로 hash aggregation을 유도해 정렬 메모리 의존을 제거.
+        String sql = "WITH best_duration AS ( "
+                + "    SELECT client_key, MIN(total_duration_ms) AS min_duration "
                 + "    FROM practice_result "
-                + "    WHERE type = :type "
-                + "      AND started_at >= :startDateTime "
-                + ") ranked "
-                + "WHERE rn = 1 "
+                + "    WHERE type = :type AND started_at >= :startDateTime "
+                + "    GROUP BY client_key "
+                + "), "
+                + "best_row AS ( "
+                + "    SELECT MIN(pr.id) AS best_id "
+                + "    FROM practice_result pr "
+                + "    JOIN best_duration bd ON pr.client_key = bd.client_key "
+                + "      AND pr.total_duration_ms = bd.min_duration "
+                + "    WHERE pr.type = :type AND pr.started_at >= :startDateTime "
+                + "    GROUP BY pr.client_key "
+                + ") "
+                + "SELECT pr.id, pr.nickname, pr.total_duration_ms "
+                + "FROM practice_result pr "
+                + "JOIN best_row br ON pr.id = br.best_id "
+                + "WHERE 1=1 "
                 + cursorClause
-                + "ORDER BY total_duration_ms ASC, id ASC "
+                + "ORDER BY pr.total_duration_ms ASC, pr.id ASC "
                 + "LIMIT :limit";
 
         var query = em.createNativeQuery(sql)
