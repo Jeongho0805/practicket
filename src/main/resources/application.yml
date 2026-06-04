@@ -3,6 +3,13 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:local}
   jackson:
     property-naming-strategy: SNAKE_CASE
+  datasource:
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 server:
   servlet:
     session:
