@@ -7,6 +7,7 @@ import com.practicket.ticket.infra.redis.TicketQueueRepository;
 import com.practicket.ticket.infra.redis.TicketTokenRepository;
 import com.practicket.ticket.infra.sse.TicketSseEmitterRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -158,8 +159,11 @@ public class TicketQueueService {
 
             return expirationTime >= now;
 
+        } catch (JwtException e) {
+            log.warn("유효하지 않은 예약 토큰 요청: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
-            log.error("Token validation failed", e);
+            log.error("예약 토큰 검증 중 예상치 못한 오류", e);
             return false;
         }
     }
