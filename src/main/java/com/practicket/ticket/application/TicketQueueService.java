@@ -113,8 +113,6 @@ public class TicketQueueService {
         }
         Long initialRank = queueRepository.getInitialRank(clientKey);
         if (initialRank == null) {
-            log.error("initial rank is null for clientKey: {}", clientKey);
-            emitterRepository.deleteByClientKey(clientKey);
             return;
         }
         String reservationToken = queueRepository.getToken(clientKey);
