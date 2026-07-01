@@ -22,6 +22,11 @@ public class ProfanityValidator {
         try {
             response = client.validate(text).block();
         } catch (Exception e) {
+            if (e.getCause() instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+                log.warn("Profanity API 호출 중 스레드 인터럽트 발생 : text={}", text);
+                return;
+            }
             log.error("Profanity API 호출 실패 : 통과된 text={}, exception={}", text, e.getMessage(), e);
         }
         if (response != null && response.getIsProfanity() && response.getConfidence() > THRESHOLD) {
