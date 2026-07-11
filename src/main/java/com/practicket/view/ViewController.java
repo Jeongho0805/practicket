@@ -17,8 +17,23 @@ public class ViewController {
     private final TicketQueueService ticketQueueService;
 
     @GetMapping("/")
-    public String main(Model model) {
-        return "main";
+    public String landing(Model model) {
+        return "landing";
+    }
+
+    @GetMapping("/ticketing")
+    public String ticketing(Model model) {
+        return "ticketing";
+    }
+
+    @GetMapping("/terms")
+    public String terms(Model model) {
+        return "terms";
+    }
+
+    @GetMapping("/privacy")
+    public String privacy(Model model) {
+        return "privacy";
     }
 
     @GetMapping("/rank")
@@ -29,7 +44,7 @@ public class ViewController {
     @GetMapping("/reservation")
     public String reservationPage(@RequestParam(required = false) String token, Model model) {
         if (!ticketQueueService.isValidReservationToken(token)) {
-            return "redirect:/";
+            return "redirect:/ticketing";
         }
         return "reservation";
     }

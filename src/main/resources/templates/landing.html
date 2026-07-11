@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="프랙티켓 - 티켓팅 연습 플랫폼">
+    <meta name="description" content="실전과 똑같은 환경에서 미리 연습하는 티켓팅 연습 플랫폼, 프랙티켓.">
+    <meta name="robots" content="index, follow">
+    <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
+    <title>프랙티켓 - 티켓팅 연습 플랫폼</title>
+    <link rel="canonical" href="https://practicket.com/">
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+    <div layout:fragment="content" id="main-section">
+
+        <!-- 공지 · 업데이트 -->
+        <div class="notice">
+            <div class="nt-head"><b class="mf grad">공지 · 업데이트</b><a class="more" href="#">전체보기</a></div>
+            <ul class="nt-list">
+                <li><span class="tag t-notice">공지</span><span class="nt-txt">서버 점검 안내 — 7/2(수) 새벽 2시~4시</span><span class="nt-date">06.30</span></li>
+                <li><span class="tag t-fix">수정</span><span class="nt-txt">대기열 진행률이 간헐적으로 멈추던 문제 수정</span><span class="nt-date">06.27</span></li>
+                <li><span class="tag t-fix">수정</span><span class="nt-txt">랭킹 기록이 일부 누락되던 현상 개선</span><span class="nt-date">06.24</span></li>
+            </ul>
+        </div>
+
+        <!-- 문의 -->
+        <div class="inq">
+            <div class="inq-cards">
+                <button type="button" class="inq-card p" onclick="openInq(1)"><b class="mf">광고·제휴 문의</b><span>배너 광고·제휴 제안 남기기</span></button>
+                <button type="button" class="inq-card g" onclick="openInq(2)"><b class="mf">불편·건의</b><span>버그·개선 의견 남기기</span></button>
+            </div>
+        </div>
+
+        <!-- 야구 신규 서비스 홍보 -->
+        <div class="bb">
+            <div class="bb-l">
+                <span class="badge">NEW SERVICE</span>
+                <b class="mf">야구 티켓팅도 곧 만나요</b>
+                <span class="desc">구단별 예매 일정·좌석 정보부터 야구 전용 예매 연습까지 한 곳에서</span>
+            </div>
+            <div class="bb-r"><b class="mf">2026 시즌</b><span class="soon">COMING SOON</span></div>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="foot">
+            <a href="/terms">이용약관</a><span class="dot">·</span><a href="/privacy">개인정보처리방침</a><span class="dot">·</span><span class="copy">© 2025–2026 프랙티켓</span>
+        </div>
+
+        <!-- 문의 모달 -->
+        <div class="overlay" id="inq-overlay" onclick="if(event.target===this)closeInq()">
+            <div class="modal">
+                <div class="mhead">
+                    <b class="mf" id="inq-title">광고 · 제휴 문의</b>
+                    <button type="button" class="modal-x" onclick="closeInq()" aria-label="닫기">&times;</button>
+                </div>
+                <div class="bd">
+                    <p id="inq-desc">배너 광고, 제휴 제안 등 비즈니스 문의를 남겨주세요.</p>
+                    <input id="inq-email" type="email" placeholder="회신 받을 이메일">
+                    <textarea id="inq-content" placeholder="내용을 입력하세요"></textarea>
+                    <button type="button" class="send" id="inq-send">광고 문의 보내기</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/landing.js"></script>
+    </th:block>
+</body>
+</html>

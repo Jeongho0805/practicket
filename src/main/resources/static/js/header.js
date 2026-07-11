@@ -139,7 +139,7 @@ async function updateClient(name) {
 
 function markCurrentPage() {
     let currentPath = window.location.pathname;
-    currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
+    currentPath = currentPath.substring(1);
 
     let pageName = currentPath;
     if (currentPath.startsWith("art")) pageName = "art";
