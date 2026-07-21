@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.net.SocketException;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -49,4 +51,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
     public void handle(AsyncRequestNotUsableException e) {}
+
+    @ExceptionHandler(SocketException.class)
+    public void handle(SocketException e) {
+        log.debug("클라이언트 연결 종료={}", e.getMessage());
+    }
 }
