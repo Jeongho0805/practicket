@@ -1,6 +1,9 @@
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    hikari:
+      keepalive-time: 30000
   jackson:
     property-naming-strategy: SNAKE_CASE
 server:
