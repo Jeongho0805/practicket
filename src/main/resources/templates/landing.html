@@ -27,8 +27,8 @@
         <!-- 문의 -->
         <div class="inq">
             <div class="inq-cards">
-                <button type="button" class="inq-card p" onclick="openInq(1)"><b class="mf">광고·제휴 문의</b><span>배너 광고·제휴 제안 남기기</span></button>
-                <button type="button" class="inq-card g" onclick="openInq(2)"><b class="mf">불편·건의</b><span>버그·개선 의견 남기기</span></button>
+                <a class="inq-card p" href="/advertise"><b class="mf">광고·제휴 문의</b><span>배너 광고·제휴 제안 남기기</span></a>
+                <button type="button" class="inq-card g" onclick="openInq()"><b class="mf">불편·건의</b><span>버그·개선 의견 남기기</span></button>
             </div>
         </div>
 
@@ -51,14 +51,15 @@
         <div class="overlay" id="inq-overlay" onclick="if(event.target===this)closeInq()">
             <div class="modal">
                 <div class="mhead">
-                    <b class="mf" id="inq-title">광고 · 제휴 문의</b>
+                    <b class="mf" id="inq-title">불편 · 건의</b>
                     <button type="button" class="modal-x" onclick="closeInq()" aria-label="닫기">&times;</button>
                 </div>
                 <div class="bd">
-                    <p id="inq-desc">배너 광고, 제휴 제안 등 비즈니스 문의를 남겨주세요.</p>
+                    <p id="inq-desc">버그 제보나 개선 아이디어가 있다면 알려주세요.</p>
                     <input id="inq-email" type="email" placeholder="회신 받을 이메일">
                     <textarea id="inq-content" placeholder="내용을 입력하세요"></textarea>
-                    <button type="button" class="send" id="inq-send">광고 문의 보내기</button>
+                    <p class="inq-warn">장난·허위 문의는 접속 IP가 기록되며, 반복 시 서비스 이용이 제한될 수 있어요.</p>
+                    <button type="button" class="send" id="inq-send">건의 사항 보내기</button>
                 </div>
             </div>
         </div>

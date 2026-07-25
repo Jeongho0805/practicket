@@ -1,21 +1,10 @@
-// 프랙티켓 랜딩 - 불편·건의 모달 (열기/닫기 + 전송)
-// 광고·제휴 문의는 별도 페이지(/advertise)로 분리됨
+// 프랙티켓 광고·제휴 안내 - 문의 폼 전송 (기존 /api/inquiry AD 타입 재사용)
 import { authFetch, showAlert, getOrCreateToken } from '/js/common.js';
 
-const currentType = 'COMPLAINT';
-
-function openInq() {
-    document.getElementById('inq-overlay').classList.add('on');
-}
-
-function closeInq() {
-    document.getElementById('inq-overlay').classList.remove('on');
-}
-
 async function submitInq() {
-    const emailEl = document.getElementById('inq-email');
-    const contentEl = document.getElementById('inq-content');
-    const sendBtn = document.getElementById('inq-send');
+    const emailEl = document.getElementById('adv-email');
+    const contentEl = document.getElementById('adv-content');
+    const sendBtn = document.getElementById('adv-send');
     const email = emailEl.value.trim();
     const content = contentEl.value.trim();
 
@@ -38,13 +27,12 @@ async function submitInq() {
         const res = await authFetch(`${HOST}/api/inquiry`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: currentType, email, content })
+            body: JSON.stringify({ type: 'AD', email, content })
         });
         if (res.ok) {
             emailEl.value = '';
             contentEl.value = '';
-            closeInq();
-            await showAlert({ title: '접수 완료', msg: '문의가 접수되었습니다. 감사합니다!' });
+            await showAlert({ title: '접수 완료', msg: '제휴 문의가 접수되었습니다. 감사합니다!' });
         } else {
             const err = await res.json().catch(() => ({}));
             await showAlert({ title: '오류', msg: err.message || '문의 전송에 실패했습니다.' });
@@ -56,11 +44,4 @@ async function submitInq() {
     }
 }
 
-// 모듈 스코프라 onclick 핸들러가 찾을 수 있도록 전역 노출
-window.openInq = openInq;
-window.closeInq = closeInq;
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeInq();
-});
-document.getElementById('inq-send').addEventListener('click', submitInq);
+document.getElementById('adv-send').addEventListener('click', submitInq);

@@ -26,6 +26,11 @@ public class ViewController {
         return "ticketing";
     }
 
+    @GetMapping("/advertise")
+    public String advertise(Model model) {
+        return "advertise";
+    }
+
     @GetMapping("/terms")
     public String terms(Model model) {
         return "terms";
