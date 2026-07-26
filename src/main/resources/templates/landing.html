@@ -14,15 +14,16 @@
 <body>
     <div layout:fragment="content" id="main-section">
 
-        <!-- 공지 · 업데이트 -->
+        <!-- 공지 · 업데이트 (어드민 /admin-hoya/notices 에서 관리, 최근 5건) -->
         <div class="notice">
-            <div class="nt-head"><b class="mf grad">공지 · 업데이트</b><a class="more" href="#">전체보기</a></div>
+            <div class="nt-head"><b class="mf grad">공지 · 업데이트</b><a class="more" href="/notice">전체보기</a></div>
             <ul class="nt-list">
-                <li><span class="tag t-notice">공지</span><span class="nt-txt">서버 점검 안내 — 7/2(수) 새벽 2시~4시</span><span class="nt-date">06.30</span></li>
-                <li><span class="tag t-fix">수정</span><span class="nt-txt">대기열 진행률이 간헐적으로 멈추던 문제 수정</span><span class="nt-date">06.27</span></li>
-                <li><span class="tag t-fix">수정</span><span class="nt-txt">랭킹 기록이 일부 누락되던 현상 개선</span><span class="nt-date">06.24</span></li>
-                <li><span class="tag t-notice">공지</span><span class="nt-txt">야구 티켓팅 서비스 오픈 준비 안내</span><span class="nt-date">06.20</span></li>
-                <li><span class="tag t-fix">수정</span><span class="nt-txt">모바일에서 좌석 선택이 밀리던 문제 수정</span><span class="nt-date">06.18</span></li>
+                <li th:each="n : ${notices}">
+                    <span class="tag" th:classappend="${n.type.badgeClass}" th:text="${n.type.label}">공지</span>
+                    <a class="nt-txt" th:href="@{/notice/{id}(id=${n.id})}" th:text="${n.title}" th:title="${n.title}">제목</a>
+                    <span class="nt-date" th:text="${#temporals.format(n.createdAt, 'MM.dd')}">06.30</span>
+                </li>
+                <li class="nt-empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</li>
             </ul>
         </div>
 

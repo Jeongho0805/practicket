@@ -5,6 +5,8 @@ import com.practicket.ad.application.AdminDashboardController;
 import com.practicket.ad.application.AdminSlotController;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.BannerRepository;
+import com.practicket.notice.application.AdminNoticeController;
+import com.practicket.notice.domain.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,13 +18,15 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice(assignableTypes = {
         AdminDashboardController.class,
         AdminBannerController.class,
-        AdminSlotController.class
+        AdminSlotController.class,
+        AdminNoticeController.class
 })
 @RequiredArgsConstructor
 public class AdminNavAdvice {
 
     private final BannerRepository bannerRepository;
     private final AdSlotRepository adSlotRepository;
+    private final NoticeRepository noticeRepository;
 
     @ModelAttribute("navBannerCount")
     public long navBannerCount() {
@@ -32,5 +36,10 @@ public class AdminNavAdvice {
     @ModelAttribute("navSlotCount")
     public long navSlotCount() {
         return adSlotRepository.count();
+    }
+
+    @ModelAttribute("navNoticeCount")
+    public long navNoticeCount() {
+        return noticeRepository.count();
     }
 }

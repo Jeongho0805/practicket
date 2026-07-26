@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="공지 · 업데이트 - 프랙티켓">
+    <meta name="description" content="프랙티켓의 서비스 공지와 업데이트 내역을 확인하세요.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://practicket.com/notice">
+    <title>공지 · 업데이트 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/notice.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="notice-section">
+
+        <div id="notice-hero">
+            <h1 id="notice-title">공지 · 업데이트</h1>
+            <p id="notice-subtitle">서비스 점검 안내와 개선 내역을 모아둡니다</p>
+        </div>
+
+        <!-- 필터는 JS 토글이 아니라 링크다. 주소만으로 상태가 복원되고 뒤로가기도 정상 동작한다. -->
+        <div id="notice-tabs">
+            <a th:href="@{/notice}" th:classappend="${type == null} ? 'on'"
+               th:text="'전체 ' + ${countAll}">전체 0</a>
+            <a th:href="@{/notice(type='NOTICE')}" th:classappend="${type != null and type.name() == 'NOTICE'} ? 'on'"
+               th:text="'공지 ' + ${countNotice}">공지 0</a>
+            <a th:href="@{/notice(type='FIX')}" th:classappend="${type != null and type.name() == 'FIX'} ? 'on'"
+               th:text="'수정 ' + ${countFix}">수정 0</a>
+        </div>
+
+        <!-- 첫 배치는 서버가 그린다. 이후는 아래 스크립트가 /notice/more 조각을 이어붙인다. -->
+        <div id="notice-list" th:insert="~{notice/fragments :: items}"></div>
+
+        <div id="notice-empty" th:if="${countAll == 0}">등록된 공지가 없습니다.</div>
+
+        <div id="notice-sentinel" th:if="${hasNext}">
+            <span class="nt-spin"></span><span>불러오는 중…</span>
+        </div>
+
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+    /*
+      무한스크롤. 서버가 렌더한 조각 HTML 을 그대로 붙이므로 여기서 마크업을 만들지 않는다.
+      빈 조각이 오면 더 없는 것으로 보고 관찰을 멈춘다.
+    */
+    (function () {
+        const list = document.getElementById('notice-list');
+        const sentinel = document.getElementById('notice-sentinel');
+        if (!list || !sentinel) return;
+
+        const type = /*[[${type != null} ? ${type.name()} : '']]*/ '';
+        let page = 1;
+        let loading = false;
+
+        function lastMonth() {
+            const items = list.querySelectorAll('.nt-item[data-month]');
+            return items.length ? items[items.length - 1].dataset.month : '';
+        }
+
+        function finish(message) {
+            sentinel.innerHTML = '<span>' + message + '</span>';
+            sentinel.classList.add('done');
+            observer.disconnect();
+        }
+
+        async function loadMore() {
+            if (loading) return;
+            loading = true;
+            const params = new URLSearchParams({page: page, lastMonth: lastMonth()});
+            if (type) params.set('type', type);
+            try {
+                const res = await fetch('/notice/more?' + params.toString());
+                if (!res.ok) throw new Error(res.status);
+                const html = (await res.text()).trim();
+                if (!html) {
+                    finish('모든 공지를 확인했습니다');
+                    return;
+                }
+                list.insertAdjacentHTML('beforeend', html);
+                page += 1;
+                loading = false;
+            } catch (e) {
+                // 실패해도 화면을 깨지 않는다. 이미 그려진 목록은 그대로 두고 안내만 바꾼다.
+                finish('목록을 더 불러오지 못했습니다');
+            }
+        }
+
+        // rootMargin 만큼 미리 당겨 받아 스크롤이 끊기지 않게 한다.
+        const observer = new IntersectionObserver(
+            entries => { if (entries[0].isIntersecting) loadMore(); },
+            {rootMargin: '300px'}
+        );
+        observer.observe(sentinel);
+    })();
+</script>
+</th:block>
+</body>
+</html>

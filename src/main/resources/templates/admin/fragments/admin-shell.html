@@ -43,6 +43,15 @@
         </a>
     </nav>
 
+    <nav class="navgroup">
+        <div class="cap">사이트 운영</div>
+        <a class="nav" th:classappend="${active == 'notice'} ? 'on'" href="/admin-hoya/notices">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/><path d="M8 9h8"/><path d="M8 12h5"/></svg>
+            공지
+            <span class="count" th:if="${navNoticeCount != null}" th:text="${navNoticeCount}">0</span>
+        </a>
+    </nav>
+
     <div class="foot">
         <span class="avatar">호</span>
         <span class="who">관리자<span>프랙티켓 광고</span></span>

@@ -1,0 +1,29 @@
+package com.practicket.notice.domain;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface NoticeRepository extends JpaRepository<Notice, Long> {
+
+    /**
+     * 공개 목록. 고정 먼저, 그 다음 최신순 — idx_notice_list 를 그대로 탄다.
+     * 홈 상단 5건도 이걸 size 5 의 Pageable 로 부른다(쿼리를 둘로 나누지 않는다).
+     */
+    Page<Notice> findByPublishedTrueOrderByPinnedDescCreatedAtDesc(Pageable pageable);
+
+    /** 필터 탭(공지/수정)용. 정렬은 전체 목록과 같다. */
+    Page<Notice> findByPublishedTrueAndTypeOrderByPinnedDescCreatedAtDesc(NoticeType type, Pageable pageable);
+
+    long countByPublishedTrue();
+
+    long countByPublishedTrueAndType(NoticeType type);
+
+    Optional<Notice> findByIdAndPublishedTrue(Long id);
+
+    /** 어드민 목록은 비공개 글도 봐야 한다. */
+    List<Notice> findAllByOrderByPinnedDescCreatedAtDesc();
+}

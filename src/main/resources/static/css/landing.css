@@ -27,8 +27,11 @@
 .tag { flex-shrink: 0; font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 10.5px; padding: 3px 9px; border-radius: 7px; }
 .tag.t-notice { background: #ece7fb; color: #6b5b9a; }
 .tag.t-fix { background: #eef1f6; color: #7a8499; }
-.nt-txt { flex: 1; min-width: 0; font-size: 13px; color: #4a4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nt-txt { flex: 1; min-width: 0; font-size: 13px; color: #4a4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none; }
+a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
 .nt-date { flex-shrink: 0; font-size: 11.5px; color: #b0a9c4; }
+.nt-empty { font-size: 13px; color: #b0a9c4; }
 
 /* 문의 */
 .inq-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
