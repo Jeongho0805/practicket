@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" th:content="${post.title} + ' - 프랙티켓 커뮤니티'" content="커뮤니티 - 프랙티켓">
+    <meta name="description" th:content="${#strings.abbreviate(post.content, 150)}" content="프랙티켓 커뮤니티">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" th:href="'https://practicket.com/community/' + ${post.id}">
+    <title th:text="${post.title} + ' - 프랙티켓 커뮤니티'">커뮤니티 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/community/detail.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="community-section" th:attr="data-post-id=${post.id}">
+
+        <a href="/community" id="back-link">‹ 목록으로</a>
+
+        <article id="post-card">
+            <h1 id="post-title" th:text="${post.title}">제목</h1>
+
+            <div id="post-author-row">
+                <!-- 로그인이 없어 프로필 이미지가 없다. 닉네임 첫 글자를 아바타로 쓴다 -->
+                <span id="author-avatar" th:text="${#strings.substring(post.nickname, 0, 1)}">익</span>
+                <span id="author-info">
+                    <span id="author-name">
+                        <span th:text="${post.nickname}">익명</span>
+                        <span id="author-ip" th:text="${post.ip}">0.0</span>
+                    </span>
+                    <span id="post-sub-meta">
+                        <span th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</span>
+                        <span class="meta-dot">·</span>
+                        <span th:text="'조회 ' + ${post.viewCount}">조회 0</span>
+                        <!-- 수정 시각은 노출하지 않는다. 수정됐다는 사실만 알리면 된다 (Q4) -->
+                        <span id="edited-mark" th:if="${post.edited}">(수정됨)</span>
+                    </span>
+                </span>
+            </div>
+
+            <!-- 서버에서 escape 한 뒤 URL 만 링크로 바꾼 결과. PostContentRenderer 참고 -->
+            <div id="post-content" th:utext="${renderedContent}">본문</div>
+        </article>
+
+        <!-- 작성자일 때만 JS 가 열어준다. 서버는 토큰을 모른다 -->
+        <div id="owner-actions" hidden>
+            <a id="edit-btn" th:href="@{'/community/edit/' + ${post.id}}">수정</a>
+            <button type="button" id="delete-btn">삭제</button>
+        </div>
+
+        <!-- 토큰이 다른 사람(기기 변경 등)을 위한 비상 열쇠 -->
+        <div id="guest-actions">
+            <button type="button" id="password-delete-btn">비밀번호로 삭제</button>
+        </div>
+
+        <div id="password-prompt" hidden>
+            <label for="delete-password-input">삭제 비밀번호 네 자리</label>
+            <div id="password-row">
+                <input type="password" id="delete-password-input" inputmode="numeric"
+                       maxlength="4" placeholder="0000" autocomplete="off">
+                <button type="button" id="password-confirm-btn">삭제</button>
+                <button type="button" id="password-cancel-btn">취소</button>
+            </div>
+            <p id="password-hint">글을 쓸 때 입력한 네 자리입니다.</p>
+        </div>
+
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script type="module" src="/js/community/detail.js"></script>
+</th:block>
+</body>
+</html>
