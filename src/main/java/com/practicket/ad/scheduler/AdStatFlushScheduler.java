@@ -69,26 +69,30 @@ public class AdStatFlushScheduler {
             return;
         }
 
-        long amount = parseLongSafe(stringRedisTemplate.opsForValue().get(key));
+        // GET 후 DELETE 하면 그 사이에 들어온 INCR이 삭제로 유실된다. GETDEL로 원자적으로 꺼낸다.
+        long amount = parseLongSafe(stringRedisTemplate.opsForValue().getAndDelete(key));
         if (amount <= 0) {
-            stringRedisTemplate.delete(key);
             return;
         }
 
-        BannerStatDaily stat = bannerStatDailyRepository.findByBannerIdAndStatDate(bannerId, statDate)
-                .orElseGet(() -> BannerStatDaily.builder()
-                        .bannerId(bannerId)
-                        .statDate(statDate)
-                        .build());
+        try {
+            BannerStatDaily stat = bannerStatDailyRepository.findByBannerIdAndStatDate(bannerId, statDate)
+                    .orElseGet(() -> BannerStatDaily.builder()
+                            .bannerId(bannerId)
+                            .statDate(statDate)
+                            .build());
 
-        if (isImpression) {
-            stat.addImpressions(amount);
-        } else {
-            stat.addClicks(amount);
+            if (isImpression) {
+                stat.addImpressions(amount);
+            } else {
+                stat.addClicks(amount);
+            }
+            bannerStatDailyRepository.save(stat);
+        } catch (Exception e) {
+            // 이미 GETDEL로 키를 비웠으므로 DB 반영 실패 시 되돌려놔야 유실되지 않는다(다음 정각에 재시도).
+            stringRedisTemplate.opsForValue().increment(key, amount);
+            throw e;
         }
-        bannerStatDailyRepository.save(stat);
-
-        stringRedisTemplate.delete(key);
     }
 
     private long parseLongSafe(String value) {

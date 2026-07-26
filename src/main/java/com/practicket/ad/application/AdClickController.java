@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdClickCounter;
+import com.practicket.ad.component.AdTrafficFilter;
 import com.practicket.ad.domain.Banner;
 import com.practicket.ad.domain.BannerRepository;
 import com.practicket.common.exception.ErrorCode;
@@ -27,13 +28,17 @@ public class AdClickController {
 
     private final BannerRepository bannerRepository;
     private final AdClickCounter adClickCounter;
+    private final AdTrafficFilter adTrafficFilter;
 
     @GetMapping("/ad/click/{bannerId}")
     public ResponseEntity<Void> click(@PathVariable Long bannerId, HttpServletRequest request) {
         Banner banner = bannerRepository.findById(bannerId)
                 .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        adClickCounter.record(bannerId, resolveClientIp(request));
+        // 봇·프리페치는 사용자 클릭이 아니다. 리다이렉트는 정상 수행하되 집계에서만 뺀다.
+        if (!adTrafficFilter.isExcluded(request)) {
+            adClickCounter.record(bannerId, resolveClientIp(request));
+        }
 
         String redirectUrl = withUtm(banner);
         return ResponseEntity.status(HttpStatus.FOUND)
