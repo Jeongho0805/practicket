@@ -1,0 +1,305 @@
+/* 커뮤니티 목록 — 시안 C3 "검색 통합형" (docs/community-system.md Q11)
+   브랜드 토큰은 header.css 를 따른다: 퍼플 #6b5b9a → #8470b3, 딥퍼플 #514897 */
+
+:root {
+    --pk-purple: #6b5b9a;
+    --pk-purple-light: #8470b3;
+    --pk-purple-deep: #514897;
+    --pk-purple-pale: #f4f2fb;
+    --pk-purple-line: #e2dcf2;
+    --pk-ink: #2d3748;
+    --pk-ink-sub: #7b7490;
+}
+
+@media (min-width: 769px) {
+    /* 전역 레이아웃이 좌우 광고를 붙이므로 가운데 칸 안에서만 스크롤한다 (Q12) */
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        padding: 14px 12px 32px;
+        box-sizing: border-box;
+    }
+}
+
+/* ---------- 검색 통합 헤더 ---------- */
+
+#community-hero {
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    padding: 22px 20px;
+    text-align: center;
+}
+
+#community-title {
+    font-family: my-font, sans-serif;
+    font-size: 1.5rem;
+    color: var(--pk-purple-deep);
+    margin: 0;
+}
+
+#community-subtitle {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    color: var(--pk-ink-sub);
+    margin: 6px 0 16px;
+}
+
+#community-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 6px 6px 6px 18px;
+}
+
+#community-search:focus-within {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
+
+#search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    color: var(--pk-ink);
+    background: transparent;
+    min-width: 0;
+}
+
+#search-input::placeholder {
+    color: #b3adc4;
+}
+
+#search-btn {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#search-btn:hover {
+    filter: brightness(1.07);
+}
+
+/* ---------- 툴바 ---------- */
+
+#community-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 10px;
+}
+
+#post-total {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    color: var(--pk-ink-sub);
+    margin: 0;
+}
+
+#write-btn {
+    flex: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+}
+
+#write-btn:hover {
+    filter: brightness(1.07);
+}
+
+/* ---------- 목록 ---------- */
+
+#post-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--pk-purple-line);
+}
+
+.post-row {
+    border-bottom: 1px solid #efedf6;
+}
+
+.post-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 6px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.post-link:hover {
+    background: #faf9fd;
+}
+
+.like-badge {
+    flex: none;
+    width: 46px;
+    height: 42px;
+    border-radius: 10px;
+    background: #f3f1f9;
+    color: #a49dbb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Pretendard, sans-serif;
+}
+
+.like-badge.has-like {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+}
+
+.like-count {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.like-label {
+    font-size: 0.6rem;
+    opacity: 0.85;
+}
+
+.post-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.post-title {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--pk-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.post-meta {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.72rem;
+    color: var(--pk-ink-sub);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.post-author {
+    font-weight: 600;
+    color: #5f5878;
+}
+
+/* IP 는 작성자 옆에 붙되 눈에 덜 띄게 — 억제 장치지 정보가 아니다 */
+.post-ip {
+    font-size: 0.68rem;
+    color: #a49dbb;
+}
+
+.meta-dot {
+    color: #d6d1e4;
+}
+
+#post-empty {
+    padding: 56px 0;
+    text-align: center;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.88rem;
+    color: var(--pk-ink-sub);
+}
+
+/* ---------- 페이지 번호 ---------- */
+
+#pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+.page-num,
+.page-move {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--pk-ink-sub);
+    box-sizing: border-box;
+}
+
+.page-num:hover,
+.page-move:not(.disabled):hover {
+    background: var(--pk-purple-pale);
+    color: var(--pk-purple-deep);
+}
+
+.page-num.current {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-weight: 700;
+}
+
+.page-move.disabled {
+    color: #d6d1e4;
+    cursor: default;
+}

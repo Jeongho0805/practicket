@@ -66,15 +66,8 @@ public class CustomRequestLoggingFilter implements Filter {
         }
     }
     
+    // 헤더를 직접 읽지 않는다. 이유는 ClientInfoExtractor 참고.
     private String getClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
         return request.getRemoteAddr();
     }
     

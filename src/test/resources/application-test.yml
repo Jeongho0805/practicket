@@ -8,6 +8,10 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+  # 테스트는 H2 + create-drop 으로 스키마를 만든다.
+  # 마이그레이션 SQL 은 MySQL 문법이라 H2 에서 돌리면 깨진다.
+  flyway:
+    enabled: false
   h2:
     console:
       enabled: false

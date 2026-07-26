@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="커뮤니티 - 프랙티켓">
+    <meta name="description" content="티켓팅 팁과 후기를 나누는 프랙티켓 커뮤니티입니다.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://practicket.com/community">
+    <title>커뮤니티 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/community/list.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="community-section">
+
+        <!-- 검색 통합형 헤더: 검색이 화면의 중심이다 -->
+        <div id="community-hero">
+            <h1 id="community-title">커뮤니티</h1>
+            <p id="community-subtitle">티켓팅 팁 · 후기 · 잡담을 나누는 곳</p>
+
+            <form id="community-search" method="get" action="/community">
+                <input type="text" id="search-input" name="keyword" maxlength="50"
+                       placeholder="제목으로 검색" th:value="${keyword}">
+                <button type="submit" id="search-btn" aria-label="검색">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              stroke="currentColor" stroke-width="2"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+        <div id="community-toolbar">
+            <p id="post-total">
+                전체 <span th:text="${posts.totalElements}">0</span>개
+                <span th:if="${keyword != null and !keyword.isBlank()}"
+                      th:text="'· &quot;' + ${keyword} + '&quot; 검색 결과'"></span>
+            </p>
+            <a href="/community/write" id="write-btn">글쓰기</a>
+        </div>
+
+        <!-- 글이 없을 때. 검색 결과 없음과 게시판이 빈 것은 다른 상황이라 문구를 나눈다 -->
+        <div id="post-empty" th:if="${posts.isEmpty()}">
+            <p th:if="${keyword != null and !keyword.isBlank()}">검색 결과가 없습니다.</p>
+            <p th:unless="${keyword != null and !keyword.isBlank()}">아직 글이 없습니다. 첫 글을 남겨보세요.</p>
+        </div>
+
+        <ul id="post-list" th:unless="${posts.isEmpty()}">
+            <li class="post-row" th:each="post : ${posts.content}">
+                <a class="post-link" th:href="@{'/community/' + ${post.id}}">
+                    <!-- 왼쪽 추천수 배지: 글이 적어도 화면이 초라해 보이지 않는다 -->
+                    <span class="like-badge" th:classappend="${post.likeCount > 0} ? 'has-like' : ''">
+                        <span class="like-count" th:text="${post.likeCount}">0</span>
+                        <span class="like-label">추천</span>
+                    </span>
+                    <span class="post-main">
+                        <span class="post-title" th:text="${post.title}">제목</span>
+                        <span class="post-meta">
+                            <span class="post-author" th:text="${post.nickname}">익명</span>
+                            <span class="post-ip" th:text="${post.ip}">0.0</span>
+                            <span class="meta-dot">·</span>
+                            <span class="post-date" th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</span>
+                            <span class="meta-dot">·</span>
+                            <span class="post-view" th:text="'조회 ' + ${post.viewCount}">조회 0</span>
+                        </span>
+                    </span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- 페이지 번호를 링크로 둔다. 무한스크롤이면 크롤러가 2페이지 이후를 못 본다 -->
+        <nav id="pagination" th:if="${posts.totalPages > 1}">
+            <a class="page-move" th:if="${!posts.first}"
+               th:href="@{/community(page=${posts.number - 1}, keyword=${keyword})}">‹</a>
+            <span class="page-move disabled" th:if="${posts.first}">‹</span>
+
+            <a class="page-num"
+               th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}"
+               th:href="@{/community(page=${i}, keyword=${keyword})}"
+               th:classappend="${i == posts.number} ? 'current' : ''"
+               th:text="${i + 1}">1</a>
+
+            <a class="page-move" th:if="${!posts.last}"
+               th:href="@{/community(page=${posts.number + 1}, keyword=${keyword})}">›</a>
+            <span class="page-move disabled" th:if="${posts.last}">›</span>
+        </nav>
+
+    </div>
+</div>
+</body>
+</html>
