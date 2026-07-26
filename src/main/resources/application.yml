@@ -11,6 +11,10 @@ spring:
     baseline-version: 1
     locations: classpath:db/migration
 server:
+  # X-Forwarded-* 를 프록시가 붙인 것으로 해석한다(톰캣 RemoteIpValve).
+  # 신뢰 프록시를 오른쪽부터 걷어낸 실제 클라이언트 IP 가 getRemoteAddr() 로 들어온다.
+  # framework 옵션은 프록시 신뢰 검사 없이 XFF 첫 항목을 쓰므로 쓰면 안 된다.
+  forward-headers-strategy: native
   servlet:
     session:
       cookie:
