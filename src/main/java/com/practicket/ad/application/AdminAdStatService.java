@@ -39,6 +39,8 @@ public class AdminAdStatService {
     /** 이 일수를 넘으면 막대를 주 단위로 접는다(하루 막대가 실오라기처럼 얇아지는 것 방지). */
     private static final int WEEKLY_ROLLUP_THRESHOLD = 60;
     private static final int TOP_CAMPAIGNS = 5;
+    /** 화면의 기간 프리셋 버튼. 이 값으로 들어온 요청만 버튼이 선택된 상태로 표시된다. */
+    public static final int[] PRESETS = {7, 14, 30, 90};
 
     private final BannerRepository bannerRepository;
     private final AdSlotRepository adSlotRepository;
@@ -148,8 +150,51 @@ public class AdminAdStatService {
     }
 
     /**
+     * 화면이 넘긴 기간 파라미터를 실제로 조회할 구간으로 다듬는다.
+     * 직접 지정(from·to)이 프리셋(days)보다 우선한다.
+     *
+     * 뒤집힌 기간·미래 날짜·과도하게 긴 구간은 <b>에러로 튕기지 않고 조용히 고친다</b> —
+     * 어차피 없는 데이터를 요구한 것뿐이라 운영자를 막을 이유가 없다.
+     */
+    public Period normalizePeriod(Integer days, LocalDate from, LocalDate to, LocalDate today) {
+        if (from == null || to == null) {
+            int window = (days == null || days <= 0)
+                    ? DEFAULT_WINDOW_DAYS
+                    : Math.min(days, MAX_WINDOW_DAYS);
+            return new Period(today.minusDays(window - 1L), today, isPreset(window) ? window : null);
+        }
+
+        LocalDate start = from;
+        LocalDate end = to;
+        if (start.isAfter(end)) {
+            LocalDate swap = start;
+            start = end;
+            end = swap;
+        }
+        if (end.isAfter(today)) {
+            end = today;
+        }
+        if (start.isAfter(end)) {
+            start = end;
+        }
+        if (ChronoUnit.DAYS.between(start, end) + 1 > MAX_WINDOW_DAYS) {
+            start = end.minusDays(MAX_WINDOW_DAYS - 1L);
+        }
+        return new Period(start, end, null);
+    }
+
+    private boolean isPreset(int window) {
+        for (int preset : PRESETS) {
+            if (preset == window) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param from 조회 시작일(포함), @param to 조회 종료일(포함).
-     *             정규화(오늘 이후 잘라내기·최대 길이 제한)는 호출부에서 끝낸 값을 받는다.
+     *             정규화(오늘 이후 잘라내기·최대 길이 제한)는 {@link #normalizePeriod}가 끝낸 값을 받는다.
      */
     @Transactional(readOnly = true)
     public Dashboard getDashboard(LocalDate from, LocalDate to) {
@@ -311,6 +356,14 @@ public class AdminAdStatService {
 
         public String getReportPath() {
             return banner.getReportToken() == null ? null : "/ad/report/" + banner.getReportToken();
+        }
+    }
+
+    /** @param preset 프리셋으로 정해진 경우 그 일수, 직접 지정이면 null(버튼 하이라이트 판단용). */
+    public record Period(LocalDate from, LocalDate to, Integer preset) {
+
+        public int days() {
+            return (int) (ChronoUnit.DAYS.between(from, to) + 1);
         }
     }
 

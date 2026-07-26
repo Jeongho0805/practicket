@@ -26,3 +26,7 @@ spring:
 
 app:
   host: "http://localhost:8080"
+  secret:
+    # 테스트 전용 더미 값. TicketTokenManager·AdvertiserReportToken이 이 속성을 요구해
+    # 없으면 전체 컨텍스트(@SpringBootTest)가 뜨지 않는다. 실제 시크릿과 무관하다.
+    ticket-token: "test-only-dummy-secret-not-a-real-key"

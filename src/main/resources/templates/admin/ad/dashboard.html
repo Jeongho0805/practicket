@@ -47,7 +47,7 @@
                      th:classappend="${dashboard.impressionsDelta < 0} ? 'down'"
                      th:text="${(dashboard.impressionsDelta >= 0 ? '▲ ' : '▼ ')
                                + #numbers.formatDecimal(dashboard.impressionsDelta < 0 ? -dashboard.impressionsDelta : dashboard.impressionsDelta, 1, 1, 'POINT')
-                               + '% 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.0%</div>
+                               + '% 직전 ' + dashboard.days + '일 대비'}">▲ 0.0%</div>
             </div>
             <div class="kpi">
                 <div class="l">총 클릭</div>
@@ -57,7 +57,7 @@
                      th:classappend="${dashboard.clicksDelta < 0} ? 'down'"
                      th:text="${(dashboard.clicksDelta >= 0 ? '▲ ' : '▼ ')
                                + #numbers.formatDecimal(dashboard.clicksDelta < 0 ? -dashboard.clicksDelta : dashboard.clicksDelta, 1, 1, 'POINT')
-                               + '% 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.0%</div>
+                               + '% 직전 ' + dashboard.days + '일 대비'}">▲ 0.0%</div>
             </div>
             <div class="kpi">
                 <div class="l">평균 CTR</div>
@@ -67,7 +67,7 @@
                      th:classappend="${dashboard.ctrDelta < 0} ? 'down'"
                      th:text="${(dashboard.ctrDelta >= 0 ? '▲ ' : '▼ ')
                                + #numbers.formatDecimal(dashboard.ctrDelta < 0 ? -dashboard.ctrDelta : dashboard.ctrDelta, 1, 2, 'POINT')
-                               + '%p 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.00%p</div>
+                               + '%p 직전 ' + dashboard.days + '일 대비'}">▲ 0.00%p</div>
             </div>
             <div class="kpi">
                 <div class="l">노출중 배너</div>
