@@ -25,19 +25,27 @@ import java.time.LocalDate;
 public class AdminBannerController {
 
     private final AdminBannerService adminBannerService;
+    private final AdminAdStatService adminAdStatService;
     private final AdSlotRepository adSlotRepository;
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("banners", adminBannerService.getAllBanners());
+        model.addAttribute("rows", adminAdStatService.getBannerRows());
         return "admin/ad/banner-list";
     }
 
     @GetMapping("/new")
     public String newForm(Model model) {
         model.addAttribute("banner", null);
-        model.addAttribute("slots", adSlotRepository.findAll());
+        addFormOptions(model);
         return "admin/ad/banner-form";
+    }
+
+    /** 슬롯 목록 + 광고주명 자동완성 + 슬롯 겹침 경고에 쓸 기존 배너 정보. */
+    private void addFormOptions(Model model) {
+        model.addAttribute("slots", adSlotRepository.findAll());
+        model.addAttribute("advertiserNames", adminAdStatService.getAdvertiserNames());
+        model.addAttribute("occupancies", adminAdStatService.getSlotOccupancies());
     }
 
     @PostMapping
@@ -69,7 +77,7 @@ public class AdminBannerController {
             return "redirect:/admin-hoya/ad/banners";
         }
         model.addAttribute("banner", banner);
-        model.addAttribute("slots", adSlotRepository.findAll());
+        addFormOptions(model);
         return "admin/ad/banner-form";
     }
 

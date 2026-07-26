@@ -2,6 +2,7 @@ package com.practicket.ad.admin;
 
 import com.practicket.ad.exception.AdException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,8 +33,13 @@ public class AdminLoginController {
         String ip = extractIp(request);
         try {
             if (adminAuthService.login(username, password, code, ip)) {
-                request.getSession(true).setAttribute(AdminAuthInterceptor.AUTH_ATTR, Boolean.TRUE);
-                return "redirect:/admin-hoya/ad/banners";
+                HttpSession session = request.getSession(true);
+                session.setAttribute(AdminAuthInterceptor.AUTH_ATTR, Boolean.TRUE);
+                // 유휴 만료 없음. 혼자 쓰는 운영 콘솔이라 재로그인 비용이 보안 이득보다 크다는 판단.
+                // application.yml이 아니라 여기서 거는 이유: 세션 정책을 앱 전체가 아니라 어드민 세션에만 한정하기 위함.
+                // (앱을 재시작하면 세션이 메모리에서 사라지므로 그때는 다시 로그인해야 한다.)
+                session.setMaxInactiveInterval(-1);
+                return "redirect:/admin-hoya/ad";
             }
             redirectAttributes.addFlashAttribute("error", "로그인 정보가 올바르지 않습니다.");
         } catch (AdException e) {

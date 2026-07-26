@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('광고주')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('advertiser')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>광고주</h1>
+                <p>광고주명이 같은 배너를 묶어 전 기간 누적 성과를 보여줍니다.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <header>
+                <h2>광고주 목록<small th:text="${#lists.size(rows)} + '곳'">0곳</small></h2>
+                <span class="note">이름이 곧 식별자입니다 — 표기가 다르면 다른 광고주로 잡힙니다</span>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(rows)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>광고주</th>
+                        <th class="r">캠페인</th>
+                        <th>집행 기간</th>
+                        <th class="r">노출</th>
+                        <th class="r">클릭</th>
+                        <th class="r">CTR</th>
+                        <th>현재</th>
+                        <th class="r"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${rows}">
+                        <td><b th:text="${row.name}">광고주</b></td>
+                        <td class="r" th:text="${row.campaigns} + '개'">0개</td>
+                        <td>
+                            <span th:if="${row.firstStart != null}"
+                                  th:text="${#temporals.format(row.firstStart, 'yyyy.MM.dd')} + ' ~ '
+                                           + ${#temporals.format(row.lastEnd, 'yyyy.MM.dd')}">2026.01.01 ~ 2026.12.31</span>
+                            <span class="note" th:if="${row.firstStart == null}">-</span>
+                        </td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
+                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
+                        <td>
+                            <span class="pill live" th:if="${row.liveCampaigns > 0}">
+                                <i></i><span th:text="'노출중 ' + ${row.liveCampaigns}">노출중</span>
+                            </span>
+                            <span class="pill off" th:if="${row.liveCampaigns == 0}"><i></i>없음</span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact">
+                                <button type="button" class="btn ghost sm copy-report"
+                                        th:attr="data-report=${row.reportPath}">통합 링크</button>
+                                <a class="btn ghost sm"
+                                   th:href="@{/admin-hoya/ad/advertisers(name=${row.name})}">상세</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(rows)}">
+                등록된 배너가 없어 광고주도 없습니다.
+                <a href="/admin-hoya/ad/banners/new">첫 배너를 등록</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    document.querySelectorAll('.copy-report').forEach(button =>
+        button.addEventListener('click', () => copyReportLink(button, button.dataset.report)));
+</script>
+</body>
+</html>

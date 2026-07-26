@@ -20,10 +20,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminSlotController {
 
     private final AdSlotRepository adSlotRepository;
+    private final AdminAdStatService adminAdStatService;
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("slots", adSlotRepository.findAll());
+        model.addAttribute("rows", adminAdStatService.getSlotRows());
         return "admin/ad/slot-list";
     }
 

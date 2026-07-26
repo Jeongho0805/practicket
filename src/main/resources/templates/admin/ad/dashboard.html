@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('대시보드')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('dash')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>대시보드</h1>
+                <p>
+                    <b th:text="${#temporals.format(dashboard.from, 'yyyy.MM.dd')} + ' ~ '
+                                + ${#temporals.format(dashboard.to, 'yyyy.MM.dd')}">2026.07.13 ~ 2026.07.26</b>
+                    · <span th:text="${dashboard.days} + '일간'">14일간</span>
+                </p>
+                <p class="note" style="margin-top:3px"
+                   th:text="'직전 ' + ${dashboard.days} + '일('
+                            + ${#temporals.format(dashboard.previousFrom, 'yyyy.MM.dd')} + ' ~ '
+                            + ${#temporals.format(dashboard.previousTo, 'yyyy.MM.dd')} + ')과 비교'">직전 기간과 비교</p>
+            </div>
+            <div class="tools">
+                <div class="seg">
+                    <a th:each="preset : ${presets}"
+                       th:href="@{/admin-hoya/ad(days=${preset})}"
+                       th:classappend="${activePreset != null and activePreset == preset} ? 'on'"
+                       th:text="${preset} + '일'">14일</a>
+                </div>
+                <form class="dates" method="get" action="/admin-hoya/ad">
+                    <input type="date" name="from" th:value="${dashboard.from}" required>
+                    <span class="sep">~</span>
+                    <input type="date" name="to" th:value="${dashboard.to}" required>
+                    <button type="submit" class="btn sm">적용</button>
+                </form>
+                <a class="btn" href="/admin-hoya/ad/banners/new">+ 새 배너</a>
+            </div>
+        </div>
+
+        <p class="note" style="margin:-8px 0 14px">집계는 매시 정각에 반영됩니다 — 오늘 수치는 최대 1시간 지연될 수 있습니다.</p>
+
+        <div class="kpis">
+            <div class="kpi">
+                <div class="l">총 노출</div>
+                <div class="v" th:text="${#numbers.formatInteger(dashboard.impressions, 1, 'COMMA')}">0</div>
+                <div class="d flat" th:if="${dashboard.impressionsDelta == null}">직전 기간 데이터 없음</div>
+                <div class="d" th:unless="${dashboard.impressionsDelta == null}"
+                     th:classappend="${dashboard.impressionsDelta < 0} ? 'down'"
+                     th:text="${(dashboard.impressionsDelta >= 0 ? '▲ ' : '▼ ')
+                               + #numbers.formatDecimal(dashboard.impressionsDelta < 0 ? -dashboard.impressionsDelta : dashboard.impressionsDelta, 1, 1, 'POINT')
+                               + '% 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.0%</div>
+            </div>
+            <div class="kpi">
+                <div class="l">총 클릭</div>
+                <div class="v" th:text="${#numbers.formatInteger(dashboard.clicks, 1, 'COMMA')}">0</div>
+                <div class="d flat" th:if="${dashboard.clicksDelta == null}">직전 기간 데이터 없음</div>
+                <div class="d" th:unless="${dashboard.clicksDelta == null}"
+                     th:classappend="${dashboard.clicksDelta < 0} ? 'down'"
+                     th:text="${(dashboard.clicksDelta >= 0 ? '▲ ' : '▼ ')
+                               + #numbers.formatDecimal(dashboard.clicksDelta < 0 ? -dashboard.clicksDelta : dashboard.clicksDelta, 1, 1, 'POINT')
+                               + '% 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.0%</div>
+            </div>
+            <div class="kpi">
+                <div class="l">평균 CTR</div>
+                <div class="v" th:text="${#numbers.formatDecimal(dashboard.ctr, 1, 2, 'POINT')} + '%'">0.00%</div>
+                <div class="d flat" th:if="${dashboard.ctrDelta == null}">직전 기간 데이터 없음</div>
+                <div class="d" th:unless="${dashboard.ctrDelta == null}"
+                     th:classappend="${dashboard.ctrDelta < 0} ? 'down'"
+                     th:text="${(dashboard.ctrDelta >= 0 ? '▲ ' : '▼ ')
+                               + #numbers.formatDecimal(dashboard.ctrDelta < 0 ? -dashboard.ctrDelta : dashboard.ctrDelta, 1, 2, 'POINT')
+                               + '%p 직전 ' + ${dashboard.days} + '일 대비'}">▲ 0.00%p</div>
+            </div>
+            <div class="kpi">
+                <div class="l">노출중 배너</div>
+                <div class="v" th:text="${dashboard.banners.live} + '개'">0개</div>
+                <div class="d flat"
+                     th:text="'전체 ' + ${dashboard.banners.total} + '개 · 슬롯 ' + ${dashboard.slots.enabled}
+                              + '개 중 ' + ${dashboard.slots.sold} + '개 판매'">전체 0개</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <header>
+                <h2 th:text="${dashboard.weekly} ? '주별 노출 추이' : '일별 노출 추이'">일별 노출 추이</h2>
+                <span class="note" th:text="${dashboard.weekly}
+                        ? '구간이 길어 7일 단위로 묶었습니다 · 전체 슬롯 합산'
+                        : '전체 슬롯 합산'">전체 슬롯 합산</span>
+            </header>
+            <div class="chart" th:classappend="${dashboard.dense} ? 'dense'">
+                <div class="bar" th:each="bar : ${dashboard.chart}"
+                     th:style="'height:' + ${bar.heightPercent} + '%'">
+                    <span th:text="(${bar.range}
+                                     ? ${#temporals.format(bar.from, 'MM.dd')} + '~' + ${#temporals.format(bar.to, 'MM.dd')}
+                                     : ${#temporals.format(bar.from, 'MM.dd')})
+                                   + ' · 노출 ' + ${#numbers.formatInteger(bar.impressions, 1, 'COMMA')}
+                                   + ' · 클릭 ' + ${#numbers.formatInteger(bar.clicks, 1, 'COMMA')}">07.13 · 노출 0 · 클릭 0</span>
+                </div>
+            </div>
+            <div class="xaxis">
+                <span th:text="${#temporals.format(dashboard.from, 'M/d')}">7/13</span>
+                <span th:text="${#temporals.format(dashboard.chart[dashboard.chart.size() / 2].from, 'M/d')}">7/19</span>
+                <span th:text="${#temporals.format(dashboard.to, 'M/d')}">7/26</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <header>
+                <h2>성과 상위 캠페인<small th:text="'선택한 ' + ${dashboard.days} + '일 노출순'">노출순</small></h2>
+                <a class="btn ghost sm" href="/admin-hoya/ad/banners">전체 보기</a>
+            </header>
+            <div class="tablewrap">
+                <table th:if="${not #lists.isEmpty(dashboard.topCampaigns)}">
+                    <thead>
+                    <tr>
+                        <th>캠페인</th>
+                        <th>슬롯</th>
+                        <th class="r">노출</th>
+                        <th class="r">클릭</th>
+                        <th class="r">CTR</th>
+                        <th>상태</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${dashboard.topCampaigns}">
+                        <td>
+                            <div class="cellname">
+                                <img class="thumb" th:src="${row.banner.imagePath}" alt="배너 이미지"/>
+                                <div>
+                                    <b th:text="${row.banner.advertiserName}">광고주</b>
+                                    <em th:text="'#' + ${row.banner.id}">#1</em>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${row.banner.slot.name}">슬롯</td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
+                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
+                        <td>
+                            <span class="pill" th:classappend="${row.status.key}">
+                                <i></i><span th:text="${row.status.label}">상태</span>
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty" th:if="${#lists.isEmpty(dashboard.topCampaigns)}">
+                등록된 배너가 없습니다. <a href="/admin-hoya/ad/banners/new">첫 배너를 등록</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+</body>
+</html>
