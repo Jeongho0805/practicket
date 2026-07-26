@@ -32,6 +32,12 @@ public enum ErrorCode {
     PRACTICE_INVALID_TIMING(400, "PR04", "올바르지 않은 타이밍 데이터입니다."),
     NICKNAME_REQUIRED(400, "PR05", "닉네임을 설정한 후 이용해주세요."),
 
+    POST_NOT_FOUND(404, "PO01", "존재하지 않는 글입니다."),
+    POST_FORBIDDEN(403, "PO02", "본인이 작성한 글이 아닙니다."),
+    POST_PASSWORD_REQUIRED(400, "PO03", "삭제 비밀번호를 입력해주세요."),
+    POST_PASSWORD_MISMATCH(400, "PO04", "삭제 비밀번호가 일치하지 않습니다."),
+    POST_PASSWORD_LOCKED(429, "PO05", "비밀번호를 여러 번 틀렸습니다. 10분 후 다시 시도해주세요."),
+
     ;
 
 
