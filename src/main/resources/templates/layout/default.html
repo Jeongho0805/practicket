@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/css/layout/default.css">
     <link rel="stylesheet" href="/css/fragments/header.css">
     <link rel="stylesheet" href="/css/common/alert.css">
+    <link rel="stylesheet" href="/css/fragments/chatting.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1YB3RZ41Z"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -34,9 +35,28 @@
 
     <th:block th:replace="~{fragments/alert :: alert}"></th:block>
 
+    <!-- 전역 플로팅 채팅 위젯 (모든 페이지 공통, 열 때 SSE 연결) -->
+    <div id="chat-widget">
+        <div id="chat-panel">
+            <div id="chat-panel-head">
+                <b>실시간 채팅</b>
+                <div class="chat-head-right">
+                    <span class="chat-count"><span class="chat-count-dot"></span><span><span id="chat-count-num">0</span>명 참여중</span></span>
+                    <button type="button" id="chat-close" aria-label="채팅 닫기">&times;</button>
+                </div>
+            </div>
+            <div th:replace="~{fragments/chatting::chatting}"></div>
+        </div>
+        <button type="button" id="chat-launcher" aria-label="채팅 열기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20.5l1.45-5.35A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.2 11.5h.01M12 11.5h.01M15.8 11.5h.01"/></svg>
+            <span class="chat-dot"></span>
+        </button>
+    </div>
+
     <script> const HOST = "[[${host}]]"; </script>
     <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
+    <script type="module" src="/js/chatting.js"></script>
     <th:block layout:fragment="scripts"></th:block>
 </body>
 </html>

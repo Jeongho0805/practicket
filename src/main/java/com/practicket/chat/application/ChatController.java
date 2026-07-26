@@ -45,4 +45,9 @@ public class ChatController {
         SseEmitter emitter = chatService.createConnection();
         return ResponseEntity.ok(emitter);
     }
+
+    @GetMapping("/participants")
+    public ResponseEntity<Integer> participantCount() {
+        return ResponseEntity.ok(chatService.participantCount());
+    }
 }

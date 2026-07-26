@@ -84,12 +84,17 @@
 
 /* ===== 모바일 ===== */
 @media (max-width: 768px) {
-    #main-section { padding: 13px 14px; gap: 11px; justify-content: safe center; }
-    .notice { padding: 13px 16px; border-radius: 15px; }
+    /* 하단 여백: 채팅 런처가 bottom 14px + 높이 58px = 아래 72px을 점유하므로 그보다 더 띄운다 */
+    #main-section { padding: 13px 14px 84px; gap: 11px; justify-content: flex-start; }
+    /* 공지·문의 카드가 남는 세로 공간을 흡수해 위쪽에 빈 틈이 생기지 않게 한다 */
+    .notice { padding: 13px 16px; border-radius: 15px; flex: 1 1 auto; display: flex; flex-direction: column; }
     .nt-head { margin-bottom: 9px; } .nt-head b { font-size: 15px; }
-    .nt-list { gap: 8px; } .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
-    .inq-cards { gap: 9px; } .inq-card { padding: 11px 14px; }
-    .inq-card b { font-size: 13.5px; } .inq-card span { font-size: 10.5px; }
+    .nt-list { gap: 8px; flex: 1 1 auto; justify-content: space-evenly; }
+    .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
+    .inq { display: flex; }
+    .inq-cards { gap: 9px; flex: 1 1 auto; }
+    .inq-card { padding: 24px 16px; display: flex; flex-direction: column; justify-content: center; }
+    .inq-card b { font-size: 15px; } .inq-card span { margin-top: 6px; font-size: 11.5px; }
     .bb { flex-direction: column; align-items: stretch; padding: 15px 18px; gap: 11px; }
     .bb-l { gap: 5px; }
     .bb-l b { font-size: 18px; } .bb .desc { font-size: 11.5px; line-height: 1.45; }

@@ -1,14 +1,18 @@
 package com.practicket.config;
 
+import com.practicket.ad.admin.AdminAuthInterceptor;
 import com.practicket.client.domain.ClientRepository;
 import com.practicket.common.auth.ClientInfoArgumentResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -18,6 +22,10 @@ import java.util.List;
 public class WebConfig  {
 
     private final ClientRepository clientRepository;
+    private final AdminAuthInterceptor adminAuthInterceptor;
+
+    @Value("${app.ad.image-dir:/data/practicket/ad-images}")
+    private String adImageDir;
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -41,6 +49,19 @@ public class WebConfig  {
                 pageableResolver.setMaxPageSize(100);
                 pageableResolver.setFallbackPageable(PageRequest.of(0, 20));
                 resolvers.add(pageableResolver);
+            }
+
+            @Override
+            public void addInterceptors(InterceptorRegistry registry) {
+                // 어드민 페이지 세션 인증 가드
+                registry.addInterceptor(adminAuthInterceptor).addPathPatterns("/admin-hoya/**");
+            }
+
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                // 업로드된 배너 이미지 서빙 (BannerImageStorage 저장 경로 → /ad-images/**)
+                registry.addResourceHandler("/ad-images/**")
+                        .addResourceLocations("file:" + adImageDir + "/");
             }
         };
     }

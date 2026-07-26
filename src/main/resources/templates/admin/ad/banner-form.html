@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <title th:text="${banner != null ? '배너 수정' : '배너 등록'} + ' - 프랙티켓 어드민'"></title>
+    <style>
+        :root { --brand: #514897; --brand-dark: #3c356f; --bg: #f6f5fb; --border: #e2e0ef; --text: #222; --muted: #777; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--text); }
+        header { background: var(--brand); color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+        header h1 { font-size: 18px; margin: 0; }
+        nav a { color: #fff; text-decoration: none; margin-left: 16px; font-size: 14px; opacity: .9; }
+        nav a.active, nav a:hover { opacity: 1; text-decoration: underline; }
+        main { max-width: 560px; margin: 24px auto; padding: 0 24px; }
+        .card { background: #fff; border-radius: 10px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        h2 { margin-top: 0; font-size: 16px; color: var(--brand-dark); }
+        .field { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--muted); }
+        input[type=text], input[type=url], input[type=date], select, input[type=file] {
+            width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+        }
+        .row { display: flex; gap: 12px; }
+        .row .field { flex: 1; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input { width: auto; }
+        .current-image { margin-bottom: 10px; }
+        .current-image img { max-width: 200px; border-radius: 6px; border: 1px solid var(--border); display: block; }
+        .actions { margin-top: 20px; display: flex; gap: 8px; }
+        .btn { display: inline-block; padding: 9px 18px; border-radius: 6px; border: none; background: var(--brand); color: #fff; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: var(--brand-dark); }
+        .btn.secondary { background: #fff; color: var(--brand); border: 1px solid var(--brand); }
+        .alert { background: #fdecea; color: #c0392b; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+        .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>프랙티켓 어드민 · 광고 관리</h1>
+    <nav>
+        <a class="active" href="/admin-hoya/ad/banners">배너</a>
+        <a href="/admin-hoya/ad/slots">슬롯</a>
+    </nav>
+</header>
+<main>
+    <div class="card">
+        <h2 th:text="${banner != null ? '배너 수정' : '새 배너 등록'}"></h2>
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <form th:action="${banner != null ? '/admin-hoya/ad/banners/' + banner.id : '/admin-hoya/ad/banners'}"
+              method="post" enctype="multipart/form-data">
+
+            <div class="field">
+                <label for="slotId">슬롯</label>
+                <select id="slotId" name="slotId" required>
+                    <option th:each="slot : ${slots}"
+                            th:value="${slot.id}"
+                            th:text="${slot.name} + ' (' + ${slot.code} + ', ' + ${slot.recommendedSize} + ')'"
+                            th:selected="${banner != null and banner.slot != null and banner.slot.id == slot.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="field" th:if="${banner != null and banner.imagePath != null}">
+                <label>현재 이미지</label>
+                <div class="current-image">
+                    <img th:src="${banner.imagePath}" alt="현재 배너 이미지"/>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="image">배너 이미지 (jpg/jpeg/png/gif, 최대 2MB)</label>
+                <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.gif" th:required="${banner == null}"/>
+                <p class="hint" th:if="${banner != null}">변경하지 않으려면 비워두세요.</p>
+            </div>
+
+            <div class="field">
+                <label for="advertiserName">광고주명</label>
+                <input type="text" id="advertiserName" name="advertiserName" required
+                       th:value="${banner != null ? banner.advertiserName : ''}"/>
+            </div>
+
+            <div class="field">
+                <label for="linkUrl">링크 URL</label>
+                <input type="url" id="linkUrl" name="linkUrl" required
+                       th:value="${banner != null ? banner.linkUrl : ''}"/>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="startAt">시작일</label>
+                    <input type="date" id="startAt" name="startAt" required
+                           th:value="${banner != null ? banner.startAt : ''}"/>
+                </div>
+                <div class="field">
+                    <label for="endAt">종료일</label>
+                    <input type="date" id="endAt" name="endAt" required
+                           th:value="${banner != null ? banner.endAt : ''}"/>
+                </div>
+            </div>
+
+            <div class="field checkbox-row">
+                <input type="checkbox" id="enabled" name="enabled" value="true"
+                       th:checked="${banner != null and banner.enabled}"/>
+                <label for="enabled" style="margin:0;">즉시 노출(enabled)</label>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn" th:text="${banner != null ? '수정 저장' : '등록'}"></button>
+                <a class="btn secondary" href="/admin-hoya/ad/banners">취소</a>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

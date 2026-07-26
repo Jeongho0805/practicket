@@ -40,13 +40,14 @@
         width: 120px;
         height: 50px;
     }
+    #logo-section .logo-link { gap: 10px; }
     #logo-img {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
     }
     #logo-title {
         margin: 0;
-        color: #514897;
+        color: #6F5F9E;  /* 로고 아이콘 본체 색과 동일 */
         font-size: 16px;
         font-family: my-font, sans-serif;
     }
@@ -187,6 +188,29 @@
         color: #6b5b9a;
         background: #f1eef9;
     }
+
+    /* 활성 메뉴 — 밑줄 언더라인 (진보라 bold + 그라데이션 밑줄) */
+    .nav-text.nav-current {
+        position: relative;
+        background: transparent;
+        color: #514897;
+        font-weight: 800;
+    }
+    .nav-text.nav-current::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 2px;
+        height: 3px;
+        border-radius: 3px;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        opacity: 0.45;
+    }
+    .nav-text.nav-current:hover {
+        background: transparent;
+        color: #514897;
+    }
 }
 
 @media (max-width: 768px) {
@@ -235,18 +259,20 @@
         align-items: center;
         flex-grow: 0.1;
         margin-right: 10px;
+        margin-left: 15px;   /* 카드·랭킹표 좌측 라인(20px)에 맞춤 */
     }
+    #logo-section .logo-link { gap: 6px; }
     #logo-img {
-        width: 40px;
-        height: 40px;
+        width: 28px;
+        height: 28px;
     }
     #logo-title {
         display: flex;
         justify-content: center;
         margin: 0;
-        color: #514897;
+        color: #6F5F9E;  /* 로고 아이콘 본체 색과 동일 */
         font-family: my-font, sans-serif;
-        font-size: 13px;
+        font-size: 15px;
     }
 
     /* 닉네임 chip (설정됨) */

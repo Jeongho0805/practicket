@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>관리자 로그인 · 프랙티켓</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(150deg, #322662, #574a99 60%, #8470b3);
+            font-family: 'Pretendard', -apple-system, sans-serif; }
+        .box { width: 340px; max-width: 92vw; background: #fff; border-radius: 20px; padding: 34px 30px;
+            box-shadow: 0 24px 60px rgba(20, 10, 50, .35); }
+        h1 { margin: 0 0 4px; font-size: 20px; color: #514897; }
+        p.sub { margin: 0 0 22px; font-size: 12.5px; color: #9a93b0; }
+        label { display: block; font-size: 12px; color: #6b6480; margin: 14px 0 5px; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 1.5px solid rgba(107, 91, 154, .25); border-radius: 10px;
+            font-size: 14px; background: #fbfaff; outline: none; }
+        input:focus { border-color: #8470b3; }
+        button { width: 100%; margin-top: 22px; padding: 13px; border: none; border-radius: 10px; cursor: pointer;
+            font-size: 15px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #8470b3, #6b5b9a); }
+        .err { margin-top: 16px; font-size: 12.5px; color: #c0392b; text-align: center; }
+        .hint { margin-top: 4px; font-size: 11px; color: #b4adc6; }
+    </style>
+</head>
+<body>
+    <form class="box" method="post" action="/admin-hoya/login">
+        <h1>관리자 로그인</h1>
+        <p class="sub">프랙티켓 광고 관리</p>
+
+        <label for="username">아이디</label>
+        <input id="username" name="username" type="text" autocomplete="username" required>
+
+        <label for="password">비밀번호</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <label for="code">인증 코드 (OTP 6자리)</label>
+        <input id="code" name="code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" required>
+        <div class="hint">OTP 앱의 6자리 코드</div>
+
+        <button type="submit">로그인</button>
+        <div class="err" th:if="${error}" th:text="${error}"></div>
+    </form>
+</body>
+</html>

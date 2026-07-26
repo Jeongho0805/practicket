@@ -43,7 +43,7 @@ public class ViewController {
 
     @GetMapping("/rank")
     public String RankPage(Model model) {
-        return "rank";
+        return "redirect:/ticketing";
     }
 
     @GetMapping("/reservation")

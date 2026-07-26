@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <title>슬롯 관리 - 프랙티켓 어드민</title>
+    <style>
+        :root { --brand: #514897; --brand-dark: #3c356f; --bg: #f6f5fb; --border: #e2e0ef; --text: #222; --muted: #777; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; background: var(--bg); color: var(--text); }
+        header { background: var(--brand); color: #fff; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+        header h1 { font-size: 18px; margin: 0; }
+        nav a { color: #fff; text-decoration: none; margin-left: 16px; font-size: 14px; opacity: .9; }
+        nav a.active, nav a:hover { opacity: 1; text-decoration: underline; }
+        main { max-width: 900px; margin: 24px auto; padding: 0 24px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; vertical-align: middle; }
+        th { background: #f0eef8; color: var(--brand-dark); font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+        .badge.on { background: #e6f6ec; color: #1e8449; }
+        .badge.off { background: #f5eaea; color: #c0392b; }
+        code { background: #f0eef8; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .actions form { display: flex; gap: 6px; align-items: center; }
+        .actions input[type=text] { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; width: 120px; }
+        .btn { display: inline-block; padding: 6px 12px; border-radius: 6px; border: none; background: var(--brand); color: #fff; font-size: 12px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: var(--brand-dark); }
+        .btn.secondary { background: #fff; color: var(--brand); border: 1px solid var(--brand); }
+        .empty { text-align: center; padding: 40px; color: var(--muted); }
+        .alert { background: #fdecea; color: #c0392b; padding: 10px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>프랙티켓 어드민 · 광고 관리</h1>
+    <nav>
+        <a href="/admin-hoya/ad/banners">배너</a>
+        <a class="active" href="/admin-hoya/ad/slots">슬롯</a>
+    </nav>
+</header>
+<main>
+    <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+    <h2 style="font-size:16px;">슬롯 목록</h2>
+    <p style="font-size:13px;color:var(--muted);">슬롯은 운영자가 미리 시드 등록한 인벤토리입니다. 신규 슬롯 추가는 DB 직접 작업이 필요합니다.</p>
+
+    <table>
+        <thead>
+        <tr>
+            <th>코드</th>
+            <th>이름</th>
+            <th>권장 사이즈</th>
+            <th>상태</th>
+            <th>관리</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="slot : ${slots}">
+            <td><code th:text="${slot.code}"></code></td>
+            <td th:text="${slot.name}"></td>
+            <td th:text="${slot.recommendedSize}"></td>
+            <td>
+                <span th:if="${slot.enabled}" class="badge on">사용중</span>
+                <span th:unless="${slot.enabled}" class="badge off">비활성</span>
+            </td>
+            <td class="actions">
+                <form th:action="@{'/admin-hoya/ad/slots/' + ${slot.id}}" method="post">
+                    <input type="text" name="recommendedSize" th:value="${slot.recommendedSize}" placeholder="예: 300x250"/>
+                    <button type="submit" class="btn secondary">저장</button>
+                </form>
+                <form th:action="@{'/admin-hoya/ad/slots/' + ${slot.id} + '/toggle'}" method="post">
+                    <button type="submit" class="btn" th:text="${slot.enabled ? '비활성화' : '활성화'}"></button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="empty" th:if="${#lists.isEmpty(slots)}">등록된 슬롯이 없습니다. 초기 시드가 필요합니다.</div>
+</main>
+</body>
+</html>
