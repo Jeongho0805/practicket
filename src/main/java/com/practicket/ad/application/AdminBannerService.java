@@ -29,12 +29,13 @@ public class AdminBannerService {
 
     @Transactional(readOnly = true)
     public List<Banner> getAllBanners() {
-        return bannerRepository.findAllByOrderByCreatedAtDesc();
+        return bannerRepository.findAllWithSlotOrderByCreatedAtDesc();
     }
 
     @Transactional(readOnly = true)
     public Banner getBanner(Long id) {
-        return findBannerOrThrow(id);
+        return bannerRepository.findWithSlotById(id)
+                .orElseThrow(() -> new AdException("존재하지 않는 배너입니다."));
     }
 
     @Transactional

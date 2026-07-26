@@ -10,9 +10,18 @@ import java.util.Optional;
 
 public interface BannerRepository extends JpaRepository<Banner, Long> {
 
-    Optional<Banner> findByReportToken(String reportToken);
+    @Query("SELECT b FROM Banner b JOIN FETCH b.slot WHERE b.reportToken = :reportToken")
+    Optional<Banner> findByReportToken(@Param("reportToken") String reportToken);
 
-    List<Banner> findAllByOrderByCreatedAtDesc();
+    /**
+     * 어드민 목록/수정 화면은 slot 정보까지 렌더하는데 open-in-view=false 라 뷰에서 프록시 초기화가 안 된다.
+     * 따라서 조회 시점에 slot을 함께 가져온다.
+     */
+    @Query("SELECT b FROM Banner b JOIN FETCH b.slot ORDER BY b.createdAt DESC")
+    List<Banner> findAllWithSlotOrderByCreatedAtDesc();
+
+    @Query("SELECT b FROM Banner b JOIN FETCH b.slot WHERE b.id = :id")
+    Optional<Banner> findWithSlotById(@Param("id") Long id);
 
     @Query("SELECT b FROM Banner b WHERE b.enabled = true AND b.slot.enabled = true " +
             "AND b.slot.code = :code AND b.startAt <= :today AND b.endAt >= :today")
