@@ -11,6 +11,83 @@ const submitBtn = document.getElementById("submit-btn");
 const titleCount = document.getElementById("title-count");
 const contentCount = document.getElementById("content-count");
 
+const tagBox = document.getElementById("tag-box");
+const tagInput = document.getElementById("tag-input");
+const tagSelected = document.getElementById("tag-selected");
+const tagCount = document.getElementById("tag-count");
+
+/** 서버 규칙(TagNormalizer)과 같은 모양으로 맞춘다. 여기서 안 맞추면 화면에 보이는 것과 저장된 것이 달라진다 */
+const MAX_TAGS = 3;
+const tags = [];
+
+function normalizeTag(raw) {
+    return raw.replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]/g, "").toLowerCase().slice(0, 12);
+}
+
+function renderTags() {
+    tagSelected.replaceChildren(...tags.map((tag) => {
+        const chip = document.createElement("span");
+        chip.className = "tag-selected-chip";
+        chip.textContent = `#${tag}`;
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "tag-remove";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `${tag} 태그 빼기`);
+        remove.addEventListener("click", () => {
+            tags.splice(tags.indexOf(tag), 1);
+            renderTags();
+        });
+
+        chip.appendChild(remove);
+        return chip;
+    }));
+
+    // 세 개를 채우면 입력칸을 숨긴다. 열어두고 넣을 때 튕기면 왜 안 되는지 알 수 없다
+    tagInput.hidden = tags.length >= MAX_TAGS;
+    tagCount.textContent = tags.length;
+}
+
+function addTag(raw) {
+    const tag = normalizeTag(raw);
+    if (!tag || tags.includes(tag) || tags.length >= MAX_TAGS) {
+        return;
+    }
+    tags.push(tag);
+    renderTags();
+}
+
+tagInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === ",") {
+        // Enter 로 폼이 제출되거나 쉼표가 그대로 남지 않게 막는다
+        event.preventDefault();
+        addTag(tagInput.value);
+        tagInput.value = "";
+        return;
+    }
+    if (event.key === "Backspace" && !tagInput.value && tags.length > 0) {
+        tags.pop();
+        renderTags();
+    }
+});
+
+// 입력칸 밖을 눌러도 치던 태그가 사라지지 않게 한 번 더 담는다
+tagInput.addEventListener("blur", () => {
+    addTag(tagInput.value);
+    tagInput.value = "";
+});
+
+tagBox.addEventListener("click", (event) => {
+    if (event.target === tagBox) {
+        tagInput.focus();
+    }
+});
+
+document.querySelectorAll(".tag-suggestion").forEach((chip) => {
+    chip.addEventListener("click", () => addTag(chip.dataset.tag));
+});
+
 function bindCounter(input, output) {
     const update = () => { output.textContent = input.value.length; };
     input.addEventListener("input", update);
@@ -44,6 +121,8 @@ async function loadPostForEdit() {
     contentInput.value = post.content;
     titleCount.textContent = post.title.length;
     contentCount.textContent = post.content.length;
+    tags.push(...(post.tags ?? []));
+    renderTags();
 }
 
 function validate() {
@@ -70,10 +149,11 @@ async function submit() {
     try {
         const url = isEdit ? `${HOST}/api/posts/${postId}` : `${HOST}/api/posts`;
         const body = isEdit
-            ? { title: titleInput.value, content: contentInput.value }
+            ? { title: titleInput.value, content: contentInput.value, tags }
             : {
                 title: titleInput.value,
                 content: contentInput.value,
+                tags,
                 delete_password: passwordInput.value,
             };
 
@@ -98,6 +178,7 @@ async function submit() {
     }
 }
 
+renderTags();
 submitBtn.addEventListener("click", submit);
 
 if (isEdit) {

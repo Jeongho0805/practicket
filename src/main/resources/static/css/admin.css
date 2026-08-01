@@ -255,6 +255,27 @@ tbody tr:last-child td { border-bottom: none; }
 
 .hide { display: none !important; }
 
+/* ── 페이지네이션(신고함·글댓글 관리) ── */
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 6px; }
+
+/* ── 인페이지 확인(armConfirm) ── */
+/* 삭제·밴 확인 상태. confirm()/alert() 대신 버튼을 두 번 눌러야 실제로 제출된다 */
+.btn.armed { background: var(--danger) !important; color: #fff !important; border-color: var(--danger) !important; }
+
+/* ── 밴 부여(신고함) ── */
+/* Q8 — 밴은 최후 수단이라 삭제·블라인드보다 눈에 덜 띄게 둔다 */
+.banrow { margin-top: 8px; display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+.banselect {
+    border: 1px solid var(--line); border-radius: 7px; padding: 4px 7px;
+    font-size: 11.5px; font-family: inherit; background: #fbfaff; color: var(--muted); outline: none;
+}
+.banlink {
+    border: none; background: none; color: var(--muted); font-size: 11px; font-family: inherit;
+    cursor: pointer; padding: 2px 4px; text-decoration: underline;
+}
+.banlink:hover { color: var(--danger); }
+.banlink.armed { color: var(--danger); font-weight: 700; text-decoration: none; }
+
 @media (max-width: 900px) {
     .app { grid-template-columns: 1fr; }
     .side {

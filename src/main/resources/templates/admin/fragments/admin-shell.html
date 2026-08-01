@@ -44,6 +44,19 @@
     </nav>
 
     <nav class="navgroup">
+        <div class="cap">커뮤니티 운영</div>
+        <a class="nav" th:classappend="${active == 'community-reports'} ? 'on'" href="/admin-hoya/community/reports">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86l-8.18 14.18A2 2 0 0 0 4 21h16a2 2 0 0 0 1.89-2.96L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            신고함
+            <span class="count" th:if="${navReportCount != null}" th:text="${navReportCount}">0</span>
+        </a>
+        <a class="nav" th:classappend="${active == 'community-posts'} ? 'on'" href="/admin-hoya/community/posts">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4V4z"/></svg>
+            글·댓글
+        </a>
+    </nav>
+
+    <nav class="navgroup">
         <div class="cap">사이트 운영</div>
         <a class="nav" th:classappend="${active == 'notice'} ? 'on'" href="/admin-hoya/notices">
             <svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z"/><path d="M8 9h8"/><path d="M8 12h5"/></svg>
@@ -78,6 +91,32 @@
         navigator.clipboard.writeText(url)
             .then(() => showToast('리포트 링크를 복사했습니다'))
             .catch(() => showToast('복사에 실패했습니다. 링크를 직접 선택해 복사해주세요.'));
+    }
+</script>
+
+<!--
+  삭제·밴처럼 되돌리기 어려운 동작의 확인 절차. alert()/confirm() 은 쓰지 않는다 —
+  화면 밖으로 나가는 네이티브 다이얼로그 대신, 버튼을 두 번 눌러야 실제로 제출되게 한다.
+  첫 클릭은 제출을 막고 라벨을 data-confirm-text 로 바꾼 뒤 3초 안에 다시 누르면 통과시킨다.
+-->
+<script th:fragment="confirmScript">
+    function armConfirm(button) {
+        if (button.dataset.armed === '1') {
+            return true;
+        }
+        if (!button.dataset.original) {
+            button.dataset.original = button.textContent;
+        }
+        button.dataset.armed = '1';
+        button.textContent = button.dataset.confirmText || '정말?';
+        button.classList.add('armed');
+        clearTimeout(button._resetTimer);
+        button._resetTimer = setTimeout(() => {
+            button.dataset.armed = '0';
+            button.textContent = button.dataset.original;
+            button.classList.remove('armed');
+        }, 3000);
+        return false;
     }
 </script>
 

@@ -3,7 +3,10 @@
       layout:decorate="~{layout/default}">
 <head>
     <meta name="title" th:content="${post.title} + ' - 프랙티켓 커뮤니티'" content="커뮤니티 - 프랙티켓">
-    <meta name="description" th:content="${#strings.abbreviate(post.content, 150)}" content="프랙티켓 커뮤니티">
+    <!-- 블라인드된 글은 검색 결과 미리보기에도 원문을 내보내지 않는다(Q7) -->
+    <meta name="description"
+          th:content="${post.blinded} ? '신고 누적으로 숨겨진 글입니다' : ${#strings.abbreviate(post.content, 150)}"
+          content="프랙티켓 커뮤니티">
     <meta name="robots" content="index, follow">
     <link rel="canonical" th:href="'https://practicket.com/community/' + ${post.id}">
     <title th:text="${post.title} + ' - 프랙티켓 커뮤니티'">커뮤니티 - 프랙티켓</title>
@@ -16,6 +19,13 @@
         <a href="/community" id="back-link">‹ 목록으로</a>
 
         <article id="post-card">
+            <!-- 태그 칩은 제목 위다. 이 글이 무엇에 대한 글인지 먼저 읽히게 한다 -->
+            <div id="post-tags" th:if="${!#lists.isEmpty(post.tags)}">
+                <a class="post-tag-chip" th:each="postTag : ${post.tags}"
+                   th:href="@{/community(tag=${postTag})}"
+                   th:text="'#' + ${postTag}">#태그</a>
+            </div>
+
             <h1 id="post-title" th:text="${post.title}">제목</h1>
 
             <div id="post-author-row">
@@ -29,29 +39,45 @@
                     <span id="post-sub-meta">
                         <span th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</span>
                         <span class="meta-dot">·</span>
-                        <span th:text="'조회 ' + ${post.viewCount}">조회 0</span>
+                        <!-- 조회수는 이 페이지를 그린 뒤 API 호출로 오른다. JS 가 새 값으로 갈아끼운다 -->
+                        <span id="view-count" th:text="'조회 ' + ${post.viewCount}">조회 0</span>
                         <!-- 수정 시각은 노출하지 않는다. 수정됐다는 사실만 알리면 된다 (Q4) -->
                         <span id="edited-mark" th:if="${post.edited}">(수정됨)</span>
                     </span>
                 </span>
+                <span class="actions-spacer"></span>
+                <!-- 본인 글이면 JS 가 숨긴다(resolveViewerState) -->
+                <button type="button" id="post-report-btn" class="mini-btn report-btn">신고</button>
             </div>
 
             <!-- 서버에서 escape 한 뒤 URL 만 링크로 바꾼 결과. PostContentRenderer 참고 -->
             <div id="post-content" th:utext="${renderedContent}">본문</div>
-        </article>
 
-        <!-- 작성자일 때만 JS 가 열어준다. 서버는 토큰을 모른다 -->
-        <div id="owner-actions" hidden>
-            <a id="edit-btn" th:href="@{'/community/edit/' + ${post.id}}">수정</a>
-            <button type="button" id="delete-btn">삭제</button>
-        </div>
+            <!-- 내가 눌렀는지는 서버가 모른다. 안 누른 모양으로 그리고 JS 가 채운다 -->
+            <div id="post-actions">
+                <button type="button" id="like-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 20.6S4.8 16 4.8 10.9A4.1 4.1 0 0112 8.2a4.1 4.1 0 017.2 2.7c0 5.1-7.2 9.7-7.2 9.7z"/>
+                    </svg>
+                    <span>추천</span>
+                    <span id="like-count" th:text="${post.likeCount}">0</span>
+                </button>
 
-        <!-- 토큰이 다른 사람(기기 변경 등)을 위한 비상 열쇠 -->
-        <div id="guest-actions">
-            <button type="button" id="password-delete-btn">비밀번호로 삭제</button>
-        </div>
+                <span class="actions-spacer"></span>
 
-        <div id="password-prompt" hidden>
+                <!-- 작성자일 때만 JS 가 열어준다 -->
+                <span id="owner-actions" hidden>
+                    <a id="edit-btn" class="mini-btn" th:href="@{'/community/edit/' + ${post.id}}">수정</a>
+                    <button type="button" id="delete-btn" class="mini-btn">삭제</button>
+                </span>
+
+                <!-- 토큰이 다른 사람(기기 변경 등)을 위한 비상 열쇠 -->
+                <span id="guest-actions">
+                    <button type="button" id="password-delete-btn" class="mini-btn">비밀번호로 삭제</button>
+                </span>
+            </div>
+
+            <div id="password-prompt" hidden>
             <label for="delete-password-input">삭제 비밀번호 네 자리</label>
             <div id="password-row">
                 <input type="password" id="delete-password-input" inputmode="numeric"
@@ -60,6 +86,63 @@
                 <button type="button" id="password-cancel-btn">취소</button>
             </div>
             <p id="password-hint">글을 쓸 때 입력한 네 자리입니다.</p>
+            </div>
+        </article>
+
+        <!-- 댓글도 서버가 그린다 — 크롤러가 댓글까지 봐야 색인 값어치가 생긴다 -->
+        <section id="comment-card">
+            <h2 id="comment-head">댓글 <span id="comment-count" th:text="${#lists.size(comments)}">0</span></h2>
+
+            <!-- 지우지 않고 숨긴다 — 없으면 JS 가 그때 새로 만들어야 한다 -->
+            <p id="comment-empty" th:hidden="${!#lists.isEmpty(comments)}">첫 댓글을 남겨보세요.</p>
+
+            <ul id="comment-list">
+                <li class="comment-item" th:each="comment : ${comments}" th:attr="data-comment-id=${comment.id}"
+                    th:classappend="${comment.blinded} ? 'blinded' : ''">
+                    <span class="comment-avatar" th:classappend="'av' + ${comment.avatarColor}"
+                          th:text="${#strings.substring(comment.nickname, 0, 1)}">익</span>
+                    <div class="comment-body">
+                        <div class="comment-meta">
+                            <span th:text="${comment.nickname}">익명</span>
+                            <span class="comment-ip" th:text="${comment.ip}">0.0</span>
+                            <span class="comment-time"
+                                  th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</span>
+                        </div>
+                        <!-- PostContentRenderer 가 escape 한 결과 -->
+                        <div class="comment-text" th:utext="${comment.renderedContent}">내용</div>
+                        <!-- 블라인드된 댓글엔 답글·신고를 걸지 않는다. 이미 가려진 댓글이라 할 게 없다 -->
+                        <div class="comment-tools" th:unless="${comment.blinded}">
+                            <button type="button" class="comment-reply">답글</button>
+                            <button type="button" class="comment-report">신고</button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- 입력칸과 버튼을 한 상자 안에 넣는다. 밖으로 빼면 글자 수 제한이 화면에 안 보인다 -->
+            <form id="comment-form">
+                <textarea id="comment-input" maxlength="1000"
+                          placeholder="댓글을 남겨보세요. 서로 예의는 지켜주세요."></textarea>
+                <div id="comment-form-foot">
+                    <span id="comment-hint">작성하면 IP 앞 두 마디가 함께 표시됩니다</span>
+                    <span id="comment-count-wrap"><span id="comment-length">0</span> / 1,000</span>
+                    <button type="submit" id="comment-submit">등록</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 공용 알럿은 확인 버튼 하나뿐이라 못 쓴다. 글·댓글 신고가 이 하나를 같이 쓴다 -->
+        <div id="report-modal" hidden>
+            <div id="report-modal-box">
+                <p id="report-modal-title">신고 사유를 선택해주세요</p>
+                <div id="report-reason-list">
+                    <button type="button" class="report-reason-btn" data-reason="AD">광고/도배</button>
+                    <button type="button" class="report-reason-btn" data-reason="ABUSE">욕설/비방</button>
+                    <button type="button" class="report-reason-btn" data-reason="PRIVACY">개인정보 노출</button>
+                    <button type="button" class="report-reason-btn" data-reason="ETC">기타</button>
+                </div>
+                <button type="button" id="report-modal-cancel">취소</button>
+            </div>
         </div>
 
     </div>

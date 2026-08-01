@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class PostCreateRequest {
 
@@ -16,7 +18,11 @@ public class PostCreateRequest {
     @Size(max = 5000, message = "내용은 5000자 이하로 입력해주세요.")
     private String content;
 
-    /** 기기를 바꿔 토큰이 사라졌을 때 쓰는 비상 열쇠. 네 자리 숫자만 받는다(Q5). */
+
+    /** 개수·글자수·허용문자는 TagNormalizer 가 맞추므로 여기서 막지 않는다 */
+    private List<String> tags;
+
+    /** 기기를 바꿔 토큰이 사라졌을 때 쓰는 비상 열쇠 */
     @NotBlank(message = "삭제 비밀번호를 입력해주세요.")
     @Pattern(regexp = "^\\d{4}$", message = "삭제 비밀번호는 숫자 네 자리로 입력해주세요.")
     private String deletePassword;

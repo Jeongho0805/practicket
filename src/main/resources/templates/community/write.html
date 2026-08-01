@@ -27,6 +27,26 @@
 
             <div class="field">
                 <div class="field-head">
+                    <label for="tag-input">태그</label>
+                    <!-- 제목·내용과 같은 모양으로 센다. 태그만 고정 문구면 몇 개 남았는지 모른다 -->
+                    <span class="counter"><span id="tag-count">0</span>/3</span>
+                </div>
+                <div id="tag-box">
+                    <span id="tag-selected"></span>
+                    <input type="text" id="tag-input" maxlength="12"
+                           placeholder="입력 후 Enter (예: 세븐틴)">
+                </div>
+                <div id="tag-suggestions" th:if="${!#lists.isEmpty(popularTags)}">
+                    <!-- 라벨이 없으면 이미 걸린 태그인지 눌러서 넣는 후보인지 헷갈린다 -->
+                    <span id="suggestion-label">추천</span>
+                    <button type="button" class="tag-suggestion" th:each="popularTag : ${popularTags}"
+                            th:attr="data-tag=${popularTag.tag}" th:text="'#' + ${popularTag.tag}">#꿀팁</button>
+                </div>
+                <p class="field-hint">한글·영문·숫자만 쓸 수 있고 12자까지입니다. 안 달아도 됩니다.</p>
+            </div>
+
+            <div class="field">
+                <div class="field-head">
                     <label for="content-input">내용</label>
                     <span class="counter"><span id="content-count">0</span>/5000</span>
                 </div>

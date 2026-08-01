@@ -159,62 +159,17 @@
     word-break: break-all;
 }
 
-/* ---------- 작업 버튼 ---------- */
-
-#owner-actions,
-#guest-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 14px;
-}
-
 #owner-actions[hidden],
 #guest-actions[hidden],
-#password-prompt[hidden] {
+#password-prompt[hidden],
+#post-report-btn[hidden] {
     display: none;
-}
-
-#edit-btn,
-#delete-btn,
-#password-delete-btn {
-    font-family: Pretendard, sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 8px 18px;
-    border-radius: 999px;
-    cursor: pointer;
-    text-decoration: none;
-    border: 1px solid var(--pk-purple-line);
-    background: #fff;
-    color: #5f5878;
-}
-
-#edit-btn:hover,
-#delete-btn:hover,
-#password-delete-btn:hover {
-    background: var(--pk-purple-pale);
-    border-color: var(--pk-purple-light);
-    color: var(--pk-purple-deep);
-}
-
-#delete-btn:hover {
-    background: #fdf1f4;
-    border-color: #e6b6c3;
-    color: #ac4a62;
-}
-
-#password-delete-btn {
-    font-size: 0.76rem;
-    padding: 7px 14px;
-    color: #a49dbb;
 }
 
 /* ---------- 비밀번호 입력 ---------- */
 
 #password-prompt {
-    margin-top: 14px;
+    margin-top: 12px;
     padding: 16px 18px;
     background: var(--pk-purple-pale);
     border: 1px solid var(--pk-purple-line);
@@ -286,4 +241,482 @@
     font-size: 0.72rem;
     color: var(--pk-ink-sub);
     margin: 10px 0 0;
+}
+
+/* ---------- 카드 안 액션 줄 (추천 · 수정 · 삭제) ---------- */
+
+#post-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid #f3f0fa;
+}
+
+.actions-spacer {
+    flex: 1;
+}
+
+/* 추천만 채워진 버튼이다. 읽는 사람 전부에게 필요한 행동이라 제일 눈에 띄어야 한다 */
+#like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    height: 42px;
+    padding: 0 20px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(107, 91, 154, 0.32);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+
+#like-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(107, 91, 154, 0.42);
+}
+
+/* 이미 추천한 상태. 채워진 하트에서 빈 하트로 바꿔 "누르면 취소"임을 알린다 */
+#like-btn.liked svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+}
+
+/* 본인 글. 스팸 자가 통과를 막느라 서버가 거부하므로 화면에서도 미리 잠근다 */
+#like-btn:disabled {
+    cursor: default;
+    opacity: 0.5;
+    box-shadow: none;
+}
+
+#like-btn svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+
+#like-count {
+    min-width: 1ch;
+}
+
+/* 수정·삭제는 작성자 한 명에게만 필요하다. 추천과 같은 크기면 중요도가 뒤집힌다 */
+.mini-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #8d85a3;
+    background: #fff;
+    border: 1px solid #eeeaf6;
+    border-radius: 10px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.mini-btn:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+#delete-btn:hover {
+    border-color: #e6b6c3;
+    color: #ac4a62;
+}
+
+/* 신고 버튼. 삭제와 같은 톤(빨강 계열)으로 호버해 "주의가 필요한 동작"임을 알린다 */
+#post-report-btn:hover {
+    border-color: #e6b6c3;
+    color: #ac4a62;
+}
+
+#post-report-btn:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+#post-report-btn:disabled:hover {
+    border-color: #eeeaf6;
+    color: #8d85a3;
+}
+
+#owner-actions,
+#guest-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ---------- 댓글 ---------- */
+
+#comment-card {
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    padding: 20px 22px;
+    margin-top: 16px;
+}
+
+#comment-head {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #5f5878;
+    margin: 0 0 4px;
+}
+
+#comment-head span {
+    color: var(--pk-purple-deep);
+}
+
+#comment-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.comment-item {
+    display: flex;
+    gap: 11px;
+    padding: 14px 0;
+}
+
+.comment-item + .comment-item {
+    border-top: 1px solid #f6f4fb;
+}
+
+/*
+  아바타 색을 닉네임에 따라 돌린다. 익명 게시판이라 프로필 사진이 없어서
+  전부 같은 색이면 누가 누구인지 구분이 안 된다.
+*/
+.comment-avatar {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comment-avatar.av1 { background: linear-gradient(135deg, #6b5b9a, #8470b3); }
+.comment-avatar.av2 { background: linear-gradient(135deg, #c98b8b, #dda6a0); }
+.comment-avatar.av3 { background: linear-gradient(135deg, #5f8fb0, #7fadc7); }
+.comment-avatar.av4 { background: linear-gradient(135deg, #6fa38a, #90bfa6); }
+.comment-avatar.av5 { background: linear-gradient(135deg, #a48bc0, #bda6d4); }
+
+/* 말풍선. 본문 카드와 같은 흰 바탕이면 어디까지가 댓글인지 흐릿하다 */
+.comment-body {
+    flex: 1;
+    min-width: 0;
+    background: #f8f7fc;
+    border-radius: 5px 15px 15px 15px;
+    padding: 11px 14px;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #453f56;
+}
+
+.comment-ip,
+.comment-time {
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #a49dbb;
+}
+
+.comment-text {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.86rem;
+    line-height: 1.75;
+    color: var(--pk-ink);
+    margin-top: 5px;
+    /* 본문과 같은 이유로 <br> 을 만들지 않는다 */
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.comment-text a {
+    color: var(--pk-purple-deep);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
+}
+
+/* 대댓글 대신 쓰는 인용 한 줄 (Q4-4) */
+.comment-quote {
+    display: block;
+    border-left: 2px solid var(--pk-purple-line);
+    padding-left: 8px;
+    color: #a49dbb;
+    font-size: 0.84rem;
+}
+
+.comment-tools {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.comment-tools button {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.74rem;
+    color: #a49dbb;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.comment-tools button:hover {
+    color: var(--pk-purple-deep);
+}
+
+.comment-tools button:disabled {
+    cursor: default;
+    opacity: 0.5;
+    color: #a49dbb;
+}
+
+.comment-delete:hover,
+.comment-report:hover {
+    color: #ac4a62;
+}
+
+/*
+  신고 누적으로 블라인드된 댓글(Q7). 점선 말풍선 + 기울임 안내 문구로 표시한다.
+  완전히 지우지 않는 이유는 신고 어뷰징으로 멀쩡한 댓글이 가려져도 자리가 남아 있어야
+  이상함을 알아챌 수 있어서다. 닉네임·IP·시각은 그대로 둔다 — 책임 소재는 남겨야 한다.
+*/
+.comment-item.blinded .comment-body {
+    background: #fbfafc;
+    border: 1px dashed #ebe7f3;
+}
+
+.comment-item.blinded .comment-text {
+    color: #c4bfd0;
+    font-style: italic;
+}
+
+#comment-empty {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.84rem;
+    color: var(--pk-ink-sub);
+    text-align: center;
+    padding: 22px 0;
+    margin: 0;
+}
+
+/* 입력칸과 버튼을 한 상자에 담는다. 밖으로 빼면 글자 수 제한이 화면에 안 보인다 */
+#comment-form {
+    margin-top: 14px;
+    border: 1.5px solid #eeeaf6;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #fff;
+}
+
+#comment-form:focus-within {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(107, 91, 154, 0.07);
+}
+
+#comment-input {
+    width: 100%;
+    height: 76px;
+    padding: 14px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--pk-ink);
+    background: transparent;
+    box-sizing: border-box;
+}
+
+#comment-form-foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 9px 8px 14px;
+    background: #fbfaff;
+    border-top: 1px solid #f2eff9;
+}
+
+#comment-hint {
+    flex: 1;
+    min-width: 0;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.7rem;
+    color: #bfb9cc;
+    margin: 0;
+}
+
+#comment-count-wrap {
+    flex: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.7rem;
+    color: #bfb9cc;
+}
+
+#comment-submit {
+    flex: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border: none;
+    border-radius: 999px;
+    padding: 8px 18px;
+    cursor: pointer;
+}
+
+#comment-submit:hover {
+    filter: brightness(1.07);
+}
+
+#comment-submit:disabled {
+    opacity: 0.5;
+    cursor: default;
+    filter: none;
+}
+
+@media (max-width: 768px) {
+    #comment-card {
+        padding: 18px 16px;
+    }
+}
+
+/* ---------- 태그 ---------- */
+
+#post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.post-tag-chip {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--pk-purple-deep);
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 4px 11px;
+    text-decoration: none;
+}
+
+.post-tag-chip:hover {
+    background: #fff;
+    border-color: var(--pk-purple-light);
+}
+
+/* ---------- 신고 사유 선택 ---------- */
+
+/*
+  공용 알럿(#pkt-alert-overlay)과 같은 오버레이 톤이지만 z-index 는 그보다 낮다 —
+  신고 실패 알럿이 이 위에 다시 뜰 수 있어야 한다(detail.js submitReport).
+*/
+#report-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 8, 30, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 400000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#report-modal:not([hidden]) {
+    display: flex;
+}
+
+#report-modal-box {
+    width: 100%;
+    max-width: 320px;
+    border-radius: 20px;
+    padding: 22px 20px 18px;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    box-shadow: 0 8px 32px rgba(107, 25, 107, 0.14);
+}
+
+#report-modal-title {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--pk-ink);
+    margin: 0 0 14px;
+    text-align: center;
+}
+
+#report-reason-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.report-reason-btn {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #5f5878;
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 12px;
+    padding: 11px 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.report-reason-btn:hover {
+    background: #fff;
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+#report-modal-cancel {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--pk-ink-sub);
+    background: none;
+    border: none;
+    padding: 8px 0 0;
+    cursor: pointer;
+}
+
+#report-modal-cancel:hover {
+    color: var(--pk-purple-deep);
 }

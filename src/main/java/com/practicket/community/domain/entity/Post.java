@@ -11,12 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 /**
- * 커뮤니티 글. 설계는 docs/community-system.md.
- *
- * 삭제는 행을 지우지 않고 deletedAt 에 시각을 남긴다(Q9).
- * 조회할 때 조건을 빠뜨리면 지운 글이 조용히 노출되므로,
- * 개별 쿼리에 맡기지 않고 {@link SQLRestriction} 으로 엔티티 한 곳에서 막는다.
- * 어드민이 지운 글을 봐야 할 때(9단계)는 이 제약을 우회하는 별도 조회를 만든다.
+ * 삭제는 행을 지우지 않고 deletedAt 만 남긴다. 조건을 빠뜨리면 지운 글이 노출되므로
+ * 개별 쿼리가 아니라 {@link SQLRestriction} 으로 한 곳에서 막는다.
  */
 @Getter
 @Entity
@@ -42,18 +38,15 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    /**
-     * 작성 시점의 닉네임. Client 를 조인하지 않는다 —
-     * 닉네임을 바꾸면 과거 글의 작성자가 전부 소급 변경되기 때문이다.
-     */
+    /** 작성 시점 스냅샷. Client 를 조인하면 닉네임을 바꿨을 때 과거 글까지 소급 변경된다 */
     @Column(nullable = false)
     private String nickname;
 
-    /** 작성 시점의 IP. 화면에는 앞 두 마디만 표시한다. */
+    /** 화면에는 앞 두 마디만 표시한다 */
     @Column(nullable = false)
     private String ip;
 
-    /** 네 자리 숫자의 bcrypt 해시. 평문은 저장하지 않는다. */
+    /** 네 자리 숫자의 bcrypt 해시 */
     @Column(nullable = false)
     private String deletePasswordHash;
 
@@ -77,7 +70,7 @@ public class Post {
     @Builder.Default
     private Boolean blinded = false;
 
-    /** 수정되면 true. 상세 화면에 (수정됨) 만 띄우고 수정 시각은 노출하지 않는다. */
+    /** 상세 화면에 (수정됨) 만 띄운다. 수정 시각은 노출하지 않는다 */
     @Column(nullable = false)
     @Builder.Default
     private Boolean edited = false;
@@ -104,5 +97,15 @@ public class Post {
 
     public boolean isWrittenBy(Long clientId) {
         return clientId != null && this.client.getId().equals(clientId);
+    }
+
+    /** 서로 다른 IP 3개가 신고하면 화면에서 숨긴다 */
+    public void blind() {
+        this.blinded = true;
+    }
+
+    /** 어드민 모더레이션이 오판을 되돌릴 때 쓴다 */
+    public void unblind() {
+        this.blinded = false;
     }
 }
