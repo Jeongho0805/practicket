@@ -71,10 +71,14 @@ public class CustomRequestLoggingFilter implements Filter {
         return request.getRemoteAddr();
     }
     
+    /**
+     * 마스킹을 자르기 <b>전에</b> 한다. 순서를 뒤집으면 1000자에서 잘린 비밀번호가
+     * 따옴표를 못 닫아 정규식에 걸리지 않고 앞부분이 그대로 로그에 남는다.
+     */
     private String getRequestBody(ContentCachingRequestWrapper request) {
         byte[] content = request.getContentAsByteArray();
         if (content.length > 0) {
-            String body = new String(content, StandardCharsets.UTF_8);
+            String body = SensitiveBodyMasker.mask(new String(content, StandardCharsets.UTF_8));
             return body.length() > 1000 ? body.substring(0, 1000) + "..." : body;
         }
         return null;
