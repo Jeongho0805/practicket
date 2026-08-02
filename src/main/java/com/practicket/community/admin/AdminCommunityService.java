@@ -6,6 +6,7 @@ import com.practicket.community.admin.dto.AdminCommentView;
 import com.practicket.community.admin.dto.AdminPostView;
 import com.practicket.community.admin.dto.BanDuration;
 import com.practicket.community.admin.dto.ReportedTargetRow;
+import com.practicket.community.admin.repository.AdminCommunityPurgeRepository;
 import com.practicket.community.admin.repository.AdminPostCommentQueryRepository;
 import com.practicket.community.admin.repository.AdminPostQueryRepository;
 import com.practicket.community.component.IpMasker;
@@ -18,6 +19,7 @@ import com.practicket.community.domain.repository.PostCommentRepository;
 import com.practicket.community.domain.repository.PostReportRepository;
 import com.practicket.community.domain.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ import java.util.Map;
  * 신고 대상은 이미 삭제됐을 수 있다 — {@code post_report} 는 FK 가 아니라 target_type+target_id 조합이라
  * 대상이 사라져도 정리되지 않는다. 그래서 조회는 어드민 전용 프로젝션으로, 상태 변경은 살아있는 것에만 한다.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -45,6 +48,7 @@ public class AdminCommunityService {
     private final PostReportRepository postReportRepository;
     private final AdminPostQueryRepository adminPostQueryRepository;
     private final AdminPostCommentQueryRepository adminPostCommentQueryRepository;
+    private final AdminCommunityPurgeRepository adminCommunityPurgeRepository;
     private final ClientRepository clientRepository;
 
     // ── 신고함 ──
@@ -128,6 +132,44 @@ public class AdminCommunityService {
 
     public void deleteComment(Long id) {
         comment(id).softDelete(LocalDateTime.now());
+    }
+
+    // ── 완전삭제 ──
+
+    /**
+     * 이미 삭제된 것만 파기한다. 살아있는 글을 한 번에 지우는 경로를 두지 않으려는 것이다.
+     * post_report 는 FK 가 아니라 target_type+target_id 조합이라 대상을 지워도 남으므로 함께 지운다.
+     */
+    public void purgePost(Long id) {
+        AdminPostView view = adminPostQueryRepository.findAdminViewById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 글입니다. id=" + id));
+        requireDeleted(view.getDeletedAt(), "글");
+
+        adminCommunityPurgeRepository.deleteCommentReportsOfPost(id);
+        adminCommunityPurgeRepository.deleteReports(ReportTargetType.POST.name(), id);
+        adminCommunityPurgeRepository.deleteLikesOfPost(id);
+        adminCommunityPurgeRepository.deleteTagsOfPost(id);
+        adminCommunityPurgeRepository.deleteCommentsOfPost(id);
+        adminCommunityPurgeRepository.deletePost(id);
+
+        log.info("[PURGE] 글 완전삭제 postId={} 작성일={}", id, view.getCreatedAt());
+    }
+
+    public void purgeComment(Long id) {
+        AdminCommentView view = adminPostCommentQueryRepository.findAdminViewById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다. id=" + id));
+        requireDeleted(view.getDeletedAt(), "댓글");
+
+        adminCommunityPurgeRepository.deleteReports(ReportTargetType.COMMENT.name(), id);
+        adminCommunityPurgeRepository.deleteComment(id);
+
+        log.info("[PURGE] 댓글 완전삭제 commentId={} postId={} 작성일={}", id, view.getPostId(), view.getCreatedAt());
+    }
+
+    private void requireDeleted(LocalDateTime deletedAt, String label) {
+        if (deletedAt == null) {
+            throw new IllegalArgumentException("삭제된 %s만 완전삭제할 수 있습니다. 먼저 삭제해 주세요.".formatted(label));
+        }
     }
 
     private Post post(Long id) {

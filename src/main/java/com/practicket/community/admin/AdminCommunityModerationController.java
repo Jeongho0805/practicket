@@ -42,6 +42,13 @@ public class AdminCommunityModerationController {
         return run(() -> adminCommunityService.deletePost(id), redirectTo, ra);
     }
 
+    /** 이미 삭제된 글만 통과한다 — 판단은 서비스가 한다 */
+    @PostMapping("/posts/{id}/purge")
+    public String purgePost(@PathVariable Long id, @RequestParam(required = false) String redirectTo,
+                             RedirectAttributes ra) {
+        return run(() -> adminCommunityService.purgePost(id), redirectTo, ra);
+    }
+
     @PostMapping("/comments/{id}/blind")
     public String blindComment(@PathVariable Long id, @RequestParam(required = false) String redirectTo,
                                 RedirectAttributes ra) {
@@ -58,6 +65,12 @@ public class AdminCommunityModerationController {
     public String deleteComment(@PathVariable Long id, @RequestParam(required = false) String redirectTo,
                                  RedirectAttributes ra) {
         return run(() -> adminCommunityService.deleteComment(id), redirectTo, ra);
+    }
+
+    @PostMapping("/comments/{id}/purge")
+    public String purgeComment(@PathVariable Long id, @RequestParam(required = false) String redirectTo,
+                                RedirectAttributes ra) {
+        return run(() -> adminCommunityService.purgeComment(id), redirectTo, ra);
     }
 
     @PostMapping("/clients/{id}/ban")

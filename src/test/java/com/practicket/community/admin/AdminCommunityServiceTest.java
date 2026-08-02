@@ -6,6 +6,7 @@ import com.practicket.community.admin.dto.AdminCommentView;
 import com.practicket.community.admin.dto.AdminPostView;
 import com.practicket.community.admin.dto.BanDuration;
 import com.practicket.community.admin.dto.ReportedTargetRow;
+import com.practicket.community.admin.repository.AdminCommunityPurgeRepository;
 import com.practicket.community.admin.repository.AdminPostCommentQueryRepository;
 import com.practicket.community.admin.repository.AdminPostQueryRepository;
 import com.practicket.community.domain.entity.Post;
@@ -39,6 +40,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * 어드민 커뮤니티 모더레이션 서비스 단위 테스트.
@@ -64,6 +66,8 @@ class AdminCommunityServiceTest {
     private AdminPostQueryRepository adminPostQueryRepository;
     @Mock
     private AdminPostCommentQueryRepository adminPostCommentQueryRepository;
+    @Mock
+    private AdminCommunityPurgeRepository adminCommunityPurgeRepository;
     @Mock
     private ClientRepository clientRepository;
 
@@ -206,6 +210,76 @@ class AdminCommunityServiceTest {
         adminCommunityService.deleteComment(COMMENT_ID);
 
         assertThat(comment.getDeletedAt()).isNotNull();
+    }
+
+    // ============ 완전삭제 ============
+
+    @Test
+    @DisplayName("purgePost는 삭제된 글의 연관 행까지 모두 지운다 — 신고는 FK가 없어 남으므로 함께 지운다.")
+    void purgePost() {
+        AdminPostView view = mock(AdminPostView.class);
+        given(view.getDeletedAt()).willReturn(LocalDateTime.of(2026, 8, 1, 12, 0));
+        given(adminPostQueryRepository.findAdminViewById(POST_ID)).willReturn(Optional.of(view));
+
+        adminCommunityService.purgePost(POST_ID);
+
+        verify(adminCommunityPurgeRepository).deleteCommentReportsOfPost(POST_ID);
+        verify(adminCommunityPurgeRepository).deleteReports(ReportTargetType.POST.name(), POST_ID);
+        verify(adminCommunityPurgeRepository).deleteLikesOfPost(POST_ID);
+        verify(adminCommunityPurgeRepository).deleteTagsOfPost(POST_ID);
+        verify(adminCommunityPurgeRepository).deleteCommentsOfPost(POST_ID);
+        verify(adminCommunityPurgeRepository).deletePost(POST_ID);
+    }
+
+    @Test
+    @DisplayName("살아있는 글은 완전삭제하지 않는다 — 삭제와 파기를 2단계로 나눈 이유다.")
+    void purgePost_rejectsAlivePost() {
+        AdminPostView view = mock(AdminPostView.class);
+        given(view.getDeletedAt()).willReturn(null);
+        given(adminPostQueryRepository.findAdminViewById(POST_ID)).willReturn(Optional.of(view));
+
+        assertThatThrownBy(() -> adminCommunityService.purgePost(POST_ID))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("삭제된 글만");
+
+        verifyNoInteractions(adminCommunityPurgeRepository);
+    }
+
+    @Test
+    @DisplayName("purgeComment는 댓글과 그 신고 기록만 지운다.")
+    void purgeComment() {
+        AdminCommentView view = mock(AdminCommentView.class);
+        given(view.getDeletedAt()).willReturn(LocalDateTime.of(2026, 8, 1, 12, 0));
+        given(adminPostCommentQueryRepository.findAdminViewById(COMMENT_ID)).willReturn(Optional.of(view));
+
+        adminCommunityService.purgeComment(COMMENT_ID);
+
+        verify(adminCommunityPurgeRepository).deleteReports(ReportTargetType.COMMENT.name(), COMMENT_ID);
+        verify(adminCommunityPurgeRepository).deleteComment(COMMENT_ID);
+    }
+
+    @Test
+    @DisplayName("살아있는 댓글도 완전삭제를 거부한다.")
+    void purgeComment_rejectsAliveComment() {
+        AdminCommentView view = mock(AdminCommentView.class);
+        given(view.getDeletedAt()).willReturn(null);
+        given(adminPostCommentQueryRepository.findAdminViewById(COMMENT_ID)).willReturn(Optional.of(view));
+
+        assertThatThrownBy(() -> adminCommunityService.purgeComment(COMMENT_ID))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("삭제된 댓글만");
+
+        verifyNoInteractions(adminCommunityPurgeRepository);
+    }
+
+    @Test
+    @DisplayName("없는 글은 완전삭제할 수 없다.")
+    void purgePost_missingPost() {
+        given(adminPostQueryRepository.findAdminViewById(POST_ID)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminCommunityService.purgePost(POST_ID))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("존재하지 않는 글");
     }
 
     // ============ 검색 ============

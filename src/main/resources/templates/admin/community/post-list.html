@@ -9,8 +9,8 @@
         <div class="topbar">
             <div>
                 <h1>글·댓글 관리</h1>
-                <p>제목·작성자(또는 댓글 내용·작성자)로 찾아 강제로 지웁니다. 삭제된 항목도 함께 보이지만
-                    다시 지울 수는 없습니다.</p>
+                <p>제목·작성자(또는 댓글 내용·작성자)로 찾아 강제로 지웁니다. 이미 삭제된 항목은
+                    <b>완전삭제</b>로 DB에서 실제로 지울 수 있습니다 — 복구 불가.</p>
             </div>
         </div>
 
@@ -63,6 +63,14 @@
                                             data-confirm-text="정말 삭제?" onclick="return armConfirm(this)">삭제</button>
                                 </form>
                             </div>
+                            <div class="rowact" th:if="${p.deletedAt != null}">
+                                <form th:action="@{'/admin-hoya/community/posts/' + ${p.id} + '/purge'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='POST', keyword=${keyword}, page=${posts.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="복구 불가! 다시 클릭" onclick="return armConfirm(this)">완전삭제</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     </tbody>
@@ -99,6 +107,14 @@
                                            th:value="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number})}"/>
                                     <button type="submit" class="btn danger sm"
                                             data-confirm-text="정말 삭제?" onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                            <div class="rowact" th:if="${c.deletedAt != null}">
+                                <form th:action="@{'/admin-hoya/community/comments/' + ${c.id} + '/purge'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="복구 불가! 다시 클릭" onclick="return armConfirm(this)">완전삭제</button>
                                 </form>
                             </div>
                         </td>
