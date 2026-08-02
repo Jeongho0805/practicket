@@ -2,6 +2,8 @@ package com.practicket.captcha.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -18,7 +20,17 @@ public class CaptchaResultStatistic {
 
     private float latestPercentile;
 
-    private float avgPercentile;
-
     private float bestResult;
+
+    private long myCount;
+
+    private long totalCount;
+
+    private CaptchaDistribution distribution;
+
+    private List<Float> recentResults;
+
+    private List<CaptchaRankRow> topRanking;
+
+    private long todayPeople;
 }
