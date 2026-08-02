@@ -51,8 +51,16 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20.5l1.45-5.35A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.2 11.5h.01M12 11.5h.01M15.8 11.5h.01"/></svg>
             <span class="chat-dot"></span>
         </button>
-        <button type="button" id="chat-hide" aria-label="채팅 버튼 숨기기">&times;</button>
-        <button type="button" id="chat-restore" aria-label="채팅 버튼 다시 보기" hidden></button>
+        <button type="button" id="chat-hide" aria-label="채팅 버튼 숨기기">
+            <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>
+        </button>
+        <button type="button" id="chat-restore" aria-label="채팅 버튼 다시 보기" title="채팅 다시 보기" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L3 20.5l1.45-5.35A8.5 8.5 0 1 1 21 11.5z"/></svg>
+        </button>
+        <div id="chat-toast" role="status" hidden>
+            <span>채팅 버튼을 숨겼어요</span>
+            <button type="button" id="chat-toast-undo">되돌리기</button>
+        </div>
     </div>
 
     <script> const HOST = "[[${host}]]"; </script>

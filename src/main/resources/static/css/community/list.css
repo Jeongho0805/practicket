@@ -142,6 +142,43 @@
     filter: brightness(1.07);
 }
 
+/* 좁은 화면에서는 헤더가 첫 화면의 절반을 먹어 글이 두 개도 안 보인다.
+   장식(부제)을 걷어내고 여백을 줄여 목록을 위로 끌어올린다 */
+@media (max-width: 768px) {
+    #community-hero {
+        padding: 12px 13px;
+        border-radius: 14px;
+    }
+
+    #hero-top {
+        margin-bottom: 10px;
+    }
+
+    #community-title {
+        font-size: 1.12rem;
+    }
+
+    #community-subtitle {
+        display: none;
+    }
+
+    #write-btn {
+        padding: 7px 15px;
+        font-size: 0.8rem;
+    }
+
+    #community-search {
+        height: 40px;
+        border-radius: 11px;
+        margin-bottom: 10px;
+    }
+
+    #search-btn {
+        height: 30px;
+        padding: 0 14px;
+    }
+}
+
 /* ---------- 툴바 ---------- */
 
 #community-toolbar {
@@ -159,6 +196,11 @@
     font-size: 0.82rem;
     color: var(--pk-ink-sub);
     margin: 0;
+}
+
+/* 검색어와 태그가 같이 걸렸을 때만 가운뎃점이 필요하다 */
+#post-total span + span::before {
+    content: "· ";
 }
 
 #write-btn {
@@ -506,19 +548,31 @@
 }
 
 @media (max-width: 768px) {
-    /* 정렬 칩 4개 + "내가 쓴 글" 이 한 줄에 다 안 들어가면 툴바를 두 줄로 접는다 */
+    /* 두 줄로 접으면 목록이 그만큼 밀린다. 인기 태그와 같이 가로 스크롤로 한 줄에 둔다 */
     #community-toolbar {
-        flex-wrap: wrap;
-        row-gap: 10px;
+        flex-wrap: nowrap;
+        margin: 12px 0 6px;
+        padding-bottom: 8px;
     }
 
-    #post-total {
-        flex: 1 1 100%;
-    }
-
+    /* flex-end 로 두면 넘칠 때 맨 앞(보통 선택된 "최신순")이 왼쪽으로 잘려 안 보인다 */
     .toolbar-actions {
-        flex: 1 1 100%;
-        justify-content: flex-end;
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .toolbar-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 360px 에서 딱 10px 이 모자라 "내가 쓴 글" 이 잘린다. 칩당 4px 씩 걷어 다섯 개를 한 줄에 넣는다 */
+    .sort-chip,
+    #mine-link {
+        padding-left: 11px;
+        padding-right: 11px;
     }
 }
 

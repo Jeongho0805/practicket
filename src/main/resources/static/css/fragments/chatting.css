@@ -370,16 +370,19 @@
 }
 #chat-launcher:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 14px 34px rgba(80, 60, 120, .52); }
 #chat-launcher svg { width: 26px; height: 26px; }
-#chat-launcher .chat-dot { position: absolute; top: 9px; right: 10px; width: 11px; height: 11px; border-radius: 50%;
+#chat-launcher .chat-dot { position: absolute; bottom: 3px; right: 3px; width: 11px; height: 11px; border-radius: 50%;
     background: #57e08a; border: 2.5px solid #fff; }
 #chat-widget.open #chat-launcher { display: none; } /* 패널 열리면 런처 숨김(닫기 X로 닫음) */
 
 #chat-hide {
-    position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%;
-    border: 1px solid #e2dcf2; background: #fff; color: #7b7490; cursor: pointer;
-    font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 10px rgba(80, 60, 120, .25); padding: 0;
+    position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; border-radius: 50%;
+    border: none; background: #efeaf8; color: #6b5b9a; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 2px #fff; transition: background .15s, color .15s;
 }
+
+#chat-hide svg { width: 9px; height: 9px; }
+#chat-hide:hover { background: #6b5b9a; color: #fff; }
 
 #chat-widget.open #chat-hide { display: none; }
 
@@ -387,13 +390,36 @@
 #chat-widget.hidden #chat-hide,
 #chat-widget.hidden #chat-panel { display: none; }
 
-/* 접힌 상태에서 되돌릴 손잡이 */
+/* 접힌 상태에서 되돌릴 손잡이. 무채색 점이면 정체를 알 수 없어 같은 채팅 아이콘을 흐리게 남긴다 */
 #chat-restore {
-    width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
-    background: rgba(107, 91, 154, .32);
+    width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(107, 91, 154, .10); color: rgba(107, 91, 154, .55);
+    box-shadow: 0 0 0 1px rgba(107, 91, 154, .10);
+    transition: background .16s, color .16s, transform .16s;
 }
 
-#chat-restore:hover { background: rgba(107, 91, 154, .6); }
+#chat-restore[hidden] { display: none; }
+#chat-restore svg { width: 15px; height: 15px; }
+#chat-restore:hover { background: rgba(107, 91, 154, .9); color: #fff; transform: scale(1.08); }
+
+/* 손잡이만으로는 못 찾는다. 접는 순간에 되돌릴 길을 알려준다 */
+#chat-toast {
+    position: absolute; right: 0; bottom: 40px; white-space: nowrap;
+    display: flex; align-items: center; gap: 10px;
+    background: #302a45; color: #fff; border-radius: 12px; padding: 10px 12px;
+    font-size: 12px; box-shadow: 0 10px 26px rgba(30, 20, 60, .35);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .22s, transform .22s;
+}
+
+#chat-toast[hidden] { display: none; }
+#chat-toast.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+#chat-toast-undo {
+    background: none; border: none; color: #c9b8ff; font-weight: 700;
+    font-size: 12px; cursor: pointer; padding: 2px 4px; font-family: inherit;
+}
 
 #chat-panel {
     position: fixed; right: calc(25vw + 20px); bottom: 84px; width: 360px; height: 520px;

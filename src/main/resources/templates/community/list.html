@@ -58,11 +58,11 @@
         </div>
 
         <div id="community-toolbar">
-            <p id="post-total">
-                전체 <span th:text="${posts.totalElements}">0</span>개
+            <!-- 전체 글 수는 목록을 보는 데 쓰이지 않아 뺐다. 지금 무엇으로 걸러졌는지만 남긴다 -->
+            <p id="post-total" th:if="${(keyword != null and !keyword.isBlank()) or (tag != null and !tag.isEmpty())}">
                 <span th:if="${keyword != null and !keyword.isBlank()}"
-                      th:text="'· &quot;' + ${keyword} + '&quot; 검색 결과'"></span>
-                <span th:if="${tag != null and !tag.isEmpty()}" th:text="'· #' + ${tag}"></span>
+                      th:text="'&quot;' + ${keyword} + '&quot; 검색 결과'"></span>
+                <span th:if="${tag != null and !tag.isEmpty()}" th:text="'#' + ${tag}"></span>
             </p>
             <div class="toolbar-actions">
                 <!-- 드롭다운이 아니라 링크 칩인 이유: JS 로 만들면 크롤러가 정렬 링크를 못 따라간다 -->

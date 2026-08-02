@@ -338,7 +338,18 @@ const CHAT_HIDDEN_KEY = "pk_chat_hidden";
 function setupChatVisibility(widget) {
     const hideBtn = document.getElementById("chat-hide");
     const restoreBtn = document.getElementById("chat-restore");
+    const toast = document.getElementById("chat-toast");
+    const undoBtn = document.getElementById("chat-toast-undo");
     if (!hideBtn || !restoreBtn) return;
+
+    let toastTimer;
+    const showToast = () => {
+        if (!toast) return;
+        toast.hidden = false;
+        requestAnimationFrame(() => toast.classList.add("on"));
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("on"), 3000);
+    };
 
     const apply = hidden => {
         widget.classList.toggle("hidden", hidden);
@@ -346,14 +357,20 @@ function setupChatVisibility(widget) {
         if (hidden) widget.classList.remove("open");
     };
 
+    const restore = () => {
+        localStorage.removeItem(CHAT_HIDDEN_KEY);
+        apply(false);
+        clearTimeout(toastTimer);
+        if (toast) toast.classList.remove("on");
+    };
+
     hideBtn.addEventListener("click", () => {
         localStorage.setItem(CHAT_HIDDEN_KEY, "1");
         apply(true);
+        showToast();
     });
-    restoreBtn.addEventListener("click", () => {
-        localStorage.removeItem(CHAT_HIDDEN_KEY);
-        apply(false);
-    });
+    restoreBtn.addEventListener("click", restore);
+    if (undoBtn) undoBtn.addEventListener("click", restore);
 
     apply(localStorage.getItem(CHAT_HIDDEN_KEY) === "1");
 }
