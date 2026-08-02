@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="내가 쓴 글 - 프랙티켓 커뮤니티">
+    <meta name="description" content="이 브라우저에서 쓴 커뮤니티 글 목록입니다.">
+    <!-- 개인 화면이라 색인 대상이 아니다. 크롤러에게는 어차피 아무것도 안 보인다(토큰이 없으니) -->
+    <meta name="robots" content="noindex, nofollow">
+    <title>내가 쓴 글 - 프랙티켓 커뮤니티</title>
+    <link rel="stylesheet" href="/css/community/list.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="community-section">
+
+        <a href="/community" id="back-link">‹ 커뮤니티</a>
+
+        <!-- 안내 문구는 빼지 않는다 — 없으면 기기를 바꿨을 때 글이 삭제된 줄 안다 -->
+        <h1 id="mine-title">내가 쓴 글</h1>
+        <p id="mine-note">이 브라우저에서 쓴 글만 보입니다. 기기를 바꾸거나 저장된 정보를 지우면 목록이 비어 보입니다.</p>
+
+        <div id="community-toolbar">
+            <p id="post-total">내가 쓴 글 <span id="mine-total">0</span>개</p>
+            <a href="/community/write" id="write-btn">글쓰기</a>
+        </div>
+
+        <!-- 목록은 전부 JS 가 그린다. 서버는 이 페이지를 그릴 때 토큰을 모른다 -->
+        <div id="mine-loading">
+            <div class="skeleton-row" th:each="i : ${#numbers.sequence(1, 3)}">
+                <span class="sk sk-badge"></span>
+                <span class="sk-lines">
+                    <span class="sk sk-line"></span>
+                    <span class="sk sk-line short"></span>
+                </span>
+            </div>
+        </div>
+
+        <div id="post-empty" hidden>
+            <p>아직 이 브라우저로 쓴 글이 없습니다.</p>
+        </div>
+
+        <ul id="post-list" hidden></ul>
+
+        <!-- 목록 화면과 같은 숫자 페이지. 두 화면의 방식이 다르면 그것부터 눈에 걸린다 -->
+        <nav id="pagination" hidden></nav>
+
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script type="module" src="/js/community/mine.js"></script>
+</th:block>
+</body>
+</html>

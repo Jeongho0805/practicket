@@ -1,6 +1,6 @@
 import { authFetch, showAlert } from '/js/common.js';
 
-const RANKING_TYPE = 'I_TICKET_OLD';
+const RANKING_TYPE = 'I_TICKET_OLD';   // 기본 노출 종목
 
 // ── 전체 랭킹 상태 ──
 const rankingState = {
@@ -40,6 +40,21 @@ async function goToITicket(event) {
     window.location.href = '/practice/i-ticket/intro';
 }
 
+async function goToITicketNew(event) {
+    event.preventDefault();
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임을 설정해주세요', msg: '랭킹 기록을 남기려면 닉네임이 필요합니다.\n우측 상단에서 닉네임 설정 후 다시 시도해주세요.' });
+            return;
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
+    }
+    window.location.href = '/practice/i-ticket-new/intro';
+}
+
 // ── 탭 전환 ──
 function switchMainTab(target, btn) {
     document.querySelectorAll('.view-mode-tab').forEach(t => t.classList.remove('active'));
@@ -47,6 +62,22 @@ function switchMainTab(target, btn) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + target).classList.add('active');
     if (target === 'myrecord') loadMyPanel();
+}
+
+// ── 종목(연습 타입) 전환 ──
+// 전체 랭킹·내 기록 패널이 각자 agency-tabs 를 갖고 있어, 눌린 버튼이 속한 패널만 갱신한다.
+function selectAgency(btn, type) {
+    const tabs = btn.closest('.agency-tabs');
+    tabs.querySelectorAll('.agency-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (btn.closest('#panel-ranking')) {
+        rankingState.type = type;
+        loadRanking(true);
+    } else {
+        myState.type = type;
+        loadMyPanel();
+    }
 }
 
 function selectPeriod(btn) {
@@ -339,7 +370,9 @@ function formatDate(isoString) {
 
 // ── 전역 노출 (onclick 속성용) ──
 window.goToITicket = goToITicket;
+window.goToITicketNew = goToITicketNew;
 window.switchMainTab = switchMainTab;
+window.selectAgency = selectAgency;
 window.selectPeriod = selectPeriod;
 window.loadRanking = loadRanking;
 window.loadMyRecords = loadMyRecords;

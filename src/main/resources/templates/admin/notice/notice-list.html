@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('공지 관리')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('notice')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>공지 관리</h1>
+                <p>홈 상단과 /notice 목록에 노출되는 공지·업데이트를 관리합니다.</p>
+            </div>
+            <a class="btn" href="/admin-hoya/notices/new">+ 새 공지 등록</a>
+        </div>
+
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <div class="card">
+            <header>
+                <div class="seg" id="filters">
+                    <button type="button" class="on" data-filter="all"
+                            th:text="'전체 ' + ${#lists.size(notices)}">전체 0</button>
+                    <button type="button" data-filter="published"
+                            th:text="'공개 ' + ${#lists.size(notices.?[published])}">공개 0</button>
+                    <button type="button" data-filter="hidden"
+                            th:text="'비공개 ' + ${#lists.size(notices.?[!published])}">비공개 0</button>
+                </div>
+                <div class="tools">
+                    <div class="search">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input type="text" id="q" placeholder="제목 검색" autocomplete="off">
+                    </div>
+                </div>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(notices)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>제목</th>
+                        <th>종류</th>
+                        <th>등록일</th>
+                        <th>상태</th>
+                        <th class="r">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody id="rows">
+                    <tr th:each="n : ${notices}"
+                        th:attr="data-status=${n.published} ? 'published' : 'hidden',
+                                 data-search=${#strings.toLowerCase(n.title)}">
+                        <td>
+                            <div class="cellname">
+                                <div>
+                                    <b th:text="${n.title}">제목</b>
+                                    <span class="note" th:if="${n.pinned}">📌 상단 고정</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${n.type.label}">공지</td>
+                        <td th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd')}">2026.06.30</td>
+                        <td>
+                            <span class="pill" th:classappend="${n.published} ? 'live' : 'off'">
+                                <i></i><span th:text="${n.published} ? '공개' : '비공개'">공개</span>
+                            </span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact">
+                                <a class="btn ghost sm" th:href="@{'/notice/' + ${n.id}}" target="_blank"
+                                   th:if="${n.published}">보기</a>
+                                <a class="btn ghost sm" th:href="@{'/admin-hoya/notices/' + ${n.id} + '/edit'}">수정</a>
+                                <form th:action="@{'/admin-hoya/notices/' + ${n.id} + '/toggle'}" method="post">
+                                    <button type="submit" class="btn ghost sm"
+                                            th:text="${n.published} ? '숨기기' : '공개'">숨기기</button>
+                                </form>
+                                <form th:action="@{'/admin-hoya/notices/' + ${n.id} + '/delete'}" method="post"
+                                      onsubmit="return confirm('정말 삭제하시겠습니까? 되돌릴 수 없습니다.');">
+                                    <button type="submit" class="btn danger sm">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" id="noresult" style="display:none">조건에 맞는 공지가 없습니다.</div>
+            <div class="empty" th:if="${#lists.isEmpty(notices)}">
+                등록된 공지가 없습니다. <a href="/admin-hoya/notices/new">첫 공지를 등록</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    // 공지 수가 적어 서버 왕복 없이 화면에서 거른다 (배너 목록과 같은 방식).
+    (function () {
+        const tbody = document.getElementById('rows');
+        if (!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const noresult = document.getElementById('noresult');
+        const q = document.getElementById('q');
+        let filter = 'all';
+
+        function apply() {
+            const keyword = (q.value || '').trim().toLowerCase();
+            let shown = 0;
+            rows.forEach(tr => {
+                const okStatus = filter === 'all' || tr.dataset.status === filter;
+                const okSearch = !keyword || (tr.dataset.search || '').includes(keyword);
+                const show = okStatus && okSearch;
+                tr.style.display = show ? '' : 'none';
+                if (show) shown++;
+            });
+            noresult.style.display = shown === 0 ? '' : 'none';
+        }
+
+        document.querySelectorAll('#filters button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#filters button').forEach(b => b.classList.remove('on'));
+                btn.classList.add('on');
+                filter = btn.dataset.filter;
+                apply();
+            });
+        });
+        q.addEventListener('input', apply);
+    })();
+</script>
+</body>
+</html>

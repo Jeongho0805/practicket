@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('신고함')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('community-reports')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>신고함</h1>
+                <p>신고가 1건이라도 들어온 글·댓글이 누적 순으로 뜹니다. 서로 다른 IP 3곳에서 신고하면 자동으로
+                    블라인드되지만, 그건 보험일 뿐이고 실제 판단은 이 화면이 합니다.</p>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <div class="card">
+            <div class="tablewrap" th:if="${not reports.empty}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>종류</th>
+                        <th>내용</th>
+                        <th class="r">신고</th>
+                        <th>사유 분포</th>
+                        <th>마지막 신고</th>
+                        <th>상태</th>
+                        <th class="r">처리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${reports.content}">
+                        <td>
+                            <span class="pill" th:classappend="${row.targetType.name() == 'POST'} ? 'wait' : 'off'">
+                                <i></i><span th:text="${row.targetLabel}">글</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="cellname">
+                                <div>
+                                    <b th:text="${row.preview}">제목 또는 댓글 내용 앞부분</b>
+                                    <em th:text="${row.nickname} + ' ' + ${row.maskedIp}">티켓요정 118.235</em>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="r"><b th:text="${row.reportCount}">1</b></td>
+                        <td>
+                            <span class="note" th:each="entry : ${row.reasonCounts}"
+                                  th:text="${entry.key.label} + ' ' + ${entry.value} + '  '">광고/도배 1</span>
+                        </td>
+                        <td th:text="${#temporals.format(row.lastReportedAt, 'yyyy.MM.dd HH:mm')}">2026.07.26 10:00</td>
+                        <td>
+                            <span th:if="${row.deleted}" class="pill off"><i></i><span>삭제됨</span></span>
+                            <span th:if="${!row.deleted and row.blinded}" class="pill wait"><i></i><span>블라인드</span></span>
+                            <span th:if="${!row.deleted and !row.blinded}" class="pill live"><i></i><span>노출중</span></span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact" th:if="${!row.deleted}">
+                                <form th:if="${!row.blinded}"
+                                      th:action="@{'/admin-hoya/community/' + ${row.actionSegment} + '/' + ${row.targetId} + '/blind'}"
+                                      method="post">
+                                    <input type="hidden" name="redirectTo" th:value="@{/admin-hoya/community/reports(page=${reports.number})}"/>
+                                    <button type="submit" class="btn ghost sm">블라인드</button>
+                                </form>
+                                <form th:if="${row.blinded}"
+                                      th:action="@{'/admin-hoya/community/' + ${row.actionSegment} + '/' + ${row.targetId} + '/unblind'}"
+                                      method="post">
+                                    <input type="hidden" name="redirectTo" th:value="@{/admin-hoya/community/reports(page=${reports.number})}"/>
+                                    <button type="submit" class="btn ghost sm">블라인드 해제</button>
+                                </form>
+                                <form th:action="@{'/admin-hoya/community/' + ${row.actionSegment} + '/' + ${row.targetId} + '/delete'}"
+                                      method="post">
+                                    <input type="hidden" name="redirectTo" th:value="@{/admin-hoya/community/reports(page=${reports.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="정말 삭제?" onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                            <div class="banrow" th:if="${row.clientId != null}">
+                                <form th:action="@{'/admin-hoya/community/clients/' + ${row.clientId} + '/ban'}" method="post">
+                                    <input type="hidden" name="redirectTo" th:value="@{/admin-hoya/community/reports(page=${reports.number})}"/>
+                                    <select name="duration" class="banselect">
+                                        <option th:each="d : ${durations}" th:value="${d}" th:text="${d.label}"></option>
+                                    </select>
+                                    <button type="submit" class="banlink"
+                                            data-confirm-text="정말 밴?" onclick="return armConfirm(this)">작성자 밴</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" th:if="${reports.empty}">들어온 신고가 없습니다.</div>
+        </div>
+
+        <div class="pager" th:if="${reports.totalPages > 1}">
+            <a class="btn ghost sm" th:if="${reports.hasPrevious()}"
+               th:href="@{/admin-hoya/community/reports(page=${reports.number - 1})}">이전</a>
+            <span class="note" th:text="${(reports.number + 1)} + ' / ' + ${reports.totalPages}">1 / 1</span>
+            <a class="btn ghost sm" th:if="${reports.hasNext()}"
+               th:href="@{/admin-hoya/community/reports(page=${reports.number + 1})}">다음</a>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
+</body>
+</html>

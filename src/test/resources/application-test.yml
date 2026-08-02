@@ -8,11 +8,20 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
+  # 테스트는 H2 + create-drop 으로 스키마를 만든다.
+  # 마이그레이션 SQL 은 MySQL 문법이라 H2 에서 돌리면 깨진다.
+  flyway:
+    enabled: false
   h2:
     console:
       enabled: false
   jackson:
     property-naming-strategy: SNAKE_CASE
+  # host 가 있어야 스프링이 JavaMailSender 빈을 만든다. InquiryMailSender 가 그 빈을 요구해
+  # 없으면 빈 하나 때문에 컨텍스트 전체가 못 뜬다. 테스트에서 실제로 발송하지는 않는다.
+  mail:
+    host: localhost
+    port: 3025
   task:
     execution:
       shutdown:
@@ -22,3 +31,13 @@ spring:
 
 app:
   host: "http://localhost:8080"
+  secret:
+    # 테스트 전용 더미 값. TicketTokenManager·AdvertiserReportToken이 이 속성을 요구해
+    # 없으면 전체 컨텍스트(@SpringBootTest)가 뜨지 않는다. 실제 시크릿과 무관하다.
+    ticket-token: "test-only-dummy-secret-not-a-real-key"
+
+api:
+  profanity:
+    # ProfanityApiClient 생성자가 @Value 로 이 값을 요구한다. 위 ticket-token 과 같은 이유로
+    # 없으면 빈 하나 때문에 컨텍스트 전체가 못 뜬다. 테스트에서 실제로 호출하지는 않는다.
+    url: "http://localhost:0"

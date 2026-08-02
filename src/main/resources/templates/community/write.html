@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="글쓰기 - 프랙티켓 커뮤니티">
+    <meta name="description" content="프랙티켓 커뮤니티에 글을 남깁니다.">
+    <!-- 입력 폼은 색인 대상이 아니다 -->
+    <meta name="robots" content="noindex, nofollow">
+    <title th:text="${isEdit} ? '글 수정 - 프랙티켓 커뮤니티' : '글쓰기 - 프랙티켓 커뮤니티'">글쓰기 - 프랙티켓 커뮤니티</title>
+    <link rel="stylesheet" href="/css/community/write.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="community-section"
+         th:attr="data-is-edit=${isEdit}, data-post-id=${postId}">
+
+        <h1 id="write-title" th:text="${isEdit} ? '글 수정' : '글쓰기'">글쓰기</h1>
+
+        <div id="write-card">
+            <div class="field">
+                <div class="field-head">
+                    <label for="title-input">제목</label>
+                    <span class="counter"><span id="title-count">0</span>/50</span>
+                </div>
+                <input type="text" id="title-input" maxlength="50" placeholder="제목을 입력해주세요">
+            </div>
+
+            <div class="field">
+                <div class="field-head">
+                    <label for="tag-input">태그</label>
+                    <!-- 제목·내용과 같은 모양으로 센다. 태그만 고정 문구면 몇 개 남았는지 모른다 -->
+                    <span class="counter"><span id="tag-count">0</span>/3</span>
+                </div>
+                <div id="tag-box">
+                    <span id="tag-selected"></span>
+                    <input type="text" id="tag-input" maxlength="12"
+                           placeholder="입력 후 Enter (예: 세븐틴)">
+                </div>
+                <div id="tag-suggestions" th:if="${!#lists.isEmpty(popularTags)}">
+                    <!-- 라벨이 없으면 이미 걸린 태그인지 눌러서 넣는 후보인지 헷갈린다 -->
+                    <span id="suggestion-label">추천</span>
+                    <button type="button" class="tag-suggestion" th:each="popularTag : ${popularTags}"
+                            th:attr="data-tag=${popularTag.tag}" th:text="'#' + ${popularTag.tag}">#꿀팁</button>
+                </div>
+                <p class="field-hint">한글·영문·숫자만 쓸 수 있고 12자까지입니다. 안 달아도 됩니다.</p>
+            </div>
+
+            <div class="field">
+                <div class="field-head">
+                    <label for="content-input">내용</label>
+                    <span class="counter"><span id="content-count">0</span>/5000</span>
+                </div>
+                <textarea id="content-input" maxlength="5000"
+                          placeholder="티켓팅 팁, 후기, 궁금한 점을 남겨보세요"></textarea>
+            </div>
+
+            <!-- 수정할 때는 비밀번호를 다시 받지 않는다. 이미 저장돼 있고, 수정은 토큰으로만 된다 -->
+            <div class="field" id="password-field" th:if="${!isEdit}">
+                <div class="field-head">
+                    <label for="password-input">삭제 비밀번호</label>
+                </div>
+                <input type="password" id="password-input" inputmode="numeric"
+                       maxlength="4" placeholder="0000" autocomplete="off">
+                <p class="field-hint">숫자 네 자리. 기기를 바꿔 로그인 정보가 사라졌을 때 글을 지우는 데 씁니다.</p>
+            </div>
+
+            <p id="write-notice">
+                작성하면 <b>닉네임과 IP 앞 두 마디</b>가 함께 표시됩니다.
+                광고·욕설·개인정보가 포함된 글은 신고 누적 시 가려지며, 반복되면 작성이 제한됩니다.
+            </p>
+
+            <div id="write-actions">
+                <a href="/community" id="cancel-btn">취소</a>
+                <button type="button" id="submit-btn" th:text="${isEdit} ? '수정하기' : '등록하기'">등록하기</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script type="module" src="/js/community/write.js"></script>
+</th:block>
+</body>
+</html>

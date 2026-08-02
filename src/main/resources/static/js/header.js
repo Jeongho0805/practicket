@@ -5,7 +5,6 @@ let editingFromUnset = false;
 
 const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
-    rank: document.getElementById("rank-page-btn"),
     practice: document.getElementById("practice-page-btn"),
     security: document.getElementById("security-page-btn"),
     blog: document.getElementById("blog-page-btn"),
@@ -14,7 +13,6 @@ const mobilePageInfos = {
 
 const desktopPageInfos = {
     ticketing: document.getElementById("ticketing-desktop-btn"),
-    rank: document.getElementById("rank-desktop-btn"),
     practice: document.getElementById("practice-desktop-btn"),
     security: document.getElementById("security-desktop-btn"),
     blog: document.getElementById("blog-desktop-btn"),
@@ -139,12 +137,11 @@ async function updateClient(name) {
 
 function markCurrentPage() {
     let currentPath = window.location.pathname;
-    currentPath = currentPath === "/" ? "ticketing" : currentPath.substring(1);
+    currentPath = currentPath.substring(1);
 
     let pageName = currentPath;
     if (currentPath.startsWith("art")) pageName = "art";
     if (currentPath.startsWith("practice")) pageName = "practice";
-    if (currentPath.startsWith("rank")) pageName = "rank";
     if (currentPath.startsWith("security")) pageName = "security";
     if (currentPath.startsWith("blog")) pageName = "blog";
 
@@ -155,9 +152,12 @@ function markCurrentPage() {
     const mobileButton = mobilePageInfos[pageName];
     if (mobileButton) mobileButton.classList.add('nav-current');
 
-    // 데스크탑 버튼 처리
+    // 데스크탑 버튼 처리 — 연한 틴트 pill 활성 표시(.nav-current)
+    Object.values(desktopPageInfos).forEach(btn => {
+        if (btn) btn.classList.remove('nav-current');
+    });
     const desktopButton = desktopPageInfos[pageName];
-    if (desktopButton) desktopButton.style.color = "darkslateblue";
+    if (desktopButton) desktopButton.classList.add('nav-current');
 }
 
 function initNavPager() {

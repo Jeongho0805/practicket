@@ -1,0 +1,113 @@
+/* 공지 · 업데이트 목록/상세 — "타임라인 압축(1안+)".
+   배지·제목·날짜를 한 줄에 두고 요약을 한 줄 붙인다. 항목당 높이를 낮춰
+   무한스크롤에서 스크롤 길이가 과하게 늘어나지 않게 한 구조다.
+
+   배지(.tag/.t-notice/.t-fix)는 홈(landing.css)과 같은 톤이지만
+   이 페이지는 landing.css 를 불러오지 않으므로 여기서 다시 정의한다. */
+
+/* 전역 레이아웃(#content-section)이 좌우 광고를 붙이고 overflow:hidden 이라 페이지 전체는 스크롤되지 않는다.
+   커뮤니티와 마찬가지로 가운데 칸(#main-section) 안에서만 스크롤한다.
+   이게 없으면 첫 화면 아래가 잘려 무한스크롤이 아예 발동하지 않는다. */
+#main-section {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* 전역 기본 폰트는 브랜드 폰트(my-font)다. 공지는 제목까지 전부 Pretendard 로 내린다 —
+   운영자가 말하는 안내문이라 브랜드 로고 톤보다 읽히는 게 우선이고,
+   목록은 제목·요약·날짜가 촘촘히 붙는 화면이라 가독성 차이가 크다. */
+#notice-section { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 16px 60px; box-sizing: border-box;
+    font-family: Pretendard, sans-serif; }
+#notice-section a { font-family: Pretendard, sans-serif; }
+
+/* 헤더 */
+#notice-hero { padding: 28px 0 18px; }
+#notice-title { font-family: Pretendard, sans-serif; font-weight: 800; font-size: 26px; color: #3a3350; margin: 0; letter-spacing: -.5px; }
+#notice-subtitle { font-family: Pretendard, sans-serif; font-size: 13.5px; color: #9a93b0; margin: 7px 0 0; }
+
+/* 필터 탭 (링크) */
+#notice-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+#notice-tabs a { border: 1px solid rgba(107, 91, 154, .12); background: #fff; font-size: 12.5px;
+    padding: 7px 15px; border-radius: 20px; color: #6f6889; font-weight: 600; text-decoration: none; transition: .13s; }
+#notice-tabs a:hover { background: #f1eefb; border-color: #d9d3ee; }
+#notice-tabs a.on { background: #514897; border-color: #514897; color: #fff; }
+
+/* 배지 */
+.tag { flex-shrink: 0; font-family: Pretendard, sans-serif; font-weight: 700; font-size: 10.5px;
+    padding: 3px 9px; border-radius: 7px; white-space: nowrap; }
+.tag.t-notice { background: #ece7fb; color: #6b5b9a; }
+.tag.t-fix { background: #eef1f6; color: #7a8499; }
+.nt-pin { flex-shrink: 0; font-weight: 700; font-size: 10.5px; padding: 3px 9px; border-radius: 7px;
+    background: #514897; color: #fff; white-space: nowrap; }
+
+/* 월 구분 헤더 */
+.nt-month { display: flex; align-items: center; gap: 10px; padding: 16px 0 10px; }
+.nt-month b { font-size: 12.5px; font-weight: 700; color: #514897; letter-spacing: .3px; }
+.nt-month i { flex: 1; height: 1px; background: rgba(107, 91, 154, .12); }
+
+/* 타임라인 항목 */
+.nt-item { position: relative; padding-left: 26px; }
+/* 세로선은 항목마다 그려 이어붙인다. 마지막 항목만 점까지 오고 끊는다. */
+.nt-item::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1.5px;
+    background: rgba(107, 91, 154, .12); }
+.nt-item:last-child::before { bottom: auto; height: 20px; }
+.nt-item::after { content: ''; position: absolute; left: 0; top: 16px; width: 11px; height: 11px;
+    border-radius: 50%; background: #fff; border: 2.5px solid #cfc6e8; }
+/* 공지는 점을 진하게 — 수정 이력 사이에서 눈에 띄게 한다 */
+.nt-item.is-notice::after { border-color: #514897; }
+
+.nt-a { display: block; text-decoration: none; padding: 9px 13px; border-radius: 11px; transition: .13s; }
+.nt-a:hover { background: #fff; box-shadow: 0 3px 14px rgba(60, 45, 120, .07); }
+
+.nt-line { display: flex; align-items: center; gap: 9px; }
+.nt-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #3a3350;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 날짜는 오른쪽 고정폭. 제목 길이에 따라 좌우로 밀리지 않게 한다. */
+.nt-date { flex-shrink: 0; font-size: 11.5px; color: #b0a9c4; font-variant-numeric: tabular-nums; }
+.nt-desc { display: block; font-size: 12.5px; color: #9a93b0; line-height: 1.55; margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#notice-empty { padding: 48px 0; text-align: center; font-size: 14px; color: #b0a9c4; }
+
+/* 무한스크롤 표시 */
+#notice-sentinel { display: flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 26px 0 8px; font-size: 12.5px; color: #9a93b0; }
+#notice-sentinel.done { color: #c3bdd2; }
+.nt-spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ddd6f0;
+    border-top-color: #6b5b9a; animation: nt-sp .7s linear infinite; }
+@keyframes nt-sp { to { transform: rotate(360deg); } }
+
+/* ── 상세 ── */
+#notice-detail { border-top: 1.5px solid rgba(107, 91, 154, .14); padding-top: 24px; }
+.nd-head { display: flex; flex-direction: column; gap: 10px; padding-bottom: 18px;
+    border-bottom: 1px solid rgba(107, 91, 154, .1); }
+.nd-badges { display: flex; gap: 6px; }
+.nd-title { font-family: Pretendard, sans-serif; font-weight: 800; letter-spacing: -.02em; font-size: 21px; color: #3a3350; margin: 0; line-height: 1.4; }
+.nd-date { font-size: 12.5px; color: #b0a9c4; }
+/* 본문은 th:text 로 넣으므로 줄바꿈은 CSS 가 살린다 */
+.nd-body { padding: 24px 2px 32px; font-size: 14.5px; line-height: 1.85; color: #4a4458;
+    white-space: pre-wrap; word-break: break-word; }
+
+#notice-back { display: flex; justify-content: center; padding-top: 8px; }
+#notice-back a { font-size: 13px; color: #6b5b9a; text-decoration: none;
+    border: 1.5px solid rgba(107, 91, 154, .2); border-radius: 10px; padding: 9px 22px; transition: .15s; }
+#notice-back a:hover { background: #6b5b9a; color: #fff; }
+
+@media (max-width: 768px) {
+    #notice-section { padding: 0 12px 40px; }
+    #notice-hero { padding: 20px 0 14px; }
+    #notice-title { font-size: 21px; }
+    .nt-item { padding-left: 22px; }
+    .nt-a { padding: 8px 10px; }
+    .nt-title { font-size: 13.5px; }
+    /* 좁은 화면에서는 연도를 떼고 월·일만 남길 만큼 폭이 없다 —
+       글자만 줄여 제목이 잘리는 폭을 조금이라도 확보한다 */
+    .nt-date { font-size: 10.5px; }
+    .nt-line { gap: 7px; }
+    .nd-title { font-size: 18px; }
+    .nd-body { font-size: 14px; padding: 20px 0 28px; }
+}

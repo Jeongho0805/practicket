@@ -7,9 +7,9 @@
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
     <title>티켓팅 연습 플랫폼 - 프랙티켓</title>
-    <link rel="canonical" href="https://practicket.com/">
+    <link rel="canonical" href="https://practicket.com/ticketing">
     <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/css/fragments/chatting.css">
+    <link rel="stylesheet" href="/css/rank.css">
 </head>
 <body>
     <div layout:fragment="content" id="main-section">
@@ -31,7 +31,21 @@
                 </button>
             </div>
         </div>
-        <div th:replace="~{fragments/chatting::chatting}"></div>
+        <div id="rank-section">
+            <div id="rank-details">
+                <table id="rank-table">
+                    <thead>
+                    <tr>
+                        <th>순위</th>
+                        <th>닉네임</th>
+                        <th>시간</th>
+                    </tr>
+                    </thead>
+                    <tbody id="rank-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
         <div id="modal-section">
             <div id="modal-content">
                 <h2 id="modal-title">예매 대기중입니다.</h2>
@@ -53,7 +67,7 @@
 
     <th:block layout:fragment="scripts">
         <script type="module" src="/js/main.js"></script>
-        <script type="module" src="/js/chatting.js"></script>
+        <script type="module" src="/js/rank.js"></script>
     </th:block>
 </body>
 </html>

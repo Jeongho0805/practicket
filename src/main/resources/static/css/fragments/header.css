@@ -35,18 +35,19 @@
     #logo-section {
         margin-right: 20px;
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         width: 120px;
         height: 50px;
     }
+    #logo-section .logo-link { gap: 10px; }
     #logo-img {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
     }
     #logo-title {
         margin: 0;
-        color: #6b196b;
+        color: #6F5F9E;  /* 로고 아이콘 본체 색과 동일 */
         font-size: 16px;
         font-family: my-font, sans-serif;
     }
@@ -170,17 +171,45 @@
     }
 
     .nav-text {
-        padding: 20px;
+        padding: 10px 14px;
         box-sizing: border-box;
-        font-family: my-font, sans-serif;
-        font-size: 17px;
+        font-family: 'Pretendard', sans-serif;
+        font-size: 15.5px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
         cursor: pointer;
-        color: rgb(25, 25, 26);
+        color: #6b6480;
         text-decoration: none;
+        border-radius: 9px;
+        transition: 0.15s;
     }
 
     .nav-text:hover {
-        color: darkslateblue;
+        color: #6b5b9a;
+        background: #f1eef9;
+    }
+
+    /* 활성 메뉴 — 밑줄 언더라인 (진보라 bold + 그라데이션 밑줄) */
+    .nav-text.nav-current {
+        position: relative;
+        background: transparent;
+        color: #514897;
+        font-weight: 800;
+    }
+    .nav-text.nav-current::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 2px;
+        height: 3px;
+        border-radius: 3px;
+        background: linear-gradient(135deg, #6b5b9a, #8470b3);
+        opacity: 0.45;
+    }
+    .nav-text.nav-current:hover {
+        background: transparent;
+        color: #514897;
     }
 }
 
@@ -230,18 +259,20 @@
         align-items: center;
         flex-grow: 0.1;
         margin-right: 10px;
+        margin-left: 11px;   /* 카드·랭킹표 좌측 라인에 맞춤 */
     }
+    #logo-section .logo-link { gap: 6px; }
     #logo-img {
-        width: 40px;
-        height: 40px;
+        width: 28px;
+        height: 28px;
     }
     #logo-title {
         display: flex;
         justify-content: center;
         margin: 0;
-        color: #6b196b;
+        color: #6F5F9E;  /* 로고 아이콘 본체 색과 동일 */
         font-family: my-font, sans-serif;
-        font-size: 13px;
+        font-size: 15px;
     }
 
     /* 닉네임 chip (설정됨) */
@@ -401,14 +432,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: my-font, sans-serif;
-        font-size: 10px;
-        font-weight: bold;
+        font-family: 'Pretendard', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
         text-decoration: none;
-        color: #999;
+        color: #6b6480;
         background: transparent;
         border-radius: 10px;
-        border: 1.5px solid #ddd;
+        border: 1.5px solid rgba(107, 91, 154, 0.22);
         white-space: nowrap;
         transition: background 0.2s, color 0.2s, border-color 0.2s;
     }

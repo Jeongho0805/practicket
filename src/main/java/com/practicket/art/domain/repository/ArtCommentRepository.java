@@ -5,12 +5,14 @@ import com.practicket.art.domain.entity.ArtComment;
 import com.practicket.client.domain.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface ArtCommentRepository extends JpaRepository<ArtComment, Long> {
 
+    @EntityGraph(attributePaths = "client")
     Page<ArtComment> findByArtOrderByCreatedAtAsc(Art art, Pageable pageable);
 
     List<ArtComment> findByArtOrderByCreatedAtAsc(Art art);

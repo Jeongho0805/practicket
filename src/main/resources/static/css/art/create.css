@@ -1,242 +1,232 @@
-/* 데스크톱 스타일 */
-@media (min-width: 769px) {
+/* 포도아트 만들기 — 토큰은 community/list.css 를 따른다 */
+
+:root {
+    --pk-purple: #6b5b9a;
+    --pk-purple-light: #8470b3;
+    --pk-purple-deep: #514897;
+    --pk-purple-pale: #f4f2fb;
+    --pk-purple-line: #e2dcf2;
+    --pk-ink-sub: #7b7490;
+    --pk-ink-faint: #a49dbb;
+}
+
+#main-section {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: Pretendard, sans-serif;
+}
+
+#art-create-section {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
     #art-create-section {
-        display: grid;
-        grid-template-rows: auto 1fr;
-        width: 100%;
-        height: 100%;
-        max-height: 100%;
-        font-family: my-font, sans-serif;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
-    #create-header-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        box-sizing: border-box;
-    }
-
-    #header-title {
-        color: darkslateblue;
-        font-size: 25px;
-        margin: 0;
-    }
-
-    #create-content-section {
-        width: 100%;
-        height: 100%;
-        padding: 2% 5%;
-        box-sizing: border-box;
-        overflow-y: auto;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-    }
-
-    #art-form {
-        width: 100%;
-        max-width: 560px;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        box-sizing: border-box;
-    }
-
-    #canvas-section {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    #canvas-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        max-width: 100%;
-        overflow: auto;
-    }
-
-    #pixel-canvas {
-        border-radius: 8px;
-        cursor: cell;
-        image-rendering: pixelated;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: crisp-edges;
-    }
-
-    #title-section {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    #title-section label {
-        font-weight: bold;
-        color: #333;
-        font-family: my-font, sans-serif;
-    }
-
-    #title {
-        padding: 12px 16px;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        font-size: 15px;
-        font-family: my-font, sans-serif;
-        box-sizing: border-box;
-        outline: none;
-    }
-
-    #title:focus {
-        border-color: #514897;
-    }
-
-    #submit-btn {
-        width: 100%;
-        padding: 16px;
-        background: #514897;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-
-    #submit-btn:hover {
-        background: rgba(72, 61, 139, 0.68);
+        padding: 14px 12px 32px;
     }
 }
 
-/* 모바일 스타일 */
-@media (max-width: 768px) {
-    #art-create-section {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        font-family: my-font, sans-serif;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
+#create-hero {
+    margin-bottom: 14px;
+}
 
-    #create-header-section {
-        display: none;
-    }
+#header-title {
+    font-family: Pretendard, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.35rem;
+    color: var(--pk-purple-deep);
+    margin: 0;
+}
 
-    #create-content-section {
-        width: 100%;
-        height: 100%;
-        padding: 0 12px 12px 12px;
-        box-sizing: border-box;
-        overflow-y: auto;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-    }
+#create-subtitle {
+    font-size: 0.8rem;
+    color: var(--pk-ink-sub);
+    margin: 5px 0 0;
+}
 
-    #art-form {
-        width: 100%;
-        max-width: 100%;
-        background: none;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        box-sizing: border-box;
-    }
+/* ---------- 임시저장 안내 ---------- */
 
-    #title-section {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        background: white;
-        padding: 10px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+#draft-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #fff8e8;
+    border: 1px solid #f0e0b8;
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-size: 0.78rem;
+    color: #8a6d1f;
+    margin-bottom: 10px;
+}
 
-    #title-section label {
-        font-weight: bold;
-        color: #333;
-        font-family: my-font, sans-serif;
-        font-size: 0.7rem;
-    }
+#draft-note[hidden] {
+    display: none;
+}
 
-    #title {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        font-size: 0.6rem;
-        font-family: my-font, sans-serif;
-        box-sizing: border-box;
-        outline: none;
-    }
+#draft-new {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #8a6d1f;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+}
 
-    #title:focus {
-        border-color: #514897;
-    }
+/* ---------- 도구 ---------- */
 
-    #canvas-section {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex-shrink: 0;
-    }
+#art-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
 
-    #canvas-wrapper {
-        background: white;
-        border-radius: 10px;
-        padding: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        max-width: 100%;
-        overflow: auto;
-    }
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-    #pixel-canvas {
-        border-radius: 8px;
-        cursor: pointer;
-        image-rendering: pixelated;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: crisp-edges;
-        max-width: 100%;
-        height: auto;
-    }
+.tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 9px;
+    padding: 7px 12px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #6f6790;
+    cursor: pointer;
+}
 
-    #submit-btn {
-        width: 100%;
-        padding: 12px;
-        background: #514897;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+.tool:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
 
-    #submit-btn:active {
-        transform: scale(0.98);
-    }
+/* 지금 잡고 있는 도구. 되돌리기·전체 지우기는 한 번 실행되고 마는 것이라 여기에 들어오지 않는다 */
+.tool.current {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border-color: transparent;
+    color: #fff;
+}
+
+.tool svg {
+    width: 14px;
+    height: 14px;
+}
+
+#filled-count {
+    font-size: 0.74rem;
+    color: var(--pk-ink-sub);
+    padding-right: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+#filled-count b {
+    font-size: 0.85rem;
+    color: var(--pk-purple-deep);
+}
+
+/* ---------- 캔버스 ---------- */
+
+#canvas-card {
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    background: #fff;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#pixel-canvas {
+    width: 100%;
+    max-width: 430px;
+    height: auto;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+#canvas-hint {
+    font-size: 0.74rem;
+    color: var(--pk-ink-faint);
+    text-align: center;
+}
+
+/* ---------- 제목 · 등록 ---------- */
+
+#title-section {
+    margin-top: 14px;
+}
+
+#title-section label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--pk-purple-deep);
+    margin-bottom: 7px;
+}
+
+#title {
+    width: 100%;
+    height: 46px;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 13px;
+    padding: 0 15px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    color: var(--pk-purple-deep);
+    outline: none;
+    box-sizing: border-box;
+}
+
+#title::placeholder {
+    color: #b3adc4;
+}
+
+#title:focus {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
+
+#submit-btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 15px;
+    border: none;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#submit-btn:hover {
+    filter: brightness(1.07);
 }

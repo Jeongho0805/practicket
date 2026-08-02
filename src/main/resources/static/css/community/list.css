@@ -1,0 +1,697 @@
+/* 커뮤니티 목록 — 시안 C3 "검색 통합형" (docs/community-system.md Q11)
+   브랜드 토큰은 header.css 를 따른다: 퍼플 #6b5b9a → #8470b3, 딥퍼플 #514897 */
+
+:root {
+    --pk-purple: #6b5b9a;
+    --pk-purple-light: #8470b3;
+    --pk-purple-deep: #514897;
+    --pk-purple-pale: #f4f2fb;
+    --pk-purple-line: #e2dcf2;
+    --pk-ink: #2d3748;
+    --pk-ink-sub: #7b7490;
+}
+
+@media (min-width: 769px) {
+    /* 전역 레이아웃이 좌우 광고를 붙이므로 가운데 칸 안에서만 스크롤한다 (Q12) */
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        padding: 14px 12px 32px;
+        box-sizing: border-box;
+    }
+}
+
+/* ---------- 검색 통합 헤더 ---------- */
+
+#community-hero {
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    padding: 20px 22px 18px;
+}
+
+/* 제목과 글쓰기가 한 줄. 글쓰기를 아래로 내리면 검색·태그에 밀려 눈에 안 띈다 */
+#hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+#hero-title-box {
+    min-width: 0;
+}
+
+#community-title {
+    font-family: my-font, sans-serif;
+    font-size: 1.45rem;
+    color: var(--pk-purple-deep);
+    margin: 0;
+}
+
+#community-subtitle {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.8rem;
+    color: var(--pk-ink-sub);
+    margin: 4px 0 0;
+}
+
+#community-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 13px;
+    padding: 0 6px 0 15px;
+    height: 46px;
+    box-shadow: 0 3px 12px rgba(80, 60, 140, 0.07);
+    margin-bottom: 13px;
+}
+
+#search-icon {
+    flex: none;
+    color: var(--pk-ink-sub);
+    opacity: 0.35;
+}
+
+#community-search:focus-within {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
+
+#search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    color: var(--pk-ink);
+    background: transparent;
+    min-width: 0;
+}
+
+#search-input::placeholder {
+    color: #b3adc4;
+}
+
+/* 돋보기 아이콘만 두지 않는다. 글자가 있어야 "여기를 누르면 찾아준다"가 읽힌다 */
+#search-btn {
+    flex: none;
+    height: 34px;
+    padding: 0 17px;
+    border: none;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#search-btn:hover {
+    filter: brightness(1.07);
+}
+
+/* 좁은 화면에서는 헤더가 첫 화면의 절반을 먹어 글이 두 개도 안 보인다.
+   장식(부제)을 걷어내고 여백을 줄여 목록을 위로 끌어올린다 */
+@media (max-width: 768px) {
+    #community-hero {
+        padding: 12px 13px;
+        border-radius: 14px;
+    }
+
+    #hero-top {
+        margin-bottom: 10px;
+    }
+
+    #community-title {
+        font-size: 1.12rem;
+    }
+
+    #community-subtitle {
+        display: none;
+    }
+
+    #write-btn {
+        padding: 7px 15px;
+        font-size: 0.8rem;
+    }
+
+    #community-search {
+        height: 40px;
+        border-radius: 11px;
+        margin-bottom: 10px;
+    }
+
+    #search-btn {
+        height: 30px;
+        padding: 0 14px;
+    }
+}
+
+/* ---------- 툴바 ---------- */
+
+#community-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 10px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid var(--pk-purple-line);
+}
+
+#post-total {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    color: var(--pk-ink-sub);
+    margin: 0;
+}
+
+/* 검색어와 태그가 같이 걸렸을 때만 가운뎃점이 필요하다 */
+#post-total span + span::before {
+    content: "· ";
+}
+
+#write-btn {
+    flex: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+}
+
+#write-btn:hover {
+    filter: brightness(1.07);
+}
+
+/* ---------- 목록 ---------- */
+
+#post-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.post-row {
+    border-bottom: 1px solid #efedf6;
+}
+
+.post-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 6px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.post-link:hover {
+    background: #faf9fd;
+}
+
+.like-badge {
+    flex: none;
+    width: 46px;
+    height: 42px;
+    border-radius: 10px;
+    background: #f3f1f9;
+    color: #a49dbb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Pretendard, sans-serif;
+}
+
+.like-badge.has-like {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+}
+
+.like-count {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.like-label {
+    font-size: 0.6rem;
+    opacity: 0.85;
+}
+
+.post-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.post-title {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--pk-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 신고 누적으로 블라인드된 글. 제목 자리에 회색 안내문을 대신 넣는다(Q7) */
+.post-title-blinded {
+    color: #a49dbb;
+    font-weight: 500;
+}
+
+.post-comment-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--pk-purple-deep);
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.post-comment-count svg {
+    width: 13px;
+    height: 13px;
+}
+
+.post-new {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 5px;
+    background: linear-gradient(135deg, #e0736c, #e8908a);
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 800;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.post-meta {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.72rem;
+    color: var(--pk-ink-sub);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.post-author {
+    font-weight: 600;
+    color: #5f5878;
+}
+
+/* IP 는 작성자 옆에 붙되 눈에 덜 띄게 — 억제 장치지 정보가 아니다 */
+.post-ip {
+    font-size: 0.68rem;
+    color: #a49dbb;
+}
+
+.meta-dot {
+    color: #d6d1e4;
+}
+
+#post-empty {
+    padding: 56px 0;
+    text-align: center;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.88rem;
+    color: var(--pk-ink-sub);
+}
+
+/* ---------- 페이지 번호 ---------- */
+
+#pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+.page-num,
+.page-move {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--pk-ink-sub);
+    box-sizing: border-box;
+}
+
+.page-num:hover,
+.page-move:not(.disabled):hover {
+    background: var(--pk-purple-pale);
+    color: var(--pk-purple-deep);
+}
+
+.page-num.current {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-weight: 700;
+}
+
+.page-move.disabled {
+    color: #d6d1e4;
+    cursor: default;
+}
+
+/* ---------- 태그 ---------- */
+
+#popular-tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+#popular-tags::-webkit-scrollbar {
+    display: none;
+}
+
+/* 이 줄이 왜 여기 있는지 알려주는 라벨. 없으면 그냥 메뉴로 읽힌다 */
+#popular-label {
+    flex: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #a79fbb;
+    margin-right: 2px;
+}
+
+.tag-count {
+    font-size: 0.66rem;
+    font-weight: 600;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.tag-chip {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6f6790;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 6px 13px;
+    text-decoration: none;
+    white-space: nowrap;
+    flex: none;
+}
+
+.tag-chip:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+/* 지금 걸린 필터. 색만으로 구분하지 않도록 글자도 굵어진다 */
+.tag-chip.current {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* 목록 행의 태그 — 작성자 줄 오른쪽 끝 */
+.meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+}
+
+.row-tags {
+    flex: none;
+    display: flex;
+    gap: 4px;
+}
+
+.row-tag {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--pk-purple-deep);
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 3px 9px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    /* 좁은 화면에서는 태그가 날짜·조회수를 밀어낸다. 대표 태그 하나만 남긴다 */
+    .row-tag:not(:first-child) {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    #popular-tags {
+        /* 모바일에서는 줄바꿈 대신 가로 스크롤. 세 줄이 되면 목록이 화면 밖으로 밀린다 */
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #popular-tags::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ---------- 정렬 ---------- */
+
+#sort-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+/* .tag-chip 과 같은 톤의 알약 버튼으로 맞춘다 */
+.sort-chip {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6f6790;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 6px 13px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sort-chip:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+/* 지금 선택된 정렬. 색만으로 구분하지 않도록 글자도 굵어진다 */
+.sort-chip.current {
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border-color: transparent;
+    color: #fff;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    /* 두 줄로 접으면 목록이 그만큼 밀린다. 인기 태그와 같이 가로 스크롤로 한 줄에 둔다 */
+    #community-toolbar {
+        flex-wrap: nowrap;
+        margin: 12px 0 6px;
+        padding-bottom: 8px;
+    }
+
+    /* flex-end 로 두면 넘칠 때 맨 앞(보통 선택된 "최신순")이 왼쪽으로 잘려 안 보인다 */
+    .toolbar-actions {
+        flex: 1 1 auto;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .toolbar-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 360px 에서 딱 10px 이 모자라 "내가 쓴 글" 이 잘린다. 칩당 4px 씩 걷어 다섯 개를 한 줄에 넣는다 */
+    .sort-chip,
+    #mine-link {
+        padding-left: 11px;
+        padding-right: 11px;
+    }
+}
+
+/* ---------- 내 글 ---------- */
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#mine-link {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6f6790;
+    text-decoration: none;
+    padding: 8px 14px;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    background: #fff;
+    white-space: nowrap;
+}
+
+#mine-link:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+#back-link {
+    display: inline-block;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    color: var(--pk-ink-sub);
+    text-decoration: none;
+    margin-bottom: 12px;
+}
+
+#back-link:hover {
+    color: var(--pk-purple-deep);
+}
+
+/* 목록 화면의 보라 박스를 쓰지 않는다. 그 박스는 검색창·태그 칩을 담느라 큰 것이고
+   여기엔 담을 게 없어서 빈 상자만 커 보인다 */
+#mine-title {
+    font-family: Pretendard, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.35rem;
+    color: var(--pk-purple-deep);
+    margin: 0;
+}
+
+#mine-note {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.74rem;
+    line-height: 1.6;
+    color: #a49dbb;
+    margin: 5px 0 0;
+}
+
+/* 불러오는 동안 자리를 잡아둔다. 목록이 갑자기 튀어나와 화면이 밀리는 걸 막는다 */
+.skeleton-row {
+    display: flex;
+    gap: 14px;
+    padding: 12px 6px;
+    border-bottom: 1px solid #efedf6;
+}
+
+.sk {
+    background: #eeecf6;
+    border-radius: 6px;
+    animation: sk-pulse 1s ease-in-out infinite;
+}
+
+.sk-badge {
+    flex: none;
+    width: 46px;
+    height: 42px;
+    border-radius: 10px;
+}
+
+.sk-lines {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    justify-content: center;
+}
+
+.sk-line {
+    height: 11px;
+}
+
+.sk-line.short {
+    width: 55%;
+}
+
+@keyframes sk-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+#pagination[hidden],
+#post-list[hidden],
+#post-empty[hidden],
+#mine-loading[hidden] {
+    display: none;
+}
+
+/* 페이지 번호는 목록 화면 것을 그대로 쓴다. JS 가 그리지만 모양은 같아야 한다 */
+button.page-num,
+button.page-move {
+    font-family: Pretendard, sans-serif;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+button.page-move.disabled {
+    cursor: default;
+}

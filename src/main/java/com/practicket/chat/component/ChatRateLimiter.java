@@ -1,5 +1,6 @@
 package com.practicket.chat.component;
 
+import com.practicket.common.component.RedisRateLimiter;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.GlobalException;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
+/** 넘쳤다고 바로 막지 않고 경고를 쌓는다. 경고가 5회 모이면 10분 임시 밴 */
 @Component
 @RequiredArgsConstructor
 public class ChatRateLimiter {
@@ -23,6 +25,7 @@ public class ChatRateLimiter {
     private static final long WARN_WINDOW_SECONDS = 600L;
     private static final long TEMPBAN_SECONDS = 600L;
 
+    private final RedisRateLimiter rateLimiter;
     private final StringRedisTemplate stringRedisTemplate;
 
     public void validate(String token) {
@@ -30,27 +33,21 @@ public class ChatRateLimiter {
             throw new GlobalException(ErrorCode.CHAT_TEMP_BANNED);
         }
 
-        String rateKey = RATE_KEY_PREFIX + token;
-        Long count = stringRedisTemplate.opsForValue().increment(rateKey);
-        if (count == 1) {
-            stringRedisTemplate.expire(rateKey, WINDOW_SECONDS, TimeUnit.SECONDS);
-        }
-        if (count > MAX_COUNT) {
+        if (rateLimiter.countWithin(RATE_KEY_PREFIX + token, WINDOW_SECONDS) > MAX_COUNT) {
             applyWarning(token);
         }
     }
 
     private void applyWarning(String token) {
         String warnKey = WARN_KEY_PREFIX + token;
-        Long warnCount = stringRedisTemplate.opsForValue().increment(warnKey);
-        if (warnCount == 1) {
-            stringRedisTemplate.expire(warnKey, WARN_WINDOW_SECONDS, TimeUnit.SECONDS);
-        }
-        if (warnCount >= WARN_THRESHOLD) {
-            stringRedisTemplate.opsForValue().set(TEMPBAN_KEY_PREFIX + token, "1", TEMPBAN_SECONDS, TimeUnit.SECONDS);
+
+        if (rateLimiter.countWithin(warnKey, WARN_WINDOW_SECONDS) >= WARN_THRESHOLD) {
+            stringRedisTemplate.opsForValue()
+                    .set(TEMPBAN_KEY_PREFIX + token, "1", TEMPBAN_SECONDS, TimeUnit.SECONDS);
             stringRedisTemplate.delete(warnKey);
             throw new GlobalException(ErrorCode.CHAT_TEMP_BANNED);
         }
+
         throw new GlobalException(ErrorCode.CHAT_RATE_LIMIT_EXCEEDED);
     }
 }

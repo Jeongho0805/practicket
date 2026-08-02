@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="robots" content="index, follow">
+    <title th:text="${notice.title} + ' - 프랙티켓 공지'">공지 - 프랙티켓</title>
+    <meta name="title" th:content="${notice.title} + ' - 프랙티켓 공지'" content="공지 - 프랙티켓">
+    <meta name="description" th:content="${#strings.abbreviate(notice.content, 150)}" content="프랙티켓 공지">
+    <link rel="canonical" th:href="'https://practicket.com/notice/' + ${notice.id}">
+    <link rel="stylesheet" href="/css/notice.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="notice-section">
+
+        <article id="notice-detail">
+            <div class="nd-head">
+                <span class="nd-badges">
+                    <span class="nc-pin" th:if="${notice.pinned}">고정</span>
+                    <span class="tag" th:classappend="${notice.type.badgeClass}" th:text="${notice.type.label}">공지</span>
+                </span>
+                <h1 class="nd-title" th:text="${notice.title}">제목</h1>
+                <span class="nd-date" th:text="${#temporals.format(notice.createdAt, 'yyyy.MM.dd')}">2026.06.30</span>
+            </div>
+
+            <!--
+              본문은 운영자만 쓰므로 HTML 을 허용하지 않고 그대로 출력한다(th:text).
+              줄바꿈만 살리려고 CSS 의 white-space: pre-wrap 을 쓴다.
+            -->
+            <div class="nd-body" th:text="${notice.content}">본문</div>
+        </article>
+
+        <div id="notice-back">
+            <a href="/notice">목록으로</a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

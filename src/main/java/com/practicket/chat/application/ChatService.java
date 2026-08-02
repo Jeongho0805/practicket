@@ -55,4 +55,8 @@ public class ChatService {
         String key = UUID.randomUUID().toString();
         return chatConnectionStore.save(key);
     }
+
+    public int participantCount() {
+        return chatConnectionStore.count();
+    }
 }

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="공지 · 업데이트 - 프랙티켓">
+    <meta name="description" content="프랙티켓의 서비스 공지와 업데이트 내역을 확인하세요.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://practicket.com/notice">
+    <title>공지 · 업데이트 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/notice.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="notice-section">
+
+        <div id="notice-hero">
+            <h1 id="notice-title">공지 · 업데이트</h1>
+            <p id="notice-subtitle">서비스 점검 안내와 개선 내역을 모아둡니다</p>
+        </div>
+
+        <!-- 필터는 JS 토글이 아니라 링크다. 주소만으로 상태가 복원되고 뒤로가기도 정상 동작한다. -->
+        <div id="notice-tabs">
+            <a th:href="@{/notice}" th:classappend="${type == null} ? 'on'"
+               th:text="'전체 ' + ${countAll}">전체 0</a>
+            <a th:href="@{/notice(type='NOTICE')}" th:classappend="${type != null and type.name() == 'NOTICE'} ? 'on'"
+               th:text="'공지 ' + ${countNotice}">공지 0</a>
+            <a th:href="@{/notice(type='FIX')}" th:classappend="${type != null and type.name() == 'FIX'} ? 'on'"
+               th:text="'수정 ' + ${countFix}">수정 0</a>
+        </div>
+
+        <!-- 목록은 /api/notices 로 채운다 (랭킹 화면과 같은 방식) -->
+        <div id="notice-list"></div>
+
+        <div id="notice-sentinel">
+            <span class="nt-spin"></span><span>불러오는 중…</span>
+        </div>
+
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+    (function () {
+        const TYPE = /*[[${type != null} ? ${type.name()} : '']]*/ '';
+
+        const list = document.getElementById('notice-list');
+        const sentinel = document.getElementById('notice-sentinel');
+        const state = {page: 0, loading: false, lastMonth: null};
+
+        function createMonthHeader(label) {
+            const div = document.createElement('div');
+            div.className = 'nt-month';
+            const b = document.createElement('b');
+            b.textContent = label;
+            div.append(b, document.createElement('i'));
+            return div;
+        }
+
+        function createNoticeRow(n) {
+            const item = document.createElement('div');
+            item.className = 'nt-item' + (n.is_notice ? ' is-notice' : '');
+
+            const a = document.createElement('a');
+            a.className = 'nt-a';
+            a.href = '/notice/' + n.id;
+
+            const line = document.createElement('span');
+            line.className = 'nt-line';
+
+            if (n.pinned) {
+                const pin = document.createElement('span');
+                pin.className = 'nt-pin';
+                pin.textContent = '고정';
+                line.appendChild(pin);
+            }
+
+            const tag = document.createElement('span');
+            tag.className = 'tag ' + n.badge_class;
+            tag.textContent = n.type_label;
+
+            const title = document.createElement('span');
+            title.className = 'nt-title';
+            title.textContent = n.title;          // textContent 라 본문/제목이 HTML 로 해석되지 않는다
+
+            const date = document.createElement('span');
+            date.className = 'nt-date';
+            date.textContent = n.date;
+
+            line.append(tag, title, date);
+
+            const desc = document.createElement('span');
+            desc.className = 'nt-desc';
+            desc.textContent = n.summary;
+
+            a.append(line, desc);
+            item.appendChild(a);
+            return item;
+        }
+
+        function finish(message) {
+            sentinel.innerHTML = '';
+            const span = document.createElement('span');
+            span.textContent = message;
+            sentinel.appendChild(span);
+            sentinel.classList.add('done');
+            observer.disconnect();
+        }
+
+        async function load() {
+            if (state.loading) return;
+            state.loading = true;
+
+            let url = '/api/notices?page=' + state.page;
+            if (TYPE) url += '&type=' + TYPE;
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('API error');
+                const body = await res.json();
+
+                if (body.data.length === 0 && state.page === 0) {
+                    finish('등록된 공지가 없습니다.');
+                    return;
+                }
+
+                body.data.forEach(n => {
+                    // 달이 바뀔 때만 구분 헤더를 넣는다. 배치가 나뉘어도 중복되지 않는다.
+                    if (n.month_key !== state.lastMonth) {
+                        list.appendChild(createMonthHeader(n.month_label));
+                        state.lastMonth = n.month_key;
+                    }
+                    list.appendChild(createNoticeRow(n));
+                });
+
+                state.page += 1;
+                state.loading = false;
+
+                if (!body.has_next) finish('모든 공지를 확인했습니다');
+            } catch (e) {
+                // 실패해도 이미 그려진 목록은 그대로 두고 안내만 바꾼다.
+                finish('목록을 불러오지 못했습니다');
+            }
+        }
+
+        // rootMargin 만큼 미리 당겨 받아 스크롤이 끊기지 않게 한다.
+        const observer = new IntersectionObserver(
+            entries => { if (entries[0].isIntersecting) load(); },
+            {rootMargin: '300px'}
+        );
+        observer.observe(sentinel);
+    })();
+</script>
+</th:block>
+</body>
+</html>
