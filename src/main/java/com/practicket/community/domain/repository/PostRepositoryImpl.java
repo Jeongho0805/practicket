@@ -52,6 +52,21 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
+    @Override
+    public List<Post> findForSitemap(int minContentLength, int limit) {
+        return queryFactory
+                .selectFrom(post)
+                .where(
+                        post.deletedAt.isNull(),
+                        post.blinded.isFalse(),
+                        post.content.length().goe(minContentLength),
+                        post.likeCount.gt(0L).or(post.commentCount.gt(0L))
+                )
+                .orderBy(post.updatedAt.desc(), post.id.desc())
+                .limit(limit)
+                .fetch();
+    }
+
     /** 제목과 태그만 뒤진다. 본문은 TEXT 라 LIKE '%…%' 가 인덱스를 못 타 전체 스캔이 된다 */
     private BooleanExpression keywordContains(String keyword) {
         if (keyword == null || keyword.isBlank()) {

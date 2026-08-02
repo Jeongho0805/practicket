@@ -23,4 +23,7 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
 
     /** 어드민은 비공개 글도 봐야 한다 */
     List<Notice> findAllByOrderByPinnedDescCreatedAtDesc();
+
+    /** sitemap 의 /notice lastmod — 공개된 공지 중 가장 최근 것 */
+    Optional<Notice> findTopByPublishedTrueOrderByCreatedAtDesc();
 }
