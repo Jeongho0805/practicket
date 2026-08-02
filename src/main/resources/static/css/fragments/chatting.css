@@ -374,6 +374,27 @@
     background: #57e08a; border: 2.5px solid #fff; }
 #chat-widget.open #chat-launcher { display: none; } /* 패널 열리면 런처 숨김(닫기 X로 닫음) */
 
+#chat-hide {
+    position: absolute; top: -4px; right: -4px; width: 22px; height: 22px; border-radius: 50%;
+    border: 1px solid #e2dcf2; background: #fff; color: #7b7490; cursor: pointer;
+    font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(80, 60, 120, .25); padding: 0;
+}
+
+#chat-widget.open #chat-hide { display: none; }
+
+#chat-widget.hidden #chat-launcher,
+#chat-widget.hidden #chat-hide,
+#chat-widget.hidden #chat-panel { display: none; }
+
+/* 접힌 상태에서 되돌릴 손잡이 */
+#chat-restore {
+    width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    background: rgba(107, 91, 154, .32);
+}
+
+#chat-restore:hover { background: rgba(107, 91, 154, .6); }
+
 #chat-panel {
     position: fixed; right: calc(25vw + 20px); bottom: 84px; width: 360px; height: 520px;
     min-width: 330px; min-height: 380px; max-width: 44vw; max-height: 80vh; resize: both;

@@ -326,8 +326,36 @@ function setupChatWidget() {
         }
     });
     if (closeBtn) closeBtn.addEventListener("click", () => widget.classList.remove("open"));
+    setupChatVisibility(widget);
     setupChatDrag();
     setupMobileSheetDrag();
+}
+
+// 채팅 버튼이 화면을 가린다는 사람을 위해 전 페이지에서 접어둘 수 있게 한다.
+// 완전히 없애면 되돌릴 길이 없어 작은 손잡이는 남긴다.
+const CHAT_HIDDEN_KEY = "pk_chat_hidden";
+
+function setupChatVisibility(widget) {
+    const hideBtn = document.getElementById("chat-hide");
+    const restoreBtn = document.getElementById("chat-restore");
+    if (!hideBtn || !restoreBtn) return;
+
+    const apply = hidden => {
+        widget.classList.toggle("hidden", hidden);
+        restoreBtn.hidden = !hidden;
+        if (hidden) widget.classList.remove("open");
+    };
+
+    hideBtn.addEventListener("click", () => {
+        localStorage.setItem(CHAT_HIDDEN_KEY, "1");
+        apply(true);
+    });
+    restoreBtn.addEventListener("click", () => {
+        localStorage.removeItem(CHAT_HIDDEN_KEY);
+        apply(false);
+    });
+
+    apply(localStorage.getItem(CHAT_HIDDEN_KEY) === "1");
 }
 
 // 모바일 시트가 커져도 상단 광고(ad-section)를 덮지 않는 최대 높이.
