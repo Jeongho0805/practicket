@@ -6,23 +6,51 @@
     <link rel="stylesheet" href="/css/art/create.css">
 </head>
 <body>
-    <div layout:fragment="content" id="art-create-section">
-        <div id="create-header-section">
-            <h1 id="header-title">포도아트 만들기</h1>
-        </div>
-        <div id="create-content-section">
+    <div layout:fragment="content" id="main-section">
+        <div id="art-create-section">
+
+            <div id="create-hero">
+                <h1 id="header-title">포도아트 만들기</h1>
+                <p id="create-subtitle">포도알을 채워 최애를 응원해보세요</p>
+            </div>
+
+            <div id="draft-note" hidden>
+                <span>그리던 작품을 불러왔어요</span>
+                <button type="button" id="draft-new">새로 시작</button>
+            </div>
+
             <form id="art-form">
+                <div id="art-tools">
+                    <div class="tool-group">
+                        <button type="button" class="tool current" data-tool="draw">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19l7-7-4-4-7 7v4h4z"/></svg>그리기
+                        </button>
+                        <button type="button" class="tool" data-tool="erase">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 16l8-8 6 6-6 6H6z"/></svg>지우개
+                        </button>
+                        <button type="button" class="tool" data-tool="undo">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12H8"/></svg>되돌리기
+                        </button>
+                    </div>
+                    <div class="tool-group">
+                        <span id="filled-count">채운 칸 <b id="filled-number">0</b></span>
+                        <button type="button" class="tool" id="clear-btn" data-tool="clear">전체 지우기</button>
+                    </div>
+                </div>
+
+                <div id="canvas-card">
+                    <canvas id="pixel-canvas"></canvas>
+                    <span id="canvas-hint">칸을 누르거나 드래그해 채우세요 · 30 × 30<span id="autosave-hint"> · 자동 저장됩니다</span></span>
+                </div>
+
                 <div id="title-section">
                     <label for="title">작품 제목</label>
                     <input type="text" id="title" name="title" required maxlength="20" placeholder="작품의 제목을 입력하세요">
                 </div>
-                <div id="canvas-section">
-                    <div id="canvas-wrapper">
-                        <canvas id="pixel-canvas"></canvas>
-                    </div>
-                </div>
+
                 <button type="submit" id="submit-btn">작품 등록</button>
             </form>
+
         </div>
     </div>
 

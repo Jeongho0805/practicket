@@ -18,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -59,14 +62,14 @@ public class ArtService {
 
         Page<Art> arts = artRepository.searchArts(queryCondition, pageable);
 
-        Client client = clientInfo != null ? clientManager.findById(clientInfo.getClientId()) : null;
-        if (client == null) {
+        if (currentClientId == null || arts.isEmpty()) {
             return arts.map(art -> ArtResponse.from(art, false));
         }
-        return arts.map(art -> {
-            boolean isLiked = artLikeRepository.existsByArtAndClient(art, client);
-            return ArtResponse.from(art, isLiked);
-        });
+
+        List<Long> artIds = arts.getContent().stream().map(Art::getId).toList();
+        Set<Long> likedArtIds = artLikeRepository.findLikedArtIds(currentClientId, artIds);
+
+        return arts.map(art -> ArtResponse.from(art, likedArtIds.contains(art.getId())));
     }
 
     @Transactional
@@ -158,12 +161,9 @@ public class ArtService {
         Art art = artRepository.findById(artId).orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
         Page<ArtComment> comments = artCommentRepository.findByArtOrderByCreatedAtAsc(art, pageable);
 
-        return comments.map(comment -> {
-            if (comment.getClient().getId().equals(clientInfo.getClientId())) {
-                return ArtCommentResponse.from(comment, true);
-            }
-            return ArtCommentResponse.from(comment, false);
-        });
+        Long currentClientId = clientInfo != null ? clientInfo.getClientId() : null;
+        return comments.map(comment ->
+                ArtCommentResponse.from(comment, comment.getClient().getId().equals(currentClientId)));
     }
 
     @Transactional

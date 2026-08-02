@@ -6,7 +6,7 @@ import com.practicket.art.domain.enums.ArtSortType;
 import com.practicket.art.domain.enums.SortDirection;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.practicket.art.domain.entity.QArt.art;
+import static com.practicket.art.domain.entity.QArtLike.artLike;
 import static com.practicket.client.domain.QClient.client;
 
 @Repository
@@ -30,16 +31,6 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
 
     @Override
     public Page<Art> searchArts(ArtQueryCondition condition, Pageable pageable) {
-        // POPULAR 필터인 경우 특별 처리
-        if (condition.getFilterType() == ArtFilterType.POPULAR) {
-            return searchPopularArts(condition, pageable);
-        }
-
-        // TODAY_HOT 필터인 경우 특별 처리
-        if (condition.getFilterType() == ArtFilterType.HOT) {
-            return searchHotArts(condition, pageable);
-        }
-
         List<Art> content = queryFactory
                 .selectFrom(art)
                 .leftJoin(art.client, client).fetchJoin()
@@ -63,49 +54,6 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
-    private Page<Art> searchPopularArts(ArtQueryCondition condition, Pageable pageable) {
-        // 인기 점수 계산: (좋아요 * 3) + (댓글 * 2) + (조회수 * 1)
-        // 상위 10개만 반환 (페이지네이션 무시)
-        NumberExpression<Integer> popularityScore = art.likeCount.multiply(3)
-                .add(art.commentCount.multiply(2))
-                .add(art.viewCount);
-
-        List<Art> content = queryFactory
-                .selectFrom(art)
-                .leftJoin(art.client, client).fetchJoin()
-                .where(keywordCondition(condition.getKeyword()))
-                .orderBy(popularityScore.desc(), art.createdAt.desc())
-                .limit(10)
-                .fetch();
-
-        long total = content.size();
-
-        return PageableExecutionUtils.getPage(content, pageable, () -> total);
-    }
-
-    private Page<Art> searchHotArts(ArtQueryCondition condition, Pageable pageable) {
-        // 최근 7일 이내 작품 중 인기 있는 작품 상위 10개만 반환 (페이지네이션 무시)
-        LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
-        NumberExpression<Integer> popularityScore = art.likeCount.multiply(3)
-                .add(art.commentCount.multiply(2))
-                .add(art.viewCount);
-
-        List<Art> content = queryFactory
-                .selectFrom(art)
-                .leftJoin(art.client, client).fetchJoin()
-                .where(
-                        keywordCondition(condition.getKeyword()),
-                        art.createdAt.after(weekAgo)
-                )
-                .orderBy(popularityScore.desc(), art.createdAt.desc())
-                .limit(10)
-                .fetch();
-
-        long total = content.size();
-
-        return PageableExecutionUtils.getPage(content, pageable, () -> total);
-    }
-
     private BooleanExpression keywordCondition(String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return null;
@@ -115,15 +63,28 @@ public class ArtRepositoryImpl implements ArtRepositoryCustom {
     }
 
     private BooleanExpression filterCondition(ArtFilterType filterType, Long currentClientId) {
-        if (filterType == null) {
+        if (filterType == null || filterType == ArtFilterType.ALL) {
             return null;
         }
 
-        if (filterType == ArtFilterType.ONLY_MINE) {
-            return currentClientId != null ? art.client.id.eq(currentClientId) : null;
+        if (filterType == ArtFilterType.WEEK) {
+            return art.createdAt.after(LocalDateTime.now().minusDays(7));
         }
 
-        return null;
+        // 비로그인은 "내 작품"·"좋아요한 작품"이 성립하지 않는다. 조건을 빼면 전체가 나와버리므로 빈 결과로 막는다
+        if (currentClientId == null) {
+            return art.id.isNull();
+        }
+
+        if (filterType == ArtFilterType.MINE) {
+            return art.client.id.eq(currentClientId);
+        }
+
+        return art.id.in(
+                JPAExpressions.select(artLike.art.id)
+                        .from(artLike)
+                        .where(artLike.client.id.eq(currentClientId))
+        );
     }
 
     private OrderSpecifier<?>[] getOrderSpecifiers(ArtSortType sortBy, SortDirection sortDirection) {

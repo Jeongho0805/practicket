@@ -1,718 +1,363 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+/* 포도아트 상세 — 토큰은 community/list.css 를 따른다 */
 
-/* 공통 */
-.art-stats-number {
+:root {
+    --pk-purple: #6b5b9a;
+    --pk-purple-light: #8470b3;
+    --pk-purple-deep: #514897;
+    --pk-purple-pale: #f4f2fb;
+    --pk-purple-line: #e2dcf2;
+    --pk-ink-sub: #7b7490;
+    --pk-ink-faint: #a49dbb;
+}
+
+#main-section {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
     font-family: Pretendard, sans-serif;
-    color: #333537;
 }
 
-/* 데스크톱 스타일 */
-@media (min-width: 769px) {
-    #art-detail-section {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        font-family: my-font, sans-serif;
-        box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-
-    #detail-content-section {
-        width: 100%;
-        padding: 2% 0;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 24px;
-    }
-
-    #art-fixed-section {
-        width: 100%;
-        max-width: 560px;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    #art-info-header {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 12px 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        font-size: 0.9rem;
-        color: #333;
-        font-family: Pretendard, sans-serif;
-    }
-
-    #info-top-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    #info-left {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    #art-actions {
-        display: none;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .action-link {
-        color: #514897;
-        cursor: pointer;
-        font-weight: 600;
-        transition: color 0.2s;
-    }
-
-    .action-link:hover {
-        color: #6c5eb5;
-        text-decoration: underline;
-    }
-
-    #info-bottom-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    #art-stats {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .info-separator {
-        color: #ddd;
-        font-weight: bold;
-    }
-
-    #art-author {
-        font-weight: bold;
-        color: rgb(28, 27, 32);
-    }
-
-    #art-title {
-        color: #8e8e8e;
-        font-weight: 600;
-    }
-
-    #created-at {
-        color: #8e8e8e;
-        font-size: 0.85rem;
-        margin-left: auto;
-    }
-
-    #art-likes,
-    #art-comments,
-    #art-views {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        cursor: pointer;
-    }
-
-    #art-views {
-        cursor: default;
-    }
-
-    #art-likes svg path {
-        transition: all 0.2s ease;
-    }
-
-    #art-likes:hover svg path {
-        fill: #ed4956 !important;
-        stroke: #ed4956 !important;
-    }
-
-    #art-display {
-        width: 100%;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        box-sizing: border-box;
-    }
-
-    #canvas-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        border-radius: 12px;
-        max-width: 100%;
-        overflow: auto;
-    }
-
-    #art-canvas {
-        border-radius: 8px;
-        image-rendering: pixelated;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: crisp-edges;
-    }
-
-    #comments-section {
-        width: 100%;
-        max-width: 560px;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 24px;
-    }
-
-    #comments-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #333;
-        margin: 0 0 16px 0;
-        font-family: my-font, sans-serif;
-        flex-shrink: 0;
-    }
-
-    #comment-form {
-        display: flex;
-        gap: 12px;
-        margin-bottom: 24px;
-        flex-shrink: 0;
-    }
-
-    #comment-input {
-        flex: 1;
-        padding: 12px;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: my-font, sans-serif;
-        resize: vertical;
-        min-height: 60px;
-        outline: none;
-    }
-
-    #comment-input:focus {
-        border-color: #514897;
-    }
-
-    #comment-submit-btn {
-        padding: 12px 24px;
-        background: #514897;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: all 0.2s;
-        align-self: flex-end;
-    }
-
-    #comment-submit-btn:hover {
-        background: rgba(72, 61, 139, 0.68);
-    }
-
-    #comments-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .comments-empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-height: 200px;
-        color: #8e8e8e;
-        font-size: 0.95rem;
-        font-family: my-font, sans-serif;
-        text-align: center;
-    }
-
-    .comment-item {
-        padding: 12px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-    }
-
-    .comment-author {
-        font-weight: bold;
-        font-size: 0.9rem;
-        color: #333;
-        font-family: my-font, sans-serif;
-    }
-
-    .comment-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.8rem;
-    }
-
-    .comment-edit-link,
-    .comment-delete-link {
-        color: #514897;
-        cursor: pointer;
-        font-weight: 600;
-        font-family: my-font, sans-serif;
-        transition: color 0.2s;
-    }
-
-    .comment-edit-link:hover,
-    .comment-delete-link:hover {
-        color: #6c5eb5;
-        text-decoration: underline;
-    }
-
-    .comment-separator {
-        color: #ddd;
-        font-weight: bold;
-    }
-
-    .comment-body {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .comment-content-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        flex: 1;
-    }
-
-    .comment-date {
-        font-size: 0.75rem;
-        color: #8e8e8e;
-        font-family: my-font, sans-serif;
-    }
-
-    .comment-content {
-        font-size: 0.8rem;
-        color: #333;
-        line-height: 1.5;
-        font-weight: bold;
-        font-family: Pretendard, sans-serif;
-        word-break: break-word;
-        margin: 0;
-    }
-
-    .comment-edit-input {
-        padding: 8px;
-        border: 1px solid #dbdbdb;
-        border-radius: 6px;
-        font-size: 0.6rem;
-        font-family: my-font, sans-serif;
-        resize: vertical;
-        min-height: 60px;
-        outline: none;
-    }
-
-    .comment-edit-input:focus {
-        border-color: #514897;
-    }
-
-    .comment-edit-actions {
-        display: none;
-        gap: 6px;
-        align-items: center;
-    }
-
-    .comment-save-btn,
-    .comment-cancel-btn {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .comment-save-btn {
-        background: #514897;
-        color: white;
-    }
-
-    .comment-save-btn:hover {
-        background: #6c5eb5;
-    }
-
-    .comment-cancel-btn {
-        background: #6c757d;
-        color: white;
-    }
-
-    .comment-cancel-btn:hover {
-        background: #5a6268;
-    }
+#art-detail-section {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    box-sizing: border-box;
 }
 
-
-
-
-
-
-
-
-/* 모바일 스타일 */
 @media (max-width: 768px) {
     #art-detail-section {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        font-family: my-font, sans-serif;
-        box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
+        padding: 14px 12px 32px;
     }
+}
 
-    #detail-content-section {
-        width: 100%;
-        padding: 12px;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+/* ---------- 머리말 ---------- */
 
-    #art-fixed-section {
-        width: 100%;
-        flex-shrink: 0;
-        display: flex;
+#art-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+#head-left {
+    min-width: 0;
+}
+
+/* 작품의 주인공은 제목이다. 작성자는 그 아래 회색 줄로 물러난다 */
+#art-title {
+    font-family: Pretendard, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.25rem;
+    color: var(--pk-purple-deep);
+    margin: 0 0 6px;
+    word-break: break-all;
+}
+
+#art-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    color: var(--pk-ink-sub);
+    font-variant-numeric: tabular-nums;
+    flex-wrap: wrap;
+}
+
+.meta-dot {
+    font-style: normal;
+    color: #d6d1e4;
+}
+
+#art-actions {
+    flex: none;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.line-btn {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6f6790;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 9px 18px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.line-btn:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+}
+
+.owner-only[hidden] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    /* 좁은 화면에서 버튼 네 개와 제목이 한 줄을 나눠 가지면 제목이 두 줄로 접힌다 */
+    #art-head {
         flex-direction: column;
+        align-items: stretch;
         gap: 10px;
-    }
-
-    #art-info-header {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 10px 12px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        font-size: 0.75rem;
-        color: #333;
-        font-family: Pretendard, sans-serif;
-    }
-
-    #info-top-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 5px;
     }
 
     #art-actions {
-        display: none;
-        align-items: center;
-        gap: 5px;
+        justify-content: flex-start;
     }
 
-    .action-link {
-        color: #514897;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 0.7rem;
-        transition: color 0.2s;
+    .line-btn {
+        font-size: 0.76rem;
+        padding: 7px 13px;
     }
+}
 
-    #info-bottom-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 5px;
-    }
+/* ---------- 작품 ---------- */
 
-    #art-stats {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
+#art-display {
+    margin-top: 14px;
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    justify-content: center;
+}
 
-    #art-stats svg {
-        width: 16px;
-        height: 16px;
-    }
+#art-canvas {
+    width: 100%;
+    max-width: 330px;
+    height: auto;
+    display: block;
+}
 
-    .info-separator {
-        color: #ddd;
-        font-weight: bold;
-    }
+/* ---------- 좋아요 · 댓글 수 ---------- */
 
-    #art-author {
-        font-weight: bold;
-        color: rgb(28, 27, 32);
-        font-size: 0.8rem;
-    }
+#art-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
 
-    #art-title {
-        color: #8e8e8e;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: #6f6790;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
 
-    #created-at {
-        color: #8e8e8e;
-        font-size: 0.7rem;
-        margin-left: auto;
-    }
+.pill svg {
+    width: 16px;
+    height: 16px;
+}
 
-    #art-likes,
-    #art-comments,
-    #art-views {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        cursor: pointer;
-        font-size: 0.75rem;
-    }
+.pill.static {
+    cursor: default;
+}
 
-    #art-views {
-        cursor: default;
-    }
+/* 눌린 좋아요만 색이 바뀐다. 이 화면에서 색을 쓰는 유일한 버튼이라 눈에 걸린다 */
+#art-likes.liked {
+    background: linear-gradient(135deg, #e0736c, #e8908a);
+    border-color: transparent;
+    color: #fff;
+}
 
-    #art-likes svg path {
-        transition: all 0.2s ease;
-    }
+/* ---------- 댓글 ---------- */
 
-    #art-display {
-        background: white;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+#comment-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--pk-purple-line);
+}
 
-    #canvas-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        max-width: 100%;
-        overflow: auto;
-    }
+#comment-input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 13px;
+    padding: 0 15px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.88rem;
+    color: var(--pk-purple-deep);
+    outline: none;
+}
 
-    #art-canvas {
-        border-radius: 8px;
-        image-rendering: pixelated;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: crisp-edges;
-        max-width: 100%;
-        height: auto;
-    }
+#comment-input::placeholder {
+    color: #b3adc4;
+}
 
-    #comments-section {
-        background: white;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 12px;
-    }
+#comment-input:focus {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
 
-    #comments-title {
-        font-size: 0.95rem;
-        font-weight: bold;
-        color: #333;
-        margin: 0 0 10px 0;
-        font-family: my-font, sans-serif;
-        flex-shrink: 0;
-    }
+#comment-submit-btn {
+    flex: none;
+    border: none;
+    border-radius: 999px;
+    padding: 0 22px;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
 
-    #comment-form {
-        display: flex;
-        flex-direction: row;
-        gap: 6px;
-        margin-bottom: 12px;
-        flex-shrink: 0;
-        align-items: flex-end;
-    }
+#comment-submit-btn:hover {
+    filter: brightness(1.07);
+}
 
-    #comment-input {
-        flex: 1;
-        padding: 8px;
-        border: 1px solid #dbdbdb;
-        border-radius: 8px;
-        font-size: 0.7rem;
-        font-family: my-font, sans-serif;
-        resize: none;
-        outline: none;
-        box-sizing: border-box;
-    }
+.comment-item {
+    display: flex;
+    gap: 11px;
+    padding: 13px 2px;
+    border-bottom: 1px solid #efedf6;
+}
 
-    #comment-input:focus {
-        border-color: #514897;
-    }
+.comment-avatar {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: var(--pk-purple-pale);
+    border: 1px solid var(--pk-purple-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--pk-purple-deep);
+}
 
-    #comment-submit-btn {
-        padding: 8px 12px;
-        background: #514897;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 0.7rem;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        flex-shrink: 0;
-        white-space: nowrap;
-    }
+.comment-body {
+    flex: 1;
+    min-width: 0;
+}
 
-    #comments-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-    .comments-empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        min-height: 120px;
-        color: #8e8e8e;
-        font-size: 0.8rem;
-        font-family: my-font, sans-serif;
-        text-align: center;
-    }
+.comment-author {
+    font-size: 0.79rem;
+    font-weight: 700;
+    color: #5f5878;
+}
 
-    .comment-item {
-        padding: 10px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
+.comment-date {
+    font-size: 0.72rem;
+    color: var(--pk-ink-faint);
+    font-variant-numeric: tabular-nums;
+}
 
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 8px;
-    }
+.comment-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    color: var(--pk-ink-faint);
+}
 
-    .comment-author {
-        font-size: 0.7rem;
-        color: #333;
-        font-family: my-font, sans-serif;
-    }
+.comment-edit-link,
+.comment-delete-link {
+    cursor: pointer;
+}
 
-    .comment-actions {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 0.7rem;
-    }
+.comment-edit-link:hover,
+.comment-delete-link:hover {
+    color: var(--pk-purple-deep);
+}
 
-    .comment-edit-link,
-    .comment-delete-link {
-        color: #514897;
-        cursor: pointer;
-        font-weight: 600;
-        font-family: my-font, sans-serif;
-        transition: color 0.2s;
-    }
+.comment-separator {
+    color: #d6d1e4;
+}
 
-    .comment-separator {
-        color: #ddd;
-        font-weight: bold;
-    }
+.comment-content {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #4a4460;
+    margin: 3px 0 0;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
 
-    .comment-body {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
+.comment-edit-input {
+    width: 100%;
+    margin-top: 5px;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 10px;
+    padding: 8px 11px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    color: var(--pk-purple-deep);
+    outline: none;
+    box-sizing: border-box;
+    resize: vertical;
+}
 
-    .comment-content-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        flex: 1;
-    }
+.comment-edit-input:focus {
+    border-color: var(--pk-purple-light);
+}
 
-    .comment-date {
-        font-size: 0.65rem;
-        color: #8e8e8e;
-        font-family: Pretendard, sans-serif;
-    }
+.comment-edit-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
 
-    .comment-content {
-        font-size: 0.7rem;
-        font-weight: normal;
-        color: #333;
-        line-height: 1.4;
-        font-family: Pretendard, sans-serif;
-        word-break: break-word;
-        margin: 0;
-    }
+.comment-save-btn,
+.comment-cancel-btn {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+}
 
-    .comment-edit-input {
-        padding: 8px;
-        border: 1px solid #dbdbdb;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        font-family: Pretendard, sans-serif;
-        resize: vertical;
-        min-height: 50px;
-        outline: none;
-    }
+.comment-save-btn {
+    border: none;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+}
 
-    .comment-edit-input:focus {
-        border-color: #514897;
-    }
+.comment-cancel-btn {
+    border: 1px solid var(--pk-purple-line);
+    background: #fff;
+    color: #6f6790;
+}
 
-    .comment-edit-actions {
-        display: none;
-        gap: 5px;
-        align-items: center;
-    }
-
-    .comment-save-btn,
-    .comment-cancel-btn {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        font-weight: bold;
-        font-family: my-font, sans-serif;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .comment-save-btn {
-        background: #514897;
-        color: white;
-    }
-
-    .comment-cancel-btn {
-        background: #6c757d;
-        color: white;
-    }
+.comments-empty {
+    padding: 34px 0;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--pk-ink-sub);
 }
