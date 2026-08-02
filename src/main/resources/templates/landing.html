@@ -35,12 +35,39 @@
             </div>
         </div>
 
-        <!-- 야구 신규 서비스 홍보 -->
+        <!-- 야구 신규 서비스(호야구) 홍보.
+             로고는 호야구 레포 brand-logo.html 의 확정 심볼을 그대로 옮긴 것이다 — 임의로 고치지 말 것. -->
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+            <linearGradient id="hyUnder" gradientUnits="userSpaceOnUse" x1="18" y1="0" x2="116" y2="0">
+                <stop offset="0" stop-color="#FF3D7F" stop-opacity=".16"/>
+                <stop offset="1" stop-color="#FF3D7F" stop-opacity="1"/>
+            </linearGradient>
+            <symbol id="hyBall" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18.5" fill="#fff"/>
+                <path d="M12 4 Q21 20 12 36" fill="none" stroke="#FF3D7F" stroke-width="1.4"/>
+                <path d="M28 4 Q19 20 28 36" fill="none" stroke="#FF3D7F" stroke-width="1.4"/>
+                <g stroke="#FF3D7F" stroke-width="1.05" stroke-linecap="round">
+                    <path d="M11.5 8 l3.4 1.4M12.2 8.6 l3.1 -1.6"/><path d="M12.8 13 l3.6 1.2M13.3 13.7 l3.2 -1.4"/>
+                    <path d="M13 18 l3.7 1M13.4 18.8 l3.3 -1.2"/><path d="M13 23 l3.7 -1M13.4 22.3 l3.3 1.2"/>
+                    <path d="M12.8 28 l3.6 -1.2M13.3 27.3 l3.2 1.4"/>
+                    <path d="M28.5 8 l-3.4 1.4M27.8 8.6 l-3.1 -1.6"/><path d="M27.2 13 l-3.6 1.2M26.7 13.7 l-3.2 -1.4"/>
+                    <path d="M27 18 l-3.7 1M26.6 18.8 l-3.3 -1.2"/><path d="M27 23 l-3.7 -1M26.6 22.3 l-3.3 1.2"/>
+                    <path d="M27.2 28 l-3.6 -1.2M26.7 27.3 l-3.2 1.4"/>
+                </g>
+            </symbol>
+            <symbol id="hyLogo" viewBox="0 0 138 60">
+                <text x="14" y="46" font-family="'Pretendard Variable',Pretendard,sans-serif" font-size="40"
+                      font-weight="900" font-style="italic" letter-spacing="-2" transform="skewX(-4)" fill="#f2f2f7">호야구</text>
+                <path d="M16 52 Q 66 64 116 52" fill="none" stroke="url(#hyUnder)" stroke-width="3" stroke-linecap="round"/>
+                <use href="#hyBall" x="110.5" y="46.5" width="10.5" height="10.5"/>
+            </symbol>
+        </defs></svg>
         <div class="bb">
             <div class="bb-l">
                 <span class="badge">NEW SERVICE</span>
-                <b class="mf">야구 티켓팅도 곧 만나요</b>
-                <span class="desc">구단별 예매 일정·좌석 정보부터 야구 전용 예매 연습까지 한 곳에서</span>
+                <svg class="hylogo" viewBox="0 0 138 60" role="img" aria-label="호야구"><use href="#hyLogo"/></svg>
+                <b class="mf">야구 팬을 위한 새 서비스</b>
+                <span class="desc">경기 · 채팅 · 승부예측 · 티켓팅 연습</span>
             </div>
             <div class="bb-r"><b class="mf">2026 시즌</b><span class="soon">COMING SOON</span></div>
         </div>

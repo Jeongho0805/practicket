@@ -44,20 +44,26 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
 .inq-card.g span { color: #9a93b0; }
 .inq-card:hover { transform: translateY(-2px); }
 
-/* 야구 신규 서비스 홍보 - 가로 배너 */
-.bb { border-radius: 20px; background: linear-gradient(125deg, #3d2f73, #6b5b9a 58%, #8470b3); color: #fff;
+/* 야구 신규 서비스(호야구) 홍보 - 가로 배너
+   왼쪽 프랙티켓 보라에서 오른쪽 호야구 마젠타(#FF3D7F)로 넘어간다 — 두 서비스를 색으로 잇는다 */
+.bb { border-radius: 20px; background: linear-gradient(115deg, #3d2f73 0%, #6b5b9a 38%, #a33f86 72%, #FF3D7F 100%); color: #fff;
     padding: 24px 30px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;
-    box-shadow: 0 16px 38px rgba(107, 91, 154, .32); position: relative; overflow: hidden; }
+    box-shadow: 0 16px 38px rgba(160, 60, 130, .34); position: relative; overflow: hidden; }
 .bb::after { content: ""; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .16), transparent 70%); }
 .bb-l { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; min-width: 0; z-index: 1; }
 .bb .badge { font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1px;
     background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .38); padding: 5px 11px; border-radius: 20px; }
-.bb-l b { font-family: 'my-font', sans-serif; font-size: clamp(20px, 2.1vw, 26px); word-break: keep-all; }
-.bb .desc { opacity: .9; font-size: 13px; line-height: 1.55; word-break: keep-all; max-width: 480px; }
+.bb-l b { font-family: 'my-font', sans-serif; font-size: 17px; word-break: keep-all; }
+.bb .desc { opacity: .9; font-size: 13px; line-height: 1.55; word-break: keep-all; max-width: 560px; }
 .bb-r { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; z-index: 1; }
 .bb-r b { font-family: 'my-font', sans-serif; font-size: 15px; opacity: .92; }
 .bb .soon { font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 11.5px; letter-spacing: .8px;
-    background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .45); padding: 9px 16px; border-radius: 20px; white-space: nowrap; }
+    background: rgba(255, 255, 255, .92); color: #c11f5e; border: 1px solid transparent; padding: 9px 16px; border-radius: 20px; white-space: nowrap; }
+
+/* 호야구 로고 — 마크업은 landing.html 의 #hyLogo 심볼(확정 소스 복사본). 여기선 크기만 잡는다.
+   음수 마진은 SVG 내부 여백(viewBox 138 중 글자가 x=14부터 = 10.1%)을 상쇄해
+   로고 글자 시작점을 뱃지·문구와 같은 선에 세운다 */
+.bb .hylogo { height: 52px; width: 120px; display: block; margin: 2px 0 1px -12.2px; }
 
 /* 푸터 */
 .foot { text-align: center; }
@@ -87,22 +93,38 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
 
 /* ===== 모바일 ===== */
 @media (max-width: 768px) {
-    /* 하단 여백: 채팅 런처가 bottom 14px + 높이 58px = 아래 72px을 점유하므로 그보다 더 띄운다 */
-    #main-section { padding: 13px 14px 84px; gap: 11px; justify-content: flex-start; }
-    /* 공지·문의 카드가 남는 세로 공간을 흡수해 위쪽에 빈 틈이 생기지 않게 한다 */
-    .notice { padding: 13px 16px; border-radius: 15px; flex: 1 1 auto; display: flex; flex-direction: column; }
-    .nt-head { margin-bottom: 9px; } .nt-head b { font-size: 15px; }
-    .nt-list { gap: 8px; flex: 1 1 auto; justify-content: space-evenly; }
+    /* 채팅 런처는 오른쪽 아래 구석(약 58px)만 가린다 — 아래 전체를 비우지 말고 푸터만 비켜준다 */
+    #main-section { padding: 13px 14px 16px; gap: 8px; justify-content: flex-start; }
+    .foot { padding-right: 62px; }
+    /* 공지 카드가 남는 세로 공간을 흡수한다. min-height:0 이 없으면 목록 길이만큼 최소 높이가 잡혀
+       카드가 안 줄고 페이지 전체가 스크롤된다 — 화면이 좁으면 목록만 안에서 스크롤되게 한다 */
+    /* 남는 세로 공간을 공지가 혼자 먹지 않게 문의 카드와 나눠 갖는다 */
+    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .nt-head { margin-bottom: 7px; } .nt-head b { font-size: 14.5px; }
+    .nt-list { gap: 6px; flex: 1 1 auto; justify-content: space-evenly; }
     .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
-    .inq { display: flex; }
+    .inq { display: flex; flex: 1 1 auto; min-height: 0; }
     .inq-cards { gap: 9px; flex: 1 1 auto; }
-    .inq-card { padding: 24px 16px; display: flex; flex-direction: column; justify-content: center; }
-    .inq-card b { font-size: 15px; } .inq-card span { margin-top: 6px; font-size: 11.5px; }
-    .bb { flex-direction: column; align-items: stretch; padding: 15px 18px; gap: 11px; }
-    .bb-l { gap: 5px; }
-    .bb-l b { font-size: 18px; } .bb .desc { font-size: 11.5px; line-height: 1.45; }
-    .bb .badge { font-size: 10px; padding: 4px 10px; }
+    .inq-card { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
+    .inq-card b { font-size: 14.5px; } .inq-card span { margin-top: 4px; font-size: 11px; }
+    .bb { flex-direction: column; align-items: stretch; padding: 11px 16px; gap: 7px; }
+    .bb .badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
+    .bb-l { gap: 3px; }
+    .bb-l b { font-size: 14.5px; } .bb .desc { font-size: 11.5px; line-height: 1.4; }
+    .bb .hylogo { height: 40px; width: 92px; margin: 1px 0 2px -9.3px; }
     .bb-r { flex-direction: row; align-items: center; justify-content: space-between; }
     .bb-r b { font-size: 13px; } .bb .soon { padding: 7px 14px; }
-    .foot .dot { margin: 0 6px; }
+    .foot .dot { margin: 0 5px; }
+    .foot a { font-size: 11px; } .foot .copy { font-size: 10.5px; }
+}
+
+/* SE 급 짧은 화면(≤700px)에서만 추가로 덜어낸다 — 큰 폰은 위 값 그대로 */
+@media (max-width: 768px) and (max-height: 700px) {
+    #main-section { gap: 6px; }
+    /* 다섯 건을 다 넣을 높이가 없다. 스크롤·잘림 대신 건수를 줄인다 */
+    .nt-list li:nth-child(n+5) { display: none; }
+    .inq-card { padding: 11px 16px; }
+    .notice { padding: 11px 14px; }
+    .bb { padding: 10px 14px; gap: 6px; }
+    .bb .hylogo { height: 34px; width: 78px; margin-left: -7.9px; }
 }
