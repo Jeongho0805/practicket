@@ -35,18 +35,28 @@
         grid-template-columns: 1fr 2fr 1fr;
     }
 
-    #ad-section {
-        width: 60%;
-        height: 70%;
+    /* 자리의 비율을 배너 규격(300x600)에 맞춘다. 안 맞으면 contain 으로 여백이 생기는데
+       그 여백까지 링크 안이라 그림 옆 빈 곳을 눌러도 광고가 열린다.
+
+       폭을 "칸의 폭(100%)"과 "쓸 수 있는 높이에서 역산한 폭(31vh)" 중 작은 값으로 잡는다.
+       한쪽만 보면 반대쪽이 모자랄 때 비율이 깨진다 — 창이 좁으면 칸 폭이, 낮으면 높이가 먼저 걸린다.
+       31vh 는 이 레이아웃(헤더 1 : 본문 10, 그 중 70%)에서 나온 값이다. 둘 중 하나를 바꾸면 같이 손봐야 한다.
+       max-height 는 계산이 어긋났을 때 광고가 화면을 밀지 않게 막는 안전장치다. */
+    #ad-section,
+    #adsence-section {
+        width: min(100%, 31vh);
+        height: auto;
+        aspect-ratio: 1 / 2;
         max-height: 70%;
         overflow: hidden;
     }
 
-    #adsence-section {
+    /* 배너가 없어 쿠팡만 들어가는 자리는 비율을 풀고 원래 크기로 돌린다 —
+       위젯은 스스로 크기를 맞추므로 자리를 꽉 줘야 한다. */
+    #ad-section:not(:has(.ad-slot-link)) {
         width: 60%;
         height: 70%;
-        max-height: 70%;
-        overflow: hidden;
+        aspect-ratio: auto;
     }
 }
 
@@ -71,13 +81,21 @@
         grid-template-rows: 15fr 85fr;
     }
 
+    /* 모바일 배너 규격(320x100)에 맞춘다. padding 을 두면 그만큼 비율이 어긋나 여백이 남는다. */
     #ad-section {
+        height: 100%;
+        width: auto;
+        aspect-ratio: 16 / 5;
+        max-width: 100%;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+    /* 데스크톱과 같은 이유로, 배너가 없으면 비율을 풀고 자리를 꽉 준다 */
+    #ad-section:not(:has(.ad-slot-link)) {
         width: 100%;
         height: 100%;
-        max-height: 100%;
-        overflow: hidden;
-        padding: 1%;
-        box-sizing: border-box;
+        aspect-ratio: auto;
     }
 
     #adsence-section {
@@ -86,7 +104,8 @@
 }
 
 /* 배너 링크 공통 — .desktop-invisible / .mobile-invisible 가 브레이크포인트별로 숨기므로
-   여기서는 inline style 대신 클래스로 표시 상태를 준다(inline style은 미디어쿼리를 이겨버린다). */
+   여기서는 inline style 대신 클래스로 표시 상태를 준다(inline style은 미디어쿼리를 이겨버린다).
+   display 를 여기서 다른 값으로 덮으면 그 숨김이 깨진다 — 건드리지 말 것. */
 .ad-slot-link {
     display: block;
     width: 100%;
