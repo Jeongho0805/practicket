@@ -3,6 +3,7 @@ package com.practicket.chat.application;
 import com.practicket.chat.component.ChatConnectionManager;
 import com.practicket.chat.component.ChatManager;
 import com.practicket.chat.component.ChatMessagePublisher;
+import com.practicket.chat.component.ChatParticipantCounter;
 import com.practicket.chat.component.ChatRateLimiter;
 import com.practicket.chat.domain.Chat;
 import com.practicket.chat.dto.ChatRequestDto;
@@ -28,6 +29,7 @@ public class ChatService {
 
     private final ChatManager chatManager;
     private final ChatConnectionManager chatConnectionStore;
+    private final ChatParticipantCounter chatParticipantCounter;
     private final ProfanityValidator profanityValidator;
     private final ChatMessagePublisher chatMessagePublisher;
     private final ChatRateLimiter chatRateLimiter;
@@ -57,6 +59,6 @@ public class ChatService {
     }
 
     public int participantCount() {
-        return chatConnectionStore.count();
+        return chatParticipantCounter.total();
     }
 }

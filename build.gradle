@@ -26,6 +26,8 @@ dependencies {
     runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // 어드민 세션을 파드 밖(Redis)에 둔다. 인메모리면 파드가 2개 이상일 때 로그인이 풀린다.
+    implementation 'org.springframework.session:spring-session-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'

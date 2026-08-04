@@ -17,6 +17,10 @@ spring:
       enabled: false
   jackson:
     property-naming-strategy: SNAKE_CASE
+  # 테스트에는 Redis 가 없다. 켜두면 SessionRepositoryFilter 가 요청마다 Redis 에 쓰려다
+  # 어드민 MockMvc 테스트가 전부 깨진다.
+  session:
+    store-type: none
   # host 가 있어야 스프링이 JavaMailSender 빈을 만든다. InquiryMailSender 가 그 빈을 요구해
   # 없으면 빈 하나 때문에 컨텍스트 전체가 못 뜬다. 테스트에서 실제로 발송하지는 않는다.
   mail:

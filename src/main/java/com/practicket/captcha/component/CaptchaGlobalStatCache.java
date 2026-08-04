@@ -2,6 +2,9 @@ package com.practicket.captcha.component;
 
 import com.practicket.captcha.dto.CaptchaGlobalStat;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -9,6 +12,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 통계 스냅샷은 파드마다 따로 들고 있고, 무효화만 pub/sub 으로 함께 맞춘다.
+ * 스냅샷을 Redis 로 옮기지 않는 이유는 {@link com.practicket.captcha.dto.CaptchaRankRow#getClientId()} 가
+ * 응답에서 제외되는 값이라 JSON 으로 저장하면 사라지고, 그러면 "내 줄" 표시를 붙일 수 없기 때문이다.
+ */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CaptchaGlobalStatCache {
@@ -20,12 +29,23 @@ public class CaptchaGlobalStatCache {
     private static final Duration TTL = Duration.ofMinutes(1);
 
     private final CaptchaResultManager captchaResultManager;
+    private final StringRedisTemplate stringRedisTemplate;
+    private final ChannelTopic captchaStatTopic;
 
     private volatile CaptchaGlobalStat snapshot;
     private volatile Instant expiresAt = Instant.EPOCH;
 
     /** 방금 기록을 낸 사람에게 "오늘 기록이 없다"고 보이지 않도록 저장 직후 비운다 */
     public void invalidate() {
+        invalidateLocal();
+        try {
+            stringRedisTemplate.convertAndSend(captchaStatTopic.getTopic(), "invalidate");
+        } catch (Exception e) {
+            log.warn("캡차 통계 캐시 무효화 전파 실패 — 이 파드만 비운다", e);
+        }
+    }
+
+    void invalidateLocal() {
         expiresAt = Instant.EPOCH;
     }
 
