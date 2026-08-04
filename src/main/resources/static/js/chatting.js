@@ -329,6 +329,7 @@ function setupChatWidget() {
     setupChatVisibility(widget);
     setupChatDrag();
     setupMobileSheetDrag();
+    setupViewportSync();
 }
 
 // 채팅 버튼이 화면을 가린다는 사람을 위해 전 페이지에서 접어둘 수 있게 한다.
@@ -375,22 +376,68 @@ function setupChatVisibility(widget) {
     apply(localStorage.getItem(CHAT_HIDDEN_KEY) === "1");
 }
 
+// 사용자가 원하는 시트 높이(px). 키보드 때문에 일시적으로 줄여도 이 값으로 되돌린다.
+let mobileSheetHeight = 0;
+
 // 모바일 시트가 커져도 상단 광고(ad-section)를 덮지 않는 최대 높이.
 // 광고가 스크롤로 화면 위로 벗어나면 그만큼 상한이 자연히 커진다(가릴 광고가 없으므로).
+// 기준은 window.innerHeight 가 아니라 visualViewport.height — 키보드가 가린 영역까지 높이로 쳐서는 안 된다.
 function mobileMaxHeight() {
+    const vv = window.visualViewport;
+    const viewHeight = vv ? vv.height : window.innerHeight;
+    const viewTop = vv ? vv.offsetTop : 0;
     const ad = document.getElementById("ad-section");
     const guardTop = ad
-        ? Math.max(8, ad.getBoundingClientRect().bottom + 6)
-        : Math.round(window.innerHeight * 0.12);
-    return window.innerHeight - guardTop;
+        ? Math.max(8, ad.getBoundingClientRect().bottom - viewTop + 6)
+        : Math.round(viewHeight * 0.12);
+    return Math.max(120, viewHeight - guardTop);
 }
 
-// 열 때 높이 지정: 모바일은 광고 보호 상한까지, 데스크톱은 인라인 높이 비워 CSS/resize 값 사용
+// iOS 는 키보드를 띄울 때 레이아웃 뷰포트를 줄이지 않고 화면을 위로 밀어 올린다(visualViewport.offsetTop).
+// position:fixed 는 그 밀림을 모른 채 원래 좌표에 그려지므로, 밀린 양 + 키보드 높이를 bottom 으로
+// 되돌려주지 않으면 시트 아래에 그만큼 빈 여백이 남는다.
+function syncPanelToViewport() {
+    const panel = document.getElementById("chat-panel");
+    if (!panel) return;
+    if (window.innerWidth > 768) {
+        panel.style.bottom = "";
+        return;
+    }
+    const vv = window.visualViewport;
+    const lift = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
+    panel.style.bottom = lift + "px";
+    if (mobileSheetHeight) {
+        panel.style.height = Math.min(mobileSheetHeight, mobileMaxHeight()) + "px";
+    }
+}
+
+function setupViewportSync() {
+    const vv = window.visualViewport;
+    if (vv) {
+        vv.addEventListener("resize", syncPanelToViewport);
+        vv.addEventListener("scroll", syncPanelToViewport);
+    }
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 768) {
+            mobileSheetHeight = 0;
+            applyMobileOpenHeight();
+            return;
+        }
+        syncPanelToViewport();
+    });
+}
+
+// 열 때 높이 지정: 모바일은 광고 보호 상한까지, 데스크톱은 인라인 값 비워 CSS/resize 값 사용
 function applyMobileOpenHeight() {
     const panel = document.getElementById("chat-panel");
     if (!panel) return;
-    if (window.innerWidth <= 768) panel.style.height = mobileMaxHeight() + "px";
-    else panel.style.height = "";
+    if (window.innerWidth > 768) {
+        panel.style.height = "";
+        panel.style.bottom = "";
+        return;
+    }
+    mobileSheetHeight = mobileMaxHeight();
+    syncPanelToViewport();
 }
 
 // 모바일 바텀시트: 헤더를 위/아래로 드래그해 높이 조절. 많이 내리면 닫힘.
@@ -417,6 +464,7 @@ function setupMobileSheetDrag() {
         const min = Math.round(window.innerHeight * 0.12);
         let h = startH - (e.clientY - startY);
         h = Math.max(min, Math.min(h, max));
+        mobileSheetHeight = h;
         panel.style.height = h + "px";
     });
     const end = (e) => {
@@ -430,6 +478,7 @@ function setupMobileSheetDrag() {
         if (h < closeAt) {
             widget.classList.remove("open");        // 충분히 내리면 닫힘 → 런처 복귀
         } else if (h < snapMin) {
+            mobileSheetHeight = snapMin;
             panel.style.height = snapMin + "px";    // 너무 작으면 최소 높이로 스냅
         }
     };
