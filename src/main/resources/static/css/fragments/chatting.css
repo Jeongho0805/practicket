@@ -62,12 +62,14 @@
     .chat-unit.received > .chat-content {
         display: flex;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-unit.sent > .chat-content {
         display: flex;
         flex-direction: row-reverse;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-user {
@@ -242,12 +244,14 @@
     .chat-unit.received > .chat-content {
         display: flex;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-unit.sent > .chat-content {
         display: flex;
         flex-direction: row-reverse;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-user {
