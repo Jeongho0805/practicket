@@ -4,6 +4,8 @@ package com.practicket.chat.domain;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.IndexDirection;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ public class Chat {
 
     private String text;
 
+    @Indexed(direction = IndexDirection.DESCENDING)
     private LocalDateTime createdAt;
 
     @Builder
