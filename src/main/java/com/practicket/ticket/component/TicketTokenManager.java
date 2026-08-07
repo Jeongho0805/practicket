@@ -28,12 +28,19 @@ public class TicketTokenManager {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
+    private static final long MIN_TTL_SECONDS = 30;
+
     public TicketToken issue(String clientKey) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt
                 .plus(1, ChronoUnit.MINUTES)
                 .truncatedTo(ChronoUnit.MINUTES)
                 .minusSeconds(10);
+
+        // 잔여 TTL이 너무 짧으면(30초 미만) 1분 앞으로 이동
+        if (Duration.between(issuedAt, expiresAt).getSeconds() < MIN_TTL_SECONDS) {
+            expiresAt = expiresAt.plus(1, ChronoUnit.MINUTES);
+        }
 
         long ttlSec = Duration.between(issuedAt, expiresAt).getSeconds();
         String jti = UUID.randomUUID().toString();
@@ -51,6 +58,7 @@ public class TicketTokenManager {
     public Claims parseAndValidate(String jwt) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
+                .setAllowedClockSkewSeconds(5)
                 .build()
                 .parseClaimsJws(jwt)
                 .getBody();
