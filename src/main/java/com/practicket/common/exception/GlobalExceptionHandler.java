@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
@@ -45,6 +46,12 @@ public class GlobalExceptionHandler {
                 .orElse(errorCode.getMessage());
         ErrorResponse response = ErrorResponse.of(errorCode, message);
         return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handle(MethodArgumentTypeMismatchException e) {
+        ErrorResponse response = ErrorResponse.of(ErrorCode.PARAMETER_IS_NOT_VALID);
+        return ResponseEntity.status(400).body(response);
     }
 
     @ExceptionHandler(AsyncRequestNotUsableException.class)
