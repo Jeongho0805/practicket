@@ -51,6 +51,7 @@ public class TicketTokenManager {
     public Claims parseAndValidate(String jwt) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
+                .setAllowedClockSkewSeconds(5)
                 .build()
                 .parseClaimsJws(jwt)
                 .getBody();
