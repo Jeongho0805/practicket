@@ -36,6 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+
 # 실서버 yml 제외
 src/main/resources/application-*.yml
 src/main/generated/**
