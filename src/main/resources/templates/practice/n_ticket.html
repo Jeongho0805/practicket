@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N-Ticket 예매 연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/common/alert.css" />
+    <link rel="stylesheet" href="/css/practice/n_ticket.css" />
+</head>
+
+<body>
+
+    <!-- 1) 대기 순서 확인 중 -->
+    <section class="nt-screen is-active" id="screen-loading">
+        <div class="nt-loading">
+            <div class="nt-spinner"></div>
+            <h2>
+                <span>대기 순서를 확인 중이에요.</span>
+                <strong>잠시만 기다려 주세요.</strong>
+            </h2>
+        </div>
+    </section>
+
+    <!-- 2) 대기열 -->
+    <section class="nt-screen" id="screen-queue">
+        <div class="nt-wait" id="waitRoot">
+            <div class="nt-wait-content">
+
+                <div class="nt-wait-title">
+                    <h2>
+                        <span id="waitLine1">접속 인원이 많아 대기 중입니다.</span>
+                        <strong id="waitLine2">조금만 기다려주세요.</strong>
+                    </h2>
+                    <p class="nt-goods">HOYA LIVE 2026 IN SEOUL</p>
+                </div>
+
+                <div class="nt-status">
+                    <div class="nt-status-main">
+                        <div class="nt-status-text">
+                            <h3>나의 대기순서</h3>
+                            <strong id="queueRank">0</strong>
+                        </div>
+                        <div class="nt-bar" id="queueBar">
+                            <div class="nt-bar-active" id="queueFill"></div>
+                            <span class="nt-ticket">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2"
+                                    stroke-linejoin="round">
+                                    <path d="M2 6.5A1.5 1.5 0 0 1 3.5 5h13A1.5 1.5 0 0 1 18 6.5v1a2.5 2.5 0 0 0 0 5v1a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 13.5v-1a2.5 2.5 0 0 0 0-5v-1Z" />
+                                    <path d="M11.5 5v10" stroke-dasharray="1.6 1.6" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="nt-status-sub">
+                        <div class="nt-status-row">
+                            <h4>현재 대기인원</h4>
+                            <span id="queueTotal">0명</span>
+                        </div>
+                        <div class="nt-status-row">
+                            <h4>예매율</h4>
+                            <span id="bookingRate" data-rate="0">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nt-notice">
+                    <li>새로고침 하거나 재접속 하시면 대기순서가 초기화 되어 대기시간이 더 길어집니다.</li>
+                    <li>예매 화면 이동 후 10분 이내에 좌석 선택을 완료하지 않으면 예매가 자동으로 종료됩니다.</li>
+                    <li>페이지를 나가면 대기 순번이 초기화됩니다.</li>
+                </ul>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 3) 좌석 선택 -->
+    <section class="nt-screen" id="screen-seat">
+
+        <header class="nt-hdr">
+            <span class="nt-logo">프랙티켓</span>
+            <nav class="nt-hdr-menu">
+                <button type="button">마이페이지</button>
+                <span class="nt-hdr-div"></span>
+                <button type="button">예매확인/취소</button>
+            </nav>
+        </header>
+
+        <div class="nt-sub">
+            <span class="nt-sub-title">HOYA LIVE 2026 IN SEOUL</span>
+            <span class="nt-sub-div"></span>
+            <span class="nt-sub-date">2026.12.05(토) 6:00 PM</span>
+            <button type="button" class="nt-sub-chip">일정변경</button>
+            <p class="nt-timer">좌석 선택 시간 <strong id="seatTimer">10:00</strong></p>
+        </div>
+
+        <div class="nt-seat-body">
+
+            <div class="nt-plan" id="planViewport">
+                <!-- 좌석 도면은 세 겹이다. 실물 순서대로 아래에서 위로 ① 공연장 ② 개별 좌석 ③ 구역 -->
+                <div class="nt-map" id="planMap">
+                    <svg class="nt-layer" viewBox="0 0 741 612" id="baseLayer" aria-hidden="true"></svg>
+                    <svg class="nt-layer" viewBox="0 0 741 612" id="seatLayer"></svg>
+                    <svg class="nt-layer" viewBox="0 0 741 612" id="blockLayer"></svg>
+                </div>
+
+                <p class="nt-hint" id="planHint" hidden></p>
+
+                <button type="button" class="nt-grade-chip" id="gradeChip">등급 별 가격</button>
+                <div class="nt-grade-layer" id="gradeLayer" hidden>
+                    <ul id="gradeList"></ul>
+                </div>
+
+                <div class="nt-minimap" id="miniMap">
+                    <svg class="nt-mini-plan" viewBox="0 0 741 612" id="miniLayer" aria-hidden="true"></svg>
+                    <div class="nt-mini-view" id="miniView"></div>
+                </div>
+
+                <div class="nt-zoom">
+                    <button type="button" id="zoomIn" aria-label="좌석도 확대">+</button>
+                    <button type="button" id="zoomOut" aria-label="좌석도 축소">−</button>
+                </div>
+                <button type="button" class="nt-zoom-fit" id="zoomFit" aria-label="좌석도 전체보기">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3H3v5M12 3h5v5M8 17H3v-5M12 17h5v-5" />
+                    </svg>
+                </button>
+            </div>
+
+            <aside class="nt-side">
+                <div class="nt-side-head">
+                    <h2>선택 좌석<em id="pickedNum"></em></h2>
+                    <button type="button" class="nt-clear" id="clearBtn" hidden>전체삭제</button>
+                </div>
+                <ul class="nt-picked" id="pickedList"></ul>
+                <p class="nt-picked-empty" id="pickedEmpty">선택한 좌석이 없습니다.</p>
+                <button type="button" class="nt-done" id="doneBtn" disabled>선택 완료</button>
+            </aside>
+
+        </div>
+
+        <div class="nt-dim" id="capDim" hidden></div>
+        <div class="nt-cap" id="capModal" role="dialog" aria-modal="true" hidden>
+            <h3>화면의 문자를 입력해주세요</h3>
+            <p class="nt-cap-sub">문자 입력 인증 후 좌석을 선택할 수 있습니다</p>
+            <div class="nt-cap-box">
+                <button type="button" class="nt-cap-round l" id="capVoice" aria-label="소리로 듣기">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 9v6h4l5 4V5L8 9H4Z" />
+                        <path d="M17 8.5a5 5 0 0 1 0 7" />
+                        <path d="M19.5 6a8.5 8.5 0 0 1 0 12" />
+                    </svg>
+                </button>
+                <img id="capImage" width="210" height="70" alt="보안문자" />
+                <button type="button" class="nt-cap-round r" id="capReload" aria-label="새 문자 불러오기">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 12a8 8 0 1 1-2.3-5.6" />
+                        <path d="M20 4v5h-5" />
+                    </svg>
+                </button>
+            </div>
+            <input class="nt-cap-input" id="capInput" type="text" autocomplete="off" spellcheck="false"
+                placeholder="화면의 문자를 입력해주세요 (대소문자 구분없음)" />
+            <p class="nt-cap-err" id="capErr"></p>
+            <button type="button" class="nt-done" id="capSubmit" disabled>입력완료</button>
+        </div>
+
+    </section>
+
+    <!-- 4) 결과 -->
+    <section class="nt-screen" id="screen-result">
+        <div class="nt-result">
+            <h1>예매를 마쳤습니다</h1>
+
+            <div class="nt-score" id="scoreTotal">0.00<span>초</span></div>
+            <p class="nt-score-label">예매하기가 열린 순간부터 좌석 선택 완료까지</p>
+
+            <p class="nt-rank" id="scoreRankBar" hidden>
+                <span id="scoreRankVal"></span>
+            </p>
+
+            <dl class="nt-score-detail">
+                <div>
+                    <dt>반응 속도</dt>
+                    <dd id="scoreReaction">0.00초</dd>
+                </div>
+                <div>
+                    <dt>대기열</dt>
+                    <dd id="scoreQueue">0.00초</dd>
+                </div>
+                <div>
+                    <dt>좌석 선택</dt>
+                    <dd id="scoreSeat">0.00초</dd>
+                </div>
+                <div>
+                    <dt>대기 시작 순번</dt>
+                    <dd id="scoreRank">0번</dd>
+                </div>
+                <div>
+                    <dt>선택한 좌석</dt>
+                    <dd id="scoreSeatName">-</dd>
+                </div>
+            </dl>
+
+            <p class="nt-notice-box" id="scoreNotice" hidden></p>
+
+            <div class="nt-actions">
+                <button type="button" class="primary" onclick="location.href='/practice/n-ticket/intro'">다시 연습하기</button>
+                <button type="button" class="secondary" onclick="location.href='/practice'">목록으로</button>
+            </div>
+        </div>
+    </section>
+
+    <th:block th:replace="~{fragments/alert :: alert}"></th:block>
+
+    <script type="module" src="/js/practice/n_ticket.js"></script>
+</body>
+
+</html>

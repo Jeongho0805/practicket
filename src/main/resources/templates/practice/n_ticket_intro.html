@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>N-Ticket 예매 연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/n_ticket_intro.css" />
+    <link rel="stylesheet" href="/css/common/alert.css" />
+</head>
+
+<body>
+
+    <div class="nt-gate">
+        <button type="button" class="nt-back" onclick="location.href='/practice'" aria-label="뒤로">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M15 5 8 12l7 7" />
+            </svg>
+        </button>
+
+        <h1 class="nt-title">예매 준비가 완료됐어요</h1>
+
+        <div class="nt-poster">
+            <img src="/image/practice/hoya-poster.svg" alt="HOYA LIVE 2026 IN SEOUL 포스터" />
+        </div>
+        <p class="nt-name">HOYA LIVE 2026 IN SEOUL</p>
+
+        <button type="button" class="nt-book" id="bookBtn" disabled>남은시간 00:05</button>
+    </div>
+
+    <div class="nt-modal" id="startModal">
+        <div class="nt-modal-card">
+            <h2>티켓팅 연습 시작</h2>
+            <p>
+                실제 예매와 동일한 환경에서 연습해보세요.<br>
+                <strong>연습 시작하기</strong>를 누르면 카운트다운이 시작됩니다.
+            </p>
+            <div class="nt-modal-actions">
+                <button type="button" class="primary" id="startBtn">연습 시작하기</button>
+                <button type="button" class="secondary" onclick="location.href='/practice'">돌아가기</button>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:replace="~{fragments/alert :: alert}"></th:block>
+    <script>const HOST = '';</script>
+    <script type="module" src="/js/practice/n_ticket_intro.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>M-Ticket 좌석 선택 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/m_ticket.css" />
+</head>
+
+<body>
+
+<div id="board">
+
+    <div class="pane-map">
+
+        <!-- ══════════ 데스크톱 상단 ══════════ -->
+        <div class="pc-top">
+            <span class="lb">좌석 선택</span>
+            <span class="nm">HOYA LIVE 2026 IN SEOUL</span>
+            <select aria-label="회차 선택">
+                <option>2026.02.08 (일) 18:00</option>
+            </select>
+        </div>
+
+        <!-- ══════════ 모바일 상단 ══════════ -->
+        <div class="mo-top">
+            <div class="appbar">
+                <h1>HOYA LIVE 2026 IN SEOUL</h1>
+                <button class="x" onclick="location.href='/practice'">✕</button>
+            </div>
+            <div class="info">
+                <div class="thumb" id="mo-thumb"></div>
+                <div class="rows">
+                    <div class="row"><span class="v">2026년 2월 8일(일) 18시00분</span></div>
+                    <div class="row area"><span class="v" id="mo-area">구역을 선택해 주세요</span><span class="ch" id="mo-area-change">구역변경</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ 좌석도 / 좌석 격자 ══════════ -->
+        <div class="map" id="map">
+            <div class="stagebar"><span class="st">무대방향 (STAGE)</span></div>
+            <div class="zonehint" id="zonehint"></div>
+            <div class="zonemap" id="zonemap"></div>
+            <div class="gridwrap" id="gridwrap"><div class="grid" id="grid"></div></div>
+
+            <div class="pc-bottombar" id="pc-bar">
+                <button class="line" id="pc-bar-toggle">
+                    <span class="msg" id="pc-bar-msg">구역을 먼저 선택해주세요</span>
+                    <em id="pc-bar-sub">(화면을 직접 선택하거나 우측 좌석등급을 선택해주세요)</em>
+                    <i class="arw"></i>
+                </button>
+                <div class="chips" id="pc-chips"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ 데스크톱 우측 패널 ══════════ -->
+    <aside class="pane-side">
+        <div class="logo">🍇 프랙티켓</div>
+
+        <div class="boxmap">
+            <div class="minimap"><div class="in" id="minimap"></div></div>
+            <div class="mapall"><u id="map-all">좌석도 전체보기 ›</u></div>
+        </div>
+
+        <div class="listwrap">
+            <div class="listhead">
+                <h2>좌석등급/잔여석</h2>
+                <span class="rf" id="pc-refresh">새로고침</span>
+            </div>
+            <div class="boxseat"><table class="tbl" id="grade-table"></table></div>
+        </div>
+
+        <div class="donewrap"><button class="done" id="pc-done">좌석 선택 완료<em>›</em></button></div>
+    </aside>
+
+    <!-- ══════════ 모바일 등급/구역 선택 ══════════ -->
+    <div class="mo-pick">
+        <div class="col">
+            <h2>등급</h2>
+            <ul id="mo-grades"></ul>
+        </div>
+        <div class="col">
+            <h2>구역</h2>
+            <ul id="mo-areas"><li class="empty">등급을 먼저 선택해 주세요.</li></ul>
+        </div>
+    </div>
+
+    <!-- ══════════ 모바일 하단 시트 ══════════ -->
+    <div class="mo-sheet">
+        <div class="fold"></div>
+        <p class="sel" id="mo-sel">선택좌석(0)</p>
+        <ul id="mo-sheet-grades"></ul>
+    </div>
+
+    <!-- ══════════ 모바일 버튼바 ══════════ -->
+    <div class="mo-btm">
+        <button class="rf" id="mo-refresh">새로고침</button>
+        <button class="go" id="mo-go">좌석선택</button>
+    </div>
+
+    <!-- ══════════ 보안문자 ══════════ -->
+    <div class="dim" id="cap-dim"></div>
+    <div class="cap" id="cap">
+        <h2>인증예매</h2>
+        <div class="con">
+            <p class="ment">부정예매 방지를 위해 보안문자를<br>정확히 입력해주세요</p>
+            <div class="capbox">
+                <canvas id="cap-canvas" width="230" height="70"></canvas>
+                <div class="side">
+                    <button id="cap-reload" title="새로고침"></button>
+                    <button id="cap-sound" title="소리듣기"></button>
+                </div>
+            </div>
+            <input id="cap-input" maxlength="6" autocomplete="off" placeholder="대소문자 구분없이 문자입력" />
+            <button class="sub" id="cap-submit">입력완료</button>
+            <button class="later" id="cap-later">좌석 먼저 확인하고 나중에 입력하기</button>
+        </div>
+    </div>
+
+    <!-- ══════════ 결과 ══════════ -->
+    <div class="dim" id="result-dim"></div>
+    <div class="result" id="result">
+        <span class="tag">✓ 연습 완료</span>
+        <h2>수고하셨습니다</h2>
+        <p class="seat" id="r-seat">-</p>
+
+        <div class="rankbar" id="r-rankbar">
+            <span class="ico">🏅</span>
+            <span class="label">이번 달 순위</span>
+            <span class="val" id="r-rank">-</span>
+        </div>
+
+        <div class="total"><span id="r-total">0.00</span><small>초</small></div>
+        <p class="total-label">예매하기가 열린 순간부터 좌석 선택까지</p>
+
+        <div class="rows">
+            <div class="r"><span>반응 속도</span><b id="r-reaction">-</b></div>
+            <div class="r"><span>대기열</span><b id="r-queue">-</b></div>
+            <div class="r"><span>좌석 선택</span><b id="r-pick">-</b></div>
+            <div class="r"><span>대기열 초기 순번</span><b id="r-initial">-</b></div>
+        </div>
+
+        <div class="acts">
+            <button class="again" onclick="location.href='/practice/m-ticket/intro'">다시 연습</button>
+            <button class="home" onclick="location.href='/practice'">순위표 보기 →</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+</div>
+
+<th:block th:replace="~{fragments/alert :: alert}"></th:block>
+
+<!-- layout/default 가 내려주던 전역이다. 독립 페이지라 여기서 직접 정의한다(m_ticket_intro.html 과 동일) -->
+<script>const HOST = '';</script>
+<script type="module" src="/js/practice/m_ticket.js"></script>
+</body>
+
+</html>

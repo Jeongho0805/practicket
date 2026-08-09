@@ -1,0 +1,341 @@
+/*
+  멜론티켓 상세 화면 재현. 치수는 ticket.melon.com 실측값이다.
+  layout/default 를 쓰지 않는 독립 페이지다 — 그 레이아웃은 overflow:hidden 에
+  본문이 3열 그리드의 가운데 한 칸(화면 절반)만 써서 실물 좌표가 나오지 않는다.
+*/
+
+:root {
+    --accent: #7a68a8;
+    --accent-grad: linear-gradient(135deg, #8470b3 0%, #6b5b9a 100%);
+    --line: #e0e0e0;
+    --line-strong: #cccccc;
+    --txt: #333333;
+    --txt-sub: #666666;
+    --txt-dim: #999999;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    font-size: 12px;
+    color: var(--txt-sub);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+ul { list-style: none; }
+
+.pc { display: block; }
+.mo { display: none; }
+
+@media (max-width: 1024px) {
+    .pc { display: none; }
+    .mo { display: block; }
+}
+
+/* ══════════ 데스크톱 ══════════ */
+
+.top-bar { height: 56px; }
+.top-bar .inner {
+    width: 100%; max-width: 1048px; margin: 0 auto; padding: 0 20px;
+    height: 100%; display: flex; align-items: center;
+}
+
+.back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 12px 0 8px; border-radius: 18px;
+    font-size: 14px; color: var(--txt-sub);
+}
+.back-btn .arw { font-size: 20px; line-height: 1; }
+.back-btn:hover { background: #f4f4f6; color: var(--txt); }
+
+#cont { padding: 40px 0 0; }
+
+.product-box { width: 100%; max-width: 1008px; margin: 0 auto; border: 1px solid var(--line); }
+
+/* 실측 342px. 이 높이가 예매 패널 시작 위치를 정한다 — 내용이 줄어도 좌표가 흔들리면 안 된다 */
+.product-cont { height: 343px; display: flex; padding: 30px; gap: 6px; }
+
+.thumb { width: 180px; flex: 0 0 180px; }
+.poster {
+    width: 180px; height: 254px; border-radius: 2px; overflow: hidden;
+    background: linear-gradient(160deg, #5b3f8f, #39235f 60%, #241436);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 14px; color: #fff;
+}
+.poster .p-sub { font-size: 9px; opacity: .85; letter-spacing: .5px; }
+.poster .p-tit { font-size: 20px; font-weight: 800; line-height: 1.12; margin-top: 4px; letter-spacing: -.5px; }
+.poster .p-meta {
+    font-size: 8px; opacity: .8; margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, .35); padding-top: 6px;
+}
+
+.product-txt { flex: 1; padding-left: 30px; }
+
+.badges { display: flex; gap: 4px; }
+.badge {
+    height: 22px; padding: 0 8px; border-radius: 2px; font-size: 12px;
+    display: inline-flex; align-items: center;
+}
+.badge.b1 { background: var(--accent); color: #fff; }
+.badge.b2 { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+
+.p-title {
+    font-size: 26px; font-weight: 700; color: var(--txt);
+    line-height: 1.3; margin-top: 12px; max-width: 736px; letter-spacing: -.5px;
+}
+.p-subtitle { font-size: 14px; color: var(--txt-dim); margin-top: 8px; }
+.p-rank { font-size: 13px; color: var(--accent); font-weight: 700; margin-top: 6px; }
+
+.info-grid { display: flex; gap: 40px; margin-top: 30px; font-size: 14px; }
+.info-grid dl { display: grid; grid-template-columns: 76px 1fr; row-gap: 14px; align-content: start; }
+.info-grid dl.left { flex: 1; max-width: 330px; }
+.info-grid dt { color: var(--txt-sub); }
+.info-grid dd { color: var(--txt); }
+.info-grid .chev { color: var(--line-strong); margin-left: 4px; }
+
+.pill-tag {
+    display: inline-flex; align-items: center; height: 26px; padding: 0 10px;
+    border: 1px solid var(--line-strong); border-radius: 3px; font-size: 13px; color: var(--txt);
+}
+
+/* 예매 진행 박스 — 실측 1006x336 (3분할 266 + 버튼바 70) */
+.process-box { border-top: 1px solid var(--line); }
+.process-cols { display: flex; height: 266px; }
+
+.col { flex: 1 1 0; min-width: 0; border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+.col:first-child { border-left: 0; }
+
+.col-head {
+    height: 50px; position: relative; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600; color: var(--txt);
+}
+.col-head .sorting { position: absolute; left: 30px; display: flex; gap: 14px; color: var(--line-strong); font-size: 15px; }
+.col-head .sorting b { color: var(--accent); }
+.col-head::after {
+    content: ""; position: absolute; right: -7px; top: 50%;
+    width: 12px; height: 12px; background: #fff;
+    border-top: 1px solid var(--line-strong); border-right: 1px solid var(--line-strong);
+    transform: translateY(-50%) rotate(45deg);
+}
+.col:last-child .col-head::after { display: none; }
+
+.col-body { flex: 1; padding: 12px 15px; background: #fafafa; overflow: auto; }
+
+.opt {
+    height: 44px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--txt); cursor: pointer;
+    border: 1px solid transparent; border-bottom: 1px solid var(--line);
+}
+.opt:last-child { border-bottom-color: transparent; }
+.opt.selected { border: 1px solid var(--accent); color: var(--accent); font-weight: 700; background: #fff; }
+
+.placeholder { height: 100%; display: grid; place-items: center; font-size: 13px; color: var(--txt-dim); }
+
+.seat-note { font-size: 13px; color: var(--txt-sub); padding: 4px 0 10px; }
+.seat-list li { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; color: var(--txt); }
+.seat-list li span:last-child { color: var(--txt-sub); }
+
+.btn-bar { height: 70px; display: flex; align-items: center; padding: 0 30px; border-top: 1px solid var(--line); }
+.btn-bar .msg { flex: 1; font-size: 13px; color: var(--txt-dim); }
+
+.btn-book {
+    width: 260px; height: 50px; border-radius: 2px;
+    background: var(--accent); color: #fff; font-size: 16px; font-weight: 700;
+}
+.btn-book:disabled { background: #d8d8d8; cursor: not-allowed; }
+
+.is-hidden { display: none !important; }
+
+/*
+  오픈 전 안내 줄. 실물은 오픈 전에 예매 버튼도 날짜·시간 칸도 없고 이 한 줄만 있다.
+  바깥 1006x70, 글자 946x36 가운데, #00CD3C 17px/24px — 멜론 실측값이다.
+*/
+.open-line { height: 70px; display: flex; align-items: center; justify-content: center; }
+.open-line span {
+    width: 946px; height: 36px; line-height: 24px; font-size: 17px; color: #00cd3c;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.detail-tabs {
+    width: 100%; max-width: 1008px; margin: 30px auto 0;
+    border-bottom: 1px solid var(--line); display: flex;
+}
+.detail-tabs .tab { height: 56px; padding: 0 40px; font-size: 15px; color: var(--txt-dim); position: relative; }
+.detail-tabs .tab.on { color: var(--accent); font-weight: 700; }
+.detail-tabs .tab.on::after {
+    content: ""; position: absolute; left: 30px; right: 30px; bottom: -1px;
+    height: 2px; background: var(--accent);
+}
+
+.detail-body { width: 100%; max-width: 1008px; margin: 0 auto; padding: 30px 20px 60px; }
+.detail-body h3 { font-size: 18px; color: var(--txt); font-weight: 700; margin-bottom: 12px; }
+.detail-body p { font-size: 14px; line-height: 1.85; color: var(--txt-sub); }
+
+/* ══════════ 모바일 ══════════ */
+
+.m-hero { position: relative; height: 219px; overflow: hidden; background: #111; }
+.m-hero .bg {
+    position: absolute; inset: 0; transform: scale(1.2);
+    background: linear-gradient(160deg, #5b3f8f, #39235f 60%, #241436);
+    filter: blur(18px) brightness(.6);
+}
+.m-hero .top { position: relative; height: 56px; display: flex; align-items: center; padding: 0 16px; }
+.m-hero .top button { color: #fff; font-size: 24px; line-height: 1; }
+.m-hero .row { position: relative; display: flex; gap: 16px; padding: 0 16px; }
+
+.poster-s {
+    width: 100px; height: 142px; flex: 0 0 100px; border-radius: 2px; overflow: hidden;
+    background: linear-gradient(160deg, #5b3f8f, #39235f 60%, #241436);
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; color: #fff;
+}
+.poster-s .p-tit { font-size: 11px; font-weight: 800; line-height: 1.15; }
+.poster-s .p-sub { font-size: 6px; opacity: .85; }
+
+.m-hero .meta { color: #fff; padding-top: 2px; }
+.m-hero .meta .badges { margin-bottom: 8px; }
+.m-hero .meta .badge.b2 { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .7); }
+.m-hero .meta h1 { font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -.3px; }
+.m-hero .meta .genre { font-size: 13px; opacity: .85; margin-top: 8px; }
+
+.m-info { padding: 22px 16px; display: grid; grid-template-columns: 76px 1fr; row-gap: 16px; font-size: 14px; }
+.m-info dt { color: var(--txt-dim); }
+.m-info dd { color: var(--txt); }
+
+.m-tabs { display: flex; border-bottom: 1px solid var(--line); }
+.m-tabs .tab { flex: 1; height: 48px; font-size: 15px; color: var(--txt-dim); position: relative; }
+.m-tabs .tab.on { color: var(--accent); font-weight: 700; }
+.m-tabs .tab.on::after {
+    content: ""; position: absolute; left: 24%; right: 24%; bottom: -1px; height: 2px; background: var(--accent);
+}
+
+.m-section { padding: 22px 16px; border-bottom: 8px solid #f5f5f5; }
+.m-section h3 { font-size: 17px; font-weight: 700; color: var(--txt); margin-bottom: 10px; }
+.m-section p { font-size: 14px; line-height: 1.8; color: var(--txt-sub); }
+
+.m-price { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-top: 12px; }
+.m-price div { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--txt); }
+.m-price i { width: 12px; height: 12px; border-radius: 2px; flex: 0 0 12px; }
+.m-price b { margin-left: auto; font-weight: 400; }
+
+.m-spacer { height: 90px; }
+
+/* 화면 하단 고정이라 .mo 블록 밖에 둔다. 표시 여부는 폭으로만 가른다 */
+.m-bottom {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; height: 50px; z-index: 10;
+    background: rgba(250, 250, 250, .94); border-top: 1px solid var(--line);
+    align-items: center; justify-content: center;
+}
+@media (max-width: 1024px) {
+    .m-bottom { display: flex; }
+}
+.m-bottom button {
+    width: calc(100% - 32px); height: 40px;
+    background: var(--accent); color: #fff; font-size: 18px; font-weight: 700;
+}
+/* 모바일 실물은 버튼 자리를 유지한 채 비활성(#ccc)으로 두고 문구만 오픈 안내로 바꾼다 */
+.m-bottom button:disabled { background: #cccccc; cursor: not-allowed; }
+.m-bottom button.pre-open { font-size: 16px; font-weight: 400; }
+
+/* ══════════ 시작 모달 ══════════ */
+
+.modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(20, 16, 32, .55);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+
+.modal-card {
+    width: 100%; max-width: 380px; background: #fff; border-radius: 16px;
+    padding: 30px 26px 24px; text-align: center;
+    box-shadow: 0 18px 48px rgba(40, 28, 70, .28);
+}
+
+.modal-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 26px; padding: 0 12px; border-radius: 13px;
+    background: #efeaf7; color: var(--accent); font-size: 12px; font-weight: 700;
+}
+.modal-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.modal-title { margin-top: 14px; font-size: 21px; font-weight: 800; color: var(--txt); }
+.modal-desc { margin-top: 12px; font-size: 14px; line-height: 1.7; color: var(--txt-sub); }
+.modal-highlight { color: var(--accent); }
+
+.modal-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 8px; }
+.modal-btn-primary {
+    height: 48px; border-radius: 12px; background: var(--accent-grad);
+    color: #fff; font-size: 16px; font-weight: 700;
+}
+.modal-btn-secondary { height: 44px; border-radius: 12px; color: var(--txt-dim); font-size: 14px; }
+.modal-btn-secondary:hover { background: #f4f4f6; }
+
+/* ══════════════════════════════════════════════════
+   대기열 — 멜론 NetFunnel 실측 기반.
+   실물의 둥근 모서리·그림자는 CSS 가 아니라 모서리 이미지로 그려져 있어
+   border-radius 를 재면 0 이 나온다. 같은 모양을 CSS 로 낸다.
+   ══════════════════════════════════════════════════ */
+
+#queue-dim { position: fixed; inset: 0; background: rgba(0, 0, 0, .6); z-index: 200; }
+
+#queue-pop {
+    position: fixed; z-index: 201; background: #fff;
+    width: 500px; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    padding: 16px 14px 18px; border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
+}
+
+#queue-pop .q-head { position: relative; height: 48px; display: flex; align-items: center; justify-content: center; padding: 0 40px; }
+#queue-pop .q-head h3 { font-size: 17px; font-weight: 500; color: var(--txt); text-align: center; }
+#queue-pop .q-close { position: absolute; right: 4px; top: 12px; width: 23px; height: 23px; font-size: 23px; line-height: 23px; color: #b5b5b5; }
+
+#queue-pop .q-body { padding: 22px 14px 0; }
+
+#queue-pop .q-state { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; color: #717171; }
+#queue-pop .q-badge { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 11px; font-size: 12px; font-weight: 700; color: #fff; }
+#queue-pop .q-badge.normal { background: #2fae57; }
+#queue-pop .q-badge.slow { background: #f0913a; }
+#queue-pop .q-badge.delay { background: #e64646; }
+
+#queue-pop .q-num { height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 32px; color: var(--accent); }
+#queue-pop .q-num strong { font-size: 38px; font-weight: 900; }
+#queue-pop .q-time { height: 38px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #717171; }
+
+#queue-pop .q-steps { padding: 22px 34px 0; }
+#queue-pop .q-track { position: relative; height: 14px; }
+#queue-pop .q-track .line { position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: #e4e4e8; }
+#queue-pop .q-track .fill { position: absolute; left: 0; top: 6px; height: 2px; background: var(--accent); transition: width .2s linear; }
+#queue-pop .q-track .dot { position: absolute; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid #e4e4e8; transform: translateX(-50%); }
+#queue-pop .q-track .dot.on { background: var(--accent); border-color: var(--accent); }
+#queue-pop .q-track .dot.on::after { content: "✓"; position: absolute; inset: 0; color: #fff; font-size: 9px; line-height: 10px; text-align: center; }
+#queue-pop .q-labels { display: flex; margin-top: 8px; font-size: 13px; }
+#queue-pop .q-labels li { flex: 1; text-align: center; color: #b0b0b6; }
+#queue-pop .q-labels li.on { color: var(--accent); font-weight: 700; }
+
+#queue-pop .q-noti { margin-top: 22px; border-top: 1px solid var(--line); padding: 16px 16px 0; }
+#queue-pop .q-noti li { position: relative; padding-left: 10px; font-size: 12px; line-height: 1.65; color: #8a8a8a; }
+#queue-pop .q-noti li + li { margin-top: 4px; }
+#queue-pop .q-noti li::before { content: "·"; position: absolute; left: 0; }
+
+/* 모바일 — 실물 330 폭, radius 12, 그림자 없음 */
+@media (max-width: 1024px) {
+    #queue-pop { width: 330px; padding: 0 0 4px; box-shadow: none; }
+    #queue-pop .q-head { height: 50px; padding: 0 34px; }
+    #queue-pop .q-head h3 { font-size: 15px; }
+    #queue-pop .q-close { right: 14px; top: 17px; width: 17px; height: 17px; font-size: 17px; line-height: 17px; color: #9f9f9f; }
+    #queue-pop .q-body { padding: 0; }
+    #queue-pop .q-state { height: 22px; gap: 7px; font-size: 13px; }
+    #queue-pop .q-badge { height: 16px; padding: 0 8px; border-radius: 8px; font-size: 11px; }
+    #queue-pop .q-num { height: 36px; gap: 5px; font-size: 20px; font-weight: 700; }
+    #queue-pop .q-num strong { font-size: 22px; font-weight: 800; }
+    #queue-pop .q-time { height: 22px; font-size: 14px; }
+    #queue-pop .q-steps { padding: 20px 30px 0; }
+    #queue-pop .q-labels { margin-top: 7px; font-size: 11px; }
+    #queue-pop .q-noti { margin-top: 18px; padding: 14px 16px 12px; }
+    #queue-pop .q-noti li { font-size: 11px; line-height: 1.6; }
+}
