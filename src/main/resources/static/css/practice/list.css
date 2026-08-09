@@ -192,8 +192,8 @@
 }
 
 .view-mode-tab.active {
-    color: #6b196b;
-    border-bottom-color: #6b196b;
+    color: #514897;
+    border-bottom-color: #514897;
 }
 
 .filter-bar {
@@ -223,9 +223,9 @@
 }
 
 .agency-tab.active {
-    background: #fdf5fc;
-    color: #6b196b;
-    border-color: #f3e6f3;
+    background: #f1eef9;
+    color: #514897;
+    border-color: #ddd6ee;
 }
 
 .agency-tab.disabled {
@@ -396,15 +396,15 @@
 
 .time-record-badge {
     display: inline-block;
-    background: #f5eef8;
-    color: #6b196b;
+    background: #f1eef9;
+    color: #514897;
     font-family: 'Roboto Mono', monospace;
     font-weight: 700;
     font-size: 13px;
     padding: 5px 12px;
     border-radius: 20px;
     letter-spacing: 0.5px;
-    border: 1px solid #e9d8f4;
+    border: 1px solid #ddd6ee;
 }
 
 #loadMoreWrap {
@@ -414,9 +414,9 @@
 
 #loadMoreBtn {
     padding: 9px 28px;
-    background: #fdf5fc;
-    color: #6b196b;
-    border: 1px solid #f3e6f3;
+    background: #f1eef9;
+    color: #514897;
+    border: 1px solid #ddd6ee;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
@@ -426,8 +426,8 @@
 }
 
 #loadMoreBtn:hover {
-    background: #f3e6f3;
-    border-color: #e0c8e0;
+    background: #ddd6ee;
+    border-color: #c8bfe0;
 }
 
 /* ----- 내 기록: 스탯 카드 ----- */
@@ -463,7 +463,7 @@
 }
 
 .stat-value.highlight {
-    color: #6b196b;
+    color: #514897;
 }
 
 .stat-value.muted {
@@ -561,11 +561,11 @@
 }
 
 .record-row:hover td {
-    background: #fdf5fc;
+    background: #f1eef9;
 }
 
 .record-row.open td {
-    background: #fdf5fc;
+    background: #f1eef9;
     border-bottom-color: transparent;
 }
 
@@ -573,14 +573,14 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #f5eef8;
-    color: #6b196b;
+    background: #f1eef9;
+    color: #514897;
     font-family: 'Roboto Mono', monospace;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 10px 6px 14px;
     border-radius: 20px;
-    border: 1px solid #e9d8f4;
+    border: 1px solid #ddd6ee;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
     user-select: none;
@@ -600,15 +600,15 @@
     border-radius: 50%;
     background: rgba(107, 25, 107, 0.1);
     font-size: 9px;
-    color: #6b196b;
+    color: #514897;
     transition: transform 0.2s, background 0.2s;
     flex-shrink: 0;
 }
 
 .record-row.open .time-badge {
-    background: #6b196b;
+    background: #514897;
     color: #fff;
-    border-color: #6b196b;
+    border-color: #514897;
 }
 
 .record-row.open .badge-arrow {
@@ -640,11 +640,11 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1px;
-    background: #f3e6f3;
+    background: #ddd6ee;
     margin: 0 24px 16px 24px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #f3e6f3;
+    border: 1px solid #ddd6ee;
 }
 
 .detail-card {
@@ -668,7 +668,7 @@
     font-family: 'Roboto Mono', monospace;
     font-size: 16px;
     font-weight: 700;
-    color: #6b196b;
+    color: #514897;
 }
 
 .detail-value.neutral {
@@ -700,9 +700,9 @@
 
 #myRecordLoadMoreBtn {
     padding: 9px 28px;
-    background: #fdf5fc;
-    color: #6b196b;
-    border: 1px solid #f3e6f3;
+    background: #f1eef9;
+    color: #514897;
+    border: 1px solid #ddd6ee;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
@@ -712,8 +712,8 @@
 }
 
 #myRecordLoadMoreBtn:hover {
-    background: #f3e6f3;
-    border-color: #e0c8e0;
+    background: #ddd6ee;
+    border-color: #c8bfe0;
 }
 
 @media (max-width: 768px) {
@@ -811,14 +811,72 @@
         font-size: 11px;
     }
 
-    .ranking-table th {
-        padding: 8px 6px;
-        font-size: 11px;
+    /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행을 카드로 펼쳐 두 줄로 쓴다. */
+    .ranking-table-header {
+        display: none;
     }
 
-    .ranking-table td {
-        padding: 8px 6px;
-        font-size: 12px;
+    .ranking-table-body colgroup,
+    .ranking-table-body .ranking-table,
+    .ranking-table-body tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .ranking-table-body colgroup {
+        display: none;
+    }
+
+    .ranking-table-body tr {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        grid-template-areas:
+            "rank name time"
+            "rank split time";
+        align-items: center;
+        gap: 3px 9px;
+        margin-bottom: 6px;
+        padding: 9px 11px;
+        background: #fff;
+        border-radius: 11px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .ranking-table-body td {
+        display: block;
+        padding: 0 !important;
+        border: none;
+        font-size: 13px;
+    }
+
+    .ranking-table-body td:nth-child(1) { grid-area: rank; }
+    .ranking-table-body td:nth-child(2) { grid-area: name; }
+    .ranking-table-body td:nth-child(3) { grid-area: split; }
+    .ranking-table-body td:nth-child(4) { grid-area: time; }
+
+    .ranking-table-body .rank-split {
+        width: 100%;
+        height: 7px;
+    }
+
+    .ranking-table-body tr:hover td {
+        background: transparent;
+    }
+
+    .my-rank-row {
+        grid-template-columns: 26px 1fr auto;
+        gap: 9px;
+        margin: 0 -14px -14px;
+        padding: 10px 16px;
+        border-radius: 0;
+    }
+
+    .my-rank-row .mr-name {
+        padding-left: 0;
+    }
+
+    .my-rank-row .rank-split {
+        display: none;
     }
 
     .record-table th {
@@ -890,4 +948,57 @@
     .detail-sub {
         font-size: 8px;
     }
+}
+
+/* 목록 끝에 고정으로 붙는 내 줄. 표 밖에 있어 컬럼 폭을 직접 맞춘다. */
+.my-rank-row {
+    display: grid;
+    grid-template-columns: 13% 40% 25% 22%;
+    align-items: center;
+    padding: 11px 0;
+    background: #f1eef9;
+    border-top: 2px solid #ddd6ee;
+}
+
+.my-rank-row .mr-rank {
+    text-align: center;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #514897;
+}
+
+.my-rank-row .mr-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 30px;
+    min-width: 0;
+}
+
+.my-rank-row .mr-nick {
+    font-size: 15px;
+    font-weight: 800;
+    color: #3d3462;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-rank-row .mr-badge {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 800;
+    background: #514897;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 5px;
+}
+
+.my-rank-row .rank-split {
+    justify-self: center;
+}
+
+.my-rank-row .mr-time {
+    justify-self: center;
 }

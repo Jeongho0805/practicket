@@ -6,6 +6,7 @@ import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeType;
 import com.practicket.practice.dto.PracticeCompleteResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
+import com.practicket.practice.dto.PracticeMyRankResponse;
 import com.practicket.practice.dto.PracticeMyStatsResponse;
 import com.practicket.practice.dto.PracticeRankResponse;
 import com.practicket.practice.dto.PracticeResultRequest;
@@ -59,6 +60,15 @@ public class PracticeController {
             @RequestParam @NotNull PracticeType type
     ) {
         return ResponseEntity.ok(practiceService.getMyStats(clientInfo, type));
+    }
+
+    @GetMapping("/my-rank")
+    public ResponseEntity<PracticeMyRankResponse> getMyRank(
+            @Auth ClientInfo clientInfo,
+            @RequestParam @NotNull PracticeType type,
+            @RequestParam(defaultValue = "MONTHLY") PeriodType period
+    ) {
+        return ResponseEntity.ok(practiceService.getMyRank(clientInfo, type, period));
     }
 
     @GetMapping("/my-records")

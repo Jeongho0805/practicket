@@ -102,6 +102,32 @@ function selectPeriod(btn) {
     loadRanking(true);
 }
 
+/* 목록 끝에 고정으로 붙는 내 줄. 위 목록과 같은 기간 기준이라 순위가 어긋나지 않는다. */
+async function loadMyRank() {
+    const row = document.getElementById('myRankRow');
+    if (!row) return;
+
+    try {
+        const res = await authFetch(
+            `/api/practice/my-rank?type=${rankingState.type}&period=${rankingState.period}`);
+        if (!res.ok) throw new Error('API error');
+        const my = await res.json();
+
+        if (my.rank == null) {
+            row.style.display = 'none';
+            return;
+        }
+
+        row.querySelector('.mr-rank').textContent = my.rank;
+        row.querySelector('.mr-nick').textContent = my.nickname || '나';
+        row.querySelector('.mr-time').textContent = (my.best_ms / 1000).toFixed(3) + 's';
+        row.querySelector('.rank-split').replaceWith(createSplitBar(my));
+        row.style.display = 'grid';
+    } catch (e) {
+        row.style.display = 'none';
+    }
+}
+
 // ── 전체 랭킹 ──
 async function loadRanking(reset) {
     if (rankingState.loading) return;
@@ -114,6 +140,7 @@ async function loadRanking(reset) {
         document.getElementById('rankingTableBody').innerHTML =
             '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
         document.getElementById('loadMoreWrap').style.display = 'none';
+        loadMyRank();
     }
 
     rankingState.loading = true;

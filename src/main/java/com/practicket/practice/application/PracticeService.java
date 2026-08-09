@@ -12,6 +12,7 @@ import com.practicket.practice.domain.PracticeResult;
 import com.practicket.practice.domain.PracticeType;
 import com.practicket.practice.dto.PracticeCompleteResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
+import com.practicket.practice.dto.PracticeMyRankResponse;
 import com.practicket.practice.dto.PracticeMyStatsResponse;
 import com.practicket.practice.dto.PracticeRankItem;
 import com.practicket.practice.dto.PracticeRankResponse;
@@ -97,6 +98,25 @@ public class PracticeService {
     }
 
     @Transactional(readOnly = true)
+    public PracticeMyRankResponse getMyRank(ClientInfo clientInfo, PracticeType type, PeriodType period) {
+        LocalDateTime start = period.getStartDateTime();
+        long totalUsers = resultRepository.countUsersSince(type.name(), start);
+
+        return resultRepository
+                .findFirstByClientKeyAndTypeAndStartedAtGreaterThanEqualOrderByTotalDurationMsAscIdAsc(
+                        clientInfo.getToken(), type, start)
+                .map(best -> new PracticeMyRankResponse(
+                        resultRepository.countUsersWithBetterRecordSince(
+                                type.name(), start, best.getTotalDurationMs()) + 1,
+                        best.getNickname(),
+                        best.getTotalDurationMs(),
+                        best.getReactionTimeMs(),
+                        best.getQueueWaitMs(),
+                        best.getSeatSelectionMs(),
+                        totalUsers))
+                .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, totalUsers));
+    }
+
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
         String clientKey = clientInfo.getToken();
 
