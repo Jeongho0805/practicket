@@ -186,6 +186,8 @@ async function fetchParticipantCount() {
 
 function setChattingSse() {
     const eventSource = new EventSource(`${HOST}/api/chat/connection`);
+    // 연결이 수립돼야 서버가 내 연결을 인원에 반영한다. 그 전에 조회하면 나를 뺀 값이 온다.
+    eventSource.onopen = () => fetchParticipantCount();
     eventSource.addEventListener("chat", (event) => {
         const chat = JSON.parse(event.data);
         renderingChatting(chat, false);
@@ -253,32 +255,55 @@ async function setChatEventListener() {
     });
 
     const inputBox = document.getElementById("chatting-input");
+    const button = document.getElementById("chatting-send-button");
+    const charCount = document.getElementById("chatting-char-count");
+    let isSending = false;
+
+    const syncInputState = () => {
+        const length = inputBox.value.length;
+        button.disabled = isSending || inputBox.value.trim().length === 0;
+        button.toggleAttribute("aria-busy", isSending);
+        if (charCount) {
+            charCount.textContent = `${length}/100`;
+            charCount.hidden = length < 80;
+        }
+    };
+
     inputBox.addEventListener("click", async () => {
         if (!(await getOrFetchClientInfo())?.name) {
             await util.showAlert({ title: '닉네임 필요', msg: '채팅을 입력하려면 닉네임을 입력해주세요.' });
         }
-    })
+    });
+    inputBox.addEventListener("input", syncInputState);
+    syncInputState();
 
-    const button = document.getElementById("chatting-send-button");
     button.addEventListener("click", async () => {
+        if (isSending) return;
         const chatting = document.getElementById("chatting-input").value;
         if (!await isSendChatPossible(chatting)) {
             return;
         }
-        const response = await util.authFetch(`${HOST}/api/chat`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                text: chatting,
-            }),
-            credentials: "same-origin"
-        });
-        document.getElementById("chatting-input").value = "";
-        if (!response.ok) {
-            const errorResponse = await response.json();
-            await util.showAlert({ title: '오류', msg: errorResponse.message });
+        isSending = true;
+        syncInputState();
+        try {
+            const response = await util.authFetch(`${HOST}/api/chat`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    text: chatting,
+                }),
+                credentials: "same-origin"
+            });
+            inputBox.value = "";
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                await util.showAlert({ title: '오류', msg: errorResponse.message });
+            }
+        } finally {
+            isSending = false;
+            syncInputState();
         }
     });
     document.getElementById("chatting-input").addEventListener("keypress", function (e) {
@@ -309,8 +334,7 @@ function initChat() {
     initClientInfo();
     setChatting();
     setChatEventListener();
-    setChattingSse();
-    fetchParticipantCount(); // 초기 참여자 수 seed (이후 SSE participants 이벤트로 실시간 갱신)
+    setChattingSse(); // 초기 인원 seed 는 SSE onopen 에서 (이후 participants 이벤트로 실시간 갱신)
 }
 
 function setupChatWidget() {
@@ -378,44 +402,80 @@ function setupChatVisibility(widget) {
 
 // 사용자가 원하는 시트 높이(px). 키보드 때문에 일시적으로 줄여도 이 값으로 되돌린다.
 let mobileSheetHeight = 0;
+let mobileAnchored = false;
+
+// 키보드가 열린 상태에서 채팅을 끝까지 당기면 iOS의 rubber-band 값이
+// visualViewport.offsetTop에 정상 범위를 벗어나 잠깐 들어온다. 그 값을 그대로
+// 패널 위치에 쓰면 시트도 함께 튀면서 아래 배경이 빈 여백처럼 드러난다.
+function mobileViewportMetrics() {
+    const vv = window.visualViewport;
+    const height = vv ? vv.height : window.innerHeight;
+    const maxTop = Math.max(0, window.innerHeight - height);
+    const top = vv ? Math.min(maxTop, Math.max(0, vv.offsetTop)) : 0;
+    return { height, top, bottom: top + height };
+}
 
 // 모바일 시트가 커져도 상단 광고(ad-section)를 덮지 않는 최대 높이.
 // 광고가 스크롤로 화면 위로 벗어나면 그만큼 상한이 자연히 커진다(가릴 광고가 없으므로).
 // 기준은 window.innerHeight 가 아니라 visualViewport.height — 키보드가 가린 영역까지 높이로 쳐서는 안 된다.
 function mobileMaxHeight() {
-    const vv = window.visualViewport;
-    const viewHeight = vv ? vv.height : window.innerHeight;
-    const viewTop = vv ? vv.offsetTop : 0;
+    const viewport = mobileViewportMetrics();
     const ad = document.getElementById("ad-section");
     const guardTop = ad
-        ? Math.max(8, ad.getBoundingClientRect().bottom - viewTop + 6)
-        : Math.round(viewHeight * 0.12);
-    return Math.max(120, viewHeight - guardTop);
+        ? Math.max(8, ad.getBoundingClientRect().bottom - viewport.top + 6)
+        : Math.round(viewport.height * 0.12);
+    return Math.max(120, viewport.height - guardTop);
 }
 
-// iOS 는 키보드를 띄울 때 레이아웃 뷰포트를 줄이지 않고 화면을 위로 밀어 올린다(visualViewport.offsetTop).
-// position:fixed 는 그 밀림을 모른 채 원래 좌표에 그려지므로, 밀린 양 + 키보드 높이를 bottom 으로
-// 되돌려주지 않으면 시트 아래에 그만큼 빈 여백이 남는다.
+function clearMobileAnchor(panel) {
+    if (!mobileAnchored) return;
+    mobileAnchored = false;
+    panel.style.removeProperty("bottom");
+    panel.style.removeProperty("height");
+}
+
+// iOS Safari의 fixed 좌표는 키보드 전환 중 visual viewport를 기준으로 바뀐다.
+// top + translate로 보이는 바닥 좌표를 다시 적용하면 offsetTop이 이중 반영되어
+// 입력줄이 키보드보다 훨씬 위로 뜬다. 레이아웃 뷰포트와 보이는 바닥의 차이만
+// bottom에 적용하면 입력줄이 키보드 바로 위를 유지한다.
 function syncPanelToViewport() {
     const panel = document.getElementById("chat-panel");
     if (!panel) return;
     if (window.innerWidth > 768) {
-        panel.style.bottom = "";
+        clearMobileAnchor(panel);
         return;
     }
-    const vv = window.visualViewport;
-    const lift = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
-    panel.style.bottom = lift + "px";
+    const viewport = mobileViewportMetrics();
+    const lift = Math.max(0, window.innerHeight - viewport.bottom);
+    mobileAnchored = true;
+    panel.style.removeProperty("top");
+    panel.style.removeProperty("transform");
+    panel.style.setProperty("bottom", lift + "px", "important");
     if (mobileSheetHeight) {
         panel.style.height = Math.min(mobileSheetHeight, mobileMaxHeight()) + "px";
     }
 }
 
+// WebKit 은 키보드 전환 도중 visualViewport 값을 늦게 갱신한다(offsetTop 이 잠깐 0으로 읽힘).
+// 한 번만 재면 그 과도기 값이 그대로 굳으므로 프레임 뒤·시간차로 여러 번 다시 잰다.
+let viewportSyncFrame = 0;
+let viewportSyncTimers = [];
+
+function scheduleSync() {
+    cancelAnimationFrame(viewportSyncFrame);
+    viewportSyncFrame = requestAnimationFrame(() => {
+        viewportSyncFrame = requestAnimationFrame(syncPanelToViewport);
+    });
+
+    viewportSyncTimers.forEach(clearTimeout);
+    viewportSyncTimers = [50, 150, 300].map(delay => setTimeout(syncPanelToViewport, delay));
+}
+
 function setupViewportSync() {
     const vv = window.visualViewport;
     if (vv) {
-        vv.addEventListener("resize", syncPanelToViewport);
-        vv.addEventListener("scroll", syncPanelToViewport);
+        vv.addEventListener("resize", scheduleSync);
+        vv.addEventListener("scroll", scheduleSync);
     }
     window.addEventListener("resize", () => {
         if (window.innerWidth > 768) {
@@ -423,8 +483,11 @@ function setupViewportSync() {
             applyMobileOpenHeight();
             return;
         }
-        syncPanelToViewport();
+        scheduleSync();
     });
+    window.addEventListener("scroll", scheduleSync);
+    document.addEventListener("focusin", scheduleSync);
+    document.addEventListener("focusout", scheduleSync);
 }
 
 // 열 때 높이 지정: 모바일은 광고 보호 상한까지, 데스크톱은 인라인 값 비워 CSS/resize 값 사용
@@ -432,8 +495,8 @@ function applyMobileOpenHeight() {
     const panel = document.getElementById("chat-panel");
     if (!panel) return;
     if (window.innerWidth > 768) {
+        clearMobileAnchor(panel);
         panel.style.height = "";
-        panel.style.bottom = "";
         return;
     }
     mobileSheetHeight = mobileMaxHeight();

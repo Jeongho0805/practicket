@@ -41,7 +41,7 @@
             <div id="chat-panel-head">
                 <b>실시간 채팅</b>
                 <div class="chat-head-right">
-                    <span class="chat-count"><span class="chat-count-dot"></span><span><span id="chat-count-num">0</span>명 참여중</span></span>
+                    <span class="chat-count"><span class="chat-count-dot"></span><span><span id="chat-count-num">0</span>명 접속중</span></span>
                     <button type="button" id="chat-close" aria-label="채팅 닫기">&times;</button>
                 </div>
             </div>
@@ -63,7 +63,9 @@
         </div>
     </div>
 
-    <script> const HOST = "[[${host}]]"; </script>
+    <!-- 같은 서버의 API를 호출하므로 접속한 origin을 그대로 쓴다.
+         localhost로 연 맥과 사설 IP로 연 모바일이 별도 설정 없이 모두 동작한다. -->
+    <script> const HOST = window.location.origin; </script>
     <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/chatting.js"></script>
