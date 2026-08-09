@@ -233,13 +233,24 @@ public class ViewController {
         return "practice/i_ticket_intro";
     }
 
-    @GetMapping("/practice/i-ticket-new")
-    public String practiceITicketNew(Model model) {
-        return "practice/i_ticket_new";
+    @GetMapping("/practice/n-ticket/intro")
+    public String practiceNTicketIntro(Model model) {
+        return "practice/n_ticket_intro";
     }
 
-    @GetMapping("/practice/i-ticket-new/intro")
-    public String practiceITicketNewIntro(Model model) {
-        return "practice/i_ticket_new_intro";
+    /** 좌석 선택 화면이 붙기 전까지 쓰는 임시 종료 화면. 반응속도만 보여주고 기록은 남기지 않는다. */
+    @GetMapping("/practice/n-ticket")
+    public String practiceNTicket(Model model) {
+        return "practice/n_ticket";
+    }
+
+    @GetMapping("/practice/m-ticket/intro")
+    public String practiceMTicketIntro(Model model) {
+        return "practice/m_ticket_intro";
+    }
+
+    @GetMapping("/practice/m-ticket")
+    public String practiceMTicket(Model model) {
+        return "practice/m_ticket";
     }
 }

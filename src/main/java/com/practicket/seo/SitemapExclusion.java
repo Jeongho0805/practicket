@@ -14,8 +14,6 @@ public final class SitemapExclusion {
             Map.entry("/reservation", "예매 연습 실행 화면"),
             Map.entry("/practice/i-ticket", "예매 연습 실행 화면"),
             Map.entry("/practice/i-ticket/intro", "예매 연습 실행 화면"),
-            Map.entry("/practice/i-ticket-new", "예매 연습 실행 화면"),
-            Map.entry("/practice/i-ticket-new/intro", "예매 연습 실행 화면"),
             Map.entry("/notice/{id}", "점검 안내 수준이라 얇은 콘텐츠다"),
             Map.entry("/art/{id}", "제목 20자짜리가 수백 개면 사이트 평가만 깎인다"),
             Map.entry("/art/create", "입력 폼"),

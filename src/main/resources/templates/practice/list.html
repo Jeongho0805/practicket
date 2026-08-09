@@ -31,7 +31,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="/practice/i-ticket-new/intro" class="practice-card active" onclick="goToITicketNew(event)">
+                <a href="/practice/n-ticket/intro" class="practice-card active" onclick="goToNTicket(event)">
                     <div class="card-stub"></div>
                     <div class="card-sep"></div>
                     <div class="card-main">
@@ -40,24 +40,23 @@
                             <span class="badge-available">이용 가능</span>
                         </div>
                         <div class="card-title-row">
-                            <span class="card-title">I-Ticket</span>
-                            <span class="badge-new-ui">New UI</span>
+                            <span class="card-title">N-Ticket</span>
                         </div>
                     </div>
                 </a>
-                <div class="practice-card disabled">
+                <a href="/practice/m-ticket/intro" class="practice-card active" onclick="goToMTicket(event)">
                     <div class="card-stub"></div>
                     <div class="card-sep"></div>
                     <div class="card-main">
                         <div class="card-row-top">
                             <span class="card-label">Practicket</span>
-                            <span class="badge-coming">준비중</span>
+                            <span class="badge-available">이용 가능</span>
                         </div>
                         <div class="card-title-row">
                             <span class="card-title">M-Ticket</span>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         </section>
 
@@ -76,8 +75,9 @@
                     <div class="filter-bar">
                         <div class="agency-tabs">
                             <button class="agency-tab active" onclick="selectAgency(this, 'I_TICKET_OLD')">I-Ticket</button>
-                            <button class="agency-tab" onclick="selectAgency(this, 'I_TICKET_NEW')">I-Ticket(New)</button>
-                            <button class="agency-tab disabled" disabled>M-Ticket</button>
+                            <button class="agency-tab" onclick="selectAgency(this, 'N_TICKET')">N-Ticket</button>
+                            <button class="agency-tab" onclick="selectAgency(this, 'M_TICKET')">M-Ticket</button>
+                            <button class="agency-tab disabled" disabled>Y-Ticket</button>
                         </div>
                         <div class="period-tabs">
                             <button class="period-tab active" onclick="selectPeriod(this)">일간</button>
@@ -131,8 +131,9 @@
                     <div class="filter-bar">
                         <div class="agency-tabs">
                             <button class="agency-tab active" onclick="selectAgency(this, 'I_TICKET_OLD')">I-Ticket</button>
-                            <button class="agency-tab" onclick="selectAgency(this, 'I_TICKET_NEW')">I-Ticket(New)</button>
-                            <button class="agency-tab disabled" disabled>M-Ticket</button>
+                            <button class="agency-tab" onclick="selectAgency(this, 'N_TICKET')">N-Ticket</button>
+                            <button class="agency-tab" onclick="selectAgency(this, 'M_TICKET')">M-Ticket</button>
+                            <button class="agency-tab disabled" disabled>Y-Ticket</button>
                         </div>
                     </div>
 

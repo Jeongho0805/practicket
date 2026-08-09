@@ -40,7 +40,7 @@ async function goToITicket(event) {
     window.location.href = '/practice/i-ticket/intro';
 }
 
-async function goToITicketNew(event) {
+async function goToNTicket(event) {
     event.preventDefault();
     try {
         const clientRes = await authFetch('/api/client');
@@ -52,7 +52,22 @@ async function goToITicketNew(event) {
     } catch (e) {
         console.error('[Practicket] Failed to fetch client info:', e);
     }
-    window.location.href = '/practice/i-ticket-new/intro';
+    window.location.href = '/practice/n-ticket/intro';
+}
+
+async function goToMTicket(event) {
+    event.preventDefault();
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임을 설정해주세요', msg: '랭킹 기록을 남기려면 닉네임이 필요합니다.\n우측 상단에서 닉네임 설정 후 다시 시도해주세요.' });
+            return;
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
+    }
+    window.location.href = '/practice/m-ticket/intro';
 }
 
 // ── 탭 전환 ──
@@ -370,7 +385,8 @@ function formatDate(isoString) {
 
 // ── 전역 노출 (onclick 속성용) ──
 window.goToITicket = goToITicket;
-window.goToITicketNew = goToITicketNew;
+window.goToNTicket = goToNTicket;
+window.goToMTicket = goToMTicket;
 window.switchMainTab = switchMainTab;
 window.selectAgency = selectAgency;
 window.selectPeriod = selectPeriod;
