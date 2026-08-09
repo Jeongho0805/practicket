@@ -13,8 +13,8 @@
 /* ----- Section 1: Practice Options ----- */
 .practice-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
 }
 
 .practice-card {
@@ -44,8 +44,13 @@
     width: 10px;
     flex-shrink: 0;
 }
-.practice-card.active   .card-stub { background: linear-gradient(180deg, #7c3aed 0%, #a855f7 100%); }
+.practice-card.active   .card-stub { background: var(--brand-stub, linear-gradient(180deg, #7c3aed 0%, #a855f7 100%)); }
 .practice-card.disabled .card-stub { background: #e2e2ec; }
+
+/* 예매처 실물 브랜드색. 면으로만 쓰고 글자에는 쓰지 않는다 — 흰 배경 대비가 모자란다. */
+.practice-card.card-i { --brand-stub: #ed1b24; }
+.practice-card.card-n { --brand-stub: #4154FF; }
+.practice-card.card-m { --brand-stub: #00b523; }
 
 .card-sep {
     width: 1px;
@@ -358,6 +363,25 @@
     font-weight: 700;
     color: #1a1a1a;
 }
+
+.rank-split {
+    display: inline-flex;
+    width: 104px;
+    height: 9px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f4f6f8;
+    vertical-align: middle;
+}
+
+.rank-split i {
+    display: block;
+    height: 100%;
+}
+
+.rank-split .s1 { background: #d6cbe9; }
+.rank-split .s2 { background: #8470b3; }
+.rank-split .s3 { background: #514897; }
 
 .rank-name-wrap {
     display: inline-flex;
@@ -701,17 +725,11 @@
         box-sizing: border-box;
     }
 
+    /* 가로 스크롤이면 넷 중 둘만 보인다. 2x2 로 넷을 한 번에 보여준다. */
     .practice-grid {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    .practice-grid::-webkit-scrollbar {
-        display: none;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
 
     .practice-card {

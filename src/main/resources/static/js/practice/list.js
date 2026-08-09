@@ -112,7 +112,7 @@ async function loadRanking(reset) {
         rankingState.hasNext = false;
         rankingState.rankOffset = 0;
         document.getElementById('rankingTableBody').innerHTML =
-            '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
+            '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
         document.getElementById('loadMoreWrap').style.display = 'none';
     }
 
@@ -133,7 +133,7 @@ async function loadRanking(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다.</td></tr>';
+                '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다.</td></tr>';
         } else {
             data.data.forEach((item, i) => {
                 const rank = rankingState.rankOffset + i + 1;
@@ -149,7 +149,7 @@ async function loadRanking(reset) {
     } catch (e) {
         if (reset) {
             document.getElementById('rankingTableBody').innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         rankingState.loading = false;
@@ -157,6 +157,26 @@ async function loadRanking(reset) {
 }
 
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+/* 총 시간이 아니라 구간 합을 기준으로 그린다. 총 시간에는 화면 전환처럼
+   어느 구간에도 잡히지 않는 몫이 섞여 있어 끝에 빈 꼬리가 남는다. */
+function createSplitBar(item) {
+    const bar = document.createElement('span');
+    bar.className = 'rank-split';
+
+    const segments = [item.reaction_time_ms, item.queue_wait_ms, item.seat_selection_ms]
+        .map(ms => Number(ms) || 0);
+    const sum = segments.reduce((a, b) => a + b, 0);
+    if (!sum) return bar;
+
+    segments.forEach((ms, i) => {
+        const seg = document.createElement('i');
+        seg.className = `s${i + 1}`;
+        seg.style.width = (ms / sum * 100).toFixed(1) + '%';
+        bar.appendChild(seg);
+    });
+    return bar;
+}
 
 function createRankRow(rank, item) {
     const tr = document.createElement('tr');
@@ -185,6 +205,9 @@ function createRankRow(rank, item) {
         nameTd.textContent = item.nickname;
     }
 
+    const splitTd = document.createElement('td');
+    splitTd.appendChild(createSplitBar(item));
+
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
     badge.className = 'time-record-badge';
@@ -193,6 +216,7 @@ function createRankRow(rank, item) {
 
     tr.appendChild(rankTd);
     tr.appendChild(nameTd);
+    tr.appendChild(splitTd);
     tr.appendChild(timeTd);
 
     return tr;

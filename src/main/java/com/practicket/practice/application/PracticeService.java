@@ -83,7 +83,8 @@ public class PracticeService {
         List<PracticeRankEntry> data = hasNext ? entries.subList(0, limit) : entries;
 
         List<PracticeRankItem> items = data.stream()
-                .map(e -> new PracticeRankItem(e.nickname(), e.totalDurationMs()))
+                .map(e -> new PracticeRankItem(e.nickname(), e.totalDurationMs(),
+                        e.reactionTimeMs(), e.queueWaitMs(), e.seatSelectionMs()))
                 .toList();
 
         if (!hasNext) {

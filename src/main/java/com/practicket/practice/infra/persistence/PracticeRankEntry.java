@@ -1,4 +1,5 @@
 package com.practicket.practice.infra.persistence;
 
-public record PracticeRankEntry(Long id, String nickname, int totalDurationMs) {
+public record PracticeRankEntry(Long id, String nickname, int totalDurationMs,
+                                int reactionTimeMs, int queueWaitMs, int seatSelectionMs) {
 }

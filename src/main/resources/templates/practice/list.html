@@ -18,7 +18,7 @@
         <!-- 1. 연습 선택 영역 -->
         <section>
             <div class="practice-grid">
-                <a href="/practice/i-ticket/intro" class="practice-card active" onclick="goToITicket(event)">
+                <a href="/practice/i-ticket/intro" class="practice-card active card-i" onclick="goToITicket(event)">
                     <div class="card-stub"></div>
                     <div class="card-sep"></div>
                     <div class="card-main">
@@ -31,7 +31,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="/practice/n-ticket/intro" class="practice-card active" onclick="goToNTicket(event)">
+                <a href="/practice/n-ticket/intro" class="practice-card active card-n" onclick="goToNTicket(event)">
                     <div class="card-stub"></div>
                     <div class="card-sep"></div>
                     <div class="card-main">
@@ -44,7 +44,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="/practice/m-ticket/intro" class="practice-card active" onclick="goToMTicket(event)">
+                <a href="/practice/m-ticket/intro" class="practice-card active card-m" onclick="goToMTicket(event)">
                     <div class="card-stub"></div>
                     <div class="card-sep"></div>
                     <div class="card-main">
@@ -57,6 +57,19 @@
                         </div>
                     </div>
                 </a>
+                <div class="practice-card disabled card-y">
+                    <div class="card-stub"></div>
+                    <div class="card-sep"></div>
+                    <div class="card-main">
+                        <div class="card-row-top">
+                            <span class="card-label">Practicket</span>
+                            <span class="badge-coming">준비중</span>
+                        </div>
+                        <div class="card-title-row">
+                            <span class="card-title">Y-Ticket</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -89,14 +102,16 @@
                     <div class="ranking-table-header">
                         <table class="ranking-table">
                             <colgroup>
-                                <col style="width: 15%;">
-                                <col style="width: 55%;">
-                                <col style="width: 30%;">
+                                <col style="width: 13%;">
+                                <col style="width: 40%;">
+                                <col style="width: 25%;">
+                                <col style="width: 22%;">
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th>순위</th>
                                     <th style="text-align: left; padding-left: 30px;">닉네임</th>
+                                    <th>구간 비중</th>
                                     <th>최고 기록</th>
                                 </tr>
                             </thead>
@@ -106,13 +121,14 @@
                     <div class="ranking-table-body">
                         <table class="ranking-table">
                             <colgroup>
-                                <col style="width: 15%;">
-                                <col style="width: 55%;">
-                                <col style="width: 30%;">
+                                <col style="width: 13%;">
+                                <col style="width: 40%;">
+                                <col style="width: 25%;">
+                                <col style="width: 22%;">
                             </colgroup>
                             <tbody id="rankingTableBody">
                                 <tr>
-                                    <td colspan="3"
+                                    <td colspan="4"
                                         style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
                                         불러오는 중...
                                     </td>
