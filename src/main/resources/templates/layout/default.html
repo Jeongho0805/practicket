@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
     <link rel="icon" href="/image/logo.png" type="image/png">
     <link rel="apple-touch-icon" href="/image/favicon-180.png">
-    <!-- 공유(OG) 기본값 - 카카오/외부 채널 -->
+    <!-- 공유(OG) 기본값 - 카카오/외부 채널.
+         크롤러는 같은 property 가 여러 번 나오면 먼저 나온 것을 쓴다. 페이지가 자기 값을
+         내보낼 때는 customOg 를 넘겨 이 기본값을 통째로 끈다(예: 연습 결과 공유 페이지). -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="프랙티켓">
-    <meta property="og:title" content="프랙티켓 - 티켓팅 연습 플랫폼">
-    <meta property="og:description" content="실전과 똑같은 티켓팅 예매 연습 플랫폼. 진짜 예매 전에 미리 손에 익히세요.">
-    <meta property="og:image" content="https://practicket.com/image/og-card.png">
-    <meta property="og:url" content="https://practicket.com/">
+    <th:block th:if="${customOg == null}">
+        <meta property="og:title" content="프랙티켓 - 티켓팅 연습 플랫폼">
+        <meta property="og:description" content="실전과 똑같은 티켓팅 예매 연습 플랫폼. 진짜 예매 전에 미리 손에 익히세요.">
+        <meta property="og:image" content="https://practicket.com/image/og-card.png">
+        <meta property="og:url" content="https://practicket.com/">
+    </th:block>
     <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="/css/layout/default.css">
     <link rel="stylesheet" href="/css/fragments/header.css">

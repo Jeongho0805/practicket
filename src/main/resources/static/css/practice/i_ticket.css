@@ -1938,6 +1938,24 @@ a {
     border-color: #b3a8d6;
 }
 
+.pkt-btn-share {
+    flex: 1;
+    padding: 12px;
+    background: #f1eef9;
+    border: 1.5px solid #ddd6ee;
+    color: #514897;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+}
+
+.pkt-btn-share:hover {
+    background: #e7e2f5;
+}
+
 .pkt-btn-rank {
     flex: 1.5;
     padding: 12px;

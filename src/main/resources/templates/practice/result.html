@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/default}">
+
+<head>
+    <title th:text="|${r.label()} ${r.totalSeconds()}초 - 프랙티켓|">연습 결과 - 프랙티켓</title>
+    <meta name="robots" content="noindex, follow">
+    <link rel="stylesheet" href="/css/practice/result.css" />
+
+    <!-- 링크를 붙였을 때 뜨는 카드. 이미지·제목·설명이 모두 결과 값으로 만들어진다. -->
+    <meta property="og:title"
+          th:attr="content=|${r.label()} ${r.totalSeconds()}초 · 티켓팅 연습 기록|">
+    <meta property="og:description"
+          th:attr="content=|세 구간 중 ${r.slowestShare()}%를 ${r.slowestLabel()}에 썼어요. 실전과 똑같은 흐름으로 연습해 보세요.|">
+    <meta property="og:image" th:attr="content=|https://practicket.com/practice/result/og.png?${query}|">
+    <meta property="og:url" th:attr="content=|https://practicket.com/practice/result?${query}|">
+</head>
+
+<body layout:fragment="content">
+    <div class="result-page">
+        <img class="result-card-img" alt="연습 결과 카드"
+             th:src="@{|/practice/result/og.png?${query}|}" />
+
+        <div class="result-actions">
+            <a class="result-btn primary" href="/practice">나도 연습해보기</a>
+            <button type="button" class="result-btn ghost" id="copyLinkBtn">링크 복사</button>
+        </div>
+
+        <p class="result-note">기록은 저장되지 않습니다. 이 링크 안에만 담겨 있어요.</p>
+    </div>
+</body>
+
+<th:block layout:fragment="scripts">
+    <script>
+        document.getElementById('copyLinkBtn').addEventListener('click', async function () {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                this.textContent = '복사됨';
+                setTimeout(() => { this.textContent = '링크 복사'; }, 1500);
+            } catch (e) {
+                this.textContent = '복사 실패';
+            }
+        });
+    </script>
+</th:block>
+
+</html>

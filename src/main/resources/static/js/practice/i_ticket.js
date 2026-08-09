@@ -1781,6 +1781,44 @@ function renderBestChip(totalMs, best) {
     }
 }
 
+/* 이미지를 보내는 게 아니라 링크를 보낸다. 카톡·X 가 그 링크의 og:image 를
+   긁어가 카드로 그려주고, 그 카드는 클릭이 된다. 이미지 안의 주소는 클릭이 안 된다. */
+function bindShareButton(result) {
+    const btn = document.getElementById('pkt-share');
+    if (!btn) return;
+
+    const params = new URLSearchParams({
+        type: 'I_TICKET_OLD',
+        total: result.total_duration_ms,
+        reaction: result.reaction_time_ms,
+        queue: result.queue_wait_ms,
+        seat: result.seat_selection_ms,
+        rank: result.queue_initial_rank || 0
+    });
+    if (result.percentile != null) params.set('pct', result.percentile);
+
+    const url = `${window.location.origin}/practice/result?${params.toString()}`;
+    const text = `티켓팅 연습 ${(result.total_duration_ms / 1000).toFixed(3)}초`;
+
+    btn.onclick = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: '프랙티켓', text, url });
+                return;
+            } catch (e) {
+                if (e && e.name === 'AbortError') return;
+            }
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            btn.textContent = '링크 복사됨';
+            setTimeout(() => { btn.textContent = '공유'; }, 1500);
+        } catch (e) {
+            window.open(url, '_blank');
+        }
+    };
+}
+
 function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
     const fmt = ms => (ms / 1000).toFixed(3) + '초';
 
@@ -1825,6 +1863,7 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
     renderCompleteHint(segments, segmentSum, best);
     renderBestChip(total_duration_ms, best);
     saveBestRecord(total_duration_ms, segments, best);
+    bindShareButton(arguments[0]);
 
     const bar = document.getElementById('pkt-percentile-bar');
     if (percentile != null && total_users >= 2) {
