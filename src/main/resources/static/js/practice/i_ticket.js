@@ -1084,15 +1084,31 @@ function showSoldOutModal() {
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
 
-    const fmt = ms => ms > 0 ? (ms / 1000).toFixed(2) + 's' : '-';
+    const fmt = ms => ms > 0 ? (ms / 1000).toFixed(2) + '초' : '-';
 
     const reactionMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
     const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
     const initialRank = sessionStorage.getItem('pkt.queueInitialRank');
 
+    const meta = ['I-Ticket'];
+    if (initialRank) meta.push('대기 순번 ' + Number(initialRank).toLocaleString() + '번에서 출발');
+    document.getElementById('pkt-fail-meta').textContent = meta.join(' · ');
+
     document.getElementById('pkt-fail-reaction').textContent = fmt(reactionMs);
     document.getElementById('pkt-fail-queue').textContent = fmt(queueWaitMs);
-    document.getElementById('pkt-fail-rank').textContent = initialRank ? '#' + initialRank : '-';
+
+    // 좌석을 못 잡았으니 좌석 구간이 없다. 두 구간만 그린다.
+    renderSplitBar(document.getElementById('pkt-fail-stack'),
+                   [reactionMs, queueWaitMs], reactionMs + queueWaitMs);
+
+    const failHint = document.getElementById('pkt-fail-hint');
+    if (reactionMs > 0) {
+        failHint.innerHTML = '대기열 시간은 순번에 따라 정해져요. 줄일 수 있는 건 '
+            + '<b>반응 속도 ' + (reactionMs / 1000).toFixed(3) + '초</b>예요.';
+        failHint.style.display = 'block';
+    } else {
+        failHint.style.display = 'none';
+    }
 
     overlay.classList.add('visible');
 }
@@ -1699,8 +1715,74 @@ async function completePractice() {
     }
 }
 
+const BEST_RECORD_KEY = 'pkt.best.i-ticket';
+const SEGMENT_LABELS = ['반응', '대기열', '좌석 선택'];
+
+/* 좁은 구간에 숫자를 넣으면 글자가 잘려 오히려 지저분해진다. */
+function renderSplitBar(el, segments, scale, withLabel = true) {
+    if (!el || !scale) return;
+    el.innerHTML = segments.map((ms, i) => {
+        const pct = Math.max(0, ms / scale * 100);
+        const label = withLabel && pct >= 12 ? (ms / 1000).toFixed(1) : '';
+        return `<i class="pkt-seg${i + 1}" style="width:${pct.toFixed(1)}%">${label}</i>`;
+    }).join('');
+}
+
+function readBestRecord() {
+    try {
+        const raw = localStorage.getItem(BEST_RECORD_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Number.isFinite(parsed.total) && Array.isArray(parsed.segments) ? parsed : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function saveBestRecord(totalMs, segments, best) {
+    if (best && best.total <= totalMs) return;
+    try {
+        localStorage.setItem(BEST_RECORD_KEY, JSON.stringify({ total: totalMs, segments }));
+    } catch (e) {
+        /* 사파리 사생활 모드에서 쓰기가 막힌다. 비교 막대만 안 나올 뿐이라 삼킨다. */
+    }
+}
+
+function renderCompleteHint(segments, segmentSum, best) {
+    const hint = document.getElementById('pkt-hint');
+    if (!hint || !segmentSum) return;
+
+    let slowest = 0;
+    segments.forEach((ms, i) => { if (ms > segments[slowest]) slowest = i; });
+
+    const share = Math.round(segments[slowest] / segmentSum * 100);
+    let text = `세 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
+
+    if (best) {
+        const diffSec = (segments[slowest] - best.segments[slowest]) / 1000;
+        if (diffSec > 0.05) {
+            text += ` · 최고 기록보다 <b>${diffSec.toFixed(2)}초</b> 깁니다`;
+        }
+    }
+
+    hint.innerHTML = text;
+    hint.style.display = 'block';
+}
+
+function renderBestChip(totalMs, best) {
+    const chip = document.getElementById('pkt-pb-chip');
+    if (!chip) return;
+
+    if (best && totalMs < best.total) {
+        chip.textContent = `▼ ${((best.total - totalMs) / 1000).toFixed(2)}초 단축 · 개인 신기록`;
+        chip.style.display = 'inline-flex';
+    } else {
+        chip.style.display = 'none';
+    }
+}
+
 function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
-    const fmt = ms => (ms / 1000).toFixed(3) + 's';
+    const fmt = ms => (ms / 1000).toFixed(3) + '초';
 
     const now = new Date();
     const dateStr = [
@@ -1709,12 +1791,40 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
         String(now.getDate()).padStart(2, '0')
     ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
-    document.getElementById('pkt-meta').textContent = 'I-Ticket · ' + dateStr;
+    const meta = ['I-Ticket', dateStr];
+    if (queue_initial_rank) meta.push('대기 순번 ' + queue_initial_rank.toLocaleString() + '번에서 출발');
+    document.getElementById('pkt-meta').textContent = meta.join(' · ');
+
     document.getElementById('pkt-total-num').textContent = (total_duration_ms / 1000).toFixed(3);
     document.getElementById('pkt-reaction').textContent = fmt(reaction_time_ms);
     document.getElementById('pkt-queue').textContent = fmt(queue_wait_ms);
     document.getElementById('pkt-seat').textContent = fmt(seat_selection_ms);
-    document.getElementById('pkt-rank').textContent = queue_initial_rank ? '#' + queue_initial_rank.toLocaleString() : '-';
+
+    const segments = [reaction_time_ms, queue_wait_ms, seat_selection_ms];
+    const segmentSum = segments.reduce((a, b) => a + b, 0);
+    const best = readBestRecord();
+    const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
+
+    /* 총 시간에는 인트로에서 좌석 페이지로 넘어오는 시간처럼 어느 구간에도 잡히지 않는
+       몫이 섞여 있다. 막대는 구간끼리의 비중을 보는 것이라 구간 합을 기준으로 그린다.
+       (총 시간 기준으로 그리면 끝에 빈 꼬리가 남는다.) */
+    const scale = Math.max(segmentSum, bestSum);
+    renderSplitBar(document.getElementById('pkt-stack'), segments, scale);
+
+    const refBar = document.getElementById('pkt-refbar');
+    const refLabel = document.getElementById('pkt-ref-label');
+    if (best) {
+        renderSplitBar(refBar, best.segments, scale, false);
+        refBar.style.display = 'flex';
+        refLabel.textContent = '흐린 막대 = 내 최고 기록';
+    } else {
+        refBar.style.display = 'none';
+        refLabel.textContent = '';
+    }
+
+    renderCompleteHint(segments, segmentSum, best);
+    renderBestChip(total_duration_ms, best);
+    saveBestRecord(total_duration_ms, segments, best);
 
     const bar = document.getElementById('pkt-percentile-bar');
     if (percentile != null && total_users >= 2) {
