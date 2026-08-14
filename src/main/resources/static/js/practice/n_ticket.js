@@ -110,19 +110,19 @@ const VB = { w: 741, h: 612 };
 const GRADE = {
     R: { name: 'R석', price: 165000, color: '#7a68a8' },
     S: { name: 'S석', price: 154000, color: '#4f8a70' },
-    A: { name: 'A석', price: 143000, color: '#5b6ea8' },
 };
 
 const SOLD_FILL = '#edeff3';
 const PLAN = { yT: 92, t: 52, Ro: 70, pitch: 100, botTarget: 120, gap: 4 };
 
-/* 링은 두 겹이다. 실물은 3층까지 있지만 우리 도면에서는 구역이 너무 많아 보인다 */
+/* 링은 한 겹이다. 실물은 3층까지 있지만 좌석 간격을 실물과 같은 3 으로 두면
+   겹이 늘어날수록 좌석 수가 감당이 안 된다 */
 const RINGS = [
     { xL: 116, xR: 625, yB: 528, base: 101, grade: 'S' },
-    { xL: 58, xR: 683, yB: 586, base: 201, grade: 'A' },
 ];
 
-const FLOOR = { x: [200, 541], y: [92, 420], cols: 3, rows: 4, gap: 8, grade: 'R' };
+/* 블록 폭은 3열 기준으로 고정한다. 열을 줄이면 블록이 넓어지는 게 아니라 플로어가 좁아져야 한다 */
+const FLOOR = { x: [200, 541], y: [92, 420], cols: 2, widthCols: 3, rows: 4, gap: 8, grade: 'R' };
 
 const rad = deg => deg * Math.PI / 180;
 const px = (cx, cy, r, deg) => [cx + r * Math.cos(rad(deg)), cy + r * Math.sin(rad(deg))];
@@ -150,12 +150,13 @@ function buildBlocks() {
     const { yT, t, Ro, pitch, botTarget, gap } = PLAN;
     const F = FLOOR;
 
-    const fw = (F.x[1] - F.x[0] - F.gap * (F.cols - 1)) / F.cols;
+    const fw = (F.x[1] - F.x[0] - F.gap * (F.widthCols - 1)) / F.widthCols;
     const fh = (F.y[1] - F.y[0] - F.gap * (F.rows - 1)) / F.rows;
+    const fx = F.x[0] + (F.x[1] - F.x[0] - (F.cols * fw + F.gap * (F.cols - 1))) / 2;
     for (let r = 0; r < F.rows; r++) for (let c = 0; c < F.cols; c++) {
         out.push({
             id: 'F' + (r * F.cols + c + 1), grade: F.grade, kind: 'rect',
-            x: F.x[0] + c * (fw + F.gap), y: F.y[0] + r * (fh + F.gap), w: fw, h: fh, vertical: false,
+            x: fx + c * (fw + F.gap), y: F.y[0] + r * (fh + F.gap), w: fw, h: fh, vertical: false,
         });
     }
 
@@ -208,7 +209,7 @@ function renderBase(blocks) {
     for (const b of blocks) {
         out += b.kind === 'rect'
             ? `<rect x="${b.x.toFixed(1)}" y="${b.y.toFixed(1)}" width="${b.w.toFixed(1)}"`
-              + ` height="${b.h.toFixed(1)}" rx="2" fill="#fff"/>`
+              + ` height="${b.h.toFixed(1)}" fill="#fff"/>`
             : `<path d="${cornerPath(b)}" fill="#fff"/>`;
     }
 
@@ -217,12 +218,15 @@ function renderBase(blocks) {
         const a = seatArea(b);
         const gray = t => t.replace('fill="#fff"', 'fill="#8b8d92"');
 
+        /* 열 문자는 좌석 한 줄에 하나씩 붙으므로 크기가 간격을 넘으면 글자끼리 겹친다 */
+        const letter = SEAT.spacing * 0.6;
+
         if (!isRoomy(b)) {
-            out += gray(label(b.x + b.w * 0.72, b.y + b.h / 2, b.id, -90, 13));
+            out += gray(label(b.x + b.w * RING.numMargin / 2, b.y + b.h / 2, b.id, -90, b.w * RING.numSize));
             let col = 0;
             for (let x = a.x0; x <= a.x1; x += SEAT.spacing) {
                 col++;
-                out += label(x, b.y + 3.2, rowLabel(col), -90, 3.2)
+                out += label(x, b.y + 3.2, rowLabel(col), -90, letter)
                     .replace('fill="#fff"', 'fill="#a8aab0"');
             }
             continue;
@@ -232,7 +236,7 @@ function renderBase(blocks) {
         let row = 0;
         for (let y = a.y0; y <= a.y1; y += SEAT.spacing) {
             row++;
-            out += label(b.x + 4.5, y, rowLabel(row), 0, 3.6)
+            out += label(b.x + 4.5, y, rowLabel(row), 0, letter)
                 .replace('fill="#fff"', 'fill="#a8aab0"');
         }
     }
@@ -264,16 +268,12 @@ function renderBlocks(blocks, withLabel = true) {
 
 /* ═══════════ 좌석 ═══════════ */
 
-/* 실물의 좌석 간격은 3 이지만 그건 실물 도면 기준이다. 우리 도면은 구역이 커서
-   3 으로 깔면 2만 개가 넘어 DOM 이 버티지 못한다. 6 이면 화면상 구분되지 않는다.
+/* 간격과 반지름은 실물 값 그대로다. 대신 도면에 들어가는 구역을 줄여 좌석 수를 맞췄다(플로어 2열·링 1겹).
 
-   잔여석은 실물에서 7,192석 중 40석(0.56%)이었는데 그 비율을 그대로 쓰면 안 된다.
-   실물은 좌석이 훨씬 촘촘해서 같은 화면에 좌석이 우리보다 몇 배 많이 들어간다.
-   맞춰야 하는 건 비율이 아니라 화면에 보이는 잔여석 수다 — 6배 화면에 열 개 안팎이 되게 잡았다.
+   잔여석은 실물이 7,192석 중 40석(0.56%)이지만 그 비율을 그대로 쓰면 화면에 몇 개 안 보인다.
+   맞춰야 하는 건 비율이 아니라 화면에 보이는 잔여석 수다.
    눈에 띄는 몇 개를 빨리 찾아 누르는 것이 티켓팅의 실제 난이도다. */
-/* 실물은 간격 3 에 반지름 1 이라 지름이 간격의 2/3 를 채운다. 간격을 6 으로 늘렸으므로
-   반지름도 2 로 가야 그 비율이 유지된다 */
-const SEAT = { spacing: 6, radius: 2, openRatio: 0.04 };
+const SEAT = { spacing: 3, radius: 1, openRatio: 0.04 };
 
 const seats = [];
 
@@ -284,11 +284,15 @@ const seats = [];
    영역을 여기서 한 번만 정한다. */
 const isRoomy = b => b.kind === 'rect' && b.w >= 60 && b.h >= 40;
 
+/* 링 블록은 왼쪽을 비워 구역 번호를 넣는다. 비워두지 않으면 좌석이 번호 위에 얹혀 글자가 갉인다.
+   실측(2026-08-14, 104구역): 카드 폭 62.5 에 왼쪽 여백 17.8 · 오른쪽 3.4 */
+const RING = { numMargin: 0.285, rightMargin: 0.054, numSize: 0.138 };
+
 function seatArea(b) {
     const roomy = isRoomy(b);
     return {
-        x0: b.x + (roomy ? 9 : 4),
-        x1: b.x + b.w - 4,
+        x0: b.x + (roomy ? 9 : b.w * RING.numMargin),
+        x1: b.x + b.w - (roomy ? 4 : b.w * RING.rightMargin),
         y0: b.y + (roomy ? b.h * 0.32 : 7),
         y1: b.y + b.h - 4,
     };
@@ -349,8 +353,10 @@ function buildPlan() {
     $('miniLayer').innerHTML = `<rect width="${VB.w}" height="${VB.h}" fill="${SOLD_FILL}"/>`
         + renderBlocks(blocks, false);
 
-    $('gradeList').innerHTML = Object.values(GRADE)
-        .map(g => `<li><i style="background:${g.color}"></i>${g.name}<b>${won(g.price)}</b></li>`)
+    const used = new Set(blocks.map(b => b.grade));
+    $('gradeList').innerHTML = Object.entries(GRADE)
+        .filter(([k]) => used.has(k))
+        .map(([, g]) => `<li><i style="background:${g.color}"></i>${g.name}<b>${won(g.price)}</b></li>`)
         .join('');
 }
 
