@@ -191,6 +191,12 @@
     gap: 20px;
 }
 
+/* 매진은 기록 대신 문장을 두 줄로 놓는다. 가로로 나란히 두면 둘 다 잘린다 */
+.pkt-total-section--fail {
+    display: block;
+    text-align: center;
+}
+
 .pkt-total-label-group {
     display: flex;
     flex-direction: column;

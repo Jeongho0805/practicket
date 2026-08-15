@@ -1089,6 +1089,9 @@ function showSoldOutModal() {
     const reactionMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
     const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
     const initialRank = sessionStorage.getItem('pkt.queueInitialRank');
+    const seatStartMs = parseInt(sessionStorage.getItem('pkt.seatSelectionStartMs') || '0');
+    const seatMs = seatStartMs ? Math.max(0, Date.now() - seatStartMs) : 0;
+    const totalMs = reactionMs + queueWaitMs + seatMs;
 
     const meta = ['I-Ticket'];
     if (initialRank) meta.push('대기 순번 ' + Number(initialRank).toLocaleString() + '번에서 출발');
@@ -1096,15 +1099,26 @@ function showSoldOutModal() {
 
     document.getElementById('pkt-fail-reaction').textContent = fmt(reactionMs);
     document.getElementById('pkt-fail-queue').textContent = fmt(queueWaitMs);
+    document.getElementById('pkt-fail-seat').textContent = fmt(seatMs);
+    /* 같은 값이 문장에도 나오므로 소수 자릿수를 맞춘다 */
+    document.getElementById('pkt-fail-total').textContent = (totalMs / 1000).toFixed(1) + '초';
 
-    // 좌석을 못 잡았으니 좌석 구간이 없다. 두 구간만 그린다.
+    /* 좌석 구간까지 그린다. 매진으로 끝났다면 시간을 가장 많이 쓴 곳이 좌석 화면인데,
+       그 구간을 빼면 막대가 대기열로 꽉 차 "반응 속도를 줄여라"는 힌트와 서로 어긋난다. */
     renderSplitBar(document.getElementById('pkt-fail-stack'),
-                   [reactionMs, queueWaitMs], reactionMs + queueWaitMs);
+                   [reactionMs, queueWaitMs, seatMs], totalMs);
+
+    const sellOutMs = seatManager ? seatManager.totalSellOutDurationMs : 0;
+    document.getElementById('pkt-fail-msg').textContent = sellOutMs
+        ? `좌석이 다 팔리기까지 ${(sellOutMs / 1000).toFixed(0)}초, 여기까지 ${(totalMs / 1000).toFixed(1)}초 걸렸어요`
+        : '다음엔 더 빠르게 도전해 보세요';
 
     const failHint = document.getElementById('pkt-fail-hint');
-    if (reactionMs > 0) {
-        failHint.innerHTML = '대기열 시간은 순번에 따라 정해져요. 줄일 수 있는 건 '
-            + '<b>반응 속도 ' + (reactionMs / 1000).toFixed(3) + '초</b>예요.';
+    const worst = [[reactionMs, '반응 속도'], [queueWaitMs, '대기열'], [seatMs, '좌석 화면']]
+        .sort((a, b) => b[0] - a[0])[0];
+    if (worst[0] > 0) {
+        failHint.innerHTML = '가장 오래 걸린 구간은 '
+            + `<b>${worst[1]} ${(worst[0] / 1000).toFixed(1)}초</b>예요.`;
         failHint.style.display = 'block';
     } else {
         failHint.style.display = 'none';
