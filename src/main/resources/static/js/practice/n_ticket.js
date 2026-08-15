@@ -39,7 +39,9 @@ const now = () => performance.now();
 const fmt = ms => (ms / 1000).toFixed(2);
 const won = n => n.toLocaleString('ko-KR') + '원';
 
-const T = { queue: 0, seatStart: 0, seat: 0, firstRank: 0 };
+/* decayStart 는 좌석이 팔리기 시작하는 시점이다. 대기열이 시작된 순간으로 잡아야
+   대기열에서 보낸 시간만큼 이미 팔려 있어 "늦게 들어오면 자리가 없다"가 따로 계산 없이 성립한다. */
+const T = { queue: 0, seatStart: 0, seat: 0, firstRank: 0, decayStart: 0 };
 
 function showScreen(id) {
     document.querySelectorAll('.nt-screen').forEach(s => s.classList.toggle('is-active', s.id === id));
@@ -68,6 +70,7 @@ function startQueue() {
     const line2El = $('waitLine2');
 
     const startedAt = now();
+    T.decayStart = startedAt;
 
     const render = () => {
         const elapsedSec = (now() - startedAt) / 1000;
@@ -268,12 +271,16 @@ function renderBlocks(blocks, withLabel = true) {
 
 /* ═══════════ 좌석 ═══════════ */
 
-/* 간격과 반지름은 실물 값 그대로다. 대신 도면에 들어가는 구역을 줄여 좌석 수를 맞췄다(플로어 2열·링 1겹).
+/* 간격과 반지름은 실물 값 그대로다. 대신 도면에 들어가는 구역을 줄여 좌석 수를 맞췄다(플로어 2열·링 1겹). */
+const SEAT = { spacing: 3, radius: 1 };
 
-   잔여석은 실물이 7,192석 중 40석(0.56%)이지만 그 비율을 그대로 쓰면 화면에 몇 개 안 보인다.
-   맞춰야 하는 건 비율이 아니라 화면에 보이는 잔여석 수다.
-   눈에 띄는 몇 개를 빨리 찾아 누르는 것이 티켓팅의 실제 난이도다. */
-const SEAT = { spacing: 3, radius: 1, openRatio: 0.04 };
+/* 좌석은 전부 열린 채로 그리고 시간이 지나면서 닫힌다 — 잔여석을 미리 정하지 않는다.
+   남은 좌석이 (1 - t/총시간)^k 로 줄어들어 처음엔 몰아치고 뒤로 갈수록 느려진다.
+   실측이 아니라 목업(docs/mockups/n-ticket/seat-decay.html)으로 체감을 맞춘 값이다. */
+const SELL = { totalMs: 40000, k: 2, jitter: 400 };
+
+/* 무대에서 가까운 자리부터 팔린다. 흔들림을 안 섞으면 동심원으로 퍼져 부자연스럽다 */
+const STAGE_AT = { x: 370.5, y: 74 };
 
 const seats = [];
 
@@ -303,14 +310,10 @@ const rowLabel = n => (n <= 26 ? String.fromCharCode(64 + n)
     : String.fromCharCode(64 + Math.floor((n - 1) / 26)) + String.fromCharCode(65 + (n - 1) % 26));
 
 function pushSeat(block, row, col, x, y, out) {
-    const open = Math.random() < SEAT.openRatio;
     const color = GRADE[block.grade].color;
-    const fill = open ? color : SOLD_FILL;
-    const cls = open ? 'nt-seat-dot is-open' : 'nt-seat-dot is-sold';
-    const idx = open ? seats.push({ block: block.id, grade: block.grade, row: rowLabel(row), col }) - 1 : -1;
-    const data = open ? ` data-i="${idx}"` : '';
-    out.push(`<circle class="${cls}" r="${SEAT.radius}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}"`
-        + ` fill="${fill}" stroke="${fill}"${data}/>`);
+    const i = seats.push({ block: block.id, grade: block.grade, row: rowLabel(row), col, x, y }) - 1;
+    out.push(`<circle class="nt-seat-dot is-open" r="${SEAT.radius}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}"`
+        + ` fill="${color}" stroke="${color}" data-i="${i}"/>`);
 }
 
 function renderSeats(blocks) {
@@ -343,12 +346,55 @@ function renderSeats(blocks) {
     return out.join('');
 }
 
+/* ═══════════ 좌석이 팔려 나간다 ═══════════ */
+
+/* 좌석마다 순위를 매겨 두고 경과 시간으로 "지금 몇 개 닫혔나"만 구한다.
+   그래야 매 틱에 손대는 원이 새로 닫힌 몇 개뿐이다 — 8,481 개를 다 훑으면 확대가 멈칫한다. */
+let sellOrder = [];
+let sellCursor = 0;
+let soldCount = 0;
+
+/* 첫 틱에 수천 개가 한꺼번에 닫힌다. 그때마다 찾으면 그 멈칫이 기록에 들어간다 */
+let seatEls = [];
+
+function buildSellOrder() {
+    sellOrder = seats
+        .map((s, i) => ({ i, k: Math.hypot(s.x - STAGE_AT.x, s.y - STAGE_AT.y)
+            + (s.grade === 'R' ? 0 : 40) + Math.random() * SELL.jitter }))
+        .sort((a, b) => a.k - b.k)
+        .map(s => s.i);
+}
+
+function soldAt(ms) {
+    if (ms >= SELL.totalMs) return seats.length;
+    return Math.floor(seats.length * (1 - Math.pow(1 - ms / SELL.totalMs, SELL.k)));
+}
+
+/* 이미 잡은 자리는 건너뛴다. 남이 채가는 것이지 내 것을 뺏는 게 아니다 */
+function sellUpTo(target) {
+    while (soldCount < target && sellCursor < sellOrder.length) {
+        const i = sellOrder[sellCursor++];
+        if (picked.includes(i)) continue;
+        const dot = seatEls[i];
+        if (dot) {
+            dot.classList.replace('is-open', 'is-sold');
+            dot.setAttribute('fill', SOLD_FILL);
+            dot.setAttribute('stroke', SOLD_FILL);
+        }
+        soldCount++;
+    }
+}
+
+const isSoldOut = () => sellCursor >= sellOrder.length && !picked.length;
+
 /* 좌석은 대기열이 도는 동안 미리 다 그려둔다. 확대할 때마다 다시 그리면
    그 순간 화면이 멈칫하고, 그 멈칫이 그대로 기록에 들어간다. */
 function buildPlan() {
     const blocks = buildBlocks();
     $('baseLayer').innerHTML = renderBase(blocks);
     $('seatLayer').innerHTML = renderSeats(blocks);
+    seatEls = [...$('seatLayer').children];
+    buildSellOrder();
     $('blockLayer').innerHTML = renderBlocks(blocks);
     $('miniLayer').innerHTML = `<rect width="${VB.w}" height="${VB.h}" fill="${SOLD_FILL}"/>`
         + renderBlocks(blocks, false);
@@ -605,6 +651,13 @@ function startSeatTimer() {
     const until = now() + SEAT_LIMIT_MS;
 
     const tick = () => {
+        sellUpTo(soldAt(now() - T.decayStart));
+        if (isSoldOut()) {
+            clearInterval(seatTimer);
+            showSoldOut();
+            return;
+        }
+
         const left = Math.max(0, until - now());
         const sec = Math.ceil(left / 1000);
         el.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
@@ -699,6 +752,39 @@ function enterSeat() {
     $('capDim').hidden = false;
     $('capModal').hidden = false;
     $('capInput').focus();
+}
+
+/* 매진은 실패라 기록을 보내지 않는다. 막대에 좌석 구간까지 넣어야
+   시간을 어디서 다 썼는지가 드러난다 — i-ticket 과 같은 모달이다. */
+function showSoldOut() {
+    const reactionMs = Math.round(reaction);
+    const queueMs = Math.round(T.queue);
+    const seatMs = Math.round(now() - T.seatStart);
+    const total = reactionMs + queueMs + seatMs;
+
+    $('pkt-fail-meta').textContent =
+        `N-Ticket · 대기 순번 ${T.firstRank.toLocaleString('ko-KR')}번에서 출발`;
+    $('pkt-fail-msg').textContent =
+        `좌석이 다 팔리기까지 ${SELL.totalMs / 1000}초, 여기까지 ${fmt(total)}초 걸렸어요`;
+
+    $('pkt-fail-reaction').textContent = fmt(reactionMs) + '초';
+    $('pkt-fail-queue').textContent = fmt(queueMs) + '초';
+    $('pkt-fail-seat').textContent = fmt(seatMs) + '초';
+    $('pkt-fail-total').textContent = fmt(total) + '초';
+
+    $('pkt-fail-stack').innerHTML = [reactionMs, queueMs, seatMs].map((ms, i) => {
+        const pct = ms / total * 100;
+        return `<i class="pkt-seg${i + 1}" style="width:${pct.toFixed(1)}%">`
+            + `${pct >= 12 ? (ms / 1000).toFixed(1) : ''}</i>`;
+    }).join('');
+
+    const worst = [[reactionMs, '반응 속도'], [queueMs, '대기열'], [seatMs, '좌석 화면']]
+        .sort((a, b) => b[0] - a[0])[0];
+    $('pkt-fail-hint').innerHTML =
+        `가장 오래 걸린 구간은 <b>${worst[1]} ${(worst[0] / 1000).toFixed(1)}초</b>예요.`;
+
+    $('pkt-soldout-overlay').classList.add('visible');
+    sessionStorage.removeItem('pkt.sessionId');
 }
 
 async function finish() {
