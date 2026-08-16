@@ -89,13 +89,23 @@ table { border-collapse: collapse; }
 
 .gridwrap { position: absolute; left: 0; right: 0; top: 106px; bottom: 0; overflow: auto; display: none; }
 .map.seat .gridwrap { display: block; }
-.grid { padding: 10px 0 50px; display: flex; flex-direction: column; gap: 4px; min-width: min-content; }
+.grid { width: fit-content; margin: 0 auto; padding: 10px 0 50px; display: flex; flex-direction: column; gap: 4px; }
 .grow { display: flex; align-items: center; }
-.grow .rn { width: 80px; flex: none; padding-right: 16px; text-align: right; font-size: 15px; color: #bbb; }
+/* 실물은 좌석 블록을 가운데 두고 열 번호를 그 왼쪽 여백에 얹는다 — 번호를 폭 계산에서 뺀다 */
+.grow .rn { width: 80px; margin-left: -80px; flex: none; padding-right: 16px; text-align: right; font-size: 15px; color: #bbb; }
 .grow .cs { display: flex; gap: 4px; }
 .cell { width: 19px; height: 19px; flex: none; background: var(--sold); }
 .cell.free { cursor: pointer; }
 .cell.pick { background: #fff !important; box-shadow: inset 0 0 0 3px #111; }
+
+.loading { position: absolute; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; }
+.loading.on { display: flex; }
+.loading i {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid rgba(0, 0, 0, .12); border-top-color: var(--accent);
+    animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* 하단 안내바 — 눌러서 펼치면 고른 좌석이 칩으로 나온다 */
 .pc-bottombar {
@@ -136,7 +146,7 @@ table { border-collapse: collapse; }
 .minimap { width: 245px; height: 180px; background: #707070; position: relative; overflow: hidden; }
 .minimap .in { position: absolute; inset: 0; background: #f4f4f4; }
 .minimap svg { width: 100%; height: 100%; }
-.mapall { height: 27px; display: flex; align-items: center; justify-content: flex-end; font-size: 12px; }
+.mapall { height: 27px; display: flex; align-items: center; justify-content: flex-end; font-size: 13px; }
 .mapall u { cursor: pointer; }
 .mapall u:hover { color: var(--accent); }
 
@@ -154,12 +164,12 @@ table { border-collapse: collapse; }
 .tbl th { width: 26px; height: 33px; vertical-align: middle; }
 .tbl th .chip { display: inline-block; width: 12px; height: 12px; }
 .tbl td { height: 33px; font-size: 13px; color: var(--txt-sub); vertical-align: middle; }
-.tbl .nm { width: 74px; }
+.tbl .nm { width: 84px; }
 .tbl .pr { width: 60px; }
 .tbl .rs { width: 45px; color: var(--rest); }
 .tbl .ar { width: 25px; }
 .tbl .g { cursor: pointer; }
-.tbl .g:hover td { color: var(--accent); }
+.tbl .g:hover td, .tbl .g:hover th { background: #f2f2f2; }
 .tbl .ar i {
     display: block; width: 7px; height: 7px; margin: 0 auto;
     border-right: 1px solid #aaa; border-bottom: 1px solid #aaa;
@@ -186,6 +196,21 @@ table { border-collapse: collapse; }
 
 .dim { position: absolute; inset: 0; background: #000; opacity: .15; display: none; z-index: 9; }
 .dim.open { display: block; }
+
+/* 알림·확인 — 실물은 브라우저 alert 지만 950×652 밖에 떠서 화면과 따로 논다 */
+.ask {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 320px; z-index: 12; display: none; text-align: center;
+    background: #fff; border-radius: 6px; box-shadow: 0 2px 14px rgba(0, 0, 0, .2);
+}
+.ask.open { display: block; }
+.ask h2 { padding: 24px 0 0; font-size: 17px; font-weight: 600; color: var(--accent); }
+.ask p { margin: 12px 24px 0; font-size: 14px; line-height: 1.6; color: var(--txt); }
+.ask .acts { display: flex; gap: 8px; justify-content: center; padding: 22px 24px 24px; }
+.ask .acts button { height: 40px; border-radius: 3px; font-size: 14px; padding: 0 26px; }
+.ask .ok { background: var(--accent); color: #fff; }
+.ask .cancel { background: #eee; color: var(--txt-sub); display: none; }
+.ask.confirm .cancel { display: block; }
 
 .cap {
     position: absolute; left: 320px; top: 125px; width: 310px; height: 429px; z-index: 10; display: none;

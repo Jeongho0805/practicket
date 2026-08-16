@@ -29,8 +29,8 @@ const T = {
 };
 
 const GRADES = {
-    R: { key: 'R', name: 'R석', price: 154000, color: '#7a68a8', rest: 412 },
-    S: { key: 'S', name: 'S석', price: 143000, color: '#2e9e57', rest: 1183 },
+    R: { key: 'R', name: 'R석', price: 154000, color: '#7a68a8' },
+    S: { key: 'S', name: 'S석', price: 143000, color: '#2e9e57' },
 };
 const MAX_PICK = 2;
 
@@ -62,11 +62,7 @@ const ZONES_OF = {
     S: Array.from({ length: 8 }, (_, i) => String(28 + i)),
 };
 
-/* 흐림 처리와 hover 가 서로를 덮어쓰지 않게 기준 투명도를 도형에 적어둔다 */
-const setBase = (shape, v) => {
-    shape.setAttribute('data-base', v);
-    shape.setAttribute('fill-opacity', v);
-};
+const setBase = (shape, v) => shape.setAttribute('fill-opacity', v);
 
 function buildZoneMap(target, opts) {
     const { mini = false, clickable = false } = opts || {};
@@ -92,9 +88,6 @@ function buildZoneMap(target, opts) {
         if (clickable) {
             shape.style.cursor = 'pointer';
             shape.addEventListener('click', () => enterZone(name, grade));
-            shape.addEventListener('mouseenter', () => shape.setAttribute('fill-opacity', 1));
-            shape.addEventListener('mouseleave', () =>
-                shape.setAttribute('fill-opacity', shape.getAttribute('data-base')));
         }
         shapes.set(name, { shape, grade });
         svg.appendChild(shape);
@@ -171,7 +164,8 @@ let mainShapes = new Map(), miniShapes = new Map();
    큰 도면은 고른 등급만, 미니맵은 좌석 단계에선 보고 있는 구역만 남긴다 — 실물과 같다. */
 function paintMaps() {
     const onSeat = document.body.classList.contains('stage-seat');
-    const byGrade = g => !openGrade || g === openGrade;
+    const active = hoverGrade || openGrade;
+    const byGrade = g => !active || g === active;
 
     mainShapes.forEach(({ shape, grade }) => setBase(shape, byGrade(grade) ? .9 : .12));
     miniShapes.forEach(({ shape, grade }, nm) => {
@@ -182,7 +176,7 @@ function paintMaps() {
 
 /* ══════════ 등급 표 ══════════ */
 
-let openGrade = null;
+let openGrade = null, hoverGrade = null;
 
 function renderGradeTable() {
     $('grade-table').innerHTML = Object.values(GRADES).map(g => `
@@ -191,7 +185,7 @@ function renderGradeTable() {
             <th><span class="chip" style="background:${g.color}"></span></th>
             <td class="nm">${g.name}</td>
             <td class="pr">${won(g.price)}</td>
-            <td class="rs">${g.rest}</td>
+            <td class="rs"></td>
             <td class="ar"><i></i></td>
         </tr>
         <tr class="zn${openGrade === g.key ? ' on' : ''}">
@@ -201,11 +195,15 @@ function renderGradeTable() {
         </tr>
         </tbody>`).join('');
 
-    $('grade-table').querySelectorAll('.g').forEach(tr => tr.addEventListener('click', () => {
-        openGrade = openGrade === tr.dataset.grade ? null : tr.dataset.grade;
-        paintMaps();
-        renderGradeTable();
-    }));
+    $('grade-table').querySelectorAll('.g').forEach(tr => {
+        tr.addEventListener('click', () => {
+            openGrade = openGrade === tr.dataset.grade ? null : tr.dataset.grade;
+            paintMaps();
+            renderGradeTable();
+        });
+        tr.addEventListener('mouseenter', () => { hoverGrade = tr.dataset.grade; paintMaps(); });
+        tr.addEventListener('mouseleave', () => { hoverGrade = null; paintMaps(); });
+    });
     $('grade-table').querySelectorAll('.zn button').forEach(b =>
         b.addEventListener('click', () => enterZone(b.dataset.zone, b.dataset.grade)));
 }
@@ -238,20 +236,55 @@ $('mo-grades').querySelectorAll('li').forEach(li => li.addEventListener('click',
 const picked = new Set();
 let curZone = '', curGrade = 'R';
 
+const ROWS = 16, COLS = 22, ZONE_SEATS = ROWS * COLS;
+
+/* 좌석은 시간이 갈수록 팔린다. 실물은 폴링하지 않으므로 새로고침을 눌러야 결과가 보인다.
+   START 는 좌석 화면에 들어선 순간 이미 팔려 있는 비율, FULL_MS 뒤에 전석이 나간다. */
+const SELL = { START: .58, FULL_MS: 60000, CURVE: 1.9 };
+
+/* 좋은 자리부터 나간다 — 무대에 가까운 열 우선, 같은 열이면 가운데부터.
+   흔들림도 구역 이름에서 뽑아 같은 구역이면 언제 들어와도 같은 순서가 된다. */
+let sellOrder = new Map();
+
+function buildSellOrder(zone) {
+    let seed = [...zone].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 2147483647, 7);
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+
+    const seats = [];
+    for (let r = 1; r <= ROWS; r++)
+        for (let c = 1; c <= COLS; c++)
+            seats.push({ id: `${r}-${c}`, score: r * 100 + Math.abs(c - (COLS + 1) / 2) * 4 + rnd() * 40 });
+
+    seats.sort((a, b) => a.score - b.score);
+    sellOrder = new Map(seats.map((s, i) => [s.id, i]));
+}
+
+let soldCount = 0;
+
+function refreshSold() {
+    const ms = T.seatStart ? now() - T.seatStart : 0;
+    const t = Math.min(1, ms / SELL.FULL_MS);
+    soldCount = Math.floor(ZONE_SEATS * (SELL.START + (1 - SELL.START) * Math.pow(t, SELL.CURVE)));
+}
+
+const isSold = id => sellOrder.get(id) < soldCount;
+const isSoldOut = () => soldCount >= ZONE_SEATS;
+
 function drawGrid() {
     const grid = $('grid');
     grid.innerHTML = '';
-    for (let r = 1; r <= 16; r++) {
+    for (let r = 1; r <= ROWS; r++) {
         const row = document.createElement('div');
         row.className = 'grow';
         row.innerHTML = `<span class="rn">${r}</span>`;
 
         const cells = document.createElement('div');
         cells.className = 'cs';
-        for (let c = 1; c <= 22; c++) {
+        for (let c = 1; c <= COLS; c++) {
+            const id = `${r}-${c}`;
             const cell = document.createElement('div');
-            const free = Math.random() < 0.42;
-            cell.className = 'cell' + (free ? ' free' : '');
+            const free = !isSold(id);
+            cell.className = 'cell' + (free ? ' free' : '') + (picked.has(id) ? ' pick' : '');
             if (free) {
                 cell.style.background = GRADES[curGrade].color;
                 cell.addEventListener('click', () => toggleSeat(cell, r, c));
@@ -267,6 +300,8 @@ function enterZone(name, grade) {
     curZone = name;
     curGrade = grade;
     picked.clear();
+    buildSellOrder(name);
+    refreshSold();
 
     document.body.classList.add('stage-seat');
     $('map').classList.add('seat');
@@ -334,27 +369,41 @@ function syncSeat() {
 
 /* ══════════ 우측 패널 조작 ══════════ */
 
-$('map-all').addEventListener('click', backToZones);
-$('mo-area-change').addEventListener('click', backToZones);
+$('map-all').addEventListener('click', () => askThenLeaveSeats(backToZones));
+$('mo-area-change').addEventListener('click', () => askThenLeaveSeats(backToZones));
 
 $('pc-bar-toggle').addEventListener('click', () => $('pc-bar').classList.toggle('open'));
 
+/* 실물은 좌석 데이터를 다시 받아오는 동안 도면 위에 로딩만 띄운다.
+   그 사이 팔린 좌석이 이때 비로소 회색으로 바뀐다 — 실물도 새로고침 전에는 알 수 없다. */
 function refresh() {
-    Object.values(GRADES).forEach(g => {
-        g.rest = Math.max(0, g.rest + Math.round((Math.random() - .58) * 60));
-    });
-    renderGradeTable();
-    paintMaps();
-    if (document.body.classList.contains('stage-seat')) {
-        picked.clear();
-        drawGrid();
-    }
-    syncSeat();
-    showToast('잔여석을 새로 불러왔습니다.');
+    $('loading').classList.add('on');
+    setTimeout(() => {
+        $('loading').classList.remove('on');
+        paintMaps();
+        if (document.body.classList.contains('stage-seat')) {
+            picked.clear();
+            refreshSold();
+            drawGrid();
+            if (isSoldOut()) soldOut();
+        }
+        syncSeat();
+    }, 500);
 }
 
-$('pc-refresh').addEventListener('click', refresh);
-$('mo-refresh').addEventListener('click', refresh);
+/* 고른 좌석이 사라지는 동작이라 실물은 확인을 받는다 */
+function askThenLeaveSeats(run) {
+    if (!picked.size) return run();
+    ask({
+        title: '구역 변경',
+        msg: '해당 구역에서 선택한 좌석 정보는 사라집니다. 계속 하시겠습니까?',
+        confirm: true,
+        onOk: run,
+    });
+}
+
+$('pc-refresh').addEventListener('click', () => askThenLeaveSeats(refresh));
+$('mo-refresh').addEventListener('click', () => askThenLeaveSeats(refresh));
 
 $('pc-done').addEventListener('click', confirmSeats);
 $('mo-go').addEventListener('click', () => {
@@ -365,9 +414,56 @@ $('mo-go').addEventListener('click', () => {
     confirmSeats();
 });
 
+/* 실물은 브라우저 alert · confirm 을 쓴다. 우리 화면은 950×652 안에 갇혀 있어
+   시스템 창이 바깥에 뜨면 시선이 끊기므로 같은 자리에 모달로 띄운다. */
+let askOk = null;
+
+function ask({ title, msg, confirm = false, onOk }) {
+    $('ask-title').textContent = title;
+    $('ask-msg').textContent = msg;
+    $('ask').classList.toggle('confirm', confirm);
+    $('ask').classList.add('open');
+    $('ask-dim').classList.add('open');
+    askOk = onOk;
+}
+
+function closeAsk() {
+    $('ask').classList.remove('open');
+    $('ask-dim').classList.remove('open');
+}
+
+$('ask-ok').addEventListener('click', () => { closeAsk(); const f = askOk; askOk = null; if (f) f(); });
+$('ask-cancel').addEventListener('click', () => { askOk = null; closeAsk(); });
+
 function confirmSeats() {
     if (!picked.size) return showToast('좌석을 선택해 주세요.');
-    openCaptcha('final');
+    if (!capSolved) return openCaptcha('final');
+    submitSeats();
+}
+
+/* 실물은 완료를 누른 순간에만 서버가 좌석을 확인한다. 고르는 동안에는 아무도 잡아두지 않는다. */
+function submitSeats() {
+    refreshSold();
+    if ([...picked].some(isSold)) return seatTaken();
+    finish();
+}
+
+function seatTaken() {
+    ask({
+        title: '좌석 선택 실패',
+        msg: '다른 고객님이 결제 중인 좌석입니다.',
+        onOk: () => {
+            picked.clear();
+            drawGrid();
+            syncSeat();
+            if (isSoldOut()) soldOut();
+        },
+    });
+}
+
+/* 전석 매진 — 연습 종료 화면은 공용 실패 모달이 나오면 여기서 부른다 */
+function soldOut() {
+    showToast('남은 좌석이 없습니다.');
 }
 
 /* ══════════ 보안문자 ══════════
@@ -375,7 +471,7 @@ function confirmSeats() {
    겹치는 자간, 가로지르는 사선 하나 — 관찰한 특징만 옮겼다. */
 
 const CAP_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-let capText = '', capMode = 'first';
+let capText = '', capMode = 'first', capSolved = false;
 
 $('cap-reload').innerHTML =
     '<svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">'
@@ -444,8 +540,9 @@ $('cap-submit').addEventListener('click', () => {
         return;
     }
     const wasFinal = capMode === 'final';
+    capSolved = true;
     closeCaptcha();
-    if (wasFinal) finish();
+    if (wasFinal) submitSeats();
 });
 $('cap-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('cap-submit').click(); });
 

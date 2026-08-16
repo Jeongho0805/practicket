@@ -45,6 +45,7 @@
             <div class="zonehint" id="zonehint"></div>
             <div class="zonemap" id="zonemap"></div>
             <div class="gridwrap" id="gridwrap"><div class="grid" id="grid"></div></div>
+            <div class="loading" id="loading"><i></i></div>
 
             <div class="pc-bottombar" id="pc-bar">
                 <button class="line" id="pc-bar-toggle">
@@ -150,10 +151,19 @@
         </div>
     </div>
 
+    <!-- ══════════ 알림 · 확인 ══════════ -->
+    <div class="dim" id="ask-dim"></div>
+    <div class="ask" id="ask">
+        <h2 id="ask-title">알림</h2>
+        <p id="ask-msg"></p>
+        <div class="acts">
+            <button class="cancel" id="ask-cancel">취소</button>
+            <button class="ok" id="ask-ok">확인</button>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 </div>
-
-<th:block th:replace="~{fragments/alert :: alert}"></th:block>
 
 <!-- layout/default 가 내려주던 전역이다. 독립 페이지라 여기서 직접 정의한다(m_ticket_intro.html 과 동일) -->
 <script>const HOST = '';</script>
