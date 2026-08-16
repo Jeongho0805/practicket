@@ -81,22 +81,15 @@
         grid-template-rows: auto 1fr;
     }
 
-    /* 모바일 배너 규격(320x100)에 맞춘다. padding 을 두면 그만큼 비율이 어긋나 여백이 남는다.
-       폭이 높이를 정한다. 반대로 두면 짧은 폰에서 폭이 화면의 72% 까지 쪼그라든다.
-       광고 행을 auto 로 두는 것도 그래서다 — 고정 fr 은 필요 높이가 폰마다 17~21% 로 갈려 아래를 덮는다. */
+    /* 모바일 배너 규격(320x80)에 맞춘다. padding 을 두면 그만큼 비율이 어긋나 여백이 남는다.
+       폭이 높이를 정한다. 반대로 두면 짧은 폰에서 폭이 화면 폭보다 좁게 쪼그라든다.
+       광고 행을 auto 로 두는 것도 그래서다 — 고정 fr 은 필요 높이가 폰마다 11~14% 로 갈려 아래를 덮는다. */
     #ad-section {
         width: 100%;
         height: auto;
-        aspect-ratio: 16 / 5;
+        aspect-ratio: 4 / 1;
         margin: 0 auto;
         overflow: hidden;
-    }
-
-    /* 데스크톱과 같은 이유로, 배너가 없으면 비율을 풀고 자리를 꽉 준다 */
-    #ad-section:not(:has(.ad-slot-link)) {
-        width: 100%;
-        height: auto;
-        aspect-ratio: auto;
     }
 
     #adsence-section {

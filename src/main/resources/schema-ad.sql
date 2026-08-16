@@ -48,4 +48,4 @@ INSERT INTO ad_slot (code, name, recommended_size, enabled, created_at)
 VALUES ('PC_RIGHT', 'PC 우측', '300x600', TRUE, NOW());
 
 INSERT INTO ad_slot (code, name, recommended_size, enabled, created_at)
-VALUES ('MOBILE_TOP', '모바일 상단', '320x100', TRUE, NOW());
+VALUES ('MOBILE_TOP', '모바일 상단', '320x80', TRUE, NOW());
