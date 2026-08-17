@@ -509,69 +509,7 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
 .nt-cap-err { min-height: 18px; margin: 8px 4px 0; font-size: 13px; color: #FF322E }
 .nt-cap .nt-done { margin: auto 0 0 }
 
-/* ═══════════ 4) 결과 ═══════════ */
-
-.nt-result {
-    max-width: 358px;
-    margin: 0 auto;
-    padding: 80px 20px 40px;
-    text-align: center;
-}
-
-.nt-result h1 { font-size: 20px; font-weight: 700; line-height: 28px }
-
-.nt-score {
-    margin-top: 28px;
-    font-size: 56px;
-    font-weight: 700;
-    line-height: 64px;
-    letter-spacing: -.02em;
-    color: var(--nt-primary);
-}
-
-.nt-score span { font-size: 22px; margin-left: 4px }
-.nt-score-label { margin-top: 4px; font-size: 14px; color: var(--nt-sub) }
-
-.nt-rank {
-    margin-top: 20px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: var(--nt-primary);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.nt-rank[hidden] { display: none }
-.nt-rank span small { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; opacity: .85 }
-
-.nt-score-detail {
-    margin-top: 28px;
-    padding: 16px 20px;
-    border-radius: 12px;
-    background: var(--nt-locked-bg);
-    font-size: 15px;
-}
-
-.nt-score-detail div { display: flex; gap: 12px }
-.nt-score-detail div + div { margin-top: 8px }
-.nt-score-detail dt { color: var(--nt-sub); white-space: nowrap }
-.nt-score-detail dd { margin-left: auto; font-weight: 700; text-align: right }
-
-.nt-notice-box { margin-top: 20px; font-size: 13px; line-height: 20px; color: var(--nt-sub) }
-.nt-notice-box[hidden] { display: none }
-
-.nt-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 24px }
-
-.nt-actions button {
-    height: 52px;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.nt-actions .primary { background: var(--nt-primary); color: #fff }
-.nt-actions .secondary { background: var(--nt-locked-bg); color: var(--nt-locked-ink) }
+/* 결과는 result-modal.css 의 공용 모달이 그린다 — 세 예매처가 같은 것을 쓴다 */
 
 @media (min-width: 1025px) {
     .nt-wait-content { padding: 0 30px 30px }

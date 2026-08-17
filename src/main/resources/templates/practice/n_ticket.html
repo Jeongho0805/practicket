@@ -172,48 +172,52 @@
     </section>
 
     <!-- 4) 결과 -->
-    <section class="nt-screen" id="screen-result">
-        <div class="nt-result">
-            <h1>예매를 마쳤습니다</h1>
-
-            <div class="nt-score" id="scoreTotal">0.00<span>초</span></div>
-            <p class="nt-score-label">예매하기가 열린 순간부터 좌석 선택 완료까지</p>
-
-            <p class="nt-rank" id="scoreRankBar" hidden>
-                <span id="scoreRankVal"></span>
-            </p>
-
-            <dl class="nt-score-detail">
-                <div>
-                    <dt>반응 속도</dt>
-                    <dd id="scoreReaction">0.00초</dd>
+    <div id="pkt-complete-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header">
+                <div class="pkt-header-tag">Practice Complete</div>
+                <div class="pkt-header-title">연습 완료!</div>
+                <div class="pkt-header-meta" id="pkt-meta">N-Ticket</div>
+                <div class="pkt-percentile-bar" id="pkt-percentile-bar" style="display:none">
+                    <span class="pb-dot"></span>
+                    <div class="pb-texts">
+                        <span class="pb-label">이번 달 순위</span>
+                        <span class="pb-value" id="pkt-percentile-value">-</span>
+                    </div>
                 </div>
-                <div>
-                    <dt>대기열</dt>
-                    <dd id="scoreQueue">0.00초</dd>
+            </div>
+            <div class="pkt-total-section">
+                <div class="pkt-total-label-group">
+                    <span class="pkt-total-label">총 소요 시간</span>
+                    <span class="pkt-pb-chip" id="pkt-pb-chip" style="display:none"></span>
                 </div>
-                <div>
-                    <dt>좌석 선택</dt>
-                    <dd id="scoreSeat">0.00초</dd>
+                <div class="pkt-total-badge">
+                    <span class="pkt-total-num" id="pkt-total-num">-</span>
+                    <span class="pkt-total-unit">초</span>
                 </div>
-                <div>
-                    <dt>대기 시작 순번</dt>
-                    <dd id="scoreRank">0번</dd>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
+                    <span class="pkt-split-ref" id="pkt-ref-label"></span>
                 </div>
-                <div>
-                    <dt>선택한 좌석</dt>
-                    <dd id="scoreSeatName">-</dd>
+                <div class="pkt-stack" id="pkt-stack"></div>
+                <div class="pkt-refbar" id="pkt-refbar" style="display:none"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>좌석 <b id="pkt-seat">-</b></span>
                 </div>
-            </dl>
-
-            <p class="nt-notice-box" id="scoreNotice" hidden></p>
-
-            <div class="nt-actions">
-                <button type="button" class="primary" onclick="location.href='/practice/n-ticket/intro'">다시 연습하기</button>
-                <button type="button" class="secondary" onclick="location.href='/practice'">목록으로</button>
+            </div>
+            <div class="pkt-hint" id="pkt-hint" style="display:none"></div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/n-ticket/intro'">다시 연습</button>
+                <button class="pkt-btn-share" id="pkt-share">공유</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 →</button>
             </div>
         </div>
-    </section>
+    </div>
 
     <div id="pkt-soldout-overlay">
         <div class="pkt-modal-card">

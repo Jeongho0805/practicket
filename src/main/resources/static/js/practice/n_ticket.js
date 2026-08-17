@@ -16,9 +16,13 @@
    자세한 실측값은 docs/nol-ticketing-ui.md 참고.
    ============================================================ */
 import { authFetch, showAlert } from '/js/common.js';
-import { renderSplitBar, renderFailHint } from '/js/practice/result-split.js';
+import {
+    bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
+    renderCompleteHint, renderBestChip, renderFailHint, bindShareButton
+} from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
+const BEST_RECORD_KEY = bestRecordKey('n-ticket');
 
 const QUEUE = { MIN: 5000, MAX: 200000, DEQ: 20000, MAX_REACTION: 3000 };
 const ALMOST_PERCENT = 90;
@@ -790,60 +794,92 @@ async function finish() {
     clearInterval(seatTimer);
     T.seat = now() - T.seatStart;
 
-    const reactionMs = Math.round(reaction);
-    const queueMs = Math.round(T.queue);
-    const seatMs = Math.round(T.seat);
-    const total = reactionMs + queueMs + seatMs;
+    let result = {
+        total_duration_ms: Math.round(reaction) + Math.round(T.queue) + Math.round(T.seat),
+        reaction_time_ms: Math.round(reaction),
+        queue_wait_ms: Math.round(T.queue),
+        seat_selection_ms: Math.round(T.seat),
+        queue_initial_rank: T.firstRank,
+    };
 
-    const first = seats[picked[0]];
-    const extra = picked.length > 1 ? ` 외 ${picked.length - 1}석` : '';
+    if (sessionId) {
+        try {
+            const res = await authFetch('/api/practice/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, ...result }),
+            });
 
-    $('scoreTotal').innerHTML = `${fmt(total)}<span>초</span>`;
-    $('scoreReaction').textContent = fmt(reactionMs) + '초';
-    $('scoreQueue').textContent = fmt(queueMs) + '초';
-    $('scoreSeat').textContent = fmt(seatMs) + '초';
-    $('scoreRank').textContent = T.firstRank.toLocaleString('ko-KR') + '번';
-    $('scoreSeatName').textContent = `${GRADE[first.grade].name} ${seatName(first)}${extra}`;
-
-    showScreen('screen-result');
-
-    if (!sessionId) return;
-
-    try {
-        const res = await authFetch('/api/practice/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                session_id: sessionId,
-                total_duration_ms: total,
-                reaction_time_ms: reactionMs,
-                queue_wait_ms: queueMs,
-                seat_selection_ms: seatMs,
-                queue_initial_rank: T.firstRank,
-            }),
-        });
-
-        if (res.ok) {
-            const data = await res.json();
-            if (data.percentile != null && data.total_users >= 2) {
-                $('scoreRankVal').innerHTML = `상위 ${data.percentile}%`
-                    + `<small>${data.total_users.toLocaleString('ko-KR')}명 중 ${data.my_rank}위</small>`;
-                $('scoreRankBar').hidden = false;
+            if (res.ok) {
+                result = { ...result, ...await res.json() };
+            } else {
+                const err = await res.json().catch(() => ({}));
+                console.warn('[Practicket] complete 실패:', err.message);
             }
-        } else {
-            const err = await res.json().catch(() => ({}));
-            $('scoreNotice').textContent = err.message || '기록이 저장되지 않았습니다.';
-            $('scoreNotice').hidden = false;
+        } catch (e) {
+            console.error('[Practicket] complete 실패:', e);
+        } finally {
+            sessionStorage.removeItem('pkt.sessionId');
+            sessionStorage.removeItem('pkt.reactionStartMs');
+            sessionStorage.removeItem('pkt.reactionTimeMs');
         }
-    } catch (e) {
-        console.error('[Practicket] complete 실패:', e);
-        $('scoreNotice').textContent = '네트워크 오류로 기록이 저장되지 않았습니다.';
-        $('scoreNotice').hidden = false;
-    } finally {
-        sessionStorage.removeItem('pkt.sessionId');
-        sessionStorage.removeItem('pkt.reactionStartMs');
-        sessionStorage.removeItem('pkt.reactionTimeMs');
     }
+
+    showCompleteModal(result);
+}
+
+/* i-ticket·m-ticket 과 같은 모달이다. 총 시간이 곧 세 구간의 합이라 막대 척도도 그 합을 쓴다. */
+function showCompleteModal(r) {
+    const sec = ms => (ms / 1000).toFixed(3) + '초';
+
+    const meta = ['N-Ticket', stamp()];
+    if (r.queue_initial_rank) meta.push(`대기 순번 ${r.queue_initial_rank.toLocaleString('ko-KR')}번에서 출발`);
+    $('pkt-meta').textContent = meta.join(' · ');
+
+    $('pkt-total-num').textContent = (r.total_duration_ms / 1000).toFixed(3);
+    $('pkt-reaction').textContent = sec(r.reaction_time_ms);
+    $('pkt-queue').textContent = sec(r.queue_wait_ms);
+    $('pkt-seat').textContent = sec(r.seat_selection_ms);
+
+    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.seat_selection_ms];
+    const segmentSum = segments.reduce((a, b) => a + b, 0);
+    const best = readBestRecord(BEST_RECORD_KEY);
+    const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
+
+    const scale = Math.max(segmentSum, bestSum);
+    renderSplitBar($('pkt-stack'), segments, scale);
+
+    const refBar = $('pkt-refbar');
+    if (best) {
+        renderSplitBar(refBar, best.segments, scale, false);
+        refBar.style.display = 'flex';
+        $('pkt-ref-label').textContent = '흐린 막대 = 내 최고 기록';
+    } else {
+        refBar.style.display = 'none';
+        $('pkt-ref-label').textContent = '';
+    }
+
+    renderCompleteHint(segments, segmentSum, best);
+    renderBestChip(r.total_duration_ms, best);
+    saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
+    bindShareButton(r, 'N_TICKET');
+
+    const bar = $('pkt-percentile-bar');
+    if (r.percentile != null && r.total_users >= 2) {
+        $('pkt-percentile-value').innerHTML =
+            `상위 ${r.percentile}%<span class="pb-sub">/ ${r.total_users.toLocaleString('ko-KR')}명 중 ${r.my_rank}위</span>`;
+        bar.style.display = 'flex';
+    } else {
+        bar.style.display = 'none';
+    }
+
+    $('pkt-complete-overlay').classList.add('visible');
+}
+
+function stamp() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}  ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 /* ═══════════ 시작 ═══════════ */
