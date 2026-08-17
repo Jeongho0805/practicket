@@ -12,8 +12,8 @@
           th:attr="content=|${r.label()} ${r.totalSeconds()}초 · 티켓팅 연습 기록|">
     <meta property="og:description"
           th:attr="content=|세 구간 중 ${r.slowestShare()}%를 ${r.slowestLabel()}에 썼어요. 실전과 똑같은 흐름으로 연습해 보세요.|">
-    <meta property="og:image" th:attr="content=|https://practicket.com/practice/result/og.png?${query}|">
-    <meta property="og:url" th:attr="content=|https://practicket.com/practice/result?${query}|">
+    <meta property="og:image" th:attr="content=|${host}/practice/result/og.png?${query}|">
+    <meta property="og:url" th:attr="content=|${host}/practice/result?${query}|">
 </head>
 
 <body layout:fragment="content">
