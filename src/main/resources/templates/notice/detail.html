@@ -4,7 +4,7 @@
       layout:decorate="~{layout/default}">
 <head>
     <meta name="robots" content="index, follow">
-    <title th:text="${notice.title} + ' - 프랙티켓 공지'">공지 - 프랙티켓</title>
+    <title th:text="${notice.title} + ' - 프랙티켓'">공지 - 프랙티켓</title>
     <meta name="title" th:content="${notice.title} + ' - 프랙티켓 공지'" content="공지 - 프랙티켓">
     <meta name="description" th:content="${#strings.abbreviate(notice.content, 150)}" content="프랙티켓 공지">
     <link rel="canonical" th:href="'https://practicket.com/notice/' + ${notice.id}">

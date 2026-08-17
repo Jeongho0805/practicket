@@ -190,6 +190,9 @@ function startQueue() {
     $('queue-pop').style.display = 'block';
 
     const startedAt = now();
+    // 좌석은 이 순간부터 팔리기 시작한다. 대기열에서 끈 만큼 자리가 없어야 한다(n-ticket 과 같다)
+    sessionStorage.setItem('pkt.queueStartAt', Date.now().toString());
+
     const paint = () => {
         const elapsedSec = (now() - startedAt) / 1000;
         const cur = Math.max(0, Math.floor(initialRank - elapsedSec * QUEUE.DEQ));

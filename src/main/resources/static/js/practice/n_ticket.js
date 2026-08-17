@@ -277,7 +277,9 @@ const SEAT = { spacing: 3, radius: 1 };
 /* 좌석은 전부 열린 채로 그리고 시간이 지나면서 닫힌다 — 잔여석을 미리 정하지 않는다.
    남은 좌석이 (1 - t/총시간)^k 로 줄어들어 처음엔 몰아치고 뒤로 갈수록 느려진다.
    실측이 아니라 목업(docs/mockups/n-ticket/seat-decay.html)으로 체감을 맞춘 값이다. */
-const SELL = { totalMs: 40000, k: 2, jitter: 400 };
+/* random 은 자리를 안 가리고 사는 비율이다. 이게 없으면 앞 구역이 통째로 비워진 뒤에야
+   뒤 구역이 팔려서, 뒤쪽에 빈자리가 흩어져 있는 실제 예매창과 달라진다. */
+const SELL = { totalMs: 40000, k: 2, jitter: 400, random: .20 };
 
 /* 무대에서 가까운 자리부터 팔린다. 흔들림을 안 섞으면 동심원으로 퍼져 부자연스럽다 */
 const STAGE_AT = { x: 370.5, y: 74 };
@@ -358,9 +360,12 @@ let soldCount = 0;
 let seatEls = [];
 
 function buildSellOrder() {
+    const far = Math.hypot(VB.w, VB.h);
     sellOrder = seats
-        .map((s, i) => ({ i, k: Math.hypot(s.x - STAGE_AT.x, s.y - STAGE_AT.y)
-            + (s.grade === 'R' ? 0 : 40) + Math.random() * SELL.jitter }))
+        .map((s, i) => ({ i, k: Math.random() < SELL.random
+            ? Math.random() * far
+            : Math.hypot(s.x - STAGE_AT.x, s.y - STAGE_AT.y)
+              + (s.grade === 'R' ? 0 : 40) + Math.random() * SELL.jitter }))
         .sort((a, b) => a.k - b.k)
         .map(s => s.i);
 }

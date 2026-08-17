@@ -238,12 +238,18 @@ let curZone = '', curGrade = 'R';
 
 const ROWS = 16, COLS = 22, ZONE_SEATS = ROWS * COLS;
 
-/* 좌석은 시간이 갈수록 팔린다. 실물은 폴링하지 않으므로 새로고침을 눌러야 결과가 보인다.
-   START 는 좌석 화면에 들어선 순간 이미 팔려 있는 비율, FULL_MS 뒤에 전석이 나간다. */
-const SELL = { START: .58, FULL_MS: 60000, CURVE: 1.9 };
+/* 좌석은 대기열이 시작된 순간부터 팔린다 — 대기열에서 끈 만큼 이미 자리가 없다.
+   값과 곡선은 n-ticket 과 같다. 오픈 직후가 가장 빠르고 갈수록 느려진다.
+   실물 멜론은 폴링하지 않으므로 그 결과는 새로고침을 눌러야 보인다. */
+const SELL = { totalMs: 40000, k: 2 };
 
-/* 좋은 자리부터 나간다 — 무대에 가까운 열 우선, 같은 열이면 가운데부터.
-   흔들림도 구역 이름에서 뽑아 같은 구역이면 언제 들어와도 같은 순서가 된다. */
+const sellStartAt = Number(sessionStorage.getItem('pkt.queueStartAt')) || Date.now();
+
+/* 좋은 자리부터 나가되 앞줄이 칼같이 채워지지는 않는다.
+   JITTER 가 열 간격(100)보다 커야 열을 넘나들고, RANDOM 비율은 자리를 안 가리는 사람이라
+   뒤쪽에도 구멍이 생긴다. 흔들림을 구역 이름에서 뽑으므로 같은 구역이면 순서가 늘 같다. */
+const SPREAD = { JITTER: 600, RANDOM: .30 };
+
 let sellOrder = new Map();
 
 function buildSellOrder(zone) {
@@ -253,7 +259,12 @@ function buildSellOrder(zone) {
     const seats = [];
     for (let r = 1; r <= ROWS; r++)
         for (let c = 1; c <= COLS; c++)
-            seats.push({ id: `${r}-${c}`, score: r * 100 + Math.abs(c - (COLS + 1) / 2) * 4 + rnd() * 40 });
+            seats.push({
+                id: `${r}-${c}`,
+                score: rnd() < SPREAD.RANDOM
+                    ? rnd() * ROWS * 100
+                    : r * 100 + Math.abs(c - (COLS + 1) / 2) * 4 + rnd() * SPREAD.JITTER,
+            });
 
     seats.sort((a, b) => a.score - b.score);
     sellOrder = new Map(seats.map((s, i) => [s.id, i]));
@@ -262,9 +273,9 @@ function buildSellOrder(zone) {
 let soldCount = 0;
 
 function refreshSold() {
-    const ms = T.seatStart ? now() - T.seatStart : 0;
-    const t = Math.min(1, ms / SELL.FULL_MS);
-    soldCount = Math.floor(ZONE_SEATS * (SELL.START + (1 - SELL.START) * Math.pow(t, SELL.CURVE)));
+    const ms = Date.now() - sellStartAt;
+    soldCount = ms >= SELL.totalMs ? ZONE_SEATS
+        : Math.floor(ZONE_SEATS * (1 - Math.pow(1 - ms / SELL.totalMs, SELL.k)));
 }
 
 const isSold = id => sellOrder.get(id) < soldCount;

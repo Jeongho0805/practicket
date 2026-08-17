@@ -65,7 +65,7 @@ class PracticeServiceTest {
     void startReturnsSessionIdAndSavesToRedis() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        PracticeType type = PracticeType.I_TICKET_NEW;
+        PracticeType type = PracticeType.I_TICKET_OLD;
 
         // when
         PracticeStartResponse response = practiceService.start(clientInfo, type);
@@ -83,7 +83,7 @@ class PracticeServiceTest {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
         PracticeResultRequest request = buildRequest("session-id", 10_000);
-        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_NEW);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
 
         // when
         practiceService.complete(clientInfo, request);
@@ -116,7 +116,7 @@ class PracticeServiceTest {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
         PracticeResultRequest request = buildRequest("session-id", 10_000);
-        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_NEW);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
         ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
         // when
@@ -133,7 +133,7 @@ class PracticeServiceTest {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
         PracticeResultRequest request = buildRequest("session-id", 10_000);
-        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_NEW);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
         ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
         // when
