@@ -712,7 +712,3 @@ function setupChatDrag() {
 }
 
 setupChatWidget();
-
-if (new URLSearchParams(location.search).has("vvdebug")) {
-    import("./chatting-debug.js");
-}
