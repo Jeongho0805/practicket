@@ -169,6 +169,39 @@
         </div>
     </div>
 
+    <!-- ══════════ 매진 ══════════ -->
+    <div id="pkt-soldout-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header pkt-modal-header--fail">
+                <div class="pkt-header-tag">Sold Out</div>
+                <div class="pkt-header-title">아쉽네요!</div>
+                <div class="pkt-header-meta" id="pkt-fail-meta">M-Ticket</div>
+            </div>
+            <div class="pkt-total-section pkt-total-section--fail">
+                <div class="pkt-fail-soldout-txt">모든 좌석이 소진되었습니다</div>
+                <div class="pkt-fail-msg" id="pkt-fail-msg"></div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
+                    <span class="pkt-split-ref">총 <b id="pkt-fail-total">-</b></span>
+                </div>
+                <div class="pkt-stack" id="pkt-fail-stack"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-fail-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-fail-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>좌석 <b id="pkt-fail-seat">-</b></span>
+                </div>
+            </div>
+            <div class="pkt-hint" id="pkt-fail-hint" style="display:none"></div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/m-ticket/intro'">다시 도전</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ══════════ 알림 · 확인 ══════════ -->
     <div class="dim" id="ask-dim"></div>
     <div class="ask" id="ask">

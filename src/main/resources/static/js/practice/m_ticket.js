@@ -11,7 +11,7 @@
 import { authFetch } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderBestChip, bindShareButton
+    renderCompleteHint, renderBestChip, renderFailHint, bindShareButton
 } from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/m-ticket/intro';
@@ -477,9 +477,32 @@ function seatTaken() {
     });
 }
 
-/* 전석 매진 — 연습 종료 화면은 공용 실패 모달이 나오면 여기서 부른다 */
+/* 전석 매진. 기록은 보내지 않는다 — 좌석을 못 잡았으니 순위에 낄 기록이 아니다.
+   막대에 좌석 구간까지 넣어야 시간을 어디서 다 썼는지가 드러난다. */
 function soldOut() {
-    showToast('남은 좌석이 없습니다.');
+    if ($('pkt-soldout-overlay').classList.contains('visible')) return;
+
+    const seatMs = T.seatStart ? Math.round(now() - T.seatStart) : 0;
+    const segments = [T.reaction, T.queue, seatMs];
+    const total = segments.reduce((a, b) => a + b, 0);
+
+    const meta = ['M-Ticket'];
+    if (T.initialRank) meta.push(`대기 순번 ${T.initialRank.toLocaleString('ko-KR')}번에서 출발`);
+    $('pkt-fail-meta').textContent = meta.join(' · ');
+
+    $('pkt-fail-msg').textContent =
+        `좌석이 다 팔리기까지 ${SELL.totalMs / 1000}초, 여기까지 ${fmt(total)}초 걸렸어요`;
+
+    $('pkt-fail-total').textContent = fmt(total) + '초';
+    $('pkt-fail-reaction').textContent = fmt(T.reaction) + '초';
+    $('pkt-fail-queue').textContent = fmt(T.queue) + '초';
+    $('pkt-fail-seat').textContent = fmt(seatMs) + '초';
+
+    renderSplitBar($('pkt-fail-stack'), segments, total);
+    renderFailHint($('pkt-fail-hint'), segments);
+
+    $('pkt-soldout-overlay').classList.add('visible');
+    sessionStorage.removeItem('pkt.sessionId');
 }
 
 /* ══════════ 보안문자 ══════════
