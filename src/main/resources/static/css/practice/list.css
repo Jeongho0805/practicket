@@ -306,6 +306,14 @@
     text-align: center;
 }
 
+/* 불러오는 중 · 기록 없음 · 실패 를 알리는 한 칸짜리 줄 */
+.rank-msg td {
+    padding: 40px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
 .ranking-table th {
     background-color: #fff;
     font-family: 'Pretendard', sans-serif;
@@ -853,6 +861,10 @@
     .ranking-table-body td:nth-child(2) { grid-area: name; }
     .ranking-table-body td:nth-child(3) { grid-area: split; }
     .ranking-table-body td:nth-child(4) { grid-area: time; }
+
+    /* 안내 문구 줄은 칸이 하나뿐이라 위 격자에 넣으면 26px 짜리 순위 칸으로 들어가
+       글자가 한 자씩 세로로 쪼개진다. 격자를 벗어나게 둔다. */
+    .ranking-table-body tr.rank-msg { display: block }
 
     .ranking-table-body .rank-split {
         width: 100%;

@@ -138,7 +138,7 @@ async function loadRanking(reset) {
         rankingState.hasNext = false;
         rankingState.rankOffset = 0;
         document.getElementById('rankingTableBody').innerHTML =
-            '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
+            '<tr class="rank-msg"><td colspan="4">불러오는 중...</td></tr>';
         document.getElementById('loadMoreWrap').style.display = 'none';
         loadMyRank();
     }
@@ -160,7 +160,7 @@ async function loadRanking(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">아직 기록이 없습니다.</td></tr>';
         } else {
             data.data.forEach((item, i) => {
                 const rank = rankingState.rankOffset + i + 1;
@@ -176,7 +176,7 @@ async function loadRanking(reset) {
     } catch (e) {
         if (reset) {
             document.getElementById('rankingTableBody').innerHTML =
-                '<tr><td colspan="4" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         rankingState.loading = false;
@@ -276,7 +276,7 @@ async function loadMyRecords(reset) {
         myState.hasNext = false;
         myState.recordOffset = 0;
         document.getElementById('myRecordTableBody').innerHTML =
-            '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
+            '<tr class="rank-msg"><td colspan="3">불러오는 중...</td></tr>';
         document.getElementById('myRecordLoadMoreWrap').style.display = 'none';
     }
 
@@ -295,7 +295,7 @@ async function loadMyRecords(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
+                '<tr class="rank-msg"><td colspan="3">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
         } else {
             data.data.forEach((r, i) => {
                 const attemptNum = myState.totalCount - myState.recordOffset - i;
@@ -313,7 +313,7 @@ async function loadMyRecords(reset) {
     } catch (e) {
         if (reset) {
             document.getElementById('myRecordTableBody').innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="3">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         myState.loading = false;
