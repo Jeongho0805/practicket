@@ -422,6 +422,9 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
     font-size: 14px;
 }
 
+/* display 를 지정한 순간 브라우저 기본 [hidden] 규칙을 이겨버린다 — 직접 되돌려야 숨는다 */
+.nt-picked-empty[hidden] { display: none }
+
 .nt-done {
     flex-shrink: 0;
     height: 56px;
