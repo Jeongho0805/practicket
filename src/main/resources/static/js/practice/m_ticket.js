@@ -9,8 +9,13 @@
   구역을 갈아타는 길은 실물과 같이 셋이다 — 미니맵 클릭 / 좌석도 전체보기 / 등급표의 구역 목록.
 */
 import { authFetch } from '/js/common.js';
+import {
+    bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
+    renderCompleteHint, renderBestChip, bindShareButton
+} from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/m-ticket/intro';
+const BEST_RECORD_KEY = bestRecordKey('m-ticket');
 
 const sessionId = sessionStorage.getItem('pkt.sessionId');
 if (!sessionId) window.location.replace(INTRO_URL);
@@ -563,35 +568,22 @@ async function finish() {
     T.seat = Math.round(now() - T.seatStart);
     const total = T.reaction + T.queue + T.seat;
 
-    const seatNames = [...picked].map(id => `${GRADES[curGrade].name} ${seatName(id)}`);
-
-    $('r-seat').textContent = seatNames.join(', ');
-    $('r-reaction').textContent = fmt(T.reaction) + '초';
-    $('r-queue').textContent = fmt(T.queue) + '초';
-    $('r-pick').textContent = fmt(T.seat) + '초';
-    $('r-initial').textContent = T.initialRank.toLocaleString() + '번';
-    $('r-total').textContent = fmt(total);
+    let result = {
+        total_duration_ms: total,
+        reaction_time_ms: T.reaction,
+        queue_wait_ms: T.queue,
+        seat_selection_ms: T.seat,
+        queue_initial_rank: T.initialRank,
+    };
 
     try {
         const res = await authFetch('/api/practice/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                session_id: sessionId,
-                total_duration_ms: total,
-                reaction_time_ms: T.reaction,
-                queue_wait_ms: T.queue,
-                seat_selection_ms: T.seat,
-                queue_initial_rank: T.initialRank,
-            }),
+            body: JSON.stringify({ session_id: sessionId, ...result }),
         });
         if (res.ok) {
-            const data = await res.json();
-            if (data.percentile != null && data.total_users >= 2) {
-                $('r-rank').textContent =
-                    `상위 ${data.percentile}% / ${data.total_users.toLocaleString()}명 중 ${data.my_rank}위`;
-                $('r-rankbar').classList.add('on');
-            }
+            result = { ...result, ...await res.json() };
         } else {
             const err = await res.json().catch(() => ({}));
             showToast(err.message || '기록 저장에 실패했습니다.');
@@ -606,8 +598,61 @@ async function finish() {
         sessionStorage.removeItem('pkt.queueInitialRank');
     }
 
-    $('result-dim').classList.add('open');
-    $('result').classList.add('open');
+    showCompleteModal(result);
+}
+
+/* i-ticket 과 같은 모달이다. 총 시간이 곧 세 구간의 합이라 막대 척도도 그 합을 쓴다. */
+function showCompleteModal(r) {
+    const sec = ms => (ms / 1000).toFixed(3) + '초';
+
+    const meta = ['M-Ticket', stamp()];
+    if (r.queue_initial_rank) meta.push(`대기 순번 ${r.queue_initial_rank.toLocaleString('ko-KR')}번에서 출발`);
+    $('pkt-meta').textContent = meta.join(' · ');
+
+    $('pkt-total-num').textContent = (r.total_duration_ms / 1000).toFixed(3);
+    $('pkt-reaction').textContent = sec(r.reaction_time_ms);
+    $('pkt-queue').textContent = sec(r.queue_wait_ms);
+    $('pkt-seat').textContent = sec(r.seat_selection_ms);
+
+    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.seat_selection_ms];
+    const segmentSum = segments.reduce((a, b) => a + b, 0);
+    const best = readBestRecord(BEST_RECORD_KEY);
+    const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
+
+    const scale = Math.max(segmentSum, bestSum);
+    renderSplitBar($('pkt-stack'), segments, scale);
+
+    const refBar = $('pkt-refbar');
+    if (best) {
+        renderSplitBar(refBar, best.segments, scale, false);
+        refBar.style.display = 'flex';
+        $('pkt-ref-label').textContent = '흐린 막대 = 내 최고 기록';
+    } else {
+        refBar.style.display = 'none';
+        $('pkt-ref-label').textContent = '';
+    }
+
+    renderCompleteHint(segments, segmentSum, best);
+    renderBestChip(r.total_duration_ms, best);
+    saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
+    bindShareButton(r, 'M_TICKET');
+
+    const bar = $('pkt-percentile-bar');
+    if (r.percentile != null && r.total_users >= 2) {
+        $('pkt-percentile-value').innerHTML =
+            `상위 ${r.percentile}%<span class="pb-sub">/ ${r.total_users.toLocaleString('ko-KR')}명 중 ${r.my_rank}위</span>`;
+        bar.style.display = 'flex';
+    } else {
+        bar.style.display = 'none';
+    }
+
+    $('pkt-complete-overlay').classList.add('visible');
+}
+
+function stamp() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}  ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 /* ══════════ 토스트 ══════════ */

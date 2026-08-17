@@ -234,36 +234,7 @@ table { border-collapse: collapse; }
     font-size: 12px; color: var(--txt-dim); text-decoration: underline;
 }
 
-/* ══════════ 결과 ══════════ */
-
-.result {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    width: 360px; z-index: 11; display: none;
-    background: #fff; border-radius: 10px; padding: 28px 24px; text-align: center;
-}
-.result.open { display: block; }
-.result .tag {
-    display: inline-flex; height: 24px; align-items: center; padding: 0 10px;
-    background: #efeaf7; color: var(--accent); font-size: 11px; font-weight: 700;
-}
-.result h2 { margin: 12px 0 4px; font-size: 20px; color: var(--txt); }
-.result .seat { font-size: 13px; color: var(--txt-sub); }
-.result .rankbar {
-    display: none; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 12px;
-    background: #f6f3fb; border-radius: 6px; font-size: 12px;
-}
-.result .rankbar.on { display: flex; }
-.result .rankbar .val { margin-left: auto; font-weight: 700; color: var(--accent); }
-.result .total { margin: 16px 0 2px; font-size: 40px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
-.result .total small { font-size: 15px; margin-left: 2px; }
-.result .total-label { font-size: 12px; color: var(--txt-dim); }
-.result .rows { margin-top: 16px; border-top: 1px solid var(--line); }
-.result .r { display: flex; padding: 9px 0; font-size: 12px; border-bottom: 1px solid #f3f3f3; }
-.result .r b { margin-left: auto; color: var(--txt); }
-.result .acts { display: flex; gap: 8px; margin-top: 18px; }
-.result .acts button { flex: 1; height: 46px; font-size: 14px; font-weight: 700; border-radius: 4px; }
-.result .again { border: 1px solid #ccc; color: var(--txt-sub); }
-.result .home { background: var(--accent-grad); color: #fff; }
+/* 결과 모달은 result-modal.css 가 그린다 — 세 예매처가 같은 것을 쓴다 */
 
 .toast {
     position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); z-index: 20;
@@ -380,6 +351,5 @@ table { border-collapse: collapse; }
     .cap input { width: 100%; height: 38px; margin-top: 6px; }
     .cap .sub { width: 100%; margin-top: 16px; }
 
-    .result { width: calc(100% - 48px); max-width: 360px; }
     .toast { bottom: 110px; }
 }
