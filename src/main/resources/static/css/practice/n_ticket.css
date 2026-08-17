@@ -208,13 +208,18 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
 .nt-hdr-menu button { font-size: 14px; font-weight: 600 }
 .nt-hdr-div { width: 1px; height: 14px; background: var(--nt-line) }
 
+/* 모바일이 기본이다. 실물은 이 폭에서 헤더를 통째로 다른 것으로 갈아끼우는데(HeaderMo),
+   거기엔 뒤로가기·"좌석 선택"·타이머만 있고 공연명·날짜는 도면 위 카드로 내려간다.
+   우리는 카드를 만들지 않는 대신 실물의 규칙만 가져온다 — 제목 한 줄 말줄임, 타이머 고정.
+   (2026-08-17 실측: 헤더 50 · 제목 18px/22px · 타이머 flex-shrink 0) */
 .nt-sub {
     position: relative;
     display: flex;
     align-items: center;
     flex-shrink: 0;
     gap: 8px;
-    padding: 12px 16px;
+    height: 50px;
+    padding: 4px 16px;
     background: #fff;
     box-shadow: 0 2px 2px rgba(88, 71, 71, .06);
 }
@@ -223,6 +228,22 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
 .nt-sub-date { font-size: 15px; font-weight: 700; line-height: 24px }
 .nt-sub-date { color: var(--nt-sub) }
 .nt-sub-div { width: 1px; height: 14px; background: var(--nt-line) }
+
+/* min-width 를 풀지 않으면 flex 항목이 글자 단위로 줄바꿈해 세로로 선다 */
+.nt-sub-title {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 22px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 실물 모바일 헤더에는 날짜·회차 변경이 없다. 넣으면 제목이 밀려 잘린다 */
+.nt-sub-div,
+.nt-sub-date,
+.nt-sub-chip { display: none }
 
 .nt-sub-chip {
     min-height: 32px;
@@ -235,8 +256,17 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
     background: #fff;
 }
 
-/* 타이머는 실물처럼 남은 시간이 1분 밑으로 떨어지면 경고색으로 바뀐다 */
-.nt-timer { margin-left: auto; font-size: 15px; font-weight: 700; white-space: nowrap }
+/* 타이머는 실물처럼 남은 시간이 1분 밑으로 떨어지면 경고색으로 바뀐다.
+   flex-shrink 0 이 없으면 좁은 폭에서 눌려 화면 밖으로 밀려난다 */
+.nt-timer {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 8px;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    white-space: nowrap;
+}
 .nt-timer strong { color: var(--nt-primary) }
 .nt-timer.is-urgent strong { color: #FF322E }
 
@@ -520,12 +550,15 @@ button { font-family: inherit; border: 0; background: none; cursor: pointer; col
     .nt-status-sub { padding-bottom: 24px; font-size: 17px }
     .nt-notice li { font-size: 15px }
 
+    /* 실물도 1024 를 넘으면 헤더를 PC 용으로 바꾸고 공연명·날짜·회차 변경을 되살린다 */
     .nt-hdr { display: flex }
-    .nt-sub { padding: 12px 420px 12px 40px }
+    .nt-sub { height: auto; padding: 12px 420px 12px 40px }
+    .nt-sub-div, .nt-sub-date { display: block }
+    .nt-sub-chip { display: inline-block; font-size: 15px }
     .nt-sub-title, .nt-sub-date { font-size: 18px; line-height: 36px }
+    .nt-sub-title { flex: 0 1 auto; overflow: visible; white-space: normal }
     .nt-sub-div { margin: 0 4px }
-    .nt-sub-chip { font-size: 15px }
-    .nt-timer { position: absolute; top: 50%; right: 24px; margin: 0; font-size: 18px; transform: translateY(-50%) }
+    .nt-timer { position: absolute; top: 50%; right: 24px; margin: 0; padding-left: 0; font-size: 18px; line-height: 36px; transform: translateY(-50%) }
 
     .nt-seat-body { flex-direction: row }
     .nt-side { width: 420px; max-height: none; border-top: 0; border-left: 1px solid #eee }
