@@ -150,8 +150,14 @@
     padding: 10px 14px;
 }
 
-.pkt-percentile-bar .pb-icon {
-    font-size: 18px;
+/* 메달 이모지를 대신한다. 이모지는 OS 마다 그림이 달라 카드 톤이 무너진다. */
+.pkt-percentile-bar .pb-dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
     flex-shrink: 0;
 }
 

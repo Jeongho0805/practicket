@@ -1,4 +1,8 @@
 import { authFetch, showAlert } from '/js/common.js';
+import {
+    bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
+    renderCompleteHint, renderBestChip, renderFailHint, bindShareButton
+} from '/js/practice/result-split.js';
 
 // ════════════════════════════════════════
 // Queue System
@@ -1113,16 +1117,7 @@ function showSoldOutModal() {
         ? `좌석이 다 팔리기까지 ${(sellOutMs / 1000).toFixed(0)}초, 여기까지 ${(totalMs / 1000).toFixed(1)}초 걸렸어요`
         : '다음엔 더 빠르게 도전해 보세요';
 
-    const failHint = document.getElementById('pkt-fail-hint');
-    const worst = [[reactionMs, '반응 속도'], [queueWaitMs, '대기열'], [seatMs, '좌석 화면']]
-        .sort((a, b) => b[0] - a[0])[0];
-    if (worst[0] > 0) {
-        failHint.innerHTML = '가장 오래 걸린 구간은 '
-            + `<b>${worst[1]} ${(worst[0] / 1000).toFixed(1)}초</b>예요.`;
-        failHint.style.display = 'block';
-    } else {
-        failHint.style.display = 'none';
-    }
+    renderFailHint(document.getElementById('pkt-fail-hint'), [reactionMs, queueWaitMs, seatMs]);
 
     overlay.classList.add('visible');
 }
@@ -1729,109 +1724,7 @@ async function completePractice() {
     }
 }
 
-const BEST_RECORD_KEY = 'pkt.best.i-ticket';
-const SEGMENT_LABELS = ['반응', '대기열', '좌석 선택'];
-
-/* 좁은 구간에 숫자를 넣으면 글자가 잘려 오히려 지저분해진다. */
-function renderSplitBar(el, segments, scale, withLabel = true) {
-    if (!el || !scale) return;
-    el.innerHTML = segments.map((ms, i) => {
-        const pct = Math.max(0, ms / scale * 100);
-        const label = withLabel && pct >= 12 ? (ms / 1000).toFixed(1) : '';
-        return `<i class="pkt-seg${i + 1}" style="width:${pct.toFixed(1)}%">${label}</i>`;
-    }).join('');
-}
-
-function readBestRecord() {
-    try {
-        const raw = localStorage.getItem(BEST_RECORD_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        return Number.isFinite(parsed.total) && Array.isArray(parsed.segments) ? parsed : null;
-    } catch (e) {
-        return null;
-    }
-}
-
-function saveBestRecord(totalMs, segments, best) {
-    if (best && best.total <= totalMs) return;
-    try {
-        localStorage.setItem(BEST_RECORD_KEY, JSON.stringify({ total: totalMs, segments }));
-    } catch (e) {
-        /* 사파리 사생활 모드에서 쓰기가 막힌다. 비교 막대만 안 나올 뿐이라 삼킨다. */
-    }
-}
-
-function renderCompleteHint(segments, segmentSum, best) {
-    const hint = document.getElementById('pkt-hint');
-    if (!hint || !segmentSum) return;
-
-    let slowest = 0;
-    segments.forEach((ms, i) => { if (ms > segments[slowest]) slowest = i; });
-
-    const share = Math.round(segments[slowest] / segmentSum * 100);
-    let text = `세 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
-
-    if (best) {
-        const diffSec = (segments[slowest] - best.segments[slowest]) / 1000;
-        if (diffSec > 0.05) {
-            text += ` · 최고 기록보다 <b>${diffSec.toFixed(2)}초</b> 깁니다`;
-        }
-    }
-
-    hint.innerHTML = text;
-    hint.style.display = 'block';
-}
-
-function renderBestChip(totalMs, best) {
-    const chip = document.getElementById('pkt-pb-chip');
-    if (!chip) return;
-
-    if (best && totalMs < best.total) {
-        chip.textContent = `▼ ${((best.total - totalMs) / 1000).toFixed(2)}초 단축 · 개인 신기록`;
-        chip.style.display = 'inline-flex';
-    } else {
-        chip.style.display = 'none';
-    }
-}
-
-/* 이미지를 보내는 게 아니라 링크를 보낸다. 카톡·X 가 그 링크의 og:image 를
-   긁어가 카드로 그려주고, 그 카드는 클릭이 된다. 이미지 안의 주소는 클릭이 안 된다. */
-function bindShareButton(result) {
-    const btn = document.getElementById('pkt-share');
-    if (!btn) return;
-
-    const params = new URLSearchParams({
-        type: 'I_TICKET_OLD',
-        total: result.total_duration_ms,
-        reaction: result.reaction_time_ms,
-        queue: result.queue_wait_ms,
-        seat: result.seat_selection_ms,
-        rank: result.queue_initial_rank || 0
-    });
-    if (result.percentile != null) params.set('pct', result.percentile);
-
-    const url = `${window.location.origin}/practice/result?${params.toString()}`;
-    const text = `티켓팅 연습 ${(result.total_duration_ms / 1000).toFixed(3)}초`;
-
-    btn.onclick = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: '프랙티켓', text, url });
-                return;
-            } catch (e) {
-                if (e && e.name === 'AbortError') return;
-            }
-        }
-        try {
-            await navigator.clipboard.writeText(url);
-            btn.textContent = '링크 복사됨';
-            setTimeout(() => { btn.textContent = '공유'; }, 1500);
-        } catch (e) {
-            window.open(url, '_blank');
-        }
-    };
-}
+const BEST_RECORD_KEY = bestRecordKey('i-ticket');
 
 function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
     const fmt = ms => (ms / 1000).toFixed(3) + '초';
@@ -1854,7 +1747,7 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
 
     const segments = [reaction_time_ms, queue_wait_ms, seat_selection_ms];
     const segmentSum = segments.reduce((a, b) => a + b, 0);
-    const best = readBestRecord();
+    const best = readBestRecord(BEST_RECORD_KEY);
     const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
 
     /* 총 시간에는 인트로에서 좌석 페이지로 넘어오는 시간처럼 어느 구간에도 잡히지 않는
@@ -1876,8 +1769,8 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
 
     renderCompleteHint(segments, segmentSum, best);
     renderBestChip(total_duration_ms, best);
-    saveBestRecord(total_duration_ms, segments, best);
-    bindShareButton(arguments[0]);
+    saveBestRecord(BEST_RECORD_KEY, total_duration_ms, segments, best);
+    bindShareButton(arguments[0], 'I_TICKET_OLD');
 
     const bar = document.getElementById('pkt-percentile-bar');
     if (percentile != null && total_users >= 2) {

@@ -16,6 +16,7 @@
    자세한 실측값은 docs/nol-ticketing-ui.md 참고.
    ============================================================ */
 import { authFetch, showAlert } from '/js/common.js';
+import { renderSplitBar, renderFailHint } from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
 
@@ -777,16 +778,8 @@ function showSoldOut() {
     $('pkt-fail-seat').textContent = fmt(seatMs) + '초';
     $('pkt-fail-total').textContent = fmt(total) + '초';
 
-    $('pkt-fail-stack').innerHTML = [reactionMs, queueMs, seatMs].map((ms, i) => {
-        const pct = ms / total * 100;
-        return `<i class="pkt-seg${i + 1}" style="width:${pct.toFixed(1)}%">`
-            + `${pct >= 12 ? (ms / 1000).toFixed(1) : ''}</i>`;
-    }).join('');
-
-    const worst = [[reactionMs, '반응 속도'], [queueMs, '대기열'], [seatMs, '좌석 화면']]
-        .sort((a, b) => b[0] - a[0])[0];
-    $('pkt-fail-hint').innerHTML =
-        `가장 오래 걸린 구간은 <b>${worst[1]} ${(worst[0] / 1000).toFixed(1)}초</b>예요.`;
+    renderSplitBar($('pkt-fail-stack'), [reactionMs, queueMs, seatMs], total);
+    renderFailHint($('pkt-fail-hint'), [reactionMs, queueMs, seatMs]);
 
     $('pkt-soldout-overlay').classList.add('visible');
     sessionStorage.removeItem('pkt.sessionId');
