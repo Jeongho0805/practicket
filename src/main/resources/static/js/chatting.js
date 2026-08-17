@@ -184,24 +184,29 @@ async function fetchParticipantCount() {
     } catch (e) { /* 무시 — SSE participants 이벤트가 곧 갱신 */ }
 }
 
+// 패널이 열려 있는 동안만 유지한다. 인원 수가 곧 연결 수라, 닫으면 접속자에서 빠진다.
+let eventSource = null;
+let reconnectTimer = null;
+
 function setChattingSse() {
-    const eventSource = new EventSource(`${HOST}/api/chat/connection`);
+    const es = new EventSource(`${HOST}/api/chat/connection`);
+    eventSource = es;
     // 연결이 수립돼야 서버가 내 연결을 인원에 반영한다. 그 전에 조회하면 나를 뺀 값이 온다.
-    eventSource.onopen = () => fetchParticipantCount();
-    eventSource.addEventListener("chat", (event) => {
+    es.onopen = () => fetchParticipantCount();
+    es.addEventListener("chat", (event) => {
         const chat = JSON.parse(event.data);
         renderingChatting(chat, false);
     });
-    eventSource.addEventListener("participants", (event) => {
+    es.addEventListener("participants", (event) => {
         updateParticipantCount(event.data);
     });
-    eventSource.onerror = () => {
-        if (eventSource && eventSource.readyState !== EventSource.CLOSED) {
-            eventSource.close();
+    es.onerror = () => {
+        if (es.readyState !== EventSource.CLOSED) {
+            es.close();
         }
-        setTimeout(() => {
-            setChattingSse();
-        }, 1000);
+        // 그 사이 패널이 닫혔거나 다른 연결로 교체됐으면 되살리지 않는다.
+        if (eventSource !== es) return;
+        reconnectTimer = setTimeout(setChattingSse, 1000);
     };
 }
 
@@ -319,38 +324,71 @@ async function initClientInfo() {
 }
 
 // ===== 전역 플로팅 채팅 위젯 =====
-// SSE·초기화는 부하를 줄이려 "패널을 처음 열 때" 한 번만 연결한다(lazy).
-let chatInitialized = false;
+// 패널을 열 때 붙이고 닫을 때 끊는다. 닫는 경로가 여러 개라(닫기 버튼·숨기기·시트 드래그·런처)
+// 열고 닫기를 이 두 함수로만 하고, 각 경로는 이것만 부른다.
+let chatWidget = null;
+let chatBound = false;
 
-function initChat() {
-    if (chatInitialized) return;
-    chatInitialized = true;
-    // 모바일 탭 복귀 시 SSE 재연결 처리 (채팅을 연 사용자에게만 적용)
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-            location.reload();
-        }
-    });
+function isChatOpen() {
+    return !!chatWidget && chatWidget.classList.contains("open");
+}
+
+// 입력 핸들러처럼 다시 걸면 중복되는 것들은 최초 1회만
+function bindChatOnce() {
+    if (chatBound) return;
+    chatBound = true;
     initClientInfo();
-    setChatting();
     setChatEventListener();
-    setChattingSse(); // 초기 인원 seed 는 SSE onopen 에서 (이후 participants 이벤트로 실시간 갱신)
+    // 모바일은 백그라운드로 가면 연결을 끊는다. 그때 onerror·타이머도 멈춰 스스로 못 살아나므로
+    // 복귀 시점에 직접 확인한다. 페이지를 새로고침하던 예전 방식은 페이지뷰를 부풀렸다.
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible") return;
+        if (!isChatOpen()) return;
+        if (eventSource && eventSource.readyState !== EventSource.CLOSED) return;
+        disconnectChat();
+        connectChat();
+    });
+}
+
+function connectChat() {
+    bindChatOnce();
+    if (eventSource) return;
+    setChatting(); // 끊긴 동안 놓친 대화를 다시 받는다
+    setChattingSse();
+}
+
+function disconnectChat() {
+    clearTimeout(reconnectTimer); // 예약된 재연결이 닫은 뒤에 되살리지 못하게
+    reconnectTimer = null;
+    if (!eventSource) return;
+    eventSource.close();
+    eventSource = null;
+}
+
+function openChatPanel() {
+    if (!chatWidget) return;
+    chatWidget.classList.add("open");
+    connectChat();
+    applyMobileOpenHeight(); // 모바일: 광고 보호 상한까지 열기
+}
+
+function closeChatPanel() {
+    if (!chatWidget) return;
+    chatWidget.classList.remove("open");
+    disconnectChat();
 }
 
 function setupChatWidget() {
-    const widget = document.getElementById("chat-widget");
-    if (!widget) return; // 위젯이 없는 페이지면 아무것도 안 함
+    chatWidget = document.getElementById("chat-widget");
+    if (!chatWidget) return; // 위젯이 없는 페이지면 아무것도 안 함
     const launcher = document.getElementById("chat-launcher");
     const closeBtn = document.getElementById("chat-close");
     launcher.addEventListener("click", () => {
-        const opened = widget.classList.toggle("open");
-        if (opened) {
-            initChat(); // 첫 열림에만 연결
-            applyMobileOpenHeight(); // 모바일: 광고 보호 상한까지 열기
-        }
+        if (isChatOpen()) closeChatPanel();
+        else openChatPanel();
     });
-    if (closeBtn) closeBtn.addEventListener("click", () => widget.classList.remove("open"));
-    setupChatVisibility(widget);
+    if (closeBtn) closeBtn.addEventListener("click", closeChatPanel);
+    setupChatVisibility(chatWidget);
     setupChatDrag();
     setupMobileSheetDrag();
     setupViewportSync();
@@ -379,7 +417,7 @@ function setupChatVisibility(widget) {
     const apply = hidden => {
         widget.classList.toggle("hidden", hidden);
         restoreBtn.hidden = !hidden;
-        if (hidden) widget.classList.remove("open");
+        if (hidden) closeChatPanel();
     };
 
     const restore = () => {
@@ -400,79 +438,147 @@ function setupChatVisibility(widget) {
     apply(localStorage.getItem(CHAT_HIDDEN_KEY) === "1");
 }
 
-// 사용자가 원하는 시트 높이(px). 키보드 때문에 일시적으로 줄여도 이 값으로 되돌린다.
+// 사용자가 원하는 시트 높이(px). 키보드 때문에 잠시 줄어도 이 값으로 복원한다.
 let mobileSheetHeight = 0;
 let mobileAnchored = false;
 
-// 키보드가 열린 상태에서 채팅을 끝까지 당기면 iOS의 rubber-band 값이
-// visualViewport.offsetTop에 정상 범위를 벗어나 잠깐 들어온다. 그 값을 그대로
-// 패널 위치에 쓰면 시트도 함께 튀면서 아래 배경이 빈 여백처럼 드러난다.
+// iOS Safari는 키보드 애니메이션 중 visualViewport에 순간적인 오측정값을 보낸다.
+// 마지막 이벤트 뒤 잠시 기다리고 두 프레임이 같은 경우에만 패널을 한 번 갱신한다.
+const MOBILE_VIEWPORT_SETTLE_MS = 120;
+const MOBILE_VIEWPORT_EPSILON = 2;
+let viewportSyncFrame = 0;
+let viewportSyncTimer = 0;
+let mobileFocusSnapshot = null;
+
 function mobileViewportMetrics() {
     const vv = window.visualViewport;
     const height = vv ? vv.height : window.innerHeight;
-    const maxTop = Math.max(0, window.innerHeight - height);
-    const top = vv ? Math.min(maxTop, Math.max(0, vv.offsetTop)) : 0;
+    const top = vv ? Math.max(0, vv.offsetTop) : 0;
     return { height, top, bottom: top + height };
 }
 
-// 모바일 시트가 커져도 상단 광고(ad-section)를 덮지 않는 최대 높이.
-// 광고가 스크롤로 화면 위로 벗어나면 그만큼 상한이 자연히 커진다(가릴 광고가 없으므로).
-// 기준은 window.innerHeight 가 아니라 visualViewport.height — 키보드가 가린 영역까지 높이로 쳐서는 안 된다.
-function mobileMaxHeight() {
+function isChatInputFocused() {
+    return document.activeElement?.id === "chatting-input";
+}
+
+// 포커스 직전의 안정된 광고 위치와 시트 높이를 저장한다. 키보드가 움직이는 동안
+// getBoundingClientRect()를 다시 읽으면 WebKit의 흔들리는 좌표가 크기 계산에 섞인다.
+function captureMobileFocusSnapshot() {
+    if (window.innerWidth > 768 || mobileFocusSnapshot) return;
+    const panel = document.getElementById("chat-panel");
+    if (!panel) return;
     const viewport = mobileViewportMetrics();
     const ad = document.getElementById("ad-section");
     const guardTop = ad
         ? Math.max(8, ad.getBoundingClientRect().bottom - viewport.top + 6)
         : Math.round(viewport.height * 0.12);
+    mobileFocusSnapshot = {
+        guardTop,
+        viewportHeight: viewport.height,
+        sheetHeight: mobileSheetHeight || panel.getBoundingClientRect().height
+    };
+    panel.dataset.viewportState = "frozen";
+}
+
+// 평소에는 상단 광고를 보호한다. 키보드가 열리면 뒤쪽 광고보다 채팅 사용성이
+// 우선이므로 보이는 viewport를 거의 전부 사용한다. 그렇지 않으면 짧은 화면에서
+// 헤더와 입력줄만 남고 메시지 영역이 사라진다.
+function mobileMaxHeight(viewport = mobileViewportMetrics()) {
+    const keyboardOpen = mobileFocusSnapshot
+        && viewport.height < mobileFocusSnapshot.viewportHeight - 80;
+    if (keyboardOpen) return Math.max(120, viewport.height - 8);
+
+    let guardTop = mobileFocusSnapshot?.guardTop;
+    if (guardTop == null) {
+        const ad = document.getElementById("ad-section");
+        guardTop = ad
+            ? Math.max(8, ad.getBoundingClientRect().bottom - viewport.top + 6)
+            : Math.round(viewport.height * 0.12);
+    }
     return Math.max(120, viewport.height - guardTop);
 }
 
 function clearMobileAnchor(panel) {
-    if (!mobileAnchored) return;
     mobileAnchored = false;
+    mobileFocusSnapshot = null;
+    clearTimeout(viewportSyncTimer);
+    cancelAnimationFrame(viewportSyncFrame);
     panel.style.removeProperty("bottom");
     panel.style.removeProperty("height");
+    panel.removeAttribute("data-viewport-state");
 }
 
-// iOS Safari의 fixed 좌표는 키보드 전환 중 visual viewport를 기준으로 바뀐다.
-// top + translate로 보이는 바닥 좌표를 다시 적용하면 offsetTop이 이중 반영되어
-// 입력줄이 키보드보다 훨씬 위로 뜬다. 레이아웃 뷰포트와 보이는 바닥의 차이만
-// bottom에 적용하면 입력줄이 키보드 바로 위를 유지한다.
-function syncPanelToViewport() {
+// 안정된 최종 viewport만 반영한다. 키보드가 열려도 사용자가 정한 원래 높이는
+// mobileSheetHeight에 남겨두고, 실제 보이는 높이만 현재 viewport에 맞춰 줄인다.
+function syncPanelToViewport(viewport = mobileViewportMetrics()) {
     const panel = document.getElementById("chat-panel");
     if (!panel) return;
     if (window.innerWidth > 768) {
         clearMobileAnchor(panel);
         return;
     }
-    const viewport = mobileViewportMetrics();
+
     const lift = Math.max(0, window.innerHeight - viewport.bottom);
+    const preferredHeight = mobileFocusSnapshot?.sheetHeight || mobileSheetHeight;
     mobileAnchored = true;
     panel.style.removeProperty("top");
     panel.style.removeProperty("transform");
     panel.style.setProperty("bottom", lift + "px", "important");
-    if (mobileSheetHeight) {
-        panel.style.height = Math.min(mobileSheetHeight, mobileMaxHeight()) + "px";
+    if (preferredHeight) {
+        panel.style.height = Math.min(preferredHeight, mobileMaxHeight(viewport)) + "px";
     }
+    panel.dataset.viewportState = "stable";
+
+    // 키보드가 완전히 닫힌 뒤부터는 다음 포커스를 위해 새 위치를 측정할 수 있다.
+    if (!isChatInputFocused()) mobileFocusSnapshot = null;
 }
 
-// WebKit 은 키보드 전환 도중 visualViewport 값을 늦게 갱신한다(offsetTop 이 잠깐 0으로 읽힘).
-// 한 번만 재면 그 과도기 값이 그대로 굳으므로 프레임 뒤·시간차로 여러 번 다시 잰다.
-let viewportSyncFrame = 0;
-let viewportSyncTimers = [];
+function viewportIsStable(first, second) {
+    return Math.abs(first.height - second.height) <= MOBILE_VIEWPORT_EPSILON
+        && Math.abs(first.top - second.top) <= MOBILE_VIEWPORT_EPSILON
+        && Math.abs(first.innerHeight - second.innerHeight) <= MOBILE_VIEWPORT_EPSILON;
+}
 
-function scheduleSync() {
+function settleViewport() {
+    const first = { ...mobileViewportMetrics(), innerHeight: window.innerHeight };
     cancelAnimationFrame(viewportSyncFrame);
     viewportSyncFrame = requestAnimationFrame(() => {
-        viewportSyncFrame = requestAnimationFrame(syncPanelToViewport);
+        const second = { ...mobileViewportMetrics(), innerHeight: window.innerHeight };
+        if (!viewportIsStable(first, second)) {
+            scheduleSync();
+            return;
+        }
+        syncPanelToViewport(second);
     });
+}
 
-    viewportSyncTimers.forEach(clearTimeout);
-    viewportSyncTimers = [50, 150, 300].map(delay => setTimeout(syncPanelToViewport, delay));
+function scheduleSync() {
+    if (window.innerWidth > 768) {
+        const panel = document.getElementById("chat-panel");
+        if (panel) clearMobileAnchor(panel);
+        return;
+    }
+    const panel = document.getElementById("chat-panel");
+    if (panel) panel.dataset.viewportState = "waiting";
+    clearTimeout(viewportSyncTimer);
+    viewportSyncTimer = setTimeout(settleViewport, MOBILE_VIEWPORT_SETTLE_MS);
 }
 
 function setupViewportSync() {
     const vv = window.visualViewport;
+    const input = document.getElementById("chatting-input");
+    if (input) {
+        // pointerdown은 focusin/키보드 표시보다 먼저 실행되므로 안정된 좌표를 얻을 수 있다.
+        input.addEventListener("pointerdown", (event) => {
+            captureMobileFocusSnapshot();
+            if (window.innerWidth > 768 || isChatInputFocused()) return;
+
+            // iOS가 기본 포커스 과정에서 입력창을 화면 중앙까지 과하게 밀어 올리는 것을 막는다.
+            // 사용자 제스처 안에서 직접 focus해야 소프트웨어 키보드는 그대로 열린다.
+            event.preventDefault();
+            input.focus({ preventScroll: true });
+        });
+    }
     if (vv) {
         vv.addEventListener("resize", scheduleSync);
         vv.addEventListener("scroll", scheduleSync);
@@ -486,8 +592,14 @@ function setupViewportSync() {
         scheduleSync();
     });
     window.addEventListener("scroll", scheduleSync);
-    document.addEventListener("focusin", scheduleSync);
-    document.addEventListener("focusout", scheduleSync);
+    document.addEventListener("focusin", (event) => {
+        if (event.target.id !== "chatting-input") return;
+        captureMobileFocusSnapshot();
+        scheduleSync();
+    });
+    document.addEventListener("focusout", (event) => {
+        if (event.target.id === "chatting-input") scheduleSync();
+    });
 }
 
 // 열 때 높이 지정: 모바일은 광고 보호 상한까지, 데스크톱은 인라인 값 비워 CSS/resize 값 사용
@@ -539,7 +651,7 @@ function setupMobileSheetDrag() {
         const closeAt = window.innerHeight * 0.22;
         const snapMin = Math.round(window.innerHeight * 0.35);
         if (h < closeAt) {
-            widget.classList.remove("open");        // 충분히 내리면 닫힘 → 런처 복귀
+            closeChatPanel();                       // 충분히 내리면 닫힘 → 런처 복귀
         } else if (h < snapMin) {
             mobileSheetHeight = snapMin;
             panel.style.height = snapMin + "px";    // 너무 작으면 최소 높이로 스냅
@@ -600,3 +712,7 @@ function setupChatDrag() {
 }
 
 setupChatWidget();
+
+if (new URLSearchParams(location.search).has("vvdebug")) {
+    import("./chatting-debug.js");
+}

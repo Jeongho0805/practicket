@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +42,27 @@ public class ChatConnectionManager {
         if (emitters.remove(key) != null) {
             participantCounter.report(emitters.size());
         }
+    }
+
+    /**
+     * 유휴 연결을 끊는 프록시를 피하려 SSE 주석(:)을 흘린다. 브라우저는 이 줄을 버린다.
+     * 전송 실패가 곧 끊긴 연결이므로 여기서 함께 정리한다 — 끊김을 달리 알아낼 방법이 없다.
+     * 여러 개가 죽어도 인원 보고는 한 번만 한다(죽은 수만큼 전 파드가 방송하면 그게 또 낭비다).
+     */
+    public void sendKeepAlive() {
+        List<String> dead = new ArrayList<>();
+        for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
+            try {
+                entry.getValue().send(SseEmitter.event().comment("ping"));
+            } catch (Exception e) {
+                dead.add(entry.getKey());
+            }
+        }
+        if (dead.isEmpty()) {
+            return;
+        }
+        dead.forEach(emitters::remove);
+        participantCounter.report(emitters.size());
     }
 
     /**
