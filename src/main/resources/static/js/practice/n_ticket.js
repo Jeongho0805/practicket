@@ -364,6 +364,12 @@ let soldCount = 0;
 /* 첫 틱에 수천 개가 한꺼번에 닫힌다. 그때마다 찾으면 그 멈칫이 기록에 들어간다 */
 let seatEls = [];
 
+/* 팔린 좌석. 화면에는 아직 안 반영돼 있을 수 있다 — 그게 실물과 같은 점이다.
+   목록은 팔린 순서대로 쌓이므로, 화면을 맞출 때는 아직 안 칠한 뒷부분만 보면 된다. */
+const sold = new Set();
+const soldList = [];
+let syncedIdx = 0;
+
 function buildSellOrder() {
     const far = Math.hypot(VB.w, VB.h);
     sellOrder = seats
@@ -380,19 +386,31 @@ function soldAt(ms) {
     return Math.floor(seats.length * (1 - Math.pow(1 - ms / SELL.totalMs, SELL.k)));
 }
 
-/* 이미 잡은 자리는 건너뛴다. 남이 채가는 것이지 내 것을 뺏는 게 아니다 */
+/* 파는 것과 그리는 것을 나눈다. 여기서는 팔린 목록만 늘리고 화면은 건드리지 않는다.
+   이미 잡은 자리는 건너뛴다 — 남이 채가는 것이지 내 것을 뺏는 게 아니다. */
 function sellUpTo(target) {
     while (soldCount < target && sellCursor < sellOrder.length) {
         const i = sellOrder[sellCursor++];
         if (picked.includes(i)) continue;
-        const dot = seatEls[i];
-        if (dot) {
-            dot.classList.replace('is-open', 'is-sold');
-            dot.setAttribute('fill', SOLD_FILL);
-            dot.setAttribute('stroke', SOLD_FILL);
-        }
+        sold.add(i);
+        soldList.push(i);
         soldCount++;
     }
+}
+
+function closeSeat(i) {
+    const dot = seatEls[i];
+    if (!dot || dot.classList.contains('is-sold')) return;
+    dot.classList.replace('is-open', 'is-sold');
+    dot.setAttribute('fill', SOLD_FILL);
+    dot.setAttribute('stroke', SOLD_FILL);
+}
+
+/* 실물은 좌석 상태를 주기적으로 받아오지 않는다(2026-08-17 측정: 가만히 35초 동안 요청 0건).
+   확대·이동으로 보이는 블록이 바뀔 때만 다시 받아오므로, 가만히 있으면 화면이 낡은 채로 남는다.
+   낡은 화면을 누르면 그때 서버가 거절해 바로잡힌다 — 그 몫이 onPointerUp 의 선점 검사다. */
+function syncSeats() {
+    while (syncedIdx < soldList.length) closeSeat(soldList[syncedIdx++]);
 }
 
 const isSoldOut = () => sellCursor >= sellOrder.length && !picked.length;
@@ -478,6 +496,7 @@ function setView(z, x, y) {
     view.z = z;
     [view.x, view.y] = clampXY(z, x, y);
     paintView();
+    syncSeats();
 }
 
 const easeInOut = p => (p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2);
@@ -496,6 +515,7 @@ function animateTo(z, x, y) {
         view.y = from.y + (ty - from.y) * k;
         paintView();
         if (k < 1) anim = requestAnimationFrame(step);
+        else syncSeats();
     };
     step();
 }
@@ -618,6 +638,15 @@ function renderPicked() {
 
 function toggleSeat(dot) {
     const i = Number(dot.dataset.i);
+
+    /* 화면이 낡아 열려 보였을 뿐 이미 팔린 자리다. 실물도 이때 처음 알려준다 —
+       거절과 함께 그 자리를 닫아 화면을 바로잡는다(문구는 실물 P40054·P41150 그대로). */
+    if (sold.has(i)) {
+        closeSeat(i);
+        showAlert({ title: '좌석 선택', msg: '이미 선점된 좌석입니다.' });
+        return;
+    }
+
     const at = picked.indexOf(i);
     if (at >= 0) {
         picked.splice(at, 1);
@@ -757,6 +786,9 @@ function enterSeat() {
     T.seatStart = now();
     showScreen('screen-seat');
     resetView(false);
+    /* 들어올 때 한 번은 맞춰 놓는다. 실물도 진입 시 좌석 상태를 받아온다 */
+    sellUpTo(soldAt(now() - T.decayStart));
+    syncSeats();
     startSeatTimer();
     newCaptcha();
     $('capDim').hidden = false;
