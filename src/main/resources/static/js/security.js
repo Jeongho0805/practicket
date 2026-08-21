@@ -152,7 +152,7 @@ function checkAnswer() {
     }
 
     if (typed !== answer) {
-        playMessage.innerHTML = '<span class="no">다시 확인해주세요</span>';
+        playMessage.innerHTML = '<span class="no">입력한 문자를 다시 확인해주세요</span>';
         input.value = "";
         input.focus();
         return;
@@ -272,10 +272,14 @@ function renderStats(result, hasRecord) {
         return;
     }
 
-    const gap = result.total_avg_result - result.best_result;
+    // 비교 기준을 옆 칸과 같은 "내 평균"으로 맞춘다. 주어를 나로 고정해야 어느 쪽이 빠른지 안 헷갈린다.
+    const gap = result.total_avg_result - result.my_avg_result;
+    const note = Math.abs(gap) < 0.005
+        ? "평균과 같음"
+        : `내가 ${Math.abs(gap).toFixed(2)}초 ${gap > 0 ? "빠름" : "느림"}`;
     grid.innerHTML = statCard("내 최단", seconds(result.best_result), `${result.my_count}회 중`, false)
         + statCard("내 평균", seconds(result.my_avg_result), `${result.my_count}회`, false)
-        + statCard("전체 평균", seconds(result.total_avg_result), gap > 0 ? `나보다 ${gap.toFixed(2)}초 느림` : "나보다 빠름", false);
+        + statCard("전체 평균", seconds(result.total_avg_result), note, false);
 }
 
 // 자리 수가 고정이라 기록자가 몇 명이든 패널 높이가 변하지 않는다
