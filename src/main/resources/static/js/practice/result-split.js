@@ -38,7 +38,7 @@ export function saveBestRecord(key, totalMs, segments, best) {
     }
 }
 
-export function renderCompleteHint(segments, segmentSum, best) {
+export function renderCompleteHint(segments, segmentSum) {
     const hint = document.getElementById('pkt-hint');
     if (!hint || !segmentSum) return;
 
@@ -46,17 +46,15 @@ export function renderCompleteHint(segments, segmentSum, best) {
     segments.forEach((ms, i) => { if (ms > segments[slowest]) slowest = i; });
 
     const share = Math.round(segments[slowest] / segmentSum * 100);
-    let text = `세 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
-
-    if (best) {
-        const diffSec = (segments[slowest] - best.segments[slowest]) / 1000;
-        if (diffSec > 0.05) {
-            text += ` · 최고 기록보다 <b>${diffSec.toFixed(2)}초</b> 깁니다`;
-        }
-    }
-
-    hint.innerHTML = text;
+    hint.innerHTML = `세 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
     hint.style.display = 'block';
+}
+
+/* 최고 기록은 초를 따로 보여주지 않고, 갱신했다는 사실만 헤더 딱지로 알린다. */
+export function renderBestTag(totalMs, best) {
+    const tag = document.getElementById('pkt-best-tag');
+    if (!tag) return;
+    tag.style.display = best && totalMs < best.total ? 'inline-flex' : 'none';
 }
 
 /* 매진 모달의 힌트. 성공과 달리 비교할 최고 기록이 없어 가장 오래 걸린 구간만 짚는다. */

@@ -1,7 +1,7 @@
 import { authFetch, showAlert } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderFailHint, bindShareButton
+    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton
 } from '/js/practice/result-split.js';
 
 // ════════════════════════════════════════
@@ -1749,18 +1749,8 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
     const scale = Math.max(segmentSum, bestSum);
     renderSplitBar(document.getElementById('pkt-stack'), segments, scale);
 
-    const refBar = document.getElementById('pkt-refbar');
-    const refLabel = document.getElementById('pkt-ref-label');
-    if (best) {
-        renderSplitBar(refBar, best.segments, scale, false);
-        refBar.style.display = 'flex';
-        refLabel.textContent = '흐린 막대 = 내 최고 기록';
-    } else {
-        refBar.style.display = 'none';
-        refLabel.textContent = '';
-    }
-
-    renderCompleteHint(segments, segmentSum, best);
+    renderCompleteHint(segments, segmentSum);
+    renderBestTag(total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, total_duration_ms, segments, best);
     bindShareButton();
 

@@ -18,7 +18,7 @@
 import { authFetch, showAlert } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderFailHint, bindShareButton
+    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton
 } from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
@@ -881,17 +881,8 @@ function showCompleteModal(r) {
     const scale = Math.max(segmentSum, bestSum);
     renderSplitBar($('pkt-stack'), segments, scale);
 
-    const refBar = $('pkt-refbar');
-    if (best) {
-        renderSplitBar(refBar, best.segments, scale, false);
-        refBar.style.display = 'flex';
-        $('pkt-ref-label').textContent = '흐린 막대 = 내 최고 기록';
-    } else {
-        refBar.style.display = 'none';
-        $('pkt-ref-label').textContent = '';
-    }
-
-    renderCompleteHint(segments, segmentSum, best);
+    renderCompleteHint(segments, segmentSum);
+    renderBestTag(r.total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
     bindShareButton();
 

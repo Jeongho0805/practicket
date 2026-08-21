@@ -125,6 +125,34 @@
     margin-bottom: 12px;
 }
 
+/* 이번 기록이 자기 최고 기록일 때만 붙는다. 바로 아래 순위 상자와 같은 유리 재질,
+   같은 빛나는 점을 써서 카드 안에서 따로 놀지 않게 한다. */
+.pkt-best-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    margin-bottom: 12px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+}
+
+.pkt-best-tag i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+}
+
 .pkt-header-title {
     font-size: 22px;
     font-weight: 800;
@@ -407,20 +435,6 @@
 }
 
 /* 내 최고 기록. 이번 기록과 같은 척도로 그려야 길이 비교가 성립한다. */
-.pkt-refbar {
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-    display: flex;
-    margin-top: 5px;
-    opacity: 0.4;
-}
-
-.pkt-refbar i {
-    display: block;
-    height: 100%;
-}
-
 .pkt-seg1 { background: #d6cbe9; color: #514897; }
 .pkt-seg2 { background: #8470b3; }
 .pkt-seg3 { background: #514897; }
