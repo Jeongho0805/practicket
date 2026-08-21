@@ -12,8 +12,6 @@ public final class SitemapExclusion {
     private static final Map<String, String> REASONS = Map.ofEntries(
             Map.entry("/rank", "/ticketing 으로 리다이렉트만 한다"),
             Map.entry("/reservation", "예매 연습 실행 화면"),
-            Map.entry("/practice/result", "공유 링크로만 열리는 결과 화면"),
-            Map.entry("/practice/result/og.png", "링크 미리보기용 이미지라 페이지가 아니다"),
             Map.entry("/practice/i-ticket", "예매 연습 실행 화면"),
             Map.entry("/practice/n-ticket", "예매 연습 실행 화면"),
             Map.entry("/practice/m-ticket", "예매 연습 실행 화면"),
