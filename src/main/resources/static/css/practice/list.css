@@ -3,11 +3,23 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 50px;
-    padding: 100px 20px 60px 20px;
+    gap: 16px;
+    padding: 22px 20px 16px 20px;
     margin: 0 auto;
-    height: calc(100vh - 60px);
+    /* 부모(#content-section)의 실제 높이는 body 격자 1fr:10fr 의 아래 칸이다.
+       100vh - 60px 은 그 근사치라 창이 낮으면(1440x768) 넘쳐 목록 아래가 잘렸다.
+       height:100% 로는 못 고친다 — 격자 행이 auto 라 내용 높이로 되돌아가 더 크게 넘친다. */
+    height: calc(100vh * 10 / 11);
+    max-height: calc(100vh * 10 / 11);
     box-sizing: border-box;
+}
+
+/* 랭킹 보드가 남은 높이를 전부 받아야 목록 칸이 생긴다. */
+.ranking-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 /* ----- Section 1: Practice Options ----- */
@@ -21,7 +33,7 @@
     position: relative;
     display: flex;
     flex-direction: row;
-    min-height: 116px;
+    min-height: 96px;
     border-radius: 16px;
     overflow: hidden;
     text-decoration: none;
@@ -86,7 +98,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 14px 14px 12px 14px;
+    padding: 13px 14px 11px 14px;
 }
 
 .card-row-top {
@@ -112,7 +124,7 @@
 
 .card-title {
     font-family: 'my-font', sans-serif;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 900;
     letter-spacing: -0.5px;
     line-height: 1.1;
@@ -173,13 +185,14 @@
 .ranking-top-bar {
     background: #fff;
     border-bottom: 1px solid #f1f5f9;
-    padding: 0 30px;
+    padding: 0 22px;
     display: flex;
+    align-items: center;
 }
 
 .view-mode-tab {
-    padding: 18px 24px;
-    font-size: 15px;
+    padding: 12px 18px;
+    font-size: 14px;
     font-weight: 700;
     color: #94a3b8;
     border: none;
@@ -197,7 +210,7 @@
 }
 
 .filter-bar {
-    padding: 14px 30px;
+    padding: 10px 22px;
     border-bottom: 1px solid #f1f5f9;
     display: flex;
     justify-content: space-between;
@@ -233,15 +246,22 @@
     cursor: not-allowed;
 }
 
+/* 기간 탭은 뷰 탭 줄 오른쪽에 있다. 필터 바에 예매처 4개와 같이 두면
+   좁은 화면에서 M-Ticket 부터 잘려 나가는데, 뷰 탭 줄은 오른쪽이 통째로 비어 있다. */
 .period-tabs {
     display: flex;
+    margin-left: auto;
     background: #f4f6f8;
     border-radius: 10px;
     padding: 4px;
 }
 
+.period-tabs[hidden] {
+    display: none;
+}
+
 .period-tab {
-    padding: 7px 18px;
+    padding: 6px 16px;
     font-size: 14px;
     font-weight: 600;
     color: #64748b;
@@ -319,14 +339,14 @@
     font-family: 'Pretendard', sans-serif;
     font-weight: 700;
     color: #64748b;
-    padding: 18px 15px;
+    padding: 11px 15px;
     border-bottom: 1px solid #f1f5f9;
     font-size: 13px;
     letter-spacing: 0.8px;
 }
 
 .ranking-table td {
-    padding: 16px 15px;
+    padding: 10px 15px;
     border-bottom: 1px solid #f8fafc;
     font-size: 15px;
     font-weight: 500;
@@ -415,27 +435,16 @@
     border: 1px solid #ddd6ee;
 }
 
-#loadMoreWrap {
+/* 목록 끝을 알리는 줄. 화면에 들어오면 다음 페이지를 부른다(list.js).
+   버튼이던 시절엔 60px 을 차지했는데 목록 칸이 180~330px 이라 한 행 반을 먹었고,
+   바로 아래 고정된 내 순위 줄과 바닥이 둘로 보였다. */
+.list-sentinel {
     text-align: center;
-    padding: 16px;
-}
-
-#loadMoreBtn {
-    padding: 9px 28px;
-    background: #f1eef9;
-    color: #514897;
-    border: 1px solid #ddd6ee;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
+    padding: 10px 0 14px;
     font-family: 'Pretendard', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-#loadMoreBtn:hover {
-    background: #ddd6ee;
-    border-color: #c8bfe0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b6bdc9;
 }
 
 /* ----- 내 기록: 스탯 카드 ----- */
@@ -448,7 +457,7 @@
 
 .stat-card {
     background: #fff;
-    padding: 20px 16px;
+    padding: 11px 16px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -545,7 +554,7 @@
     font-family: 'Pretendard', sans-serif;
     font-weight: 700;
     color: #64748b;
-    padding: 14px 16px;
+    padding: 10px 16px;
     border-top: 1px solid #f1f5f9;
     border-bottom: 1px solid #f1f5f9;
     font-size: 12px;
@@ -559,7 +568,7 @@
 }
 
 .record-row td {
-    padding: 14px 16px;
+    padding: 9px 16px;
     border-bottom: 1px solid #f8fafc;
     font-size: 14px;
     font-weight: 500;
@@ -701,267 +710,6 @@
     font-size: 13px;
 }
 
-#myRecordLoadMoreWrap {
-    text-align: center;
-    padding: 16px;
-}
-
-#myRecordLoadMoreBtn {
-    padding: 9px 28px;
-    background: #f1eef9;
-    color: #514897;
-    border: 1px solid #ddd6ee;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-#myRecordLoadMoreBtn:hover {
-    background: #ddd6ee;
-    border-color: #c8bfe0;
-}
-
-@media (max-width: 768px) {
-    .practice-hub-container {
-        padding: 16px 12px 0;
-        height: 100%;
-        gap: 16px;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
-    /* 가로 스크롤이면 넷 중 둘만 보인다. 2x2 로 넷을 한 번에 보여준다. */
-    .practice-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-    }
-
-    .practice-card {
-        flex: 0 0 160px;
-        min-height: 100px;
-    }
-
-    .card-main {
-        padding: 10px 12px 10px 12px;
-    }
-
-    .card-label {
-        display: none;
-    }
-
-    .card-row-top {
-        justify-content: flex-end;
-    }
-
-    .card-title {
-        font-size: 16px;
-    }
-
-    .badge-new-ui {
-        font-size: 7px;
-        padding: 1px 4px;
-    }
-
-    .badge-coming,
-    .badge-available {
-        font-size: 8px;
-        padding: 2px 7px;
-    }
-
-    .ranking-top-bar {
-        padding: 0 12px;
-    }
-
-    .view-mode-tab {
-        padding: 10px 12px;
-        font-size: 12px;
-    }
-
-    .filter-bar {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        padding: 8px 12px;
-        gap: 8px;
-        overflow: hidden;
-    }
-
-    .agency-tabs {
-        flex: 1;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 5px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    .agency-tabs::-webkit-scrollbar {
-        display: none;
-    }
-
-    .agency-tab {
-        padding: 4px 9px;
-        font-size: 11px;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    .period-tabs {
-        flex-shrink: 0;
-    }
-
-    .period-tab {
-        padding: 4px 9px;
-        font-size: 11px;
-    }
-
-    /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행을 카드로 펼쳐 두 줄로 쓴다. */
-    .ranking-table-header {
-        display: none;
-    }
-
-    .ranking-table-body colgroup,
-    .ranking-table-body .ranking-table,
-    .ranking-table-body tbody {
-        display: block;
-        width: 100%;
-    }
-
-    .ranking-table-body colgroup {
-        display: none;
-    }
-
-    .ranking-table-body tr {
-        display: grid;
-        grid-template-columns: 26px 1fr auto;
-        grid-template-areas:
-            "rank name time"
-            "rank split time";
-        align-items: center;
-        gap: 3px 9px;
-        margin-bottom: 6px;
-        padding: 9px 11px;
-        background: #fff;
-        border-radius: 11px;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    .ranking-table-body td {
-        display: block;
-        padding: 0 !important;
-        border: none;
-        font-size: 13px;
-    }
-
-    .ranking-table-body td:nth-child(1) { grid-area: rank; }
-    .ranking-table-body td:nth-child(2) { grid-area: name; }
-    .ranking-table-body td:nth-child(3) { grid-area: split; }
-    .ranking-table-body td:nth-child(4) { grid-area: time; }
-
-    /* 안내 문구 줄은 칸이 하나뿐이라 위 격자에 넣으면 26px 짜리 순위 칸으로 들어가
-       글자가 한 자씩 세로로 쪼개진다. 격자를 벗어나게 둔다. */
-    .ranking-table-body tr.rank-msg { display: block }
-
-    .ranking-table-body .rank-split {
-        width: 100%;
-        height: 7px;
-    }
-
-    .ranking-table-body tr:hover td {
-        background: transparent;
-    }
-
-    .my-rank-row {
-        grid-template-columns: 26px 1fr auto;
-        gap: 9px;
-        margin: 0 -14px -14px;
-        padding: 10px 16px;
-        border-radius: 0;
-    }
-
-    .my-rank-row .mr-name {
-        padding-left: 0;
-    }
-
-    .my-rank-row .rank-split {
-        display: none;
-    }
-
-    .record-table th {
-        padding: 8px 6px;
-        font-size: 10px;
-    }
-
-    .record-row td {
-        padding: 8px 6px;
-        font-size: 11px;
-    }
-
-    .my-stats-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-
-    .stat-card {
-        padding: 8px 4px;
-        gap: 3px;
-    }
-
-    .stat-label {
-        font-size: 8px;
-        letter-spacing: 0.2px;
-    }
-
-    .stat-value {
-        font-size: 12px;
-    }
-
-    .improve-sec {
-        font-size: 11px;
-    }
-
-    .improve-pct {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 9px;
-        padding: 2px 5px;
-    }
-
-    .date-text {
-        font-size: 11px;
-        white-space: nowrap;
-    }
-
-    .detail-inner {
-        grid-template-columns: repeat(4, 1fr);
-        margin: 0 8px 10px;
-    }
-
-    .detail-card {
-        padding: 8px 4px;
-        gap: 2px;
-    }
-
-    .detail-label {
-        font-size: 8px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
-    }
-
-    .detail-value {
-        font-size: 11px;
-    }
-
-    .detail-sub {
-        font-size: 8px;
-    }
-}
-
 /* 목록 끝에 고정으로 붙는 내 줄. 표 밖에 있어 컬럼 폭을 직접 맞춘다. */
 .my-rank-row {
     display: grid;
@@ -1013,4 +761,227 @@
 
 .my-rank-row .mr-time {
     justify-self: center;
+}
+
+@media (max-width: 768px) {
+    .practice-hub-container {
+        padding: 8px 10px 0;
+        height: 100%;
+        max-height: 100%;
+        gap: 8px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    /* 가로 스크롤이면 넷 중 둘만 보인다. 2x2 로 넷을 한 번에 보여준다. */
+    .practice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .practice-card {
+        min-height: 68px;
+    }
+
+    .card-main {
+        padding: 8px 11px;
+    }
+
+    .card-label {
+        display: none;
+    }
+
+    .card-row-top {
+        justify-content: flex-end;
+    }
+
+    .card-title {
+        font-size: 15px;
+    }
+
+    .badge-new-ui {
+        font-size: 7px;
+        padding: 1px 4px;
+    }
+
+    .badge-coming,
+    .badge-available {
+        font-size: 8px;
+        padding: 2px 7px;
+    }
+
+    .ranking-top-bar {
+        padding: 0 12px;
+    }
+
+    .view-mode-tab {
+        padding: 10px 13px;
+        font-size: 13px;
+    }
+
+    .filter-bar {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        padding: 8px 12px;
+        gap: 8px;
+        overflow: hidden;
+    }
+
+    .agency-tabs {
+        flex: 1;
+        flex-wrap: nowrap;
+        gap: 6px;
+    }
+
+    .agency-tab,
+    .period-tab {
+        padding: 5px 11px;
+        font-size: 12px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행마다 격자를 다시 짜 카드처럼 쓴다. */
+    .ranking-table-header {
+        display: none;
+    }
+
+    .ranking-table-body colgroup,
+    .ranking-table-body .ranking-table,
+    .ranking-table-body tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .ranking-table-body colgroup {
+        display: none;
+    }
+
+    .ranking-table-body tr {
+        display: grid;
+        grid-template-columns: 22px 1fr 68px auto;
+        grid-template-areas: "rank name split time";
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 5px;
+        padding: 7px 10px;
+        background: #fff;
+        border-radius: 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .ranking-table-body td {
+        display: block;
+        padding: 0 !important;
+        border: none;
+        font-size: 13px;
+    }
+
+    .ranking-table-body td:nth-child(1) { grid-area: rank; }
+    .ranking-table-body td:nth-child(2) { grid-area: name; }
+    .ranking-table-body td:nth-child(3) { grid-area: split; }
+    .ranking-table-body td:nth-child(4) { grid-area: time; }
+
+    /* 안내 문구 줄은 칸이 하나뿐이라 위 격자에 넣으면 26px 짜리 순위 칸으로 들어가
+       글자가 한 자씩 세로로 쪼개진다. 격자를 벗어나게 둔다. */
+    .ranking-table-body tr.rank-msg { display: block }
+
+    .ranking-table-body .rank-split {
+        width: 100%;
+        height: 6px;
+    }
+
+    .time-record-badge {
+        font-size: 12px;
+        padding: 4px 9px;
+    }
+
+    .ranking-table-body tr:hover td {
+        background: transparent;
+    }
+
+    .my-rank-row {
+        grid-template-columns: 26px 1fr auto;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: 0;
+    }
+
+    .my-rank-row .mr-name {
+        padding-left: 0;
+    }
+
+    .my-rank-row .rank-split {
+        display: none;
+    }
+
+    .my-rank-row .mr-time {
+        justify-self: end;
+    }
+
+    .record-table th {
+        padding: 8px 8px;
+        font-size: 11px;
+    }
+
+    .record-row td {
+        padding: 9px 8px;
+        font-size: 13px;
+    }
+
+    .stat-card {
+        padding: 7px 6px;
+        gap: 2px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+        letter-spacing: 0;
+    }
+
+    .stat-value {
+        font-size: 15px;
+    }
+
+    .improve-sec {
+        font-size: 13px;
+    }
+
+    .improve-pct {
+        display: inline-block;
+        white-space: nowrap;
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .date-text {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    /* 4열이면 "대기열 소요 시 간" 처럼 감긴다. 펼칠 때만 보이는 영역이라 2열로 넓힌다. */
+    .detail-inner {
+        grid-template-columns: repeat(2, 1fr);
+        margin: 0 12px 10px;
+    }
+
+    .detail-card {
+        padding: 9px 8px;
+        gap: 2px;
+    }
+
+    .detail-label {
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .detail-value {
+        font-size: 13px;
+    }
+
+    .detail-sub {
+        font-size: 9px;
+    }
 }

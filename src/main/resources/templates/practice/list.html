@@ -74,13 +74,18 @@
         </section>
 
         <!-- 2. 랭킹 보드 -->
-        <section style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+        <section class="ranking-section">
             <div class="ranking-board">
 
                 <!-- 뷰 모드 탭 -->
                 <div class="ranking-top-bar">
                     <button class="view-mode-tab active" onclick="switchMainTab('ranking', this)">전체 랭킹</button>
                     <button class="view-mode-tab" onclick="switchMainTab('myrecord', this)">내 기록</button>
+                    <div class="period-tabs">
+                        <button class="period-tab active" onclick="selectPeriod(this)">일간</button>
+                        <button class="period-tab" onclick="selectPeriod(this)">주간</button>
+                        <button class="period-tab" onclick="selectPeriod(this)">월간</button>
+                    </div>
                 </div>
 
                 <!-- ── 전체 랭킹 패널 ── -->
@@ -91,11 +96,6 @@
                             <button class="agency-tab" onclick="selectAgency(this, 'N_TICKET')">N-Ticket</button>
                             <button class="agency-tab" onclick="selectAgency(this, 'M_TICKET')">M-Ticket</button>
                             <button class="agency-tab disabled" disabled>Y-Ticket</button>
-                        </div>
-                        <div class="period-tabs">
-                            <button class="period-tab active" onclick="selectPeriod(this)">일간</button>
-                            <button class="period-tab" onclick="selectPeriod(this)">주간</button>
-                            <button class="period-tab" onclick="selectPeriod(this)">월간</button>
                         </div>
                     </div>
 
@@ -135,9 +135,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div id="loadMoreWrap" style="display: none;">
-                            <button id="loadMoreBtn" onclick="loadRanking(false)">더 보기</button>
-                        </div>
+                        <div id="rankingSentinel" class="list-sentinel" hidden>불러오는 중</div>
                     </div>
 
                     <div id="myRankRow" class="my-rank-row" style="display: none;">
@@ -222,9 +220,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <div id="myRecordLoadMoreWrap" style="display: none;">
-                            <button id="myRecordLoadMoreBtn" onclick="loadMyRecords(false)">더 보기</button>
-                        </div>
+                        <div id="myRecordSentinel" class="list-sentinel" hidden>불러오는 중</div>
                     </div>
                 </div>
 

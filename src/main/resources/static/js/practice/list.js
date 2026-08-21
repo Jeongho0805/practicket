@@ -76,6 +76,7 @@ function switchMainTab(target, btn) {
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + target).classList.add('active');
+    document.querySelector('.ranking-top-bar .period-tabs').hidden = target !== 'ranking';
     if (target === 'myrecord') loadMyPanel();
 }
 
@@ -128,6 +129,30 @@ async function loadMyRank() {
     }
 }
 
+/* 목록 끝 감지 줄. 스크롤 칸(root) 안으로 들어오면 다음 페이지를 부른다.
+   목록이 짧아 줄이 계속 보이면 옵저버가 다시 울리지 않으므로, 한 페이지 붙일 때마다 다시 건다. */
+const tails = {};
+
+function setupTail(key, sentinelId, rootSelector, loadMore) {
+    const el = document.getElementById(sentinelId);
+    const root = document.querySelector(rootSelector);
+    if (!el || !root) return;
+
+    const io = new IntersectionObserver(
+        entries => { if (entries.some(e => e.isIntersecting)) loadMore(); },
+        { root, rootMargin: '120px' }
+    );
+    tails[key] = { el, io };
+    io.observe(el);
+}
+
+function rearmTail(key) {
+    const tail = tails[key];
+    if (!tail || tail.el.hidden) return;
+    tail.io.unobserve(tail.el);
+    tail.io.observe(tail.el);
+}
+
 // ── 전체 랭킹 ──
 async function loadRanking(reset) {
     if (rankingState.loading) return;
@@ -139,7 +164,7 @@ async function loadRanking(reset) {
         rankingState.rankOffset = 0;
         document.getElementById('rankingTableBody').innerHTML =
             '<tr class="rank-msg"><td colspan="4">불러오는 중...</td></tr>';
-        document.getElementById('loadMoreWrap').style.display = 'none';
+        document.getElementById('rankingSentinel').hidden = true;
         loadMyRank();
     }
 
@@ -171,7 +196,8 @@ async function loadRanking(reset) {
 
         rankingState.hasNext = data.has_next;
         rankingState.cursor = data.has_next ? data.next_cursor : null;
-        document.getElementById('loadMoreWrap').style.display = data.has_next ? 'block' : 'none';
+        document.getElementById('rankingSentinel').hidden = !data.has_next;
+        rearmTail('rank');
 
     } catch (e) {
         if (reset) {
@@ -277,7 +303,7 @@ async function loadMyRecords(reset) {
         myState.recordOffset = 0;
         document.getElementById('myRecordTableBody').innerHTML =
             '<tr class="rank-msg"><td colspan="3">불러오는 중...</td></tr>';
-        document.getElementById('myRecordLoadMoreWrap').style.display = 'none';
+        document.getElementById('myRecordSentinel').hidden = true;
     }
 
     myState.loading = true;
@@ -308,7 +334,8 @@ async function loadMyRecords(reset) {
 
         myState.hasNext = data.has_next;
         myState.cursorId = data.has_next ? data.next_cursor : null;
-        document.getElementById('myRecordLoadMoreWrap').style.display = data.has_next ? 'block' : 'none';
+        document.getElementById('myRecordSentinel').hidden = !data.has_next;
+        rearmTail('myrecord');
 
     } catch (e) {
         if (reset) {
@@ -441,10 +468,10 @@ window.goToMTicket = goToMTicket;
 window.switchMainTab = switchMainTab;
 window.selectAgency = selectAgency;
 window.selectPeriod = selectPeriod;
-window.loadRanking = loadRanking;
-window.loadMyRecords = loadMyRecords;
 
 // ── 초기 로드 ──
 document.addEventListener('DOMContentLoaded', () => {
+    setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));
+    setupTail('myrecord', 'myRecordSentinel', '.my-record-table-body', () => loadMyRecords(false));
     loadRanking(true);
 });
