@@ -174,6 +174,9 @@ public class PostService {
             throw new ValidateException(ErrorCode.POST_FORBIDDEN);
         }
 
+        // 작성만 검사하면 깨끗하게 올린 뒤 수정으로 욕설을 넣어 우회할 수 있다.
+        profanityValidator.validateProfanityText(request.getTitle());
+        profanityValidator.validateProfanityText(request.getContent());
         post.update(request.getTitle().trim(), request.getContent());
         return PostResponse.from(post, true, replaceTags(post, request.getTags()));
     }

@@ -9,6 +9,7 @@ import com.practicket.art.dto.*;
 import com.practicket.client.component.ClientManager;
 import com.practicket.client.domain.Client;
 import com.practicket.common.auth.ClientInfo;
+import com.practicket.common.component.ProfanityValidator;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.GlobalException;
 import com.practicket.common.exception.ValidateException;
@@ -31,11 +32,13 @@ public class ArtService {
     private final ArtCommentRepository artCommentRepository;
     private final ArtViewRepository artViewRepository;
     private final ClientManager clientManager;
+    private final ProfanityValidator profanityValidator;
 
     @Transactional
     public ArtResponse createArt(ArtCreateRequest request, ClientInfo clientInfo) {
         Client client = clientManager.findById(clientInfo.getClientId());
         validatePixelData(request.getPixelData(), request.getWidth(), request.getHeight());
+        profanityValidator.validateProfanityText(request.getTitle());
 
         Art art = Art.builder()
                 .title(request.getTitle())
@@ -109,6 +112,7 @@ public class ArtService {
             throw new ValidateException(ErrorCode.FORBIDDEN);
         }
         this.validatePixelData(request.getPixelData(), art.getWidth(), art.getHeight());
+        profanityValidator.validateProfanityText(request.getTitle());
         art.update(request.getTitle(), request.getPixelData());
 
         return ArtResponse.from(art);
@@ -172,6 +176,7 @@ public class ArtService {
                 .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Client client = clientManager.findById(clientInfo.getClientId());
+        profanityValidator.validateProfanityText(request.getContent());
 
         ArtComment comment = ArtComment.builder()
                 .content(request.getContent())
@@ -193,6 +198,7 @@ public class ArtService {
             throw new GlobalException(ErrorCode.FORBIDDEN);
         }
 
+        profanityValidator.validateProfanityText(request.getContent());
         comment.updateContent(request.getContent());
         return ArtCommentResponse.from(comment, true);
     }
