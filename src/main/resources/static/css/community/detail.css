@@ -75,6 +75,8 @@
     color: var(--pk-ink);
     margin: 0 0 16px;
     word-break: keep-all;
+    /* 공백 없는 긴 제목이 카드 밖으로 넘치지 않게 강제로 끊는다 */
+    overflow-wrap: anywhere;
 }
 
 #post-author-row {

@@ -16,8 +16,10 @@
 #main-section::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #6b5b9a, #8470b3); border-radius: 4px; }
 
 /* 공지 · 업데이트 */
+/* 공지가 적어도 카드 길이는 유지한다 — 공지 5건(최대) 기준 높이를 min 으로 잡아
+   1건만 있어도 카드가 쪼그라들지 않고 내부가 여백으로 채워지게 한다. */
 .notice { background: linear-gradient(145deg, #ffffff, #f8f9ff); border: 1.5px solid rgba(107, 91, 154, .12);
-    border-radius: 18px; padding: 18px 22px; box-shadow: 0 6px 18px rgba(107, 91, 154, .06); }
+    border-radius: 18px; padding: 18px 22px; box-shadow: 0 6px 18px rgba(107, 91, 154, .06); min-height: 220px; }
 .nt-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
 .nt-head b { font-size: 16px; }
 .nt-head .more { font-size: 12px; color: #9a93b0; text-decoration: none; }
@@ -99,21 +101,23 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
     /* 공지 카드가 남는 세로 공간을 흡수한다. min-height:0 이 없으면 목록 길이만큼 최소 높이가 잡혀
        카드가 안 줄고 페이지 전체가 스크롤된다 — 화면이 좁으면 목록만 안에서 스크롤되게 한다 */
     /* 남는 세로 공간을 공지가 혼자 먹지 않게 문의 카드와 나눠 갖는다 */
-    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 1 auto; min-height: 220px; overflow: hidden; display: flex; flex-direction: column; }
     .nt-head { margin-bottom: 7px; } .nt-head b { font-size: 14.5px; }
-    .nt-list { gap: 6px; flex: 1 1 auto; justify-content: space-evenly; }
+    .nt-list { gap: 6px; flex: 1 1 auto; justify-content: flex-start; }
     .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
-    .inq { display: flex; flex: 1 1 auto; min-height: 0; }
+    .inq { display: flex; flex: 0 0 auto; min-height: 0; }
     .inq-cards { gap: 9px; flex: 1 1 auto; }
-    .inq-card { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; }
+    .inq-card { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; min-height: 120px; }
     .inq-card b { font-size: 14.5px; } .inq-card span { margin-top: 4px; font-size: 11px; }
-    .bb { flex-direction: column; align-items: stretch; padding: 11px 16px; gap: 7px; }
+    /* 남는 세로 공간은 문의 카드가 아니라 배너가 흡수한다.
+       커진 높이를 요소가 다닥다닥 뭉치지 않게 위아래로 펼쳐 채운다. */
+    .bb { flex: 1 1 auto; flex-direction: column; align-items: stretch; padding: 22px 18px; gap: 12px; justify-content: space-between; }
     .bb .badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
-    .bb-l { gap: 3px; }
-    .bb-l b { font-size: 14.5px; } .bb .desc { font-size: 11.5px; line-height: 1.4; }
-    .bb .hylogo { height: 40px; width: 92px; margin: 1px 0 2px -9.3px; }
+    .bb-l { gap: 16px; }
+    .bb-l b { font-size: 16px; } .bb .desc { font-size: 13px; line-height: 1.45; }
+    .bb .hylogo { height: 44px; width: 101px; margin: 1px 0 2px -10.2px; }
     .bb-r { flex-direction: row; align-items: center; justify-content: space-between; }
-    .bb-r b { font-size: 13px; } .bb .soon { padding: 7px 14px; }
+    .bb-r b { font-size: 14px; } .bb .soon { padding: 8px 16px; font-size: 12px; }
     .foot .dot { margin: 0 5px; }
     .foot a { font-size: 11px; } .foot .copy { font-size: 10.5px; }
 }
@@ -123,8 +127,9 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
     #main-section { gap: 6px; }
     /* 다섯 건을 다 넣을 높이가 없다. 스크롤·잘림 대신 건수를 줄인다 */
     .nt-list li:nth-child(n+5) { display: none; }
-    .inq-card { padding: 11px 16px; }
-    .notice { padding: 11px 14px; }
-    .bb { padding: 10px 14px; gap: 6px; }
+    .inq-card { padding: 11px 16px; min-height: 96px; }
+    /* 짧은 화면에선 공지 최소높이를 낮춰 배너가 잘리지 않게 공간을 양보한다 */
+    .notice { padding: 11px 14px; min-height: 150px; }
+    .bb { padding: 10px 14px; gap: 8px; min-height: 150px; }
     .bb .hylogo { height: 34px; width: 78px; margin-left: -7.9px; }
 }
