@@ -109,8 +109,10 @@ function selectPeriod(btn) {
 
 /* 목록 끝에 고정으로 붙는 내 줄. 위 목록과 같은 기간 기준이라 순위가 어긋나지 않는다. */
 async function loadMyRank() {
+    const wrap = document.getElementById('myRankWrap');
     const row = document.getElementById('myRankRow');
-    if (!row) return;
+    const detail = document.getElementById('myRankDetail');
+    if (!wrap || !row) return;
 
     try {
         const res = await authFetch(
@@ -119,7 +121,7 @@ async function loadMyRank() {
         const my = await res.json();
 
         if (my.rank == null) {
-            row.style.display = 'none';
+            wrap.style.display = 'none';
             return;
         }
 
@@ -127,9 +129,23 @@ async function loadMyRank() {
         row.querySelector('.mr-nick').textContent = my.nickname || '나';
         row.querySelector('.mr-time').textContent = (my.best_ms / 1000).toFixed(3) + 's';
         row.querySelector('.rank-split').replaceWith(createSplitBar(my));
-        row.style.display = 'grid';
+
+        detail.innerHTML = `<div class="rank-exp-inner">${segmentListHtml(my)}</div>`;
+        detail.classList.add('hidden');
+        row.classList.remove('open');
+        row.classList.add('clickable');
+        /* 종목·기간을 바꾸면 이 함수가 다시 돈다. 리스너가 겹치지 않게 매번 새로 건다. */
+        row.onclick = () => {
+            const isOpen = row.classList.contains('open');
+            closeAllDetails();
+            if (isOpen) return;
+            row.classList.add('open');
+            detail.classList.remove('hidden');
+        };
+
+        wrap.style.display = 'block';
     } catch (e) {
-        row.style.display = 'none';
+        wrap.style.display = 'none';
     }
 }
 
@@ -193,7 +209,9 @@ async function loadRanking(reset) {
         } else {
             data.data.forEach((item, i) => {
                 const rank = rankingState.rankOffset + i + 1;
-                tbody.appendChild(createRankRow(rank, item));
+                const { tr, detailTr } = createRankRow(rank, item);
+                tbody.appendChild(tr);
+                tbody.appendChild(detailTr);
             });
             rankingState.rankOffset += data.data.length;
         }
@@ -215,14 +233,20 @@ async function loadRanking(reset) {
 
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
+const SEGMENT_LABELS = ['반응', '대기열', '보안문자', '좌석 선택'];
+
 /* 구간 합이 곧 총 시간이다(서버가 좌석을 나머지로 낸다). 보안문자 이전 기록은
    captcha_ms 가 0 이라 세 칸으로 그려진다. */
-function createSplitBar(item) {
-    const bar = document.createElement('span');
-    bar.className = 'rank-split';
-
-    const segments = [item.reaction_time_ms, item.queue_wait_ms, item.captcha_ms, item.seat_selection_ms]
+function segmentsOf(item) {
+    return [item.reaction_time_ms, item.queue_wait_ms, item.captcha_ms, item.seat_selection_ms]
         .map(ms => Number(ms) || 0);
+}
+
+function createSplitBar(item, className = 'rank-split') {
+    const bar = document.createElement('span');
+    bar.className = className;
+
+    const segments = segmentsOf(item);
     const sum = segments.reduce((a, b) => a + b, 0);
     if (!sum) return bar;
 
@@ -233,6 +257,45 @@ function createSplitBar(item) {
         bar.appendChild(seg);
     });
     return bar;
+}
+
+/* 펼쳤을 때 나오는 구간 목록. 막대와 같은 순서·같은 색이라야 둘이 이어진다. */
+function segmentListHtml(item) {
+    const segments = segmentsOf(item);
+    const sum = segments.reduce((a, b) => a + b, 0);
+    if (!sum) return '';
+
+    return segments.map((ms, i) => ms
+        ? `<span class="exp-seg"><i class="lg-dot lg${i + 1}"></i>${SEGMENT_LABELS[i]}`
+          + `<b>${(ms / 1000).toFixed(3)}s</b><em>${Math.round(ms / sum * 100)}%</em></span>`
+        : '').join('');
+}
+
+function createSegmentRow(item, colspan) {
+    const tr = document.createElement('tr');
+    tr.className = 'rank-detail hidden';
+    tr.innerHTML = `<td colspan="${colspan}"><div class="rank-exp-inner">${segmentListHtml(item)}</div></td>`;
+    return tr;
+}
+
+/* 랭킹 줄·내 순위 줄·내 기록 줄이 한 아코디언으로 묶인다. 여러 개가 동시에 열리면
+   목록이 밀려 어느 줄의 상세인지 알기 어려워진다. */
+function closeAllDetails() {
+    document.querySelectorAll('.rank-row-clickable.open, .record-row.open, .my-rank-row.open')
+        .forEach(r => r.classList.remove('open'));
+    document.querySelectorAll('.rank-detail:not(.hidden), .my-rank-detail:not(.hidden)')
+        .forEach(r => r.classList.add('hidden'));
+}
+
+function bindDetailToggle(mainRow, detailRow) {
+    mainRow.addEventListener('click', () => {
+        const isOpen = mainRow.classList.contains('open');
+        closeAllDetails();
+        if (isOpen) return;
+        mainRow.classList.add('open');
+        detailRow.classList.remove('hidden');
+        setTimeout(() => mainRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    });
 }
 
 function createRankRow(rank, item) {
@@ -275,8 +338,12 @@ function createRankRow(rank, item) {
     tr.appendChild(nameTd);
     tr.appendChild(splitTd);
     tr.appendChild(timeTd);
+    tr.classList.add('rank-row-clickable');
 
-    return tr;
+    const detailTr = createSegmentRow(item, 4);
+    bindDetailToggle(tr, detailTr);
+
+    return { tr, detailTr };
 }
 
 // ── 내 기록 패널 ──
@@ -306,7 +373,7 @@ async function loadMyRecords(reset) {
         myState.hasNext = false;
         myState.recordOffset = 0;
         document.getElementById('myRecordTableBody').innerHTML =
-            '<tr class="rank-msg"><td colspan="3">불러오는 중...</td></tr>';
+            '<tr class="rank-msg"><td colspan="4">불러오는 중...</td></tr>';
         document.getElementById('myRecordSentinel').hidden = true;
     }
 
@@ -325,7 +392,7 @@ async function loadMyRecords(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr class="rank-msg"><td colspan="3">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
         } else {
             data.data.forEach((r, i) => {
                 const attemptNum = myState.totalCount - myState.recordOffset - i;
@@ -344,7 +411,7 @@ async function loadMyRecords(reset) {
     } catch (e) {
         if (reset) {
             document.getElementById('myRecordTableBody').innerHTML =
-                '<tr class="rank-msg"><td colspan="3">불러오기에 실패했습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         myState.loading = false;
@@ -406,6 +473,9 @@ function createRecordRows(r, attemptNum) {
     dateTd.style.cssText = 'text-align:left;padding-left:20px;';
     dateTd.textContent = dateStr;
 
+    const splitTd = document.createElement('td');
+    splitTd.appendChild(createSplitBar(r, 'row-split'));
+
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
     badge.className = 'time-badge';
@@ -414,48 +484,13 @@ function createRecordRows(r, attemptNum) {
 
     tr.appendChild(attemptTd);
     tr.appendChild(dateTd);
+    tr.appendChild(splitTd);
     tr.appendChild(timeTd);
 
-    const detailTr = document.createElement('tr');
-    detailTr.className = 'detail-row hidden';
-    detailTr.innerHTML = `
-        <td colspan="3">
-            <div class="detail-title-row">상세 소요 시간</div>
-            <div class="detail-inner">
-                <div class="detail-card">
-                    <div class="detail-label">반응 속도</div>
-                    <div class="detail-value">${(r.reaction_time_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">대기열 소요 시간</div>
-                    <div class="detail-value">${(r.queue_wait_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">좌석 선택 속도</div>
-                    <div class="detail-value">${(r.seat_selection_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">대기열 초기 순번</div>
-                    <div class="detail-value neutral">#${r.queue_initial_rank}번</div>
-                </div>
-            </div>
-        </td>
-    `;
-
-    tr.addEventListener('click', () => toggleDetail(tr, detailTr));
+    const detailTr = createSegmentRow(r, 4);
+    bindDetailToggle(tr, detailTr);
 
     return { tr, detailTr };
-}
-
-function toggleDetail(mainRow, detailRow) {
-    const isOpen = mainRow.classList.contains('open');
-    document.querySelectorAll('.record-row.open').forEach(r => r.classList.remove('open'));
-    document.querySelectorAll('.detail-row:not(.hidden)').forEach(r => r.classList.add('hidden'));
-    if (!isOpen) {
-        mainRow.classList.add('open');
-        detailRow.classList.remove('hidden');
-        setTimeout(() => mainRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
 }
 
 function formatDate(isoString) {

@@ -99,6 +99,13 @@
                         </div>
                     </div>
 
+                    <div class="split-legend">
+                        <span class="lg-item"><i class="lg-dot lg1"></i>반응</span>
+                        <span class="lg-item"><i class="lg-dot lg2"></i>대기열</span>
+                        <span class="lg-item"><i class="lg-dot lg3"></i>보안문자</span>
+                        <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
+                    </div>
+
                     <div class="ranking-table-header">
                         <table class="ranking-table">
                             <colgroup>
@@ -138,14 +145,17 @@
                         <div id="rankingSentinel" class="list-sentinel" hidden>불러오는 중</div>
                     </div>
 
-                    <div id="myRankRow" class="my-rank-row" style="display: none;">
-                        <span class="mr-rank">-</span>
-                        <span class="mr-name">
-                            <span class="mr-nick"></span>
-                            <span class="mr-badge">ME</span>
-                        </span>
-                        <span class="rank-split"></span>
-                        <span class="time-record-badge mr-time">-</span>
+                    <div id="myRankWrap" class="my-rank-wrap" style="display: none;">
+                        <div id="myRankRow" class="my-rank-row">
+                            <span class="mr-rank">-</span>
+                            <span class="mr-name">
+                                <span class="mr-nick"></span>
+                                <span class="mr-badge">ME</span>
+                            </span>
+                            <span class="rank-split"></span>
+                            <span class="time-record-badge mr-time">-</span>
+                        </div>
+                        <div id="myRankDetail" class="my-rank-detail hidden"></div>
                     </div>
                 </div>
 
@@ -190,14 +200,16 @@
                     <div class="my-record-table-header">
                         <table class="record-table">
                             <colgroup>
-                                <col style="width: 13%;">
-                                <col style="width: 47%;">
-                                <col style="width: 40%;">
+                                <col style="width: 11%;">
+                                <col style="width: 36%;">
+                                <col style="width: 25%;">
+                                <col style="width: 28%;">
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th>시도</th>
                                     <th style="text-align: left; padding-left: 20px;">날짜 / 시간</th>
+                                    <th>구간 비중</th>
                                     <th>기록</th>
                                 </tr>
                             </thead>
@@ -207,13 +219,14 @@
                     <div class="my-record-table-body">
                         <table class="record-table">
                             <colgroup>
-                                <col style="width: 13%;">
-                                <col style="width: 47%;">
-                                <col style="width: 40%;">
+                                <col style="width: 11%;">
+                                <col style="width: 36%;">
+                                <col style="width: 25%;">
+                                <col style="width: 28%;">
                             </colgroup>
                             <tbody id="myRecordTableBody">
                                 <tr>
-                                    <td colspan="3"
+                                    <td colspan="4"
                                         style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
                                         기록을 불러오는 중...
                                     </td>
