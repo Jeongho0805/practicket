@@ -267,6 +267,20 @@
         font-family: my-font, sans-serif;
         cursor: pointer;
     }
+
+    /* 자리는 늘 차지해 두고 보이기만 토글한다. 문구가 뜰 때 입력칸이 밀리지 않는다. */
+    #security-error {
+        max-width: 400px;
+        width: 75%;
+        margin: 0;
+        color: #d64550;
+        font-size: 14px;
+        visibility: hidden;
+    }
+
+    #security-error.show {
+        visibility: visible;
+    }
 }
 
 
@@ -545,6 +559,18 @@
         font-family: my-font, sans-serif;
         cursor: pointer;
         font-size: 3vw;
+    }
+
+    #security-error {
+        width: 80%;
+        margin: 0;
+        color: #d64550;
+        font-size: 3.2vw;
+        visibility: hidden;
+    }
+
+    #security-error.show {
+        visibility: visible;
     }
 }
 

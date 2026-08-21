@@ -8,7 +8,7 @@ function checkTimeToLeave() {
         const serverTime = await util.getSyncTime();
         if (serverTime.getSeconds() >= 50) {
             await util.showAlert({ title: '예매 불가', msg: '예매 가능 시간이 지났습니다.\n예매페이지로 돌아갑니다.' });
-            window.location.href = `${HOST}/ticketing`;
+            window.location.replace(`${HOST}/ticketing`);
         }
     }, 1000);
 }
@@ -111,7 +111,7 @@ async function requestReservation() {
     const reservationToken = localStorage.getItem('reservationToken');
     if (!reservationToken) {
         await util.showAlert({ title: '권한 없음', msg: '권한이 없습니다.' });
-        window.location.href = `${HOST}/ticketing`;
+        window.location.replace(`${HOST}/ticketing`);
         return;
     }
 
@@ -128,13 +128,13 @@ async function requestReservation() {
         if (response.ok) {
             localStorage.removeItem('reservationToken');
             await util.showAlert({ title: '예매 완료', msg: '예매가 완료되었습니다!' });
-            window.location.href = `${HOST}/ticketing`;
+            window.location.replace(`${HOST}/ticketing`);
         } else {
             const result = await response.json();
             await util.showAlert({ title: '예매 실패', msg: result.message });
             if (result.code === 'T05' || result.code === 'T06') {
                 localStorage.removeItem('reservationToken');
-                window.location.href = `${HOST}/ticketing`;
+                window.location.replace(`${HOST}/ticketing`);
             }
         }
     } catch (error) {
@@ -150,6 +150,7 @@ function createRandomSecurityText() {
         security_text += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     document.getElementById("security-text").textContent = security_text;
+    document.getElementById("security-error").classList.remove("show");
 }
 
 function activateModalToggle() {
@@ -165,10 +166,14 @@ function activateModalToggle() {
 
 function checkSecurityText() {
     const security_input = document.getElementById("security-input");
+    const security_error = document.getElementById("security-error");
     if (security_input.value.toUpperCase() === security_text) {
+        security_error.classList.remove("show");
         activateModalToggle();
     } else {
+        security_error.classList.add("show");
         security_input.value = "";
+        security_input.focus();
     }
 }
 
