@@ -49,7 +49,7 @@
     display: flex;
 }
 
-.pkt-modal-header--fail {
+.pkt-modal-card .pkt-modal-header--fail {
     background: #6b6480;
 }
 
@@ -165,6 +165,44 @@
     font-size: 12px;
     color: rgba(255, 255, 255, 0.55);
     font-weight: 500;
+}
+
+/* 기록이 저장되지 않았을 때 순위 바 대신 뜬다. 둘은 같은 자리를 나눠 쓴다. */
+.pkt-unsaved-bar {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+.pkt-unsaved-bar .ub-mark {
+    width: 3px;
+    height: 26px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+}
+
+.pkt-unsaved-bar .ub-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pkt-unsaved-bar .ub-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.pkt-unsaved-bar .ub-why {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .pkt-percentile-bar {
@@ -435,9 +473,10 @@
 }
 
 /* 내 최고 기록. 이번 기록과 같은 척도로 그려야 길이 비교가 성립한다. */
-.pkt-seg1 { background: #d6cbe9; color: #514897; }
-.pkt-seg2 { background: #8470b3; }
-.pkt-seg3 { background: #514897; }
+.pkt-seg1 { background: #ded5ee; color: #514897; }
+.pkt-seg2 { background: #b3a3d4; }
+.pkt-seg3 { background: #8470b3; }
+.pkt-seg4 { background: #514897; }
 
 /* 구간마다 한 줄씩 두고 값을 오른쪽 끝에 붙인다. 가로로 늘어놓으면 폭이 모자랄 때
    줄마다 개수가 달라지고, 보안문자 같은 구간이 늘면 더 어긋난다. */
@@ -506,6 +545,26 @@
 .pkt-capture,
 .pkt-capture * {
     animation: none !important;
+}
+
+.pkt-capture {
+    width: 400px;
+    max-width: none;
+    box-shadow: 0 10px 30px rgba(81, 72, 151, 0.18);
+}
+
+/* 캡처는 항상 400px 이라 좁은 화면용 축소가 필요 없다. */
+.pkt-capture .pkt-total-num {
+    font-size: 32px;
+}
+
+/* 카드만 찍으면 세로가 길어 SNS 가 아래를 잘라내고 로고와 날짜가 사라진다.
+   배경을 둘러 4:5 로 맞추면 잘리지 않고, 흰 배경 앱에서도 카드 경계가 보인다. */
+.pkt-capture-frame {
+    background: #e9e5f3;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
 .pkt-capture .pkt-btn-section {

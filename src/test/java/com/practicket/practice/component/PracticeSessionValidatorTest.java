@@ -34,8 +34,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class PracticeSessionValidatorTest {
 
-    private static final int COUNTDOWN_MS = 5_000;
-
     @InjectMocks
     private PracticeSessionValidator validator;
 
@@ -43,7 +41,7 @@ class PracticeSessionValidatorTest {
     private PracticeSessionRepository sessionRepository;
 
     @Test
-    @DisplayName("정상: 세션의 type 과 시작 시각을 꺼내 돌려준다")
+    @DisplayName("정상: 세션의 type 과 시작 시각, 서버가 잰 경과를 돌려준다")
     void returnsSessionInfoWhenValid() {
         ClientInfo clientInfo = buildClientInfo("client-token-abc");
         String sessionId = "session-id";
@@ -51,6 +49,7 @@ class PracticeSessionValidatorTest {
 
         when(sessionRepository.find(sessionId)).thenReturn(session);
         when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
+        when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(15));
         when(sessionRepository.getType(session)).thenReturn(PracticeType.M_TICKET.name());
 
@@ -59,6 +58,16 @@ class PracticeSessionValidatorTest {
 
         assertThat(result.type()).isEqualTo(PracticeType.M_TICKET);
         assertThat(result.startedAt()).isNotNull();
+        assertThat(result.serverElapsedMs()).isCloseTo(10_000, org.assertj.core.data.Offset.offset(200));
+    }
+
+    @Test
+    @DisplayName("좌석 구간은 서버 경과에서 나머지 구간을 뺀 값이다 — 구간 합이 총 시간과 어긋나지 않는다")
+    void derivesSeatSelectionFromServerElapsed() {
+        ValidatedSession validated = new ValidatedSession(PracticeType.N_TICKET, null, 15_000);
+
+        // 반응 2,000 + 대기 5,000 + 보안문자 1,000 을 뺀 나머지
+        assertThat(validated.seatSelectionMs(buildRequest("session-id", 15_000))).isEqualTo(7_000);
     }
 
     @Test
@@ -90,6 +99,23 @@ class PracticeSessionValidatorTest {
     }
 
     @Test
+    @DisplayName("관문 없음: PRACTICE_CHECKPOINT_MISSING — start 와 complete 만 부르는 요청을 거른다")
+    void throwsWhenCheckpointMissing() {
+        ClientInfo clientInfo = buildClientInfo("client-token-abc");
+        String sessionId = "session-id";
+        Map<Object, Object> session = Map.of("exists", "true");
+
+        when(sessionRepository.find(sessionId)).thenReturn(session);
+        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
+        when(sessionRepository.hasCheckpoint(session)).thenReturn(false);
+
+        assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 10_000)))
+                .isInstanceOf(PracticeException.class)
+                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.PRACTICE_CHECKPOINT_MISSING));
+    }
+
+    @Test
     @DisplayName("너무 빠른 요청: PRACTICE_TOO_FAST — 시작하자마자 완료를 부르는 건 사람이 한 게 아니다")
     void throwsWhenTooFast() {
         ClientInfo clientInfo = buildClientInfo("client-token-abc");
@@ -98,6 +124,7 @@ class PracticeSessionValidatorTest {
 
         when(sessionRepository.find(sessionId)).thenReturn(session);
         when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
+        when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(0));
 
         assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 100)))
@@ -115,10 +142,30 @@ class PracticeSessionValidatorTest {
 
         when(sessionRepository.find(sessionId)).thenReturn(session);
         when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
+        when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(15));
 
         // 서버 경과는 10초인데 3ms 걸렸다고 보냈다 — 허용 오차 2초를 한참 넘는다
         assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 3)))
+                .isInstanceOf(PracticeException.class)
+                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
+                        .isEqualTo(ErrorCode.PRACTICE_INVALID_TIMING));
+    }
+
+    @Test
+    @DisplayName("구간 합이 서버 경과보다 크면: PRACTICE_INVALID_TIMING — 브라우저 시계로는 나올 수 없는 값이다")
+    void throwsWhenSegmentSumExceedsServerElapsed() {
+        ClientInfo clientInfo = buildClientInfo("client-token-abc");
+        String sessionId = "session-id";
+        Map<Object, Object> session = Map.of("exists", "true");
+
+        when(sessionRepository.find(sessionId)).thenReturn(session);
+        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
+        when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
+        when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(9));
+
+        // 서버 경과는 4초인데 구간 합은 8초를 신고했다
+        assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 4_000)))
                 .isInstanceOf(PracticeException.class)
                 .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
                         .isEqualTo(ErrorCode.PRACTICE_INVALID_TIMING));
@@ -141,7 +188,7 @@ class PracticeSessionValidatorTest {
         ReflectionTestUtils.setField(request, "totalDurationMs", totalDurationMs);
         ReflectionTestUtils.setField(request, "reactionTimeMs", 2_000);
         ReflectionTestUtils.setField(request, "queueWaitMs", 5_000);
-        ReflectionTestUtils.setField(request, "seatSelectionMs", 2_000);
+        ReflectionTestUtils.setField(request, "captchaMs", 1_000);
         ReflectionTestUtils.setField(request, "queueInitialRank", 10);
         return request;
     }

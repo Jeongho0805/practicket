@@ -20,7 +20,7 @@ public class PracticeResultRequest {
     private int queueWaitMs;
 
     @Min(0)
-    private int seatSelectionMs;
+    private int captchaMs;
 
     @Min(0)
     private int queueInitialRank;

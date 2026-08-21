@@ -407,9 +407,10 @@
     height: 100%;
 }
 
-.rank-split .s1 { background: #d6cbe9; }
-.rank-split .s2 { background: #8470b3; }
-.rank-split .s3 { background: #514897; }
+.rank-split .s1 { background: #ded5ee; }
+.rank-split .s2 { background: #b3a3d4; }
+.rank-split .s3 { background: #8470b3; }
+.rank-split .s4 { background: #514897; }
 
 .rank-name-wrap {
     display: inline-flex;

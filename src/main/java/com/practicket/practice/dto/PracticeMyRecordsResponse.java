@@ -20,6 +20,7 @@ public class PracticeMyRecordsResponse {
         private final int totalDurationMs;
         private final int reactionTimeMs;
         private final int queueWaitMs;
+        private final int captchaMs;
         private final int seatSelectionMs;
         private final int queueInitialRank;
         private final LocalDateTime startedAt;

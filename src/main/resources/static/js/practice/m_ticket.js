@@ -11,13 +11,14 @@
 import { authFetch } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton
+    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
 } from '/js/practice/result-split.js';
+import * as run from '/js/practice/run-state.js';
 
 const INTRO_URL = '/practice/m-ticket/intro';
 const BEST_RECORD_KEY = bestRecordKey('m-ticket');
 
-const sessionId = sessionStorage.getItem('pkt.sessionId');
+const sessionId = run.sessionId();
 if (!sessionId) window.location.replace(INTRO_URL);
 
 const $ = id => document.getElementById(id);
@@ -25,12 +26,13 @@ const now = () => performance.now();
 const fmt = ms => (ms / 1000).toFixed(2);
 const won = n => n.toLocaleString('ko-KR') + '원';
 
+/* 좌석 시계는 이 페이지가 뜨는 순간(=대기열이 끝난 순간)부터 돈다.
+   보안문자에 쓴 시간은 따로 재서 빼므로 좌석 구간에 섞이지 않는다. */
 const T = {
-    reaction: parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0', 10),
-    queue: parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0', 10),
-    initialRank: parseInt(sessionStorage.getItem('pkt.queueInitialRank') || '0', 10),
-    seatStart: 0,
-    seat: 0,
+    reaction: run.reactionMs(),
+    queue: run.queueWaitMs(),
+    initialRank: run.initialRank(),
+    seatStart: now(),
 };
 
 const GRADES = {
@@ -243,12 +245,12 @@ let curZone = '', curGrade = 'R';
 
 const ROWS = 16, COLS = 22, ZONE_SEATS = ROWS * COLS;
 
-/* 좌석은 대기열이 시작된 순간부터 팔린다 — 대기열에서 끈 만큼 이미 자리가 없다.
+/* 좌석은 카운트다운이 끝난 순간부터 팔린다 — 예매를 늦게 눌러도 자리는 이미 줄어 있다.
    값과 곡선은 n-ticket 과 같다. 오픈 직후가 가장 빠르고 갈수록 느려진다.
    실물 멜론은 폴링하지 않으므로 그 결과는 새로고침을 눌러야 보인다. */
 const SELL = { totalMs: 40000, k: 2 };
 
-const sellStartAt = Number(sessionStorage.getItem('pkt.queueStartAt')) || Date.now();
+const sellStartAt = run.openedAt() || Date.now();
 
 /* 좋은 자리부터 나가되 앞줄이 칼같이 채워지지는 않는다.
    JITTER 가 열 간격(100)보다 커야 열을 넘나들고, RANDOM 비율은 자리를 안 가리는 사람이라
@@ -482,8 +484,9 @@ function seatTaken() {
 function soldOut() {
     if ($('pkt-soldout-overlay').classList.contains('visible')) return;
 
-    const seatMs = T.seatStart ? Math.round(now() - T.seatStart) : 0;
-    const segments = [T.reaction, T.queue, seatMs];
+    const captchaMs = run.captchaMs();
+    const seatMs = Math.max(0, Math.round(now() - T.seatStart) - captchaMs);
+    const segments = [T.reaction, T.queue, captchaMs, seatMs];
     const total = segments.reduce((a, b) => a + b, 0);
 
     const meta = ['M-Ticket'];
@@ -496,13 +499,13 @@ function soldOut() {
     $('pkt-fail-total').textContent = fmt(total) + '초';
     $('pkt-fail-reaction').textContent = fmt(T.reaction) + '초';
     $('pkt-fail-queue').textContent = fmt(T.queue) + '초';
+    $('pkt-fail-captcha').textContent = fmt(captchaMs) + '초';
     $('pkt-fail-seat').textContent = fmt(seatMs) + '초';
 
     renderSplitBar($('pkt-fail-stack'), segments, total);
     renderFailHint($('pkt-fail-hint'), segments);
 
     $('pkt-soldout-overlay').classList.add('visible');
-    sessionStorage.removeItem('pkt.sessionId');
 }
 
 /* ══════════ 보안문자 ══════════
@@ -560,12 +563,13 @@ function openCaptcha(mode) {
         : '좌석 선택 다시 하기';
     $('cap').classList.add('open');
     $('cap-dim').classList.add('open');
+    run.captchaOpened();
 }
 
 function closeCaptcha() {
     $('cap').classList.remove('open');
     $('cap-dim').classList.remove('open');
-    if (!T.seatStart) T.seatStart = now();   // 좌석 시간은 첫 보안문자를 넘긴 순간부터
+    run.captchaClosed();
 }
 
 $('cap-reload').addEventListener('click', drawCaptcha);
@@ -587,45 +591,42 @@ $('cap-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('cap-
 
 /* ══════════ 완료 ══════════ */
 
+/* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function finish() {
-    T.seat = Math.round(now() - T.seatStart);
-    const total = T.reaction + T.queue + T.seat;
-
-    let result = {
-        total_duration_ms: total,
+    const captchaMs = run.captchaMs();
+    const sent = {
+        total_duration_ms: Math.max(0, Date.now() - run.openedAt()),
         reaction_time_ms: T.reaction,
         queue_wait_ms: T.queue,
-        seat_selection_ms: T.seat,
+        captcha_ms: captchaMs,
         queue_initial_rank: T.initialRank,
     };
+
+    let result = { ...sent, seat_selection_ms: Math.max(0, Math.round(now() - T.seatStart) - captchaMs) };
+    let saved = false;
 
     try {
         const res = await authFetch('/api/practice/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId, ...result }),
+            body: JSON.stringify({ session_id: sessionId, ...sent }),
         });
         if (res.ok) {
             result = { ...result, ...await res.json() };
+            saved = true;
         } else {
             const err = await res.json().catch(() => ({}));
-            showToast(err.message || '기록 저장에 실패했습니다.');
+            console.warn('[Practicket] complete 실패:', err.message);
         }
     } catch (e) {
         console.error('[Practicket] complete 실패:', e);
-        showToast('네트워크 오류로 기록이 저장되지 않았습니다.');
-    } finally {
-        sessionStorage.removeItem('pkt.sessionId');
-        sessionStorage.removeItem('pkt.reactionTimeMs');
-        sessionStorage.removeItem('pkt.queueWaitMs');
-        sessionStorage.removeItem('pkt.queueInitialRank');
     }
 
-    showCompleteModal(result);
+    showCompleteModal(result, saved);
 }
 
-/* i-ticket 과 같은 모달이다. 총 시간이 곧 세 구간의 합이라 막대 척도도 그 합을 쓴다. */
-function showCompleteModal(r) {
+/* i-ticket 과 같은 모달이다. 네 구간의 합이 곧 총 시간이라 막대 척도도 그 합을 쓴다. */
+function showCompleteModal(r, saved) {
     const sec = ms => (ms / 1000).toFixed(3) + '초';
 
     const meta = ['M-Ticket'];
@@ -635,20 +636,26 @@ function showCompleteModal(r) {
     $('pkt-total-num').textContent = (r.total_duration_ms / 1000).toFixed(3);
     $('pkt-reaction').textContent = sec(r.reaction_time_ms);
     $('pkt-queue').textContent = sec(r.queue_wait_ms);
+    $('pkt-captcha').textContent = sec(r.captcha_ms);
     $('pkt-seat').textContent = sec(r.seat_selection_ms);
 
-    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.seat_selection_ms];
+    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.captcha_ms, r.seat_selection_ms];
     const segmentSum = segments.reduce((a, b) => a + b, 0);
     const best = readBestRecord(BEST_RECORD_KEY);
-    const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
 
-    const scale = Math.max(segmentSum, bestSum);
+    const scale = segmentSum;
     renderSplitBar($('pkt-stack'), segments, scale);
 
     renderCompleteHint(segments, segmentSum);
     renderBestTag(r.total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
     bindShareButton();
+
+    if (!saved) {
+        showUnsavedNotice();
+        $('pkt-complete-overlay').classList.add('visible');
+        return;
+    }
 
     const bar = $('pkt-percentile-bar');
     if (r.percentile != null && r.total_users >= 2) {

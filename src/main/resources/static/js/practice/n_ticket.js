@@ -18,8 +18,9 @@
 import { authFetch, showAlert } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton
+    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
 } from '/js/practice/result-split.js';
+import * as run from '/js/practice/run-state.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
 const BEST_RECORD_KEY = bestRecordKey('n-ticket');
@@ -33,8 +34,8 @@ const TICK_MS = 200;
 const SEAT_LIMIT_MS = 10 * 60 * 1000;
 const MAX_PICK = 4;
 
-const reaction = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0', 10);
-const sessionId = sessionStorage.getItem('pkt.sessionId') || '';
+const reaction = run.reactionMs();
+const sessionId = run.sessionId();
 if (!reaction) {
     window.location.replace(INTRO_URL);
 }
@@ -44,9 +45,13 @@ const now = () => performance.now();
 const fmt = ms => (ms / 1000).toFixed(2);
 const won = n => n.toLocaleString('ko-KR') + '원';
 
-/* decayStart 는 좌석이 팔리기 시작하는 시점이다. 대기열이 시작된 순간으로 잡아야
-   대기열에서 보낸 시간만큼 이미 팔려 있어 "늦게 들어오면 자리가 없다"가 따로 계산 없이 성립한다. */
-const T = { queue: 0, seatStart: 0, seat: 0, firstRank: 0, decayStart: 0 };
+/* 좌석은 카운트다운이 끝난 순간부터 팔린다. 실전은 오픈과 동시에 모두가 달려들기 때문에,
+   내가 예매를 늦게 눌러도 자리는 이미 줄어 있어야 한다.
+   sessionStorage 시각이라 새로고침해도 팔린 좌석이 되살아나지 않는다. */
+const decayStartAt = run.openedAt() || Date.now();
+const soldElapsed = () => Date.now() - decayStartAt;
+
+const T = { seatStart: 0, seat: 0, firstRank: 0 };
 
 function showScreen(id) {
     document.querySelectorAll('.nt-screen').forEach(s => s.classList.toggle('is-active', s.id === id));
@@ -74,8 +79,9 @@ function startQueue() {
     const line1El = $('waitLine1');
     const line2El = $('waitLine2');
 
+    /* 순번은 대기열 화면이 뜬 시각부터 다시 센다. 실물도 "새로고침하면 대기순서가 초기화"된다.
+       걸린 시간은 예매 클릭부터 재므로(run.markQueuePassed) 다시 서는 만큼 손해가 남는다. */
     const startedAt = now();
-    T.decayStart = startedAt;
 
     const render = () => {
         const elapsedSec = (now() - startedAt) / 1000;
@@ -102,7 +108,8 @@ function startQueue() {
 
         if (isDone) {
             clearInterval(timer);
-            T.queue = now() - startedAt;
+            run.markQueuePassed();
+            run.sendCheckpoint(authFetch);
             enterSeat();
         }
     };
@@ -690,7 +697,7 @@ function startSeatTimer() {
     const until = now() + SEAT_LIMIT_MS;
 
     const tick = () => {
-        sellUpTo(soldAt(now() - T.decayStart));
+        sellUpTo(soldAt(soldElapsed()));
         if (isSoldOut()) {
             clearInterval(seatTimer);
             showSoldOut();
@@ -705,7 +712,7 @@ function startSeatTimer() {
         if (left > 0) return;
         clearInterval(seatTimer);
         showAlert({ title: '시간 만료', msg: '좌석 선택 시간이 끝났습니다.\n다시 연습해주세요.' })
-            .then(() => { window.location.href = INTRO_URL });
+            .then(() => { window.location.replace(INTRO_URL) });
     };
 
     tick();
@@ -777,6 +784,7 @@ function submitCaptcha() {
     }
     $('capModal').hidden = true;
     $('capDim').hidden = true;
+    run.captchaClosed();
     showHint('원하는 좌석을 직접 선택해주세요.', 2600);
 }
 
@@ -787,10 +795,11 @@ function enterSeat() {
     showScreen('screen-seat');
     resetView(false);
     /* 들어올 때 한 번은 맞춰 놓는다. 실물도 진입 시 좌석 상태를 받아온다 */
-    sellUpTo(soldAt(now() - T.decayStart));
+    sellUpTo(soldAt(soldElapsed()));
     syncSeats();
     startSeatTimer();
     newCaptcha();
+    run.captchaOpened();
     $('capDim').hidden = false;
     $('capModal').hidden = false;
     $('capInput').focus();
@@ -799,10 +808,11 @@ function enterSeat() {
 /* 매진은 실패라 기록을 보내지 않는다. 막대에 좌석 구간까지 넣어야
    시간을 어디서 다 썼는지가 드러난다 — i-ticket 과 같은 모달이다. */
 function showSoldOut() {
-    const reactionMs = Math.round(reaction);
-    const queueMs = Math.round(T.queue);
-    const seatMs = Math.round(now() - T.seatStart);
-    const total = reactionMs + queueMs + seatMs;
+    const reactionMs = reaction;
+    const queueMs = run.queueWaitMs();
+    const captchaMs = run.captchaMs();
+    const seatMs = Math.max(0, Math.round(now() - T.seatStart) - captchaMs);
+    const total = reactionMs + queueMs + captchaMs + seatMs;
 
     $('pkt-fail-meta').textContent =
         `N-Ticket · 대기 순번 ${T.firstRank.toLocaleString('ko-KR')}번에서 출발`;
@@ -811,57 +821,59 @@ function showSoldOut() {
 
     $('pkt-fail-reaction').textContent = fmt(reactionMs) + '초';
     $('pkt-fail-queue').textContent = fmt(queueMs) + '초';
+    $('pkt-fail-captcha').textContent = fmt(captchaMs) + '초';
     $('pkt-fail-seat').textContent = fmt(seatMs) + '초';
     $('pkt-fail-total').textContent = fmt(total) + '초';
 
-    renderSplitBar($('pkt-fail-stack'), [reactionMs, queueMs, seatMs], total);
-    renderFailHint($('pkt-fail-hint'), [reactionMs, queueMs, seatMs]);
+    const segments = [reactionMs, queueMs, captchaMs, seatMs];
+    renderSplitBar($('pkt-fail-stack'), segments, total);
+    renderFailHint($('pkt-fail-hint'), segments);
 
     $('pkt-soldout-overlay').classList.add('visible');
-    sessionStorage.removeItem('pkt.sessionId');
 }
 
+/* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function finish() {
     if (!picked.length) return;
     clearInterval(seatTimer);
-    T.seat = now() - T.seatStart;
 
-    let result = {
-        total_duration_ms: Math.round(reaction) + Math.round(T.queue) + Math.round(T.seat),
-        reaction_time_ms: Math.round(reaction),
-        queue_wait_ms: Math.round(T.queue),
-        seat_selection_ms: Math.round(T.seat),
+    const captchaMs = run.captchaMs();
+    const sent = {
+        total_duration_ms: Math.max(0, Date.now() - run.openedAt()),
+        reaction_time_ms: reaction,
+        queue_wait_ms: run.queueWaitMs(),
+        captcha_ms: captchaMs,
         queue_initial_rank: T.firstRank,
     };
+
+    let result = { ...sent, seat_selection_ms: Math.max(0, Math.round(now() - T.seatStart) - captchaMs) };
+    let saved = false;
 
     if (sessionId) {
         try {
             const res = await authFetch('/api/practice/complete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: sessionId, ...result }),
+                body: JSON.stringify({ session_id: sessionId, ...sent }),
             });
 
             if (res.ok) {
                 result = { ...result, ...await res.json() };
+                saved = true;
             } else {
                 const err = await res.json().catch(() => ({}));
                 console.warn('[Practicket] complete 실패:', err.message);
             }
         } catch (e) {
             console.error('[Practicket] complete 실패:', e);
-        } finally {
-            sessionStorage.removeItem('pkt.sessionId');
-            sessionStorage.removeItem('pkt.reactionStartMs');
-            sessionStorage.removeItem('pkt.reactionTimeMs');
         }
     }
 
-    showCompleteModal(result);
+    showCompleteModal(result, saved);
 }
 
-/* i-ticket·m-ticket 과 같은 모달이다. 총 시간이 곧 세 구간의 합이라 막대 척도도 그 합을 쓴다. */
-function showCompleteModal(r) {
+/* i-ticket·m-ticket 과 같은 모달이다. 네 구간의 합이 곧 총 시간이라 막대 척도도 그 합을 쓴다. */
+function showCompleteModal(r, saved) {
     const sec = ms => (ms / 1000).toFixed(3) + '초';
 
     const meta = ['N-Ticket'];
@@ -871,20 +883,26 @@ function showCompleteModal(r) {
     $('pkt-total-num').textContent = (r.total_duration_ms / 1000).toFixed(3);
     $('pkt-reaction').textContent = sec(r.reaction_time_ms);
     $('pkt-queue').textContent = sec(r.queue_wait_ms);
+    $('pkt-captcha').textContent = sec(r.captcha_ms);
     $('pkt-seat').textContent = sec(r.seat_selection_ms);
 
-    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.seat_selection_ms];
+    const segments = [r.reaction_time_ms, r.queue_wait_ms, r.captcha_ms, r.seat_selection_ms];
     const segmentSum = segments.reduce((a, b) => a + b, 0);
     const best = readBestRecord(BEST_RECORD_KEY);
-    const bestSum = best ? best.segments.reduce((a, b) => a + b, 0) : 0;
 
-    const scale = Math.max(segmentSum, bestSum);
+    const scale = segmentSum;
     renderSplitBar($('pkt-stack'), segments, scale);
 
     renderCompleteHint(segments, segmentSum);
     renderBestTag(r.total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
     bindShareButton();
+
+    if (!saved) {
+        showUnsavedNotice();
+        $('pkt-complete-overlay').classList.add('visible');
+        return;
+    }
 
     const bar = $('pkt-percentile-bar');
     if (r.percentile != null && r.total_users >= 2) {

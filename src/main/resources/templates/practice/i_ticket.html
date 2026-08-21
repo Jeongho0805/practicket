@@ -254,6 +254,13 @@
                         <span class="pb-value" id="pkt-percentile-value">-</span>
                     </div>
                 </div>
+                <div class="pkt-unsaved-bar" id="pkt-unsaved-bar" style="display:none">
+                    <span class="ub-mark"></span>
+                    <div class="ub-texts">
+                        <span class="ub-label">이번 기록은 저장되지 않았어요</span>
+                        <span class="ub-why">비정상 기록이거나 서버 오류예요</span>
+                    </div>
+                </div>
             </div>
             <div class="pkt-total-section">
                 <span class="pkt-total-label">총 소요 시간</span>
@@ -271,14 +278,15 @@
                 <div class="pkt-legend">
                     <span><i class="pkt-seg1"></i>반응 <b id="pkt-reaction">-</b></span>
                     <span><i class="pkt-seg2"></i>대기열 <b id="pkt-queue">-</b></span>
-                    <span><i class="pkt-seg3"></i>좌석 <b id="pkt-seat">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-seat">-</b></span>
                 </div>
             </div>
             <div class="pkt-hint" id="pkt-hint" style="display:none"></div>
             <div class="pkt-btn-section">
                 <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 연습</button>
                 <button class="pkt-btn-share" id="pkt-share">공유</button>
-                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 →</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=I_TICKET_OLD'">순위표 →</button>
             </div>
         </div>
     </div>
@@ -305,13 +313,14 @@
                 <div class="pkt-legend">
                     <span><i class="pkt-seg1"></i>반응 <b id="pkt-fail-reaction">-</b></span>
                     <span><i class="pkt-seg2"></i>대기열 <b id="pkt-fail-queue">-</b></span>
-                    <span><i class="pkt-seg3"></i>좌석 <b id="pkt-fail-seat">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-fail-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-fail-seat">-</b></span>
                 </div>
             </div>
             <div class="pkt-hint" id="pkt-fail-hint" style="display:none"></div>
             <div class="pkt-btn-section">
                 <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 도전</button>
-                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=I_TICKET_OLD'">순위표 보기 →</button>
             </div>
         </div>
     </div>

@@ -53,19 +53,35 @@ public class PracticeService {
         return new PracticeStartResponse(sessionId);
     }
 
+    /**
+     * 대기열을 통과한 순간 브라우저가 한 번 부른다. 응답으로 내려주는 값은 없다 —
+     * 통과했다는 사실은 세션에만 남고, complete 가 그 세션을 본다.
+     */
+    public void checkpoint(ClientInfo clientInfo, String sessionId) {
+        var session = sessionRepository.find(sessionId);
+        if (session.isEmpty()) {
+            throw new PracticeException(ErrorCode.PRACTICE_SESSION_NOT_FOUND);
+        }
+        if (!clientInfo.getToken().equals(sessionRepository.getClientKey(session))) {
+            throw new PracticeException(ErrorCode.PRACTICE_SESSION_OWNER_MISMATCH);
+        }
+        sessionRepository.markCheckpoint(sessionId, Instant.now().toEpochMilli());
+    }
+
     public PracticeCompleteResponse complete(ClientInfo clientInfo, PracticeResultRequest request) {
         ValidatedSession vs = sessionValidator.validate(clientInfo, request);
 
         resultRepository.save(vs.toResult(clientInfo, request));
         sessionRepository.delete(request.getSessionId());
 
-        MonthlyRank rank = rankCalculator.calculate(vs.type(), request.getTotalDurationMs());
+        MonthlyRank rank = rankCalculator.calculate(vs.type(), vs.serverElapsedMs());
 
         return new PracticeCompleteResponse(
-                request.getTotalDurationMs(),
+                vs.serverElapsedMs(),
                 request.getReactionTimeMs(),
                 request.getQueueWaitMs(),
-                request.getSeatSelectionMs(),
+                request.getCaptchaMs(),
+                vs.seatSelectionMs(request),
                 request.getQueueInitialRank(),
                 rank.percentile(),
                 rank.myRank(),
@@ -85,7 +101,7 @@ public class PracticeService {
 
         List<PracticeRankItem> items = data.stream()
                 .map(e -> new PracticeRankItem(e.nickname(), e.totalDurationMs(),
-                        e.reactionTimeMs(), e.queueWaitMs(), e.seatSelectionMs()))
+                        e.reactionTimeMs(), e.queueWaitMs(), e.captchaMs(), e.seatSelectionMs()))
                 .toList();
 
         if (!hasNext) {
@@ -112,9 +128,10 @@ public class PracticeService {
                         best.getTotalDurationMs(),
                         best.getReactionTimeMs(),
                         best.getQueueWaitMs(),
+                        best.getCaptchaMs(),
                         best.getSeatSelectionMs(),
                         totalUsers))
-                .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, totalUsers));
+                .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, null, totalUsers));
     }
 
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
@@ -163,6 +180,7 @@ public class PracticeService {
                         r.getTotalDurationMs(),
                         r.getReactionTimeMs(),
                         r.getQueueWaitMs(),
+                        r.getCaptchaMs(),
                         r.getSeatSelectionMs(),
                         r.getQueueInitialRank(),
                         r.getStartedAt()

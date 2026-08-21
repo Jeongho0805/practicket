@@ -42,6 +42,9 @@ public class PracticeResult {
     private int queueWaitMs;
 
     @Column(nullable = false)
+    private int captchaMs;
+
+    @Column(nullable = false)
     private int seatSelectionMs;
 
     @Column(nullable = false)
@@ -53,7 +56,7 @@ public class PracticeResult {
 
     public PracticeResult(String clientKey, String nickname, PracticeType type, LocalDateTime startedAt,
                           int totalDurationMs, int reactionTimeMs, int queueWaitMs,
-                          int seatSelectionMs, int queueInitialRank) {
+                          int captchaMs, int seatSelectionMs, int queueInitialRank) {
         this.clientKey = clientKey;
         this.nickname = nickname;
         this.type = type;
@@ -61,6 +64,7 @@ public class PracticeResult {
         this.totalDurationMs = totalDurationMs;
         this.reactionTimeMs = reactionTimeMs;
         this.queueWaitMs = queueWaitMs;
+        this.captchaMs = captchaMs;
         this.seatSelectionMs = seatSelectionMs;
         this.queueInitialRank = queueInitialRank;
     }

@@ -1,4 +1,9 @@
 import { authFetch, showAlert } from '/js/common.js';
+import * as run from '/js/practice/run-state.js';
+
+/* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
+   앞으로가기 한 번에 끝난 판이 되살아난다. */
+run.clearRun();
 
 const COUNTDOWN_SECONDS = 5;
 
@@ -15,13 +20,9 @@ const OPEN_NOTICE = {
     mo: '2월 8일 18:00 티켓오픈!',
 };
 
-/*
-  실물은 카운트가 0이 되어도 바로 열리지 않는다 — 서버에 다시 물어보는 왕복이 있다.
-  0초에 맞춰 미리 누를 수 없고 버튼이 뜨는 것을 보고 눌러야 하는 구간이라 그대로 둔다.
-  고정값이면 타이밍을 외워 화면을 안 보고도 좋은 기록이 나오므로 범위로 흔든다.
-  반응 시간은 이 구간이 끝난 뒤부터 재므로 기록에는 들어가지 않는다.
-*/
-const OPEN_DELAY = { MIN: 400, MAX: 1400 };
+/* 대기열 화면이 뜨고 순번이 돌기 시작할 때까지의 로딩. i-ticket·n-ticket 과 같은 값이다.
+   실물 멜론은 넷퍼넬에 진입을 물어보는 왕복이 여기 들어간다. */
+const LOADING_MS = 800;
 
 const SCHEDULE = [
     { date: '2026년 02월 08일 일요일', times: ['18시 00분'] },
@@ -113,7 +114,7 @@ function onPick(event) {
 
 function unlock() {
     unlocked = true;
-    sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
+    run.markOpened();
 
     $('open-line').classList.add('is-hidden');
     $('process-cols').classList.remove('is-hidden');
@@ -145,7 +146,7 @@ function runCountdown() {
         if (seconds > 0) return;
 
         clearInterval(timer);
-        setTimeout(unlock, OPEN_DELAY.MIN + Math.random() * (OPEN_DELAY.MAX - OPEN_DELAY.MIN));
+        unlock();
     }, 1000);
 }
 
@@ -154,15 +155,15 @@ async function startPractice() {
         const res = await authFetch('/api/practice/start?type=M_TICKET', { method: 'POST' });
         if (!res.ok) {
             await showAlert({ title: '세션 오류', msg: '연습 세션을 시작할 수 없습니다.\n다시 로그인하거나 나중에 시도해주세요.' });
-            window.location.href = '/practice';
+            window.location.replace('/practice');
             return;
         }
         const data = await res.json();
-        sessionStorage.setItem('pkt.sessionId', data.session_id);
+        run.setSessionId(data.session_id);
     } catch (e) {
         console.error('[Practicket] Failed to start session:', e);
         await showAlert({ title: '네트워크 오류', msg: '네트워크 오류가 발생했습니다.\n다시 시도해주세요.' });
-        window.location.href = '/practice';
+        window.location.replace('/practice');
         return;
     }
 
@@ -180,18 +181,24 @@ function badgeFor(count) {
 function startQueue() {
     const step = Math.min(Math.floor(Math.min(reactionMs, QUEUE.MAX_REACTION) / 100), 30);
     const initialRank = Math.round(QUEUE.MIN + (step / 30) * (QUEUE.MAX - QUEUE.MIN));
-    sessionStorage.setItem('pkt.queueInitialRank', initialRank.toString());
+    run.setInitialRank(initialRank);
 
     // 실물의 "뒤에 N명" 자리. 우리는 서버 대기열이 없으므로 초기 순번에서 파생시킨다.
     const behind = Math.round(initialRank * 0.37);
     $('q-behind').textContent = behind.toLocaleString();
 
+    /* 실물은 넷퍼넬에 진입을 물어보는 동안 순번 자리가 비어 있다.
+       팝업을 먼저 띄우고 로딩이 끝난 뒤에 숫자가 돌기 시작한다. */
     $('queue-dim').style.display = 'block';
     $('queue-pop').style.display = 'block';
+    $('q-count').textContent = '-';
+    $('q-left').textContent = '계산 중';
 
+    setTimeout(() => runQueueTicker(initialRank), LOADING_MS);
+}
+
+function runQueueTicker(initialRank) {
     const startedAt = now();
-    // 좌석은 이 순간부터 팔리기 시작한다. 대기열에서 끈 만큼 자리가 없어야 한다(n-ticket 과 같다)
-    sessionStorage.setItem('pkt.queueStartAt', Date.now().toString());
 
     const paint = () => {
         const elapsedSec = (now() - startedAt) / 1000;
@@ -211,7 +218,8 @@ function startQueue() {
 
         if (cur <= 0) {
             clearInterval(timer);
-            sessionStorage.setItem('pkt.queueWaitMs', Math.round(now() - startedAt).toString());
+            run.markQueuePassed();
+            run.sendCheckpoint(authFetch);
             enterSeat();
         }
     };
@@ -225,9 +233,8 @@ function enterSeat() {
 }
 
 function book() {
-    const startedAt = parseInt(sessionStorage.getItem('pkt.reactionStartMs') || '0', 10);
-    reactionMs = startedAt ? Date.now() - startedAt : 0;
-    sessionStorage.setItem('pkt.reactionTimeMs', reactionMs.toString());
+    run.markBooked();
+    reactionMs = run.reactionMs();
 
     $('pc-book').disabled = true;
     $('mo-book').disabled = true;
@@ -250,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const client = await res.json();
         if (!client.name) {
             await showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
-            window.location.href = '/practice';
+            window.location.replace('/practice');
         }
     } catch (e) {
         console.error('[Practicket] Failed to fetch client info:', e);

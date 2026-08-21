@@ -4,6 +4,7 @@ import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeType;
+import com.practicket.practice.dto.PracticeCheckpointRequest;
 import com.practicket.practice.dto.PracticeCompleteResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
 import com.practicket.practice.dto.PracticeMyRankResponse;
@@ -31,6 +32,15 @@ public class PracticeController {
     ) {
         PracticeStartResponse response = practiceService.start(clientInfo, type);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/checkpoint")
+    public ResponseEntity<Void> checkpoint(
+            @Auth ClientInfo clientInfo,
+            @Valid @RequestBody PracticeCheckpointRequest request
+    ) {
+        practiceService.checkpoint(clientInfo, request.getSessionId());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/complete")

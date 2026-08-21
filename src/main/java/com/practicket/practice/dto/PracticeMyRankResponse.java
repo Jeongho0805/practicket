@@ -14,6 +14,7 @@ public class PracticeMyRankResponse {
     private final Integer bestMs;
     private final Integer reactionTimeMs;
     private final Integer queueWaitMs;
+    private final Integer captchaMs;
     private final Integer seatSelectionMs;
     private final long totalUsers;
 }

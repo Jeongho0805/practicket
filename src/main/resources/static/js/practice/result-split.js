@@ -1,7 +1,7 @@
 /* 연습 결과 모달의 구간 막대와 그 주변. 예매처마다 화면은 달라도 결과 모달은 같은 것을 쓴다.
    마크업과 색은 css/practice/result-modal.css 가 짝이다. */
 
-const SEGMENT_LABELS = ['반응', '대기열', '좌석 선택'];
+const SEGMENT_LABELS = ['반응', '대기열', '보안문자', '좌석 선택'];
 
 /** 예매처별 최고 기록 키. 한 브라우저에서 예매처를 옮겨 다녀도 기록이 섞이면 안 된다. */
 export function bestRecordKey(agency) {
@@ -46,8 +46,17 @@ export function renderCompleteHint(segments, segmentSum) {
     segments.forEach((ms, i) => { if (ms > segments[slowest]) slowest = i; });
 
     const share = Math.round(segments[slowest] / segmentSum * 100);
-    hint.innerHTML = `세 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
+    hint.innerHTML = `네 구간 중 <b>${share}%</b>를 ${SEGMENT_LABELS[slowest]}에 썼어요`;
     hint.style.display = 'block';
+}
+
+/* 서버가 기록을 거부하면 순위 바 대신 이 띠가 뜬다. 저장이 안 됐는데 결과만 보여주면
+   사용자는 순위표에 올라간 줄 안다. */
+export function showUnsavedNotice() {
+    const bar = document.getElementById('pkt-unsaved-bar');
+    const percentile = document.getElementById('pkt-percentile-bar');
+    if (percentile) percentile.style.display = 'none';
+    if (bar) bar.style.display = 'flex';
 }
 
 /* 최고 기록은 초를 따로 보여주지 않고, 갱신했다는 사실만 헤더 딱지로 알린다. */
@@ -61,7 +70,7 @@ export function renderBestTag(totalMs, best) {
 export function renderFailHint(el, segments) {
     if (!el) return;
     const worst = segments
-        .map((ms, i) => [ms, ['반응 속도', '대기열', '좌석 화면'][i]])
+        .map((ms, i) => [ms, ['반응 속도', '대기열', '보안문자', '좌석 화면'][i]])
         .sort((a, b) => b[0] - a[0])[0];
 
     if (worst[0] > 0) {
@@ -77,6 +86,19 @@ export function renderFailHint(el, segments) {
    이미지는 반드시 보이기 때문이다. 그림은 서버가 아니라 화면의 카드를 복제해 브라우저가 그린다. */
 
 const CAPTURE_LIB = '/js/vendor/html2canvas.min.js';
+
+/* 화면이 좁으면 카드도 같이 좁아진다. 그 폭 그대로 찍으면 공유 이미지에서만 글자가 접히므로
+   캡처는 화면과 무관하게 설계 폭으로 그린다. */
+const CARD_WIDTH = 400;
+
+/* 인스타그램 피드가 잘라내지 않는 가장 긴 세로. X 의 3:4 한계 안에도 들어가서
+   이 비율 하나면 어느 채널에 올려도 온전히 남는다. */
+const SHARE_RATIO = 1.25;
+const SHARE_PAD = 32;
+
+/* 데스크톱에도 공유 API 는 있지만 맥의 공유 시트가 이미지 미리보기를 만들다 자주 멈춘다.
+   손가락으로 쓰는 기기에서만 공유창을 띄우고 나머지는 파일로 내려받는다. */
+const USE_SHEET = window.matchMedia('(pointer: coarse)').matches;
 
 let capturePromise = null;
 
@@ -139,6 +161,22 @@ function waitImages(node) {
     })));
 }
 
+/* 카드를 배경 위에 앉혀 4:5 로 맞춘다. 위아래 여백을 먼저 못박고 비율에 필요한 만큼을
+   좌우로 돌리므로, 구간이 늘어 카드가 길어져도 비율은 그대로다. */
+function frameCard(stage, node) {
+    const padX = Math.max(SHARE_PAD, ((node.getBoundingClientRect().height + SHARE_PAD * 2)
+        / SHARE_RATIO - CARD_WIDTH) / 2);
+
+    const frame = document.createElement('div');
+    frame.className = 'pkt-capture-frame';
+    frame.style.width = (CARD_WIDTH + padX * 2) + 'px';
+    frame.style.padding = SHARE_PAD + 'px ' + padX + 'px';
+
+    stage.appendChild(frame);
+    frame.appendChild(node);
+    return frame;
+}
+
 async function renderCardImage(card) {
     const html2canvas = await loadCapture();
 
@@ -152,7 +190,7 @@ async function renderCardImage(card) {
         await document.fonts.ready;
         await waitImages(node);
         /* 배경을 비워 두면 둥근 모서리가 투명해져 앱마다 검거나 희게 채운다. */
-        const canvas = await html2canvas(node, {
+        const canvas = await html2canvas(frameCard(stage, node), {
             scale: 2,
             backgroundColor: '#ffffff',
             logging: false
@@ -186,7 +224,10 @@ export function bindShareButton() {
     let file = null;
     let busy = false;
 
+    /* 버튼 셋이 한 행이라 글자가 한 자만 늘어도 행이 아래로 접힌다. 문구는 두 자를 넘기지 않는다. */
+    const IDLE = USE_SHEET ? '공유' : '저장';
     const label = text => { btn.textContent = text; };
+    label(IDLE);
 
     btn.onclick = async () => {
         if (busy) return;
@@ -196,25 +237,25 @@ export function bindShareButton() {
                 label('준비 중');
                 file = await renderCardImage(card);
                 if (!file) throw new Error('capture failed');
+                label(IDLE);
             }
 
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            if (USE_SHEET && navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({ files: [file] });
-                    label('공유');
                 } catch (e) {
                     /* 사파리는 누른 지 1초가 지나면 공유창을 막는다. 이미지는 이미 만들어 뒀으니
                        다시 누르면 기다릴 것이 없어 그 규칙에 걸리지 않는다. */
-                    label(e && e.name === 'AbortError' ? '공유' : '다시 누르기');
+                    if (!e || e.name !== 'AbortError') label('다시');
                 }
                 return;
             }
 
             downloadFile(file);
-            label('이미지 저장됨');
-            setTimeout(() => label('공유'), 1500);
+            label('저장됨');
+            setTimeout(() => label(IDLE), 1500);
         } catch (e) {
-            label('다시 누르기');
+            label('다시');
         } finally {
             busy = false;
         }

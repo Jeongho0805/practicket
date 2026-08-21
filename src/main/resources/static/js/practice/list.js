@@ -1,6 +1,9 @@
 import { authFetch, showAlert } from '/js/common.js';
 
-const RANKING_TYPE = 'I_TICKET_OLD';   // 기본 노출 종목
+// 연습을 끝내고 넘어오면 주소에 예매처가 실려 온다. 모르는 값이면 기본 종목을 연다.
+const AGENCIES = ['I_TICKET_OLD', 'N_TICKET', 'M_TICKET'];
+const asked = new URLSearchParams(location.search).get('agency');
+const RANKING_TYPE = AGENCIES.includes(asked) ? asked : 'I_TICKET_OLD';   // 기본 노출 종목
 
 // ── 전체 랭킹 상태 ──
 const rankingState = {
@@ -82,7 +85,8 @@ function switchMainTab(target, btn) {
 
 // ── 종목(연습 타입) 전환 ──
 // 전체 랭킹·내 기록 패널이 각자 agency-tabs 를 갖고 있어, 눌린 버튼이 속한 패널만 갱신한다.
-function selectAgency(btn, type) {
+function selectAgency(btn) {
+    const type = btn.dataset.agency;
     const tabs = btn.closest('.agency-tabs');
     tabs.querySelectorAll('.agency-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -211,13 +215,13 @@ async function loadRanking(reset) {
 
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
-/* 총 시간이 아니라 구간 합을 기준으로 그린다. 총 시간에는 화면 전환처럼
-   어느 구간에도 잡히지 않는 몫이 섞여 있어 끝에 빈 꼬리가 남는다. */
+/* 구간 합이 곧 총 시간이다(서버가 좌석을 나머지로 낸다). 보안문자 이전 기록은
+   captcha_ms 가 0 이라 세 칸으로 그려진다. */
 function createSplitBar(item) {
     const bar = document.createElement('span');
     bar.className = 'rank-split';
 
-    const segments = [item.reaction_time_ms, item.queue_wait_ms, item.seat_selection_ms]
+    const segments = [item.reaction_time_ms, item.queue_wait_ms, item.captcha_ms, item.seat_selection_ms]
         .map(ms => Number(ms) || 0);
     const sum = segments.reduce((a, b) => a + b, 0);
     if (!sum) return bar;
@@ -471,6 +475,11 @@ window.selectPeriod = selectPeriod;
 
 // ── 초기 로드 ──
 document.addEventListener('DOMContentLoaded', () => {
+    // 상태만 바꾸면 탭은 기본 종목에 켜진 채 남아 표와 어긋난다.
+    document.querySelectorAll('.agency-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.agency === RANKING_TYPE);
+    });
+
     setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));
     setupTail('myrecord', 'myRecordSentinel', '.my-record-table-body', () => loadMyRecords(false));
     loadRanking(true);

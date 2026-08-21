@@ -1,4 +1,9 @@
 import { authFetch, showAlert } from '/js/common.js';
+import * as run from '/js/practice/run-state.js';
+
+/* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
+   앞으로가기 한 번에 끝난 판이 되살아난다. */
+run.clearRun();
 
 let selectedDate = 6;
 let selectedTimeSlot = true;
@@ -32,15 +37,7 @@ async function startBooking() {
         return;
     }
 
-    const reactionStart = parseInt(sessionStorage.getItem('pkt.reactionStartMs') || '0');
-    if (reactionStart) {
-        sessionStorage.setItem('pkt.reactionTimeMs', (Date.now() - reactionStart).toString());
-    }
-
-    sessionStorage.removeItem('iq.seat.decay.startedAt');
-    sessionStorage.removeItem('iq.queue.payload');
-    sessionStorage.removeItem('iq.queue.bookingEnabledAt');
-
+    run.markBooked();
     window.location.href = '/practice/i-ticket';
 }
 
@@ -54,16 +51,16 @@ async function startPractice() {
         const res = await authFetch('/api/practice/start?type=I_TICKET_OLD', { method: 'POST' });
         if (res.ok) {
             const data = await res.json();
-            sessionStorage.setItem('pkt.sessionId', data.session_id);
+            run.setSessionId(data.session_id);
         } else {
             await showAlert({ title: '세션 오류', msg: '연습 세션을 시작할 수 없습니다.\n다시 로그인하거나 나중에 시도해주세요.' });
-            window.location.href = '/practice';
+            window.location.replace('/practice');
             return;
         }
     } catch (e) {
         console.error('[Practicket] Failed to start session:', e);
         await showAlert({ title: '네트워크 오류', msg: '네트워크 오류가 발생했습니다.\n다시 시도해주세요.' });
-        window.location.href = '/practice';
+        window.location.replace('/practice');
         return;
     }
 
@@ -90,7 +87,7 @@ async function startPractice() {
             seconds--;
             if (seconds <= 0) {
                 clearInterval(interval);
-                sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
+                run.markOpened();
                 bookingBtn.disabled = false;
                 bookingBtn.textContent = '예매하기';
                 bookingBtn.style.background = '';
@@ -115,7 +112,7 @@ async function startPractice() {
 
             if (seconds <= 0) {
                 clearInterval(interval);
-                sessionStorage.setItem('pkt.reactionStartMs', Date.now().toString());
+                run.markOpened();
                 countdownUi.style.display = 'none';
                 bookingUi.style.display = 'block';
                 bookingActions.style.display = 'block';
@@ -146,7 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const clientData = await clientRes.json();
         if (!clientData.name) {
             await showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
-            window.location.href = '/practice';
+            window.location.replace('/practice');
         }
     } catch (e) {
         console.error('[Practicket] Failed to fetch client info:', e);

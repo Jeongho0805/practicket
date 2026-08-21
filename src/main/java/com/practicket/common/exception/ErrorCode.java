@@ -31,6 +31,7 @@ public enum ErrorCode {
     PRACTICE_TOO_FAST(400, "PR03", "비정상적으로 빠른 요청입니다."),
     PRACTICE_INVALID_TIMING(400, "PR04", "올바르지 않은 타이밍 데이터입니다."),
     NICKNAME_REQUIRED(400, "PR05", "닉네임을 설정한 후 이용해주세요."),
+    PRACTICE_CHECKPOINT_MISSING(400, "PR06", "연습 진행 기록이 확인되지 않았습니다."),
 
     INQUIRY_RATE_LIMIT_EXCEEDED(429, "IQ01", "문의를 너무 자주 보내고 있습니다. 잠시 후 다시 시도해주세요."),
     INQUIRY_DAILY_LIMIT_EXCEEDED(429, "IQ02", "하루에 보낼 수 있는 문의 수를 초과했습니다."),

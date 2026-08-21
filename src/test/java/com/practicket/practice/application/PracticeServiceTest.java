@@ -60,6 +60,8 @@ class PracticeServiceTest {
 
     // ============ start() ============
 
+    private static final int SERVER_ELAPSED_MS = 10_000;
+
     @Test
     @DisplayName("start - 정상: sessionId를 반환하고 Redis에 세션을 저장한다")
     void startReturnsSessionIdAndSavesToRedis() {
@@ -128,8 +130,25 @@ class PracticeServiceTest {
     }
 
     @Test
-    @DisplayName("complete - 정상: 검증을 통과한 요청의 소요시간이 그대로 저장된다")
-    void completeSavesValidatedDuration() {
+    @DisplayName("complete - 저장되는 총 시간은 클라이언트가 신고한 값이 아니라 서버가 잰 값이다")
+    void completeSavesServerMeasuredDuration() {
+        // given — 클라이언트는 1초라고 신고했지만 서버는 10초가 흐른 것을 봤다
+        ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
+        PracticeResultRequest request = buildRequest("session-id", 1_000);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
+        ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
+
+        // when
+        practiceService.complete(clientInfo, request);
+
+        // then
+        verify(resultRepository).save(captor.capture());
+        assertThat(captor.getValue().getTotalDurationMs()).isEqualTo(SERVER_ELAPSED_MS);
+    }
+
+    @Test
+    @DisplayName("complete - 좌석 구간은 서버 총 시간에서 나머지를 뺀 값이다")
+    void completeDerivesSeatSelectionFromServerTotal() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
         PracticeResultRequest request = buildRequest("session-id", 10_000);
@@ -139,9 +158,10 @@ class PracticeServiceTest {
         // when
         practiceService.complete(clientInfo, request);
 
-        // then
+        // then — 10,000 - (반응 2,000 + 대기 5,000 + 보안문자 1,000)
         verify(resultRepository).save(captor.capture());
-        assertThat(captor.getValue().getTotalDurationMs()).isEqualTo(10_000);
+        assertThat(captor.getValue().getSeatSelectionMs()).isEqualTo(2_000);
+        assertThat(captor.getValue().getCaptchaMs()).isEqualTo(1_000);
     }
 
     /**
@@ -149,7 +169,7 @@ class PracticeServiceTest {
      * {@code PracticeSessionValidatorTest} 가 본다.
      */
     private void givenValidatedSession(ClientInfo clientInfo, PracticeResultRequest request, PracticeType type) {
-        ValidatedSession validated = new ValidatedSession(type, LocalDateTime.now().minusSeconds(15));
+        ValidatedSession validated = new ValidatedSession(type, LocalDateTime.now().minusSeconds(15), SERVER_ELAPSED_MS);
         when(sessionValidator.validate(clientInfo, request)).thenReturn(validated);
         when(rankCalculator.calculate(any(PracticeType.class), anyInt())).thenReturn(new MonthlyRank(50, 5, 10));
     }
@@ -167,7 +187,7 @@ class PracticeServiceTest {
         ReflectionTestUtils.setField(request, "totalDurationMs", totalDurationMs);
         ReflectionTestUtils.setField(request, "reactionTimeMs", 2_000);
         ReflectionTestUtils.setField(request, "queueWaitMs", 5_000);
-        ReflectionTestUtils.setField(request, "seatSelectionMs", 2_000);
+        ReflectionTestUtils.setField(request, "captchaMs", 1_000);
         ReflectionTestUtils.setField(request, "queueInitialRank", 10);
         return request;
     }

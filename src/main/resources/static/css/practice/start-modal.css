@@ -33,9 +33,12 @@
     width: 100%;
 }
 
+/* 호스트 페이지마다 body 글자 크기가 다르다(m-ticket 은 멜론을 흉내내 12px).
+   물려받으면 예매처마다 모달이 달라 보이므로 여기서 못박는다. */
 .ps-card {
     width: 100%;
     max-width: 380px;
+    font-size: 16px;
     padding: 28px 26px 22px;
     border-radius: 18px;
     background: #fff;
@@ -84,11 +87,11 @@
 }
 
 /* 무엇이 시작되는지 미리 알려주는 줄 */
+/* 칸 수를 열에 박아 두면 구간이 늘 때마다 줄이 접힌다. 몇 개가 오든 한 줄로 나눠 갖게 둔다. */
 .ps-steps {
     margin-top: 16px;
     padding: 12px 10px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr;
+    display: flex;
     align-items: center;
     gap: 6px;
     background: #f8f8fb;
@@ -96,6 +99,8 @@
 }
 
 .ps-step {
+    flex: 1;
+    white-space: nowrap;
     font-size: 12px;
     font-weight: 700;
     color: var(--ps-sub);
@@ -111,6 +116,7 @@
 }
 
 .ps-arrow {
+    flex: none;
     color: #c8cad2;
     font-size: 11px;
 }
@@ -138,6 +144,14 @@
     color: var(--ps-dim);
     font-size: 14px;
     font-weight: 700;
+}
+
+/* 320px 기기에서는 네 칸이 간격까지 감당하지 못해 띠 밖으로 밀린다. 간격만 줄여 담는다. */
+@media (max-width: 360px) {
+    .ps-steps {
+        padding: 12px 8px;
+        gap: 4px;
+    }
 }
 
 /* 큰 화면에서 360px 카드는 폰 팝업처럼 보인다. 카드째 키운다. */
