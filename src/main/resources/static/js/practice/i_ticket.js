@@ -1,7 +1,7 @@
 import { authFetch, showAlert } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderBestChip, renderFailHint, bindShareButton
+    renderCompleteHint, renderFailHint, bindShareButton
 } from '/js/practice/result-split.js';
 
 // ════════════════════════════════════════
@@ -1729,14 +1729,7 @@ const BEST_RECORD_KEY = bestRecordKey('i-ticket');
 function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
     const fmt = ms => (ms / 1000).toFixed(3) + '초';
 
-    const now = new Date();
-    const dateStr = [
-        now.getFullYear(),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        String(now.getDate()).padStart(2, '0')
-    ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-
-    const meta = ['I-Ticket', dateStr];
+    const meta = ['I-Ticket'];
     if (queue_initial_rank) meta.push('대기 순번 ' + queue_initial_rank.toLocaleString() + '번에서 출발');
     document.getElementById('pkt-meta').textContent = meta.join(' · ');
 
@@ -1768,7 +1761,6 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
     }
 
     renderCompleteHint(segments, segmentSum, best);
-    renderBestChip(total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, total_duration_ms, segments, best);
     bindShareButton();
 

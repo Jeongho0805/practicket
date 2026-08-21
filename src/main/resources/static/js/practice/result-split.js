@@ -59,18 +59,6 @@ export function renderCompleteHint(segments, segmentSum, best) {
     hint.style.display = 'block';
 }
 
-export function renderBestChip(totalMs, best) {
-    const chip = document.getElementById('pkt-pb-chip');
-    if (!chip) return;
-
-    if (best && totalMs < best.total) {
-        chip.textContent = `▼ ${((best.total - totalMs) / 1000).toFixed(2)}초 단축 · 개인 신기록`;
-        chip.style.display = 'inline-flex';
-    } else {
-        chip.style.display = 'none';
-    }
-}
-
 /* 매진 모달의 힌트. 성공과 달리 비교할 최고 기록이 없어 가장 오래 걸린 구간만 짚는다. */
 export function renderFailHint(el, segments) {
     if (!el) return;

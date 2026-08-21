@@ -11,7 +11,7 @@
 import { authFetch } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
-    renderCompleteHint, renderBestChip, renderFailHint, bindShareButton
+    renderCompleteHint, renderFailHint, bindShareButton
 } from '/js/practice/result-split.js';
 
 const INTRO_URL = '/practice/m-ticket/intro';
@@ -628,7 +628,7 @@ async function finish() {
 function showCompleteModal(r) {
     const sec = ms => (ms / 1000).toFixed(3) + '초';
 
-    const meta = ['M-Ticket', stamp()];
+    const meta = ['M-Ticket'];
     if (r.queue_initial_rank) meta.push(`대기 순번 ${r.queue_initial_rank.toLocaleString('ko-KR')}번에서 출발`);
     $('pkt-meta').textContent = meta.join(' · ');
 
@@ -656,7 +656,6 @@ function showCompleteModal(r) {
     }
 
     renderCompleteHint(segments, segmentSum, best);
-    renderBestChip(r.total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
     bindShareButton();
 
@@ -670,12 +669,6 @@ function showCompleteModal(r) {
     }
 
     $('pkt-complete-overlay').classList.add('visible');
-}
-
-function stamp() {
-    const d = new Date();
-    const p = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}  ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 /* ══════════ 토스트 ══════════ */
