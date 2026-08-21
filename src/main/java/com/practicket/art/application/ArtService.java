@@ -75,7 +75,7 @@ public class ArtService {
     @Transactional
     public ArtResponse getArt(ClientInfo clientInfo, Long artId) {
         Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Client client = clientInfo != null ? clientManager.findById(clientInfo.getClientId()) : null;
 
@@ -103,7 +103,7 @@ public class ArtService {
     @Transactional
     public ArtResponse updateArt(Long artId, ArtUpdateRequest request, ClientInfo clientInfo) {
         Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         if (!art.getClient().getId().equals(clientInfo.getClientId())) {
             throw new ValidateException(ErrorCode.FORBIDDEN);
@@ -117,10 +117,10 @@ public class ArtService {
     @Transactional
     public void deleteArt(Long artId, ClientInfo clientInfo) {
         Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         if (!art.getClient().getId().equals(clientInfo.getClientId())) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new ValidateException(ErrorCode.FORBIDDEN);
         }
 
         artRepository.delete(art);
@@ -129,7 +129,7 @@ public class ArtService {
     @Transactional
     public ArtLikeResponse toggleLike(Long artId, ClientInfo clientInfo) {
         Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Client client = clientManager.findById(clientInfo.getClientId());
         int likeCount = art.getLikeCount();
@@ -169,7 +169,7 @@ public class ArtService {
     @Transactional
     public ArtCommentResponse createComment(Long artId, ArtCommentRequest request, ClientInfo clientInfo) {
         Art art = artRepository.findById(artId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         Client client = clientManager.findById(clientInfo.getClientId());
 
@@ -187,7 +187,7 @@ public class ArtService {
     @Transactional
     public ArtCommentResponse updateComment(Long commentId, ArtCommentRequest request, ClientInfo clientInfo) {
         ArtComment comment = artCommentRepository.findById(commentId)
-                .orElseThrow(() -> new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
         if (!comment.getClient().getId().equals(clientInfo.getClientId())) {
             throw new GlobalException(ErrorCode.FORBIDDEN);
@@ -213,22 +213,27 @@ public class ArtService {
 
     private void validatePixelData(String pixelData, Integer width, Integer height) {
         if (pixelData == null || pixelData.isEmpty()) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.PARAMETER_IS_NOT_VALID);
         }
 
         // 30x30 고정 크기 검증
         if (width != 30 || height != 30) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.PARAMETER_IS_NOT_VALID);
         }
 
         // 픽셀 데이터 길이 검증
         if (pixelData.length() != width * height) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.PARAMETER_IS_NOT_VALID);
         }
 
         // 0과 1로만 구성되어 있는지 검증
         if (!pixelData.matches("[01]+")) {
-            throw new GlobalException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new GlobalException(ErrorCode.PARAMETER_IS_NOT_VALID);
+        }
+
+        // 전부 '0'인 빈 그림은 등록 의미가 없다(프론트만 막던 것을 서버에서도 막는다)
+        if (pixelData.indexOf('1') < 0) {
+            throw new GlobalException(ErrorCode.PARAMETER_IS_NOT_VALID);
         }
     }
 }

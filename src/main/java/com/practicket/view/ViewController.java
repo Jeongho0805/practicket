@@ -117,6 +117,11 @@ public class ViewController {
 
     @GetMapping("/blog/{id}")
     public String blogContents(@PathVariable("id") String id, Model model) {
+        // 글은 1~15 로 고정돼 있다. 존재 여부를 안 보고 "blog/"+id 를 렌더하면
+        // 없는 번호에서 템플릿을 못 찾아 500 이 난다 — 없는 글은 목록으로 돌린다.
+        if (!id.matches("[1-9]|1[0-5]")) {
+            return "redirect:/blog";
+        }
         return "blog/" + id;
     }
 
@@ -194,9 +199,13 @@ public class ViewController {
     }
 
     @GetMapping("/community/edit/{id}")
-    public String communityEdit(@PathVariable("id") Long id, Model model) {
+    public String communityEdit(@PathVariable("id") String id, Model model) {
+        Long postId = parsePostId(id);
+        if (postId == null) {
+            return "redirect:/community";
+        }
         model.addAttribute("isEdit", true);
-        model.addAttribute("postId", id);
+        model.addAttribute("postId", postId);
         model.addAttribute("popularTags", popularTagService.getPopularTags());
         return "community/write";
     }
@@ -206,16 +215,30 @@ public class ViewController {
      * 그래서 본문은 서버가 그리고, 수정·삭제 버튼 노출만 JS 가 결정한다.
      */
     @GetMapping("/community/{id}")
-    public String communityDetail(@PathVariable("id") Long id, Model model) {
-        PostResponse post = postService.get(id, null);
+    public String communityDetail(@PathVariable("id") String id, Model model) {
+        Long postId = parsePostId(id);
+        if (postId == null) {
+            return "redirect:/community";
+        }
+        PostResponse post = postService.get(postId, null);
         model.addAttribute("post", post);
         // 블라인드 처리는 PostResponse 안에서 이미 끝났다(작성자 본인에게만 원문).
         // 여기서 한 번 더 가리면 가리는 규칙이 두 곳으로 갈라져 한쪽만 고쳐지는 날이 온다.
         model.addAttribute("renderedContent", PostContentRenderer.render(post.getContent()));
         // 댓글도 서버가 그린다. 색인 조건이 "추천 1 이상 또는 댓글 1 이상"이라(5-1항)
         // 크롤러가 댓글을 봐야 이 페이지를 색인할 값어치가 생긴다.
-        model.addAttribute("comments", postCommentService.list(id, null));
+        model.addAttribute("comments", postCommentService.list(postId, null));
         return "community/detail";
+    }
+
+    // 숫자가 아닌 글 번호(예: /community/abc)는 바인딩 단계에서 500 이 난다.
+    // 컨트롤러로 들여 String 으로 받고, 파싱 실패면 목록으로 돌린다.
+    private Long parsePostId(String id) {
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @GetMapping("/practice")
