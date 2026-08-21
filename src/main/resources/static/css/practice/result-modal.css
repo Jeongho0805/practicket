@@ -299,7 +299,14 @@
 .pkt-btn-section {
     padding: 20px 28px 24px;
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+}
+
+/* 세 버튼은 한 행이라 하나만 접혀도 행 전체가 부풀어 카드가 어긋난다.
+   320px 기기처럼 셋이 못 들어가는 폭에서는 글자를 쪼개는 대신 아래 줄로 흘린다. */
+.pkt-btn-section button {
+    white-space: nowrap;
 }
 
 .pkt-btn-retry {
@@ -477,4 +484,65 @@
         width: calc(100% - 32px);
         max-width: 400px;
     }
+}
+
+/* ════════════════════════════════════════
+   공유 이미지 캡처본
+
+   화면의 카드를 복제해 찍는다. 복제본은 등장 애니메이션을 처음부터 재생하므로
+   끄지 않으면 투명도가 올라오는 도중에 찍혀 카드 전체가 옅게 나온다.
+   ════════════════════════════════════════ */
+
+.pkt-capture-stage {
+    position: fixed;
+    left: -99999px;
+    top: 0;
+}
+
+.pkt-capture,
+.pkt-capture * {
+    animation: none !important;
+}
+
+.pkt-capture .pkt-btn-section {
+    display: none;
+}
+
+.pkt-share-line {
+    margin: 20px 28px 0;
+    height: 1px;
+    background: #f1f5f9;
+}
+
+.pkt-share-foot {
+    padding: 16px 28px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pkt-share-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pkt-share-brand img {
+    display: block;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+}
+
+.pkt-share-brand b {
+    font-size: 15px;
+    font-weight: 800;
+    color: #514897;
+    letter-spacing: -0.3px;
+}
+
+.pkt-share-date {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #9a94ab;
 }

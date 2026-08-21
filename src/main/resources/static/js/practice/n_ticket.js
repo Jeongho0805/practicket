@@ -894,7 +894,7 @@ function showCompleteModal(r) {
     renderCompleteHint(segments, segmentSum, best);
     renderBestChip(r.total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, r.total_duration_ms, segments, best);
-    bindShareButton(r, 'N_TICKET');
+    bindShareButton();
 
     const bar = $('pkt-percentile-bar');
     if (r.percentile != null && r.total_users >= 2) {

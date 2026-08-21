@@ -1770,7 +1770,7 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
     renderCompleteHint(segments, segmentSum, best);
     renderBestChip(total_duration_ms, best);
     saveBestRecord(BEST_RECORD_KEY, total_duration_ms, segments, best);
-    bindShareButton(arguments[0], 'I_TICKET_OLD');
+    bindShareButton();
 
     const bar = document.getElementById('pkt-percentile-bar');
     if (percentile != null && total_users >= 2) {
