@@ -242,39 +242,6 @@ ul { list-style: none; }
 .m-bottom button:disabled { background: #cccccc; cursor: not-allowed; }
 .m-bottom button.pre-open { font-size: 16px; font-weight: 400; }
 
-/* ══════════ 시작 모달 ══════════ */
-
-.modal-overlay {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(20, 16, 32, .55);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-}
-
-.modal-card {
-    width: 100%; max-width: 380px; background: #fff; border-radius: 16px;
-    padding: 30px 26px 24px; text-align: center;
-    box-shadow: 0 18px 48px rgba(40, 28, 70, .28);
-}
-
-.modal-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 26px; padding: 0 12px; border-radius: 13px;
-    background: #efeaf7; color: var(--accent); font-size: 12px; font-weight: 700;
-}
-.modal-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-
-.modal-title { margin-top: 14px; font-size: 21px; font-weight: 800; color: var(--txt); }
-.modal-desc { margin-top: 12px; font-size: 14px; line-height: 1.7; color: var(--txt-sub); }
-.modal-highlight { color: var(--accent); }
-
-.modal-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 8px; }
-.modal-btn-primary {
-    height: 48px; border-radius: 12px; background: var(--accent-grad);
-    color: #fff; font-size: 16px; font-weight: 700;
-}
-.modal-btn-secondary { height: 44px; border-radius: 12px; color: var(--txt-dim); font-size: 14px; }
-.modal-btn-secondary:hover { background: #f4f4f6; }
-
 /* ══════════════════════════════════════════════════
    대기열 — 멜론 NetFunnel 실측 기반.
    실물의 둥근 모서리·그림자는 CSS 가 아니라 모서리 이미지로 그려져 있어

@@ -139,6 +139,8 @@ window.addEventListener('pageshow', function (event) {
 
 // 페이지 진입 시점에 닉네임 검증
 document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('start-btn').addEventListener('click', startPractice);
+
     try {
         const clientRes = await authFetch('/api/client');
         const clientData = await clientRes.json();

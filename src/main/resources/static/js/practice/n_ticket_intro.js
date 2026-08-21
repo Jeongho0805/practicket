@@ -12,8 +12,8 @@ import { authFetch, showAlert } from '/js/common.js';
 const COUNTDOWN_SEC = 5;
 const NEXT_URL = '/practice/n-ticket';
 
-const modal = document.getElementById('startModal');
-const startBtn = document.getElementById('startBtn');
+const modal = document.getElementById('start-modal');
+const startBtn = document.getElementById('start-btn');
 const bookBtn = document.getElementById('bookBtn');
 
 function formatTime(sec) {

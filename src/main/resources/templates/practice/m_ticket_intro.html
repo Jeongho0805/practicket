@@ -7,6 +7,7 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>M-Ticket 실전연습 - 프랙티켓</title>
     <link rel="stylesheet" href="/css/common/alert.css" />
+    <link rel="stylesheet" href="/css/practice/start-modal.css" />
     <link rel="stylesheet" href="/css/practice/m_ticket_intro.css" />
 </head>
 
@@ -196,23 +197,7 @@
     </div>
 </div>
 
-<div id="start-modal" class="modal-overlay">
-    <div class="modal-card">
-        <div class="modal-badge">
-            <span class="modal-badge-dot"></span>
-            티켓팅 연습
-        </div>
-        <h2 class="modal-title">티켓팅 연습 시작</h2>
-        <p class="modal-desc">
-            멜론티켓과 같은 화면에서 연습해보세요.<br />
-            <strong class="modal-highlight">시작하기</strong>를 누르면 카운트다운이 시작됩니다.
-        </p>
-        <div class="modal-actions">
-            <button id="start-btn" class="modal-btn-primary">연습 시작하기</button>
-            <button class="modal-btn-secondary" onclick="location.href='/practice'">돌아가기</button>
-        </div>
-    </div>
-</div>
+<div th:replace="~{fragments/practice-start-modal :: modal('M-Ticket')}"></div>
 
 <th:block th:replace="~{fragments/alert :: alert}"></th:block>
 
