@@ -8,7 +8,7 @@ function checkTimeToLeave() {
         const serverTime = await util.getSyncTime();
         if (serverTime.getSeconds() >= 50) {
             await util.showAlert({ title: '예매 불가', msg: '예매 가능 시간이 지났습니다.\n예매페이지로 돌아갑니다.' });
-            window.location.href = `${HOST}`;
+            window.location.href = `${HOST}/ticketing`;
         }
     }, 1000);
 }
@@ -111,7 +111,7 @@ async function requestReservation() {
     const reservationToken = localStorage.getItem('reservationToken');
     if (!reservationToken) {
         await util.showAlert({ title: '권한 없음', msg: '권한이 없습니다.' });
-        window.location.href = `${HOST}`;
+        window.location.href = `${HOST}/ticketing`;
         return;
     }
 
@@ -128,13 +128,13 @@ async function requestReservation() {
         if (response.ok) {
             localStorage.removeItem('reservationToken');
             await util.showAlert({ title: '예매 완료', msg: '예매가 완료되었습니다!' });
-            window.location.href = `${HOST}/rank`;
+            window.location.href = `${HOST}/ticketing`;
         } else {
             const result = await response.json();
             await util.showAlert({ title: '예매 실패', msg: result.message });
-            if (result.code === 'T04' || result.code === 'T05') {
+            if (result.code === 'T05' || result.code === 'T06') {
                 localStorage.removeItem('reservationToken');
-                window.location.href = `${HOST}`;
+                window.location.href = `${HOST}/ticketing`;
             }
         }
     } catch (error) {

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static com.practicket.common.exception.ErrorCode.ALREADY_EXIST_WAITING_QUEUE;
 import static com.practicket.common.exception.ErrorCode.INTERNAL_SERVER_ERROR;
 
 @Repository
@@ -36,9 +35,6 @@ public class TicketQueueRepository {
         );
         if (result == null || result.isEmpty()) {
             throw new TicketException(INTERNAL_SERVER_ERROR);
-        }
-        if (result.get(0) == 0) {
-            throw new TicketException(ALREADY_EXIST_WAITING_QUEUE);
         }
     }
 
