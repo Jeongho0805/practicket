@@ -1,3 +1,15 @@
+#rank-table {
+    font-family: 'Pretendard', sans-serif;
+}
+
+#rank-table tbody td {
+    font-weight: 600;
+}
+
+#rank-table tbody tr.my-rank td {
+    font-weight: 700;
+}
+
 @media (min-width: 769px) {
     #main-section {
         display: grid;
