@@ -307,14 +307,17 @@ class Detail {
                 body: JSON.stringify({ content })
             });
 
-            if (!response.ok) throw new Error('댓글 작성 실패');
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || '댓글 작성에 실패했습니다.');
+            }
 
             this.commentInput.value = '';
             this.commentInput.blur();
             this.reloadComments();
         } catch (error) {
             console.error('댓글 작성 실패:', error);
-            await showAlert({ title: '오류', msg: '댓글 작성에 실패했습니다.' });
+            await showAlert({ title: '오류', msg: error.message || '댓글 작성에 실패했습니다.' });
         }
     }
 
@@ -360,13 +363,16 @@ class Detail {
                 body: JSON.stringify({ content: newContent })
             });
 
-            if (!response.ok) throw new Error('댓글 수정 실패');
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || '댓글 수정에 실패했습니다.');
+            }
 
             editInput.blur();
             this.reloadComments();
         } catch (error) {
             console.error('댓글 수정 실패:', error);
-            await showAlert({ title: '오류', msg: '댓글 수정에 실패했습니다.' });
+            await showAlert({ title: '오류', msg: error.message || '댓글 수정에 실패했습니다.' });
         }
     }
 

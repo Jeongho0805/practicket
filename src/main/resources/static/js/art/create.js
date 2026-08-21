@@ -219,14 +219,17 @@ class GrapePalette {
 				}
 			);
 
-			if (!response.ok) throw new Error(await response.text());
+			if (!response.ok) {
+				const err = await response.json().catch(() => ({}));
+				throw new Error(err.message || '작품 등록/수정에 실패했습니다. 다시 시도해주세요.');
+			}
 
 			const result = await response.json();
 			localStorage.removeItem(DRAFT_KEY);
 			window.location.href = `/art/${result.id}`;
 		} catch (error) {
 			console.error("작품 등록/수정 실패:", error);
-			await util.showAlert({ title: '오류', msg: '작품 등록/수정에 실패했습니다. 다시 시도해주세요.' });
+			await util.showAlert({ title: '오류', msg: error.message || '작품 등록/수정에 실패했습니다. 다시 시도해주세요.' });
 		}
 	}
 }
