@@ -20,7 +20,7 @@ public class PostRateLimiter {
     private static final long TOKEN_MAX_COUNT = 1L;
 
     private static final long IP_WINDOW_SECONDS = 3600L;
-    private static final long IP_MAX_COUNT = 10L;
+    private static final long IP_MAX_COUNT = 30L;
 
     private final RedisRateLimiter rateLimiter;
 

@@ -209,11 +209,10 @@ class PostServiceTest {
                 .isEqualTo(ErrorCode.POST_RATE_LIMIT_TOKEN);
 
         verify(postRepository, never()).save(any());
-        verifyNoInteractions(profanityValidator);
     }
 
     @Test
-    @DisplayName("create - 욕설 필터가 막으면 저장하지 않는다")
+    @DisplayName("create - 욕설 필터가 막으면 저장하지 않고 레이트리밋도 세지 않는다")
     void createRejectsProfanity() {
         // given
         givenClient(AUTHOR_CLIENT_ID, "티켓요정");
@@ -228,6 +227,7 @@ class PostServiceTest {
                 .isEqualTo(ErrorCode.INAPPROPRIATE_CONTENT);
 
         verify(postRepository, never()).save(any());
+        verifyNoInteractions(postRateLimiter);
     }
 
     @Test

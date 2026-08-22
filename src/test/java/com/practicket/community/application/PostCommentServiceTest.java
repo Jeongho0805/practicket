@@ -174,11 +174,10 @@ class PostCommentServiceTest {
                 .isEqualTo(ErrorCode.COMMENT_RATE_LIMIT_TOKEN);
 
         verify(postCommentRepository, never()).save(any());
-        verifyNoInteractions(profanityValidator);
     }
 
     @Test
-    @DisplayName("create - 욕설 필터가 막으면 저장하지 않는다")
+    @DisplayName("create - 욕설 필터가 막으면 저장하지 않고 레이트리밋도 세지 않는다")
     void createRejectsProfanity() {
         // given
         when(postRepository.findById(POST_ID)).thenReturn(Optional.of(post()));
@@ -194,6 +193,7 @@ class PostCommentServiceTest {
                 .isEqualTo(ErrorCode.INAPPROPRIATE_CONTENT);
 
         verify(postCommentRepository, never()).save(any());
+        verifyNoInteractions(commentRateLimiter);
     }
 
     // ============ list() ============

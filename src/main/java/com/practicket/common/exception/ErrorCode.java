@@ -52,7 +52,7 @@ public enum ErrorCode {
 
     COMMENT_NOT_FOUND(404, "PC01", "존재하지 않는 댓글입니다."),
     COMMENT_FORBIDDEN(403, "PC02", "본인이 작성한 댓글이 아닙니다."),
-    COMMENT_RATE_LIMIT_TOKEN(429, "PC03", "댓글은 10초에 한 번만 달 수 있습니다. 잠시 후 다시 시도해주세요."),
+    COMMENT_RATE_LIMIT_TOKEN(429, "PC03", "댓글은 5초에 한 번만 달 수 있습니다. 잠시 후 다시 시도해주세요."),
     COMMENT_RATE_LIMIT_IP(429, "PC04", "같은 네트워크에서 댓글을 너무 많이 달았습니다. 1시간 후 다시 시도해주세요."),
     COMMENT_BANNED(403, "PC05", "이용이 제한되어 댓글을 달 수 없습니다. 제한 기간이 끝나면 다시 달 수 있습니다."),
 

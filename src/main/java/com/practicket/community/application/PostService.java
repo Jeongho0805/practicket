@@ -59,10 +59,11 @@ public class PostService {
             throw new GlobalException(ErrorCode.POST_BANNED);
         }
 
-        postRateLimiter.validate(clientInfo.getToken(), clientIp);
-
         profanityValidator.validateProfanityText(request.getTitle());
         profanityValidator.validateProfanityText(request.getContent());
+
+        // 검증을 통과한 요청만 센다. 거부된 글이 할당량을 먹으면 안 된다
+        postRateLimiter.validate(clientInfo.getToken(), clientIp);
 
         Post post = Post.builder()
                 .client(client)

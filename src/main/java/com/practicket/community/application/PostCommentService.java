@@ -54,11 +54,11 @@ public class PostCommentService {
             throw new GlobalException(ErrorCode.COMMENT_BANNED);
         }
 
-        // 글보다 마찰이 작아야 해서 글보다 느슨하다
-        commentRateLimiter.validate(clientInfo.getToken(), clientIp);
-
         // fail-open — 외부 API 장애로 댓글이 막히는 게 더 나쁘다
         profanityValidator.validateProfanityText(request.getContent());
+
+        // 검증을 통과한 요청만 센다. 거부된 댓글이 할당량을 먹으면 안 된다
+        commentRateLimiter.validate(clientInfo.getToken(), clientIp);
 
         PostComment comment = postCommentRepository.save(PostComment.builder()
                 .post(post)

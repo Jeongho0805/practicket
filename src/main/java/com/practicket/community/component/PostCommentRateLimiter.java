@@ -13,11 +13,11 @@ public class PostCommentRateLimiter {
     private static final String TOKEN_KEY_PREFIX = "comment:rate:token:";
     private static final String IP_KEY_PREFIX = "comment:rate:ip:";
 
-    private static final long TOKEN_WINDOW_SECONDS = 10L;
+    private static final long TOKEN_WINDOW_SECONDS = 5L;
     private static final long TOKEN_MAX_COUNT = 1L;
 
     private static final long IP_WINDOW_SECONDS = 3600L;
-    private static final long IP_MAX_COUNT = 30L;
+    private static final long IP_MAX_COUNT = 100L;
 
     private final RedisRateLimiter rateLimiter;
 
