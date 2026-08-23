@@ -53,10 +53,10 @@ function appendChatElementAtBottom(chat, chatBox, tokenValue) {
     chatBox.appendChild(chatUnit);
 }
 
-function appendChatElementAtTop(chat, chatBox, authValue) {
+function appendChatElementAtTop(chat, chatBox, tokenValue) {
     const firstChatUnit = chatBox.querySelector(".chat-unit");
 
-    const chatType = authValue === chat.key ? "sent" : "received";
+    const chatType = tokenValue === chat.key ? "sent" : "received";
     const chatUnit = document.createElement("div");
     chatUnit.classList.add("chat-unit", chatType);
 
@@ -119,23 +119,15 @@ function appendChatElementAtTop(chat, chatBox, authValue) {
     }
 }
 
-function makeChatElementByScroll(chat, chatBox, authValue) {
-    const lastChatUnit = chatBox.firstElementChild;
-
-    const chatType = authValue === chat.key ? "sent" : "received";
-    const chatUnit = document.createElement("div");
-    chatUnit.classList.add("chat-unit", chatType);
-}
-
 function appendChatByScroll(data) {
-    const authValue = util.getAuthValue();
+    const tokenValue = util.getTokenValue();
     const chatBox = document.getElementById("chatting-box-section");
 
     const prevScrollHeight = chatBox.scrollHeight;
     const prevScrollTop = chatBox.scrollTop;
 
     data.reverse().forEach(chat => {
-        appendChatElementAtTop(chat, chatBox, authValue);
+        appendChatElementAtTop(chat, chatBox, tokenValue);
     })
 
     const newScrollHeight = chatBox.scrollHeight;
