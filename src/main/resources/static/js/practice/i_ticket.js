@@ -22,6 +22,7 @@ const QueueManager = {
     dom: {},
     initialQueue: 0,
     startedAtMs: 0,
+    passed: false,
 
     init() {
         // 이미 통과한 판이면 줄을 다시 세우지 않는다. 실물도 예매창에서 새로고침하면 좌석에 남는다.
@@ -177,9 +178,13 @@ const QueueManager = {
 
     afterQueue() {
         this.removeQueueDOM();
+        this.passed = true;
+
         if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
             setTimeout(() => MobileDateScreen.show(), 0);
+            return;
         }
+        openCaptchaWhenReady();
     }
 };
 
@@ -1293,6 +1298,8 @@ async function goToStep3() {
 // Main Booking Functions
 // ════════════════════════════════════════
 
+let seatUiReady = false;
+
 function init() {
     bindEvents();
     updateUI();
@@ -1311,14 +1318,26 @@ function init() {
             MobileSeatScreen.show();
         }
         // else: MobileDateScreen이 대기열 종료 후 트리거됨
+    } else if (sessionStorage.getItem('captcha_solved') === 'true') {
+        DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
+        setSeatPhase('AREA');
     } else {
-        if (sessionStorage.getItem('captcha_solved') === 'true') {
-            DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
-            setSeatPhase('AREA');
-        } else {
-            renderCaptcha();
-        }
+        DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
     }
+
+    seatUiReady = true;
+    openCaptchaWhenReady();
+}
+
+/* 보안문자는 대기열이 끝나고 좌석 화면이 준비된 뒤에만 연다. 두 조건 중 나중에 끝나는 쪽이 이 함수를 부른다.
+   대기열 위에 가려진 채로 먼저 열면 보안문자 시계가 대기 시간까지 삼켜, 구간 합이 총 시간을 넘어
+   서버가 기록을 버린다(PracticeSessionValidator). */
+function openCaptchaWhenReady() {
+    if (!QueueManager.passed || !seatUiReady) return;
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+    if (sessionStorage.getItem('captcha_solved') === 'true') return;
+
+    renderCaptcha();
 }
 
 function bindEvents() {
