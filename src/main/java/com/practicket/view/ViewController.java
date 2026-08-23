@@ -14,6 +14,7 @@ import com.practicket.community.dto.PostSearchCondition;
 import com.practicket.notice.application.NoticeService;
 import com.practicket.notice.domain.Notice;
 import com.practicket.notice.domain.NoticeType;
+import com.practicket.notice.dto.NoticeBlock;
 import com.practicket.ticket.application.TicketQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +70,7 @@ public class ViewController {
             return "redirect:/notice";
         }
         model.addAttribute("notice", notice);
+        model.addAttribute("blocks", NoticeBlock.parse(notice.getContent()));
         return "notice/detail";
     }
 

@@ -25,10 +25,19 @@
             </div>
 
             <!--
-              본문은 운영자만 쓰므로 HTML 을 허용하지 않고 그대로 출력한다(th:text).
-              줄바꿈만 살리려고 CSS 의 white-space: pre-wrap 을 쓴다.
+              본문은 저장된 그대로의 순수 텍스트다. HTML 을 허용하지 않으려고
+              블록으로 나눈 뒤에도 각 조각을 th:text 로 찍는다.
             -->
-            <div class="nd-body" th:text="${notice.content}">본문</div>
+            <div class="nd-body">
+                <th:block th:each="block : ${blocks}">
+                    <p class="nd-lead" th:if="${block.kind == 'lead'}" th:text="${block.text}">리드</p>
+                    <p class="nd-p" th:if="${block.kind == 'p'}" th:text="${block.text}">문단</p>
+                    <ul th:if="${block.kind == 'ul'}">
+                        <li th:each="item : ${block.items}" th:text="${item}">항목</li>
+                    </ul>
+                    <p class="nd-tail" th:if="${block.kind == 'tail'}" th:text="${block.text}">맺음말</p>
+                </th:block>
+            </div>
         </article>
 
         <div id="notice-back">

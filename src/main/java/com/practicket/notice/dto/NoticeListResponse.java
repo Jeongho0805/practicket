@@ -12,7 +12,6 @@ public record NoticeListResponse(
         boolean isNotice,
         boolean pinned,
         String title,
-        String summary,
         String date,
         String monthKey,
         String monthLabel
@@ -31,7 +30,6 @@ public record NoticeListResponse(
                 notice.getType().name().equals("NOTICE"),
                 Boolean.TRUE.equals(notice.getPinned()),
                 notice.getTitle(),
-                notice.getContent(),
                 notice.getCreatedAt().format(DATE),
                 monthKey,
                 ym[0] + "년 " + Integer.parseInt(ym[1]) + "월"
