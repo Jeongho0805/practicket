@@ -291,7 +291,7 @@ const SEAT = { spacing: 3, radius: 1 };
    실측이 아니라 목업(docs/mockups/n-ticket/seat-decay.html)으로 체감을 맞춘 값이다. */
 /* random 은 자리를 안 가리고 사는 비율이다. 이게 없으면 앞 구역이 통째로 비워진 뒤에야
    뒤 구역이 팔려서, 뒤쪽에 빈자리가 흩어져 있는 실제 예매창과 달라진다. */
-const SELL = { totalMs: 40000, k: 2, jitter: 400, random: .20 };
+const SELL = { totalMs: 40000, k: 4, jitter: 400, random: .20 };
 
 /* 무대에서 가까운 자리부터 팔린다. 흔들림을 안 섞으면 동심원으로 퍼져 부자연스럽다 */
 const STAGE_AT = { x: 370.5, y: 74 };
