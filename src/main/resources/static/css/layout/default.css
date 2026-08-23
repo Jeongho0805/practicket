@@ -35,18 +35,28 @@
         grid-template-columns: 1fr 2fr 1fr;
     }
 
-    #ad-section {
-        width: 60%;
-        height: 70%;
+    /* 자리의 비율을 배너 규격(300x600)에 맞춘다. 안 맞으면 contain 으로 여백이 생기는데
+       그 여백까지 링크 안이라 그림 옆 빈 곳을 눌러도 광고가 열린다.
+
+       300px 은 규격 상한이다. 없으면 폭이 창 높이에만 비례해 끝없이 커진다 — 2560x1400 에서 434px 까지 갔다.
+       31vh 는 창이 낮을 때(약 968px 미만) 광고가 넘치지 않게 막는다. 이 레이아웃(헤더 1 : 본문 10, 그 중 70%)
+       에서 역산한 값이라 그 둘을 바꾸면 같이 손봐야 한다.
+       max-height 는 계산이 어긋났을 때 광고가 화면을 밀지 않게 막는 안전장치다. */
+    #ad-section,
+    #adsence-section {
+        width: min(300px, 31vh);
+        height: auto;
+        aspect-ratio: 1 / 2;
         max-height: 70%;
         overflow: hidden;
     }
 
-    #adsence-section {
+    /* 배너가 없어 쿠팡만 들어가는 자리는 비율을 풀고 원래 크기로 돌린다 —
+       위젯은 스스로 크기를 맞추므로 자리를 꽉 줘야 한다. */
+    #ad-section:not(:has(.ad-slot-link)) {
         width: 60%;
         height: 70%;
-        max-height: 70%;
-        overflow: hidden;
+        aspect-ratio: auto;
     }
 }
 
@@ -68,19 +78,36 @@
         width: 100%;
         display: grid;
         grid-auto-flow: row;
-        grid-template-rows: 15fr 85fr;
+        grid-template-rows: auto 1fr;
     }
 
+    /* 모바일 배너 규격(320x80)에 맞춘다. padding 을 두면 그만큼 비율이 어긋나 여백이 남는다.
+       폭이 높이를 정한다. 반대로 두면 짧은 폰에서 폭이 화면 폭보다 좁게 쪼그라든다.
+       광고 행을 auto 로 두는 것도 그래서다 — 고정 fr 은 필요 높이가 폰마다 11~14% 로 갈려 아래를 덮는다. */
     #ad-section {
         width: 100%;
-        height: 100%;
-        max-height: 100%;
+        height: auto;
+        aspect-ratio: 4 / 1;
+        margin: 0 auto;
         overflow: hidden;
-        padding: 1%;
-        box-sizing: border-box;
     }
 
     #adsence-section {
         display: none;
     }
+}
+
+/* 배너 링크 공통 — .desktop-invisible / .mobile-invisible 가 브레이크포인트별로 숨기므로
+   여기서는 inline style 대신 클래스로 표시 상태를 준다(inline style은 미디어쿼리를 이겨버린다).
+   display 를 여기서 다른 값으로 덮으면 그 숨김이 깨진다 — 건드리지 말 것. */
+.ad-slot-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ad-slot-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }

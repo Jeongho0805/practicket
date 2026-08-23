@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="프랙티켓 - 티켓팅 연습 플랫폼">
+    <meta name="description" content="실전과 똑같은 환경에서 미리 연습하는 티켓팅 연습 플랫폼, 프랙티켓.">
+    <meta name="robots" content="index, follow">
+    <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습">
+    <title>티켓팅 연습 플랫폼 - 프랙티켓</title>
+    <link rel="canonical" href="https://practicket.com/">
+    <link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+    <div layout:fragment="content" id="main-section">
+
+        <!-- 공지 · 업데이트 (어드민 /admin-hoya/notices 에서 관리, 최근 5건) -->
+        <div class="notice">
+            <div class="nt-head"><b class="mf grad">공지 · 업데이트</b><a class="more" href="/notice">전체보기</a></div>
+            <ul class="nt-list">
+                <li th:each="n : ${notices}">
+                    <span class="tag" th:classappend="${n.type.badgeClass}" th:text="${n.type.label}">공지</span>
+                    <a class="nt-txt" th:href="@{/notice/{id}(id=${n.id})}" th:text="${n.title}" th:title="${n.title}">제목</a>
+                    <span class="nt-date" th:text="${#temporals.format(n.createdAt, 'MM.dd')}">06.30</span>
+                </li>
+                <li class="nt-empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</li>
+            </ul>
+        </div>
+
+        <!-- 문의 -->
+        <div class="inq">
+            <div class="inq-cards">
+                <a class="inq-card p" href="/advertise"><b class="mf">광고·제휴 문의</b><span>배너 광고·제휴 제안 남기기</span></a>
+                <button type="button" class="inq-card g" onclick="openInq()"><b class="mf">불편·건의</b><span>버그·개선 의견 남기기</span></button>
+            </div>
+        </div>
+
+        <!-- 야구 신규 서비스(호야구) 홍보.
+             로고는 호야구 레포 brand-logo.html 의 확정 심볼을 그대로 옮긴 것이다 — 임의로 고치지 말 것. -->
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+            <linearGradient id="hyUnder" gradientUnits="userSpaceOnUse" x1="18" y1="0" x2="116" y2="0">
+                <stop offset="0" stop-color="#FF3D7F" stop-opacity=".16"/>
+                <stop offset="1" stop-color="#FF3D7F" stop-opacity="1"/>
+            </linearGradient>
+            <symbol id="hyBall" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18.5" fill="#fff"/>
+                <path d="M12 4 Q21 20 12 36" fill="none" stroke="#FF3D7F" stroke-width="1.4"/>
+                <path d="M28 4 Q19 20 28 36" fill="none" stroke="#FF3D7F" stroke-width="1.4"/>
+                <g stroke="#FF3D7F" stroke-width="1.05" stroke-linecap="round">
+                    <path d="M11.5 8 l3.4 1.4M12.2 8.6 l3.1 -1.6"/><path d="M12.8 13 l3.6 1.2M13.3 13.7 l3.2 -1.4"/>
+                    <path d="M13 18 l3.7 1M13.4 18.8 l3.3 -1.2"/><path d="M13 23 l3.7 -1M13.4 22.3 l3.3 1.2"/>
+                    <path d="M12.8 28 l3.6 -1.2M13.3 27.3 l3.2 1.4"/>
+                    <path d="M28.5 8 l-3.4 1.4M27.8 8.6 l-3.1 -1.6"/><path d="M27.2 13 l-3.6 1.2M26.7 13.7 l-3.2 -1.4"/>
+                    <path d="M27 18 l-3.7 1M26.6 18.8 l-3.3 -1.2"/><path d="M27 23 l-3.7 -1M26.6 22.3 l-3.3 1.2"/>
+                    <path d="M27.2 28 l-3.6 -1.2M26.7 27.3 l-3.2 1.4"/>
+                </g>
+            </symbol>
+            <symbol id="hyLogo" viewBox="0 0 138 60">
+                <text x="14" y="46" font-family="'Pretendard Variable',Pretendard,sans-serif" font-size="40"
+                      font-weight="900" font-style="italic" letter-spacing="-2" transform="skewX(-4)" fill="#f2f2f7">호야구</text>
+                <path d="M16 52 Q 66 64 116 52" fill="none" stroke="url(#hyUnder)" stroke-width="3" stroke-linecap="round"/>
+                <use href="#hyBall" x="110.5" y="46.5" width="10.5" height="10.5"/>
+            </symbol>
+        </defs></svg>
+        <div class="bb">
+            <div class="bb-l">
+                <span class="badge">NEW SERVICE</span>
+                <svg class="hylogo" viewBox="0 0 138 60" role="img" aria-label="호야구"><use href="#hyLogo"/></svg>
+                <b class="mf">야구 팬을 위한 새 서비스</b>
+                <span class="desc">경기 · 채팅 · 승부예측 · 티켓팅 연습</span>
+            </div>
+            <div class="bb-r"><b class="mf">2026 시즌</b><span class="soon">COMING SOON</span></div>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="foot">
+            <a href="/terms">이용약관</a><span class="dot">·</span><a href="/privacy">개인정보처리방침</a><span class="dot">·</span><span class="copy">© 2025–2026 프랙티켓</span>
+        </div>
+
+        <!-- 문의 모달 -->
+        <div class="overlay" id="inq-overlay" onclick="if(event.target===this)closeInq()">
+            <div class="modal">
+                <div class="mhead">
+                    <b class="mf" id="inq-title">불편 · 건의</b>
+                    <button type="button" class="modal-x" onclick="closeInq()" aria-label="닫기">&times;</button>
+                </div>
+                <div class="bd">
+                    <p id="inq-desc">버그 제보나 개선 아이디어가 있다면 알려주세요.</p>
+                    <input id="inq-email" type="email" placeholder="회신 받을 이메일">
+                    <textarea id="inq-content" placeholder="내용을 입력하세요"></textarea>
+                    <p class="inq-warn">장난·허위 문의는 접속 IP가 기록되며, 반복 시 서비스 이용이 제한될 수 있어요.</p>
+                    <button type="button" class="send" id="inq-send">건의 사항 보내기</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/landing.js"></script>
+    </th:block>
+</body>
+</html>

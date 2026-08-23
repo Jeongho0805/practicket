@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>M-Ticket 실전연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/m_ticket.css" />
+    <link rel="stylesheet" href="/css/practice/result-modal.css" />
+</head>
+
+<body>
+
+<div id="board">
+
+    <div class="pane-map">
+
+        <!-- ══════════ 데스크톱 상단 ══════════ -->
+        <div class="pc-top">
+            <span class="lb">좌석 선택</span>
+            <span class="nm">HOYA LIVE 2026 IN SEOUL</span>
+            <select aria-label="회차 선택">
+                <option>2026.02.08 (일) 18:00</option>
+            </select>
+        </div>
+
+        <!-- ══════════ 모바일 상단 ══════════ -->
+        <div class="mo-top">
+            <div class="appbar">
+                <h1>HOYA LIVE 2026 IN SEOUL</h1>
+                <button class="x" onclick="location.href='/practice'">✕</button>
+            </div>
+            <div class="info">
+                <div class="thumb" id="mo-thumb"></div>
+                <div class="rows">
+                    <div class="row"><span class="v">2026년 2월 8일(일) 18시00분</span></div>
+                    <div class="row area"><span class="v" id="mo-area">구역을 선택해 주세요</span><span class="ch" id="mo-area-change">구역변경</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════ 좌석도 / 좌석 격자 ══════════ -->
+        <div class="map" id="map">
+            <div class="stagebar"><span class="st">무대방향 (STAGE)</span></div>
+            <div class="zonehint" id="zonehint"></div>
+            <div class="zonemap" id="zonemap"></div>
+            <div class="gridwrap" id="gridwrap"><div class="grid" id="grid"></div></div>
+            <div class="loading" id="loading"><i></i></div>
+
+            <div class="pc-bottombar" id="pc-bar">
+                <button class="line" id="pc-bar-toggle">
+                    <span class="msg" id="pc-bar-msg">구역을 먼저 선택해주세요</span>
+                    <em id="pc-bar-sub">(화면을 직접 선택하거나 우측 좌석등급을 선택해주세요)</em>
+                    <i class="arw"></i>
+                </button>
+                <div class="chips" id="pc-chips"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ 데스크톱 우측 패널 ══════════ -->
+    <aside class="pane-side">
+        <div class="boxmap">
+            <div class="minimap"><div class="in" id="minimap"></div></div>
+            <div class="mapall"><u id="map-all">좌석도 전체보기 ›</u></div>
+        </div>
+
+        <div class="listwrap">
+            <div class="listhead">
+                <h2>좌석등급/잔여석</h2>
+                <span class="rf" id="pc-refresh">새로고침</span>
+            </div>
+            <div class="boxseat"><table class="tbl" id="grade-table"></table></div>
+        </div>
+
+        <div class="donewrap"><button class="done" id="pc-done">좌석 선택 완료<em>›</em></button></div>
+    </aside>
+
+    <!-- ══════════ 모바일 등급/구역 선택 ══════════ -->
+    <div class="mo-pick">
+        <div class="col">
+            <h2>등급</h2>
+            <ul id="mo-grades"></ul>
+        </div>
+        <div class="col">
+            <h2>구역</h2>
+            <ul id="mo-areas"><li class="empty">등급을 먼저 선택해 주세요.</li></ul>
+        </div>
+    </div>
+
+    <!-- ══════════ 모바일 하단 시트 ══════════ -->
+    <div class="mo-sheet">
+        <div class="fold"></div>
+        <p class="sel" id="mo-sel">선택좌석(0)</p>
+        <ul id="mo-sheet-grades"></ul>
+    </div>
+
+    <!-- ══════════ 모바일 버튼바 ══════════ -->
+    <div class="mo-btm">
+        <button class="rf" id="mo-refresh">새로고침</button>
+        <button class="go" id="mo-go">좌석선택</button>
+    </div>
+
+    <!-- ══════════ 보안문자 ══════════ -->
+    <div class="dim" id="cap-dim"></div>
+    <div class="cap" id="cap">
+        <h2>인증예매</h2>
+        <div class="con">
+            <p class="ment">부정예매 방지를 위해 보안문자를<br>정확히 입력해주세요</p>
+            <div class="capbox">
+                <canvas id="cap-canvas" width="230" height="70"></canvas>
+                <div class="side">
+                    <button id="cap-reload" title="새로고침"></button>
+                    <button id="cap-sound" title="소리듣기"></button>
+                </div>
+            </div>
+            <input id="cap-input" maxlength="6" autocomplete="off" placeholder="대소문자 구분없이 문자입력" />
+            <button class="sub" id="cap-submit">입력완료</button>
+            <button class="later" id="cap-later">좌석 먼저 확인하고 나중에 입력하기</button>
+        </div>
+    </div>
+
+    <!-- ══════════ 결과 ══════════ -->
+    <div id="pkt-complete-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header">
+                <div class="pkt-header-tag">Practice Complete</div>
+                <span class="pkt-best-tag" id="pkt-best-tag" style="display:none"><i></i>신기록</span>
+                <div class="pkt-header-title">연습 완료!</div>
+                <div class="pkt-header-meta" id="pkt-meta">M-Ticket</div>
+                <div class="pkt-percentile-bar" id="pkt-percentile-bar" style="display:none">
+                    <span class="pb-dot"></span>
+                    <div class="pb-texts">
+                        <span class="pb-label">이번 달 순위</span>
+                        <span class="pb-value" id="pkt-percentile-value">-</span>
+                    </div>
+                </div>
+                <div class="pkt-unsaved-bar" id="pkt-unsaved-bar" style="display:none">
+                    <span class="ub-mark"></span>
+                    <div class="ub-texts">
+                        <span class="ub-label">이번 기록은 저장되지 않았어요</span>
+                        <span class="ub-why">비정상 기록이거나 서버 오류예요</span>
+                    </div>
+                </div>
+            </div>
+            <div class="pkt-total-section">
+                <span class="pkt-total-label">총 소요 시간</span>
+                <div class="pkt-total-badge">
+                    <span class="pkt-total-num" id="pkt-total-num">-</span>
+                    <span class="pkt-total-unit">초</span>
+                </div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
+                </div>
+                <div class="pkt-stack" id="pkt-stack"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-seat">-</b></span>
+                </div>
+            </div>
+            <div class="pkt-hint" id="pkt-hint" style="display:none"></div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/m-ticket/intro'">다시 연습</button>
+                <button class="pkt-btn-share" id="pkt-share">공유</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=M_TICKET'">순위표 →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ 매진 ══════════ -->
+    <div id="pkt-soldout-overlay">
+        <div class="pkt-modal-card">
+            <div class="pkt-modal-header pkt-modal-header--fail">
+                <div class="pkt-header-tag">Sold Out</div>
+                <div class="pkt-header-title">아쉽네요!</div>
+                <div class="pkt-header-meta" id="pkt-fail-meta">M-Ticket</div>
+            </div>
+            <div class="pkt-total-section pkt-total-section--fail">
+                <div class="pkt-fail-soldout-txt">모든 좌석이 소진되었습니다</div>
+                <div class="pkt-fail-msg" id="pkt-fail-msg"></div>
+            </div>
+            <div class="pkt-divider"></div>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
+                    <span class="pkt-split-ref">총 <b id="pkt-fail-total">-</b></span>
+                </div>
+                <div class="pkt-stack" id="pkt-fail-stack"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-fail-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-fail-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-fail-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-fail-seat">-</b></span>
+                </div>
+            </div>
+            <div class="pkt-hint" id="pkt-fail-hint" style="display:none"></div>
+            <div class="pkt-btn-section">
+                <button class="pkt-btn-retry" onclick="location.href='/practice/m-ticket/intro'">다시 도전</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=M_TICKET'">순위표 보기 →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════ 알림 · 확인 ══════════ -->
+    <div class="dim" id="ask-dim"></div>
+    <div class="ask" id="ask">
+        <h2 id="ask-title">알림</h2>
+        <p id="ask-msg"></p>
+        <div class="acts">
+            <button class="cancel" id="ask-cancel">취소</button>
+            <button class="ok" id="ask-ok">확인</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+</div>
+
+<!-- layout/default 가 내려주던 전역이다. 독립 페이지라 여기서 직접 정의한다(m_ticket_intro.html 과 동일) -->
+<script>const HOST = '';</script>
+<script type="module" src="/js/practice/m_ticket.js"></script>
+</body>
+
+</html>

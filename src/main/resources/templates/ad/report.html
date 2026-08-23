@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title th:text="${(banner.advertiserName != null and !banner.advertiserName.isBlank() ? banner.advertiserName : '캠페인') + ' 광고 리포트 - 프랙티켓'}">
+        광고 리포트 - 프랙티켓
+    </title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+            background: #f4f2fb;
+            color: #2a2438;
+            padding: 28px 16px 60px;
+        }
+        .wrap { max-width: 860px; margin: 0 auto; }
+
+        .brand {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 18px;
+        }
+        .brand .dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: linear-gradient(135deg, #6b5b9a, #514897);
+        }
+        .brand span {
+            font-size: 13px; font-weight: 700; color: #514897; letter-spacing: .3px;
+        }
+
+        .head {
+            background: linear-gradient(125deg, #3d2f73, #514897 55%, #8470b3);
+            color: #fff; border-radius: 18px; padding: 26px 28px;
+            box-shadow: 0 16px 32px rgba(81, 72, 151, .25);
+            margin-bottom: 18px;
+        }
+        .head .badge {
+            display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .6px;
+            background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.38);
+            padding: 4px 11px; border-radius: 20px; margin-bottom: 10px;
+        }
+        .head h1 { font-size: 22px; font-weight: 800; word-break: keep-all; margin-bottom: 10px; }
+        .head .meta { font-size: 13px; opacity: .9; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+        .head .meta b { font-weight: 700; }
+
+        .cards {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;
+        }
+        .card {
+            background: #fff; border-radius: 16px; padding: 18px 20px;
+            border: 1.5px solid rgba(81, 72, 151, .12);
+            box-shadow: 0 6px 16px rgba(81, 72, 151, .06);
+        }
+        .card .label { font-size: 12.5px; color: #8a82a0; margin-bottom: 8px; }
+        .card .value { font-size: 24px; font-weight: 800; color: #2a2438; }
+        .card .value.accent {
+            background: linear-gradient(135deg, #6b5b9a, #8470b3);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            background: #fff; border-radius: 16px; padding: 22px 24px;
+            border: 1.5px solid rgba(81, 72, 151, .12);
+            box-shadow: 0 6px 16px rgba(81, 72, 151, .06);
+            margin-bottom: 18px;
+        }
+        .section h2 { font-size: 15px; font-weight: 700; margin-bottom: 16px; color: #3d2f73; }
+
+        .chart {
+            display: flex; align-items: flex-end; gap: 4px;
+            height: 160px; padding: 0 2px 8px; border-bottom: 1.5px solid rgba(81, 72, 151, .12);
+            overflow-x: auto;
+        }
+        .bar-col {
+            flex: 1 0 10px; min-width: 6px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-end; height: 100%;
+        }
+        .bar {
+            width: 100%; max-width: 22px; border-radius: 4px 4px 0 0;
+            background: linear-gradient(180deg, #8470b3, #514897);
+        }
+        .chart-empty {
+            display: flex; align-items: center; justify-content: center;
+            height: 160px; color: #b0a9c4; font-size: 13px;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+        th, td { text-align: right; padding: 9px 8px; border-bottom: 1px solid rgba(81, 72, 151, .1); }
+        th:first-child, td:first-child { text-align: left; }
+        th { color: #8a82a0; font-weight: 600; font-size: 12px; }
+        td { color: #2a2438; }
+        .table-scroll { overflow-x: auto; }
+
+        .note {
+            font-size: 12px; color: #8a82a0; line-height: 1.6; padding: 14px 16px;
+            background: #f4f2fb; border-radius: 12px;
+        }
+
+        .foot { text-align: center; font-size: 11.5px; color: #b0a9c4; margin-top: 24px; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="brand">
+        <span class="dot"></span>
+        <span>PRACTICKET 광고 리포트</span>
+    </div>
+
+    <div class="head">
+        <span class="badge" th:text="${banner.slot != null ? banner.slot.name : '슬롯'}">슬롯</span>
+        <h1 th:text="${(banner.advertiserName != null and !banner.advertiserName.isBlank() ? banner.advertiserName : '캠페인')} + ' 캠페인 리포트'">
+            캠페인 리포트
+        </h1>
+        <div class="meta">
+            <span>배너 ID <b th:text="${banner.id}">1</b></span>
+            <span>게재기간 <b th:text="${#temporals.format(periodFrom, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(periodTo, 'yyyy.MM.dd')}">기간</b></span>
+            <span>상태 <b th:text="${banner.enabled ? '진행중' : '중지됨'}">상태</b></span>
+        </div>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="label">총 노출수</div>
+            <div class="value" th:text="${#numbers.formatInteger(totalImpressions, 0, 'COMMA')}">0</div>
+        </div>
+        <div class="card">
+            <div class="label">총 클릭수</div>
+            <div class="value" th:text="${#numbers.formatInteger(totalClicks, 0, 'COMMA')}">0</div>
+        </div>
+        <div class="card">
+            <div class="label">CTR (클릭률)</div>
+            <div class="value accent" th:text="${#numbers.formatDecimal(ctr, 1, 2, 'POINT')} + '%'">0.00%</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>일별 노출 추이</h2>
+        <div class="chart" th:if="${not #lists.isEmpty(dailyRows)}">
+            <div class="bar-col" th:each="row : ${dailyRows}"
+                 th:title="${#temporals.format(row.date, 'MM.dd')} + ' · 노출 ' + ${#numbers.formatInteger(row.impressions, 0, 'COMMA')} + ' · 클릭 ' + ${#numbers.formatInteger(row.clicks, 0, 'COMMA')}">
+                <div class="bar"
+                     th:style="|height: ${T(java.lang.Math).max(3L, (row.impressions * 140) / maxImpressions)}px|"></div>
+            </div>
+        </div>
+        <div class="chart-empty" th:if="${#lists.isEmpty(dailyRows)}">아직 집계된 데이터가 없습니다.</div>
+
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>날짜</th>
+                    <th>노출수</th>
+                    <th>클릭수</th>
+                    <th>CTR</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${dailyRows}">
+                    <td th:text="${#temporals.format(row.date, 'yyyy.MM.dd')}">2026.01.01</td>
+                    <td th:text="${#numbers.formatInteger(row.impressions, 0, 'COMMA')}">0</td>
+                    <td th:text="${#numbers.formatInteger(row.clicks, 0, 'COMMA')}">0</td>
+                    <td th:text="${row.impressions == 0 ? '-' : #numbers.formatDecimal(row.clicks * 100.0 / row.impressions, 1, 2, 'POINT') + '%'}">-</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(dailyRows)}">
+                    <td colspan="4" style="text-align:center; color:#b0a9c4;">데이터 없음</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="note">
+        본 리포트는 프랙티켓 자체 서버 렌더/클릭 기준 집계이며, 기본적인 봇·중복 클릭 필터가 적용되어 있습니다.
+        노출수는 뷰어빌리티(실제 화면 노출 여부)를 별도로 검증하지 않은 <b>근사치</b>이며, 클릭 링크에는 UTM 파라미터가
+        포함되어 있어 광고주 측 애널리틱스와 교차 확인이 가능합니다.
+    </p>
+
+    <div class="foot">practicket.com · 이 페이지는 배너별 전용 링크로만 접근할 수 있습니다.</div>
+</div>
+</body>
+</html>

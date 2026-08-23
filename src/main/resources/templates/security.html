@@ -6,68 +6,69 @@
     <meta name="description" content="보안문자 연습도 프랙티켓에서 경험해보세요">
     <meta name="robots" content="index, follow">
     <meta name="keywords" content="티켓팅,티켓팅 연습,예매,예매 연습,연습,보안문자,보안문자 입력연습, 보안문자 연습">
-    <title>보안문자 연습 - 프랙티켓</title>
+    <title>보안문자 - 프랙티켓</title>
     <link rel="canonical" href="https://practicket.com/security">
     <link rel="stylesheet" href="/css/security.css">
 </head>
 <body>
     <div layout:fragment="content" id="main-section">
-        <div id="title-section">
-            <h1>보안문자 입력 연습도 프랙티켓에서!</h1>
-            <h2>실제 사용자들과 비교하여 나의 보안문자 입력 결과를 확인해보세요.</h2>
-        </div>
-        <div id="guide-section">
-            <p class="guide-description">
-                Start 버튼을 누르면 <span class="guide-highlight">3개</span>의 보안문자가 제시됩니다. <br/>
-                보안문자 입력을 완료하면 나의 랭킹이 표시됩니다
-            </p>
-            <button id="start-button">Start</button>
-        </div>
-        <div id="security-section">
-            <div id="security-letter-section">
-                <h3 id="security-letter-title">문자를 입력해주세요</h3>
-                <div id="security-letter-guide">
-                    <p id="security-letter-count-message"></p>
-                    <h4 id="security-letter-count">맞춘 갯수&nbsp;&nbsp;  <span id="correct-count">0</span></h4>
-                </div>
-                <div id="security-letter-image-background">
-                    <canvas id="security-letter-image"></canvas>
-                </div>
-                <div id="security-input-section">
-                    <input id="security-input" placeholder="문자를 입력해주세요." autocomplete="off">
-                    <button id="security-input-button">입력완료</button>
-                </div>
+
+        <section id="home-section">
+            <div id="intro">
+                <h1 id="page-title">보안문자 입력 연습</h1>
+                <h2 id="page-sub">보안문자 3개, 몇 초 만에 끝낼 수 있나요?</h2>
             </div>
-        </div>
-        <div id="result-section">
-            <h3 id="result-title">보안문자 입력 결과</h3>
-            <div id="result-detail">
-                <div class="result-detail-content" id="my-latest-percentile">
-                    <h4>최근 결과 상위 %</h4>
-                    <p id="my-latest-percentile-value"></p>
+
+            <button id="start-button">START</button>
+
+            <div id="dist-card">
+                <div id="dist-hero" hidden>
+                    <span class="lab">이번 기록</span>
+                    <b id="dist-hero-time">—</b>
+                    <span id="dist-hero-meta"></span>
                 </div>
-                <div class="result-detail-content" id=my-latest-rank>
-                    <h4>최근 결과 순위</h4>
-                    <p id="my-latest-rank-value"></p>
-                </div>
-                <div class="result-detail-content" id="my-best-result">
-                    <h4>나의 최단 소요시간</h4>
-                    <p id="my-best-result-value"></p>
-                </div>
-                <div class="result-detail-content" id="my-latest-result">
-                    <h4>최근 소요시간</h4>
-                    <p id="my-latest-result-value"></p>
-                </div>
-                <div class="result-detail-content" id="my-average-result">
-                    <h4>내 평균 소요시간</h4>
-                    <p id="my-average-result-value"></p>
-                </div>
-                <div class="result-detail-content" id="total-average-result">
-                    <h4>전체 평균 소요시간</h4>
-                    <p id="total-average-result-value"></p>
-                </div>
+                <h3 id="dist-title">전체 기록 분포</h3>
+                <p id="dist-caption" hidden></p>
+                <div id="dist-bars"></div>
+                <div id="dist-axis"></div>
+                <p id="dist-hint" hidden>START를 누르면 여기에 내 위치가 표시돼요</p>
             </div>
-        </div>
+
+            <div id="stat-grid"></div>
+
+            <div id="rank-panel" class="panel" hidden>
+                <div class="panel-head"><b>오늘의 TOP 5</b><span id="rank-total"></span></div>
+                <div id="rank-rows"></div>
+            </div>
+
+            <div id="trend-panel" class="panel" hidden>
+                <div class="panel-head"><b id="trend-title">내 최근 기록</b><span id="trend-note"></span></div>
+                <div id="trend-bars"></div>
+            </div>
+        </section>
+
+        <section id="play-section" hidden>
+            <div id="play-top">
+                <div id="play-steps">
+                    <i></i><i></i><i></i>
+                    <span id="play-progress">1 / 3</span>
+                </div>
+                <div id="play-timer"><b id="timer-value">0.0</b><small>초</small></div>
+            </div>
+
+            <div id="captcha-card">
+                <canvas id="security-letter-image"></canvas>
+                <button id="captcha-refresh" type="button">다른 문자로 바꾸기</button>
+            </div>
+
+            <div id="input-bar">
+                <input id="security-input" placeholder="문자 입력" autocomplete="off" maxlength="6">
+                <button id="security-input-button" type="button">확인</button>
+            </div>
+
+            <p id="play-message"></p>
+        </section>
+
     </div>
 
     <th:block layout:fragment="scripts">

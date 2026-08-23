@@ -22,3 +22,6 @@ User-agent: AwarioRssBot
 Disallow: /
 User-agent: AwarioSmartBot
 Disallow: /
+
+Sitemap: https://practicket.com/sitemap.xml
+Sitemap: https://practicket.com/sitemap-community.xml

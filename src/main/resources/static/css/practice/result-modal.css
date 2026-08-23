@@ -1,0 +1,611 @@
+/* ════════════════════════════════════════
+   연습 결과 모달 — i-ticket · n-ticket 공용
+
+   완료(#pkt-complete-overlay)와 매진(#pkt-soldout-overlay)이 같은 카드를 쓴다.
+   원래 i_ticket.css 안에 있었는데 n-ticket 이 같은 모달을 쓰게 되면서 떼어냈다.
+   ════════════════════════════════════════ */
+
+@keyframes pkt-fadeIn {
+    from { opacity: 0 }
+    to { opacity: 1 }
+}
+
+@keyframes pkt-slideUp {
+    from { transform: translateY(24px); opacity: 0 }
+    to { transform: translateY(0); opacity: 1 }
+}
+
+#pkt-complete-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 4, 18, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 400000;
+    animation: pkt-fadeIn 0.2s ease;
+}
+
+#pkt-complete-overlay.visible {
+    display: flex;
+}
+
+#pkt-soldout-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 4, 18, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 400000;
+    animation: pkt-fadeIn 0.2s ease;
+}
+
+#pkt-soldout-overlay.visible {
+    display: flex;
+}
+
+.pkt-modal-card .pkt-modal-header--fail {
+    background: #6b6480;
+}
+
+.pkt-fail-soldout-txt {
+    font-size: 16px;
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+}
+
+.pkt-fail-msg {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+.pkt-modal-card {
+    background: #fff;
+    border-radius: 24px;
+    width: 400px;
+    box-shadow:
+        0 0 0 1px rgba(81, 72, 151, 0.08),
+        0 20px 60px rgba(81, 72, 151, 0.16),
+        0 4px 16px rgba(0, 0, 0, 0.06);
+    animation: pkt-slideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+}
+
+.pkt-modal-header {
+    background: linear-gradient(135deg, #8470b3 0%, #514897 100%);
+    padding: 28px 28px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pkt-modal-header::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+}
+
+.pkt-modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 50%;
+}
+
+.pkt-header-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* 이번 기록이 자기 최고 기록일 때만 붙는다. 바로 아래 순위 상자와 같은 유리 재질,
+   같은 빛나는 점을 써서 카드 안에서 따로 놀지 않게 한다. */
+.pkt-best-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    margin-bottom: 12px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    font-size: 10px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+}
+
+.pkt-best-tag i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+}
+
+.pkt-header-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+}
+
+.pkt-header-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+}
+
+/* 기록이 저장되지 않았을 때 순위 바 대신 뜬다. 둘은 같은 자리를 나눠 쓴다. */
+.pkt-unsaved-bar {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+.pkt-unsaved-bar .ub-mark {
+    width: 3px;
+    height: 26px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    flex-shrink: 0;
+}
+
+.pkt-unsaved-bar .ub-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pkt-unsaved-bar .ub-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.pkt-unsaved-bar .ub-why {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.pkt-percentile-bar {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+/* 메달 이모지를 대신한다. 이모지는 OS 마다 그림이 달라 카드 톤이 무너진다. */
+.pkt-percentile-bar .pb-dot {
+    width: 8px;
+    height: 8px;
+    margin: 0 3px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+}
+
+.pkt-percentile-bar .pb-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pkt-percentile-bar .pb-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.5px;
+}
+
+.pkt-percentile-bar .pb-value {
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.3px;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+}
+
+.pkt-percentile-bar .pb-sub {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.45);
+    margin-left: 4px;
+}
+
+.pkt-total-section {
+    padding: 24px 28px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* 매진은 기록 대신 문장을 두 줄로 놓는다. 가로로 나란히 두면 둘 다 잘린다 */
+.pkt-total-section--fail {
+    display: block;
+    text-align: center;
+}
+
+.pkt-total-label {
+    white-space: nowrap;
+    font-size: 15px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.pkt-total-desc {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
+.pkt-total-badge {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    background: #f1eef9;
+    border: 1.5px solid #ddd6ee;
+    border-radius: 12px;
+    padding: 8px 18px;
+}
+
+.pkt-total-num {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    /* 한 자 늘 때마다 배지가 18px 씩 넓어진다. 좁은 화면에서 줄여야 라벨과 나란히 남는다. */
+    font-size: clamp(26px, 7vw, 32px);
+    font-weight: 700;
+    color: #514897;
+    letter-spacing: -1px;
+}
+
+.pkt-total-unit {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: #8470b3;
+}
+
+.pkt-divider {
+    margin: 20px 28px 0;
+    height: 1px;
+    background: #f1f5f9;
+}
+
+.pkt-detail-grid {
+    padding: 18px 28px 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.pkt-dc {
+    background: #fafbfc;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pkt-dc-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.pkt-dc-value {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    color: #514897;
+}
+
+.pkt-dc-value.neutral {
+    color: #475569;
+}
+
+.pkt-dc-sub {
+    font-size: 10px;
+    color: #cfd8dc;
+    font-weight: 500;
+}
+
+.pkt-btn-section {
+    padding: 20px 28px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* 세 버튼은 한 행이라 하나만 접혀도 행 전체가 부풀어 카드가 어긋난다.
+   320px 기기처럼 셋이 못 들어가는 폭에서는 글자를 쪼개는 대신 아래 줄로 흘린다. */
+.pkt-btn-section button {
+    white-space: nowrap;
+}
+
+.pkt-btn-retry {
+    flex: 1;
+    padding: 12px;
+    background: #fff;
+    border: 1.5px solid #ddd6ee;
+    color: #514897;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+}
+
+.pkt-btn-retry:hover {
+    background: #f1eef9;
+    border-color: #b3a8d6;
+}
+
+.pkt-btn-share {
+    flex: 1;
+    padding: 12px;
+    background: #f1eef9;
+    border: 1.5px solid #ddd6ee;
+    color: #514897;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+}
+
+.pkt-btn-share:hover {
+    background: #e7e2f5;
+}
+
+.pkt-btn-rank {
+    flex: 1.5;
+    padding: 12px;
+    background: linear-gradient(135deg, #8470b3 0%, #6b5b9a 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    box-shadow: 0 4px 14px rgba(107, 91, 154, 0.32);
+}
+
+.pkt-btn-rank:hover {
+    background: linear-gradient(135deg, #7663a8 0%, #5f5090 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(107, 91, 154, 0.44);
+}
+
+.pkt-split {
+    padding: 16px 28px 0;
+}
+
+.pkt-split-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+
+.pkt-split-ref {
+    color: #cbd5e1;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 500;
+}
+
+.pkt-stack {
+    height: 26px;
+    border-radius: 9px;
+    overflow: hidden;
+    display: flex;
+    background: #f4f6f8;
+}
+
+.pkt-stack i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* 내 최고 기록. 이번 기록과 같은 척도로 그려야 길이 비교가 성립한다. */
+.pkt-seg1 { background: #ded5ee; color: #514897; }
+.pkt-seg2 { background: #b3a3d4; }
+.pkt-seg3 { background: #8470b3; }
+.pkt-seg4 { background: #514897; }
+
+/* 구간마다 한 줄씩 두고 값을 오른쪽 끝에 붙인다. 가로로 늘어놓으면 폭이 모자랄 때
+   줄마다 개수가 달라지고, 보안문자 같은 구간이 늘면 더 어긋난다. */
+.pkt-legend {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.pkt-legend span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 0;
+    border-bottom: 1px solid #f4f2fa;
+}
+
+.pkt-legend span:last-child {
+    border-bottom: 0;
+}
+
+.pkt-legend i {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+.pkt-legend b {
+    margin-left: auto;
+    color: #334155;
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+}
+
+.pkt-hint {
+    margin: 10px 28px 0;
+    padding: 9px 12px;
+    background: #f1eef9;
+    border: 1px solid #ddd6ee;
+    border-radius: 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #514897;
+}
+
+@media (max-width: 768px) {
+    .pkt-modal-card {
+        width: calc(100% - 32px);
+        max-width: 400px;
+    }
+}
+
+/* ════════════════════════════════════════
+   공유 이미지 캡처본
+
+   화면의 카드를 복제해 찍는다. 복제본은 등장 애니메이션을 처음부터 재생하므로
+   끄지 않으면 투명도가 올라오는 도중에 찍혀 카드 전체가 옅게 나온다.
+   ════════════════════════════════════════ */
+
+.pkt-capture-stage {
+    position: fixed;
+    left: -99999px;
+    top: 0;
+}
+
+.pkt-capture,
+.pkt-capture * {
+    animation: none !important;
+}
+
+.pkt-capture {
+    width: 400px;
+    max-width: none;
+    box-shadow: 0 10px 30px rgba(81, 72, 151, 0.18);
+}
+
+/* 캡처는 항상 400px 이라 좁은 화면용 축소가 필요 없다. */
+.pkt-capture .pkt-total-num {
+    font-size: 32px;
+}
+
+/* 카드만 찍으면 세로가 길어 SNS 가 아래를 잘라내고 로고와 날짜가 사라진다.
+   배경을 둘러 4:5 로 맞추면 잘리지 않고, 흰 배경 앱에서도 카드 경계가 보인다. */
+.pkt-capture-frame {
+    background: #e9e5f3;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.pkt-capture .pkt-btn-section {
+    display: none;
+}
+
+.pkt-share-line {
+    margin: 20px 28px 0;
+    height: 1px;
+    background: #f1f5f9;
+}
+
+.pkt-share-foot {
+    padding: 16px 28px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pkt-share-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pkt-share-brand img {
+    display: block;
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+}
+
+.pkt-share-brand b {
+    font-size: 15px;
+    font-weight: 800;
+    color: #514897;
+    letter-spacing: -0.3px;
+}
+
+.pkt-share-date {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #9a94ab;
+}

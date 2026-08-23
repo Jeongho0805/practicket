@@ -1,44 +1,27 @@
 import * as util from "../common.js";
+import { GRID_SIZE, drawPixelArt, toPixelData, toStates } from "./pixel.js";
 
-const CONFIG = {
-	gridSize: 30,
-	cellSize: 16,
-	gap: 2.5,
-	corner: 1.5,
-	colors: {
-		base: "#6633cc",
-		hover: "#7c4dff",
-		active: "#cbb5ff",
-		activeHover: "#e4daff",
-		border: "rgba(255,255,255,0.55)",
-		background: "#251b3c"
-	}
-};
+const CELL_SIZE = 16;
+const DRAFT_KEY = "pk_art_draft";
+const HISTORY_LIMIT = 40;
 
 class GrapePalette {
-	constructor({ canvasId, resetId, formId }) {
-		this.canvas = document.getElementById(canvasId);
+	constructor() {
+		this.canvas = document.getElementById("pixel-canvas");
 		if (!this.canvas) return;
 
-		this.ctx = this.canvas.getContext("2d");
-		this.resetBtn = document.getElementById(resetId);
-		this.form = document.getElementById(formId);
-
-		this.gridSize = CONFIG.gridSize;
-		this.cellSize = CONFIG.cellSize;
-		this.gap = CONFIG.gap;
-		this.corner = CONFIG.corner;
-		this.innerSize = this.cellSize - this.gap;
-
-		this.canvas.width = this.gridSize * this.cellSize;
-		this.canvas.height = this.gridSize * this.cellSize;
-		this.canvas.style.touchAction = "manipulation";
-
-		this.state = new Array(this.gridSize * this.gridSize).fill(false);
-		this.hoverIndex = null;
+		this.form = document.getElementById("art-form");
+		this.titleInput = document.getElementById("title");
+		this.filledNumber = document.getElementById("filled-number");
+		this.draftNote = document.getElementById("draft-note");
 
 		this.isEdit = IS_EDIT;
 		this.artId = ART_ID;
+
+		this.states = new Array(GRID_SIZE * GRID_SIZE).fill(false);
+		this.history = [];
+		this.tool = "draw";
+		this.isPainting = false;
 
 		this.bindEvents();
 		this.init();
@@ -46,9 +29,12 @@ class GrapePalette {
 
 	async init() {
 		if (this.isEdit && this.artId) {
+			document.getElementById("autosave-hint").remove();
 			await this.loadExistingArt();
+		} else if (this.restoreDraft()) {
+			this.draftNote.hidden = false;
 		}
-		this.drawBoard();
+		this.draw();
 	}
 
 	async loadExistingArt() {
@@ -61,28 +47,11 @@ class GrapePalette {
 
 			const artData = await response.json();
 
-			// 제목 설정
-			const titleInput = this.form.querySelector("#title");
-			if (titleInput) {
-				titleInput.value = artData.title;
-			}
+			this.titleInput.value = artData.title;
+			this.states = toStates(artData.pixel_data);
 
-			// 픽셀 데이터 로드
-			if (artData.pixel_data) {
-				this.loadPixelData(artData.pixel_data);
-			}
-
-			// 버튼 텍스트 변경
-			const submitBtn = document.getElementById('submit-btn');
-			if (submitBtn) {
-				submitBtn.textContent = '작품 수정';
-			}
-
-			// 헤더 제목 변경
-			const headerTitle = document.getElementById('header-title');
-			if (headerTitle) {
-				headerTitle.textContent = '포도아트 수정하기';
-			}
+			document.getElementById("submit-btn").textContent = '작품 수정';
+			document.getElementById("header-title").textContent = '포도아트 수정하기';
 		} catch (error) {
 			console.error('작품 로딩 실패:', error);
 			await util.showAlert({ title: '오류', msg: '작품을 불러오는데 실패했습니다.' });
@@ -90,138 +59,143 @@ class GrapePalette {
 		}
 	}
 
-	loadPixelData(pixelData) {
-		if (!pixelData || typeof pixelData !== 'string') return;
-
-		for (let i = 0; i < Math.min(pixelData.length, this.state.length); i++) {
-			this.state[i] = pixelData[i] === '1';
-		}
-	}
-
 	bindEvents() {
-		this.canvas.addEventListener("pointermove", (e) => this.handleHover(e));
-		this.canvas.addEventListener("pointerleave", () => this.clearHover());
-		this.canvas.addEventListener("click", (e) => this.handleToggle(e));
+		this.canvas.addEventListener("pointerdown", (e) => this.startStroke(e));
+		this.canvas.addEventListener("pointermove", (e) => this.continueStroke(e));
+		// 캔버스 밖에서 손을 떼도 획이 끝나야 한다
+		window.addEventListener("pointerup", () => this.endStroke());
+		window.addEventListener("pointercancel", () => this.endStroke());
 
-		this.resetBtn?.addEventListener("click", () => this.reset());
-		this.form?.addEventListener("submit", (e) => this.handleSubmit(e));
+		document.querySelectorAll("[data-tool]").forEach((button) => {
+			button.addEventListener("click", () => this.handleTool(button));
+		});
 
-		// title input 엔터키 처리
-		const titleInput = this.form?.querySelector("#title");
-		if (titleInput) {
-			titleInput.addEventListener("keypress", (e) => {
-				if (e.key === "Enter") {
-					e.preventDefault();
-					titleInput.blur(); // 키보드 내리기
-				}
-			});
+		document.getElementById("draft-new").addEventListener("click", () => this.discardDraft());
+
+		this.form.addEventListener("submit", (e) => this.handleSubmit(e));
+
+		this.titleInput.addEventListener("keypress", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				this.titleInput.blur();
+			}
+		});
+	}
+
+	handleTool(button) {
+		const tool = button.dataset.tool;
+
+		if (tool === "undo") {
+			if (!this.history.length) return;
+			this.states = this.history.pop();
+			this.draw();
+			this.saveDraft();
+			return;
 		}
+
+		if (tool === "clear") {
+			this.pushHistory();
+			this.states = new Array(GRID_SIZE * GRID_SIZE).fill(false);
+			this.draw();
+			this.saveDraft();
+			return;
+		}
+
+		this.tool = tool;
+		document.querySelectorAll('[data-tool="draw"],[data-tool="erase"]')
+			.forEach((b) => b.classList.toggle("current", b === button));
 	}
 
-	handleHover(event) {
-		const index = this.eventToIndex(event);
-		if (index === this.hoverIndex) return;
-		this.hoverIndex = index;
-		this.drawBoard();
-	}
-
-	clearHover() {
-		if (this.hoverIndex === null) return;
-		this.hoverIndex = null;
-		this.drawBoard();
-	}
-
-	handleToggle(event) {
+	startStroke(event) {
 		const index = this.eventToIndex(event);
 		if (index === null) return;
-		this.state[index] = !this.state[index];
-		this.drawCell(index);
+
+		this.pushHistory();
+		this.isPainting = true;
+		this.paintAt(index);
+	}
+
+	continueStroke(event) {
+		if (!this.isPainting) return;
+		const index = this.eventToIndex(event);
+		if (index === null) return;
+		this.paintAt(index);
+	}
+
+	endStroke() {
+		if (!this.isPainting) return;
+		this.isPainting = false;
+		this.saveDraft();
+	}
+
+	paintAt(index) {
+		const value = this.tool !== "erase";
+		if (this.states[index] === value) return;
+
+		this.states[index] = value;
+		this.draw();
+	}
+
+	pushHistory() {
+		this.history.push(this.states.slice());
+		if (this.history.length > HISTORY_LIMIT) this.history.shift();
 	}
 
 	eventToIndex(event) {
 		const rect = this.canvas.getBoundingClientRect();
-		const clientX = event.clientX ?? event.touches?.[0]?.clientX;
-		const clientY = event.clientY ?? event.touches?.[0]?.clientY;
-
-		// 캔버스의 실제 표시 크기와 내부 해상도 비율 계산
 		const scaleX = this.canvas.width / rect.width;
 		const scaleY = this.canvas.height / rect.height;
 
-		// 클라이언트 좌표를 캔버스 좌표로 변환
-		const canvasX = (clientX - rect.left) * scaleX;
-		const canvasY = (clientY - rect.top) * scaleY;
+		const col = Math.floor((event.clientX - rect.left) * scaleX / CELL_SIZE);
+		const row = Math.floor((event.clientY - rect.top) * scaleY / CELL_SIZE);
 
-		const x = Math.floor(canvasX / this.cellSize);
-		const y = Math.floor(canvasY / this.cellSize);
+		if (Number.isNaN(col) || Number.isNaN(row)) return null;
+		if (col < 0 || col >= GRID_SIZE || row < 0 || row >= GRID_SIZE) return null;
 
-		if (Number.isNaN(x) || Number.isNaN(y)) return null;
-		if (x < 0 || x >= this.gridSize || y < 0 || y >= this.gridSize) return null;
-
-		return y * this.gridSize + x;
+		return row * GRID_SIZE + col;
 	}
 
-	drawBoard() {
-		this.ctx.fillStyle = CONFIG.colors.background;
-		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.state.forEach((_, index) => this.drawCell(index));
+	draw() {
+		drawPixelArt(this.canvas, this.states, CELL_SIZE);
+		this.filledNumber.textContent = this.states.filter(Boolean).length;
 	}
 
-	drawCell(index) {
-		const { x, y } = this.indexToPoint(index);
-		const isActive = this.state[index];
-		const isHover = index === this.hoverIndex;
-
-		const color = isActive
-			? (isHover ? CONFIG.colors.activeHover : CONFIG.colors.active)
-			: (isHover ? CONFIG.colors.hover : CONFIG.colors.base);
-
-		const drawX = x + this.gap / 2;
-		const drawY = y + this.gap / 2;
-		const size = this.innerSize;
-		const radius = Math.min(this.corner, size / 2);
-
-		// 성능 최적화: roundRect 사용, 그림자 제거
-		this.ctx.beginPath();
-		this.ctx.roundRect(drawX, drawY, size, size, radius);
-		this.ctx.fillStyle = color;
-		this.ctx.fill();
-
-		if (isHover) {
-			this.ctx.lineWidth = 1.5;
-			this.ctx.strokeStyle = CONFIG.colors.border;
-			this.ctx.stroke();
+	// 임시저장은 새로 그릴 때만. 수정 화면에서 덮어쓰면 원본이 다른 작품의 초안으로 바뀐다
+	saveDraft() {
+		if (this.isEdit) return;
+		try {
+			localStorage.setItem(DRAFT_KEY, toPixelData(this.states));
+		} catch (error) {
+			console.error("임시저장 실패:", error);
 		}
 	}
 
-	indexToPoint(index) {
-		const col = index % this.gridSize;
-		const row = Math.floor(index / this.gridSize);
-		return { x: col * this.cellSize, y: row * this.cellSize };
+	restoreDraft() {
+		const draft = localStorage.getItem(DRAFT_KEY);
+		if (!draft || !draft.includes("1")) return false;
+
+		this.states = toStates(draft);
+		return true;
 	}
 
-	reset() {
-		this.state.fill(false);
-		this.drawBoard();
-	}
-
-	toPixelData() {
-		return this.state.map(active => active ? '1' : '0').join('');
+	discardDraft() {
+		localStorage.removeItem(DRAFT_KEY);
+		this.history = [];
+		this.states = new Array(GRID_SIZE * GRID_SIZE).fill(false);
+		this.draftNote.hidden = true;
+		this.draw();
 	}
 
 	async handleSubmit(event) {
-		if (!this.form) return;
 		event.preventDefault();
 
-		const title = this.form.querySelector("#title")?.value.trim();
-
+		const title = this.titleInput.value.trim();
 		if (!title) {
 			await util.showAlert({ title: '입력 오류', msg: '제목을 입력해주세요.' });
 			return;
 		}
 
-		const pixelData = this.toPixelData();
-
-		// pixelData가 모두 0인지 확인 (아무것도 그리지 않은 경우)
+		const pixelData = toPixelData(this.states);
 		if (!pixelData.includes('1')) {
 			await util.showAlert({ title: '입력 오류', msg: '작품을 그려주세요.' });
 			return;
@@ -230,35 +204,36 @@ class GrapePalette {
 		const artData = {
 			title,
 			pixel_data: pixelData,
-			width: this.gridSize,
-			height: this.gridSize
+			width: GRID_SIZE,
+			height: GRID_SIZE
 		};
 
 		try {
-			const method = this.isEdit ? "PUT" : "POST";
-			const url = this.isEdit ? `${HOST}/api/arts/${this.artId}` : `${HOST}/api/arts`;
+			const response = await util.authFetch(
+				this.isEdit ? `${HOST}/api/arts/${this.artId}` : `${HOST}/api/arts`,
+				{
+					method: this.isEdit ? "PUT" : "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(artData),
+					credentials: "same-origin"
+				}
+			);
 
-			const response = await util.authFetch(url, {
-				method: method,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(artData),
-				credentials: "same-origin"
-			});
+			if (!response.ok) {
+				const err = await response.json().catch(() => ({}));
+				throw new Error(err.message || '작품 등록/수정에 실패했습니다. 다시 시도해주세요.');
+			}
 
-			if (!response.ok) throw new Error(await response.text());
 			const result = await response.json();
+			localStorage.removeItem(DRAFT_KEY);
 			window.location.href = `/art/${result.id}`;
 		} catch (error) {
 			console.error("작품 등록/수정 실패:", error);
-			await util.showAlert({ title: '오류', msg: '작품 등록/수정에 실패했습니다. 다시 시도해주세요.' });
+			await util.showAlert({ title: '오류', msg: error.message || '작품 등록/수정에 실패했습니다. 다시 시도해주세요.' });
 		}
 	}
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	new GrapePalette({
-		canvasId: "pixel-canvas",
-		resetId: "clear-btn",
-		formId: "art-form"
-	});
+	new GrapePalette();
 });

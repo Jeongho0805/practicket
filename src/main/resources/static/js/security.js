@@ -1,303 +1,387 @@
-import  * as util from "./common.js";
-import {authFetch} from "./common.js";
-const mainSection = document.getElementById("main-section");
-const titleSection = document.getElementById("title-section")
-const guideSection = document.getElementById("guide-section");
+import * as util from "./common.js";
+import { authFetch } from "./common.js";
+
+const CAPTCHA_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+const CAPTCHA_LENGTH = 6;
+const CAPTCHA_ROUNDS = 3;
+const CAPTCHA_SCALE = 2;
+const COUNTDOWN_SECONDS = 3;
+const RANK_SLOTS = 5;
+
+const homeSection = document.getElementById("home-section");
+const playSection = document.getElementById("play-section");
 const startButton = document.getElementById("start-button");
-const securityLetterSection = document.getElementById("security-letter-section");
-const correctCountTag = document.getElementById("correct-count");
-const securityCountMessage = document.getElementById("security-letter-count-message");
-const securityInput = document.getElementById("security-input")
-const resultSection = document.getElementById("result-section");
-const inputBox = document.getElementById("security-input");
+const canvas = document.getElementById("security-letter-image");
+const input = document.getElementById("security-input");
 const inputButton = document.getElementById("security-input-button");
-const successMessage = "보안문자 입력에 성공하였습니다.";
-const errorMessage = "보안문자를 잘못 입력하였습니다.";
-let correctCount = 0;
-let isStart = false;
-let isToggleOpen = true;
+const refreshButton = document.getElementById("captcha-refresh");
+const playMessage = document.getElementById("play-message");
+const timerValue = document.getElementById("timer-value");
+const progressTag = document.getElementById("play-progress");
+const stepTags = document.querySelectorAll("#play-steps i");
 
-function startCountDown() {
-    const startButton = document.getElementById("start-button");
-    const displaySetting = startButton.style.display;
-    startButton.style.display = "none";
-    const timeInfo = document.createElement("h3")
-    timeInfo.id = "countdown";
-    timeInfo.textContent = "3";
-    guideSection.querySelectorAll(".guide-description").forEach(child => {
-        child.style.display = "none";
-    });
-    guideSection.appendChild(timeInfo);
-    guideSection.style.border = "none";
-    let count = 3;
-    return new Promise(resolve => {
-        const interval = setInterval(() => {
-            count--;
-            timeInfo.textContent = count.toString();
-            if (count <= 0) {
-                timeInfo.remove();
-                clearInterval(interval);
-                startButton.style.display = displaySetting;
-                resolve();
-            }
-        }, 1000);
-    });
-}
+let answer = "";
+let round = 0;
+let startedAt = 0;
+let timerId = null;
+let justFinished = null;
 
-function generateCaptcha() {
-    const canvas = document.getElementById("security-letter-image");
-    if (!canvas) {
-        console.error("🚨 [오류] 'security-letter-section' ID를 가진 <canvas> 요소가 없음!");
-        return;
-    }
-
+function drawCaptcha() {
     const ctx = canvas.getContext("2d");
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    let captchaText = "";
+    canvas.width = 250 * CAPTCHA_SCALE;
+    canvas.height = 80 * CAPTCHA_SCALE;
 
-    // 캔버스 크기 설정
-    canvas.width = 250;
-    canvas.height = 80;
-
-    // 🎨 랜덤한 배경색 생성 (너무 어둡거나 밝지 않도록)
-    function getRandomBackgroundColor() {
-        const r = Math.floor(Math.random() * 100) + 50; // 50~150 (어두운 색 피하기)
-        const g = Math.floor(Math.random() * 100) + 50;
-        const b = Math.floor(Math.random() * 100) + 50;
-        return `rgb(${r}, ${g}, ${b})`;
-    }
-
-    // 배경색 설정
-    const bgColor = getRandomBackgroundColor();
-    ctx.fillStyle = bgColor;
+    const r = Math.floor(Math.random() * 100) + 50;
+    const g = Math.floor(Math.random() * 100) + 50;
+    const b = Math.floor(Math.random() * 100) + 50;
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 🎨 랜덤한 글자색 생성 (배경색과 대비되도록)
-    function getRandomTextColor(bgColor) {
-        const [r, g, b] = bgColor.match(/\d+/g).map(Number); // 배경색 RGB 값 가져오기
-        const textR = 255 - r + Math.floor(Math.random() * 50) - 25; // 반대 계열 색상 조절
-        const textG = 255 - g + Math.floor(Math.random() * 50) - 25;
-        const textB = 255 - b + Math.floor(Math.random() * 50) - 25;
-        return `rgb(${Math.abs(textR)}, ${Math.abs(textG)}, ${Math.abs(textB)})`;
+    // 보색은 색상만 반대일 뿐 밝기가 비슷해질 수 있어 글자가 배경에 묻힌다. 밝기 차이를 강제한다.
+    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    const pick = () => (luminance < 118
+        ? 240 + Math.floor(Math.random() * 16)
+        : Math.floor(Math.random() * 26));
+    ctx.fillStyle = `rgb(${pick()}, ${pick()}, ${pick()})`;
+
+    answer = "";
+    for (let i = 0; i < CAPTCHA_LENGTH; i++) {
+        answer += CAPTCHA_CHARS.charAt(Math.floor(Math.random() * CAPTCHA_CHARS.length));
     }
 
-    // 글자색 설정
-    const textColor = getRandomTextColor(bgColor);
-
-    // 랜덤한 보안문자 생성
-    for (let i = 0; i < 6; i++) {
-        captchaText += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    ctx.font = "bold 40px Arial";
+    ctx.font = `bold ${40 * CAPTCHA_SCALE}px Arial`;
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
-    // 보안문자 출력 (약간의 회전 적용)
-    for (let i = 0; i < captchaText.length; i++) {
-        const x = 40 + i * 35; // 글자 간격 조정
-        const y = 45 + Math.random() * 5 - 2.5; // 위치 랜덤화
-        const angle = Math.random() * 0.1 - 0.05; // 회전 각도 (-0.05 ~ 0.05 radian)
-
-        ctx.save(); // 현재 상태 저장
-        ctx.translate(x, y);
-        ctx.rotate(angle);
+    const textColor = ctx.fillStyle;
+    for (let i = 0; i < answer.length; i++) {
+        ctx.save();
+        ctx.translate((40 + i * 35) * CAPTCHA_SCALE, (45 + Math.random() * 5 - 2.5) * CAPTCHA_SCALE);
+        ctx.rotate(Math.random() * 0.1 - 0.05);
         ctx.fillStyle = textColor;
-        ctx.fillText(captchaText[i], 0, 0);
-        ctx.restore(); // 이전 상태 복구
+        ctx.fillText(answer[i], 0, 0);
+        ctx.restore();
     }
 
-    // 랜덤한 선 추가 (적당한 개수로 조절)
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 1.5 * CAPTCHA_SCALE;
     for (let i = 0; i < 2; i++) {
-        ctx.strokeStyle = "#FFFFFF"; // 밝은 색 선
-        ctx.lineWidth = 1.5; // 선 굵기 줄이기
         ctx.beginPath();
         ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
         ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
         ctx.stroke();
     }
 
-    // 랜덤한 점 추가 (난이도 조절)
+    ctx.fillStyle = "yellow";
     for (let i = 0; i < 50; i++) {
-        ctx.fillStyle = "yellow";
         ctx.beginPath();
-        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1.5, 0, 2 * Math.PI);
+        ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1.5 * CAPTCHA_SCALE, 0, 2 * Math.PI);
         ctx.fill();
     }
 
-    // 보안문자 저장
-    canvas.dataset.captcha = captchaText;
+    canvas.dataset.captcha = answer;
 }
 
-function toggleElements() {
-    if (!isToggleOpen) {
-        if (window.matchMedia("(min-width: 769px)").matches) {
-            titleSection.style.display = "block"
-        }
-        startButton.style.display = "inline-block";
-        securityLetterSection.style.display = "none"
-        const securitySection = document.getElementById("security-section");
-        securitySection.style.display = "none";
-        mainSection.style.display = "grid";
-        mainSection.style.alignItems = "";
-        mainSection.style.justifyContent = "";
-        resultSection.style.display = "flex";
-        guideSection.querySelectorAll(".guide-description").forEach(child => {
-            child.style.display = "block";
-        });
-        guideSection.style.display = "flex";
-        isToggleOpen = true;
-    } else {
-        titleSection.style.display = "none"
-        guideSection.style.display = "none";
-        startButton.style.display = "none";
-        resultSection.style.display = "none";
-        securityLetterSection.style.display = "grid"
-        const securitySection = document.getElementById("security-section");
-        securitySection.style.display = "flex";
-        mainSection.style.display = "flex";
-        mainSection.style.alignItems = "center";
-        mainSection.style.justifyContent = "center";
-        isToggleOpen = false;
-    }
-}
+// 버튼을 감추고 다른 자리에 숫자를 띄우면 그만큼 화면이 출렁여서, 버튼 안에서 센다
+function startCountDown() {
+    let count = COUNTDOWN_SECONDS;
+    startButton.disabled = true;
+    startButton.classList.add("counting");
+    startButton.textContent = count;
 
-function markCorrectCount() {
-    correctCountTag.innerText = correctCount;
-}
-
-function checkCaptcha() {
-    if (!isStart) {
-        return;
-    }
-    securityInput.focus();
-    const userInput = securityInput.value.toUpperCase();
-    const canvas = document.getElementById("security-letter-image");
-    const correctText = canvas.dataset.captcha;
-
-    if (userInput === correctText) {
-        correctCount++;
-        securityCountMessage.innerText = successMessage;
-        securityCountMessage.className = "message-success";
-
-        if (correctCount < 3) {
-            markCorrectCount();
-            generateCaptcha();
-        } else {
-            securityCountMessage.innerText = "";
-            securityCountMessage.className = "";
-            correctCount = 0;
-            isStart = false;
-        }
-    } else {
-        securityCountMessage.innerText = errorMessage;
-        securityCountMessage.className = "message-error";
-    }
-    securityInput.value = "";
-    securityInput.focus();
-}
-
-function startSecurityTest() {
-    isStart = true;
-    markCorrectCount();
-    generateCaptcha();
-    securityInput.focus();
     return new Promise(resolve => {
         const interval = setInterval(() => {
-            if (isStart === false) {
+            count--;
+            if (count <= 0) {
                 clearInterval(interval);
+                startButton.disabled = false;
+                startButton.classList.remove("counting");
+                startButton.textContent = "START";
                 resolve();
+                return;
             }
-        }, 200);
+            startButton.textContent = count;
+        }, 1000);
     });
 }
 
-async function fetchCreateElapsedTime(startTime, endTime) {
-    const elapsedTime = ((endTime - startTime) / 1000).toFixed(2);
-    const response = await authFetch("/api/captcha", {
-        method: "POST",
-        credentials: 'same-origin',
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ elapsed_time: elapsedTime }) // ✅ JSON 키를 snake_case로 변환
-    });
-    if (!response.ok) {
-        await util.showAlert({ title: '서버 오류', msg: '서버 오류로 전송에 실패했습니다.' });
+function showRound() {
+    stepTags.forEach((tag, index) => tag.classList.toggle("on", index <= round));
+    progressTag.textContent = `${round + 1} / ${CAPTCHA_ROUNDS}`;
+}
+
+function startTimer() {
+    startedAt = performance.now();
+    stopTimer();
+    // 0.01초 단위로 표시하면 마지막 자리가 초당 100번 바뀌어 캡차를 읽는 데 방해가 된다.
+    timerId = setInterval(() => {
+        timerValue.textContent = ((performance.now() - startedAt) / 1000).toFixed(1);
+    }, 100);
+}
+
+function stopTimer() {
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
     }
 }
 
-async function fetchGetResult() {
-    let response;
+function openPlay() {
+    homeSection.hidden = true;
+    playSection.hidden = false;
+    round = 0;
+    playMessage.innerHTML = "";
+    timerValue.textContent = "0.0";
+    showRound();
+    drawCaptcha();
+    input.value = "";
+    input.focus();
+    startTimer();
+}
+
+function openHome() {
+    stopTimer();
+    playSection.hidden = true;
+    homeSection.hidden = false;
+}
+
+function checkAnswer() {
+    const typed = input.value.trim().toUpperCase();
+    if (!typed) {
+        return;
+    }
+
+    if (typed !== answer) {
+        playMessage.innerHTML = '<span class="no">입력한 문자를 다시 확인해주세요</span>';
+        input.value = "";
+        input.focus();
+        return;
+    }
+
+    round++;
+    input.value = "";
+
+    if (round >= CAPTCHA_ROUNDS) {
+        finish();
+        return;
+    }
+
+    playMessage.innerHTML = `<span class="ok">정답! ${CAPTCHA_ROUNDS - round}개 남았어요</span>`;
+    showRound();
+    drawCaptcha();
+    input.focus();
+}
+
+async function finish() {
+    const elapsed = (performance.now() - startedAt) / 1000;
+    stopTimer();
+    justFinished = elapsed;
+
+    await postResult(elapsed);
+    openHome();
+    await renderStatistic();
+}
+
+async function postResult(elapsed) {
     try {
-        response = await authFetch("/api/captcha", {
-            method: "GET",
-            credentials: 'same-origin',
-            headers: {
-                "Content-Type": "application/json"
-            },
+        const response = await authFetch("/api/captcha", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ elapsed_time: elapsed.toFixed(2) })
         });
+        if (!response.ok) {
+            await util.showAlert({ title: "서버 오류", msg: "기록 저장에 실패했습니다." });
+        }
+    } catch (e) {
+        await util.showAlert({ title: "서버 오류", msg: "기록 저장에 실패했습니다." });
+    }
+}
+
+async function fetchStatistic() {
+    try {
+        const response = await authFetch("/api/captcha", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" }
+        });
+        return response.ok ? await response.json() : null;
     } catch (e) {
         return null;
     }
-    if (!response.ok) {
+}
+
+const seconds = value => `${Number(value).toFixed(2)}초`;
+
+const escape = value => String(value ?? "").replace(/[&<>"']/g,
+    ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+
+function renderDistribution(distribution, hasRecord, totalCount) {
+    const bars = document.getElementById("dist-bars");
+    const axis = document.getElementById("dist-axis");
+    const caption = document.getElementById("dist-caption");
+    const hint = document.getElementById("dist-hint");
+
+    if (!distribution || !distribution.counts || !distribution.counts.length) {
+        bars.innerHTML = "";
+        axis.innerHTML = "";
         return;
     }
-    return await response.json();
-}
 
-async function updateResultValue() {
-    const result = await fetchGetResult();
-    const resultSection = document.getElementById("result-section");
-    if (!result || result.latest_result === 0) {
-        resultSection.style.display = "none";
-    }
-    else  {
-        const myLatestResult = document.getElementById("my-latest-result-value")
-        const myAverageResult = document.getElementById("my-average-result-value")
-        const totalAverageResult = document.getElementById("total-average-result-value")
-        const myLatestPercentile = document.getElementById("my-latest-percentile-value")
-        const myLatestRank = document.getElementById("my-latest-rank-value")
-        const myBestResult = document.getElementById("my-best-result-value")
-        myLatestResult.innerText = `${Number(result.latest_result).toFixed(2)}초`;
-        myAverageResult.innerText = `${Number(result.my_avg_result).toFixed(2)}초`;
-        totalAverageResult.innerText = `${Number(result.total_avg_result).toFixed(2)}초`;
-        myLatestPercentile.innerText = `${Number(result.latest_percentile).toFixed(2)}%`;
-        myLatestRank.innerText = `${result.latest_rank}위`;
-        myBestResult.innerText = `${Number(result.best_result).toFixed(2)}초`;
-        resultSection.style.display = "flex";
-    }
-}
+    const counts = distribution.counts;
+    const max = Math.max(...counts, 1);
+    const emptySlot = hasRecord ? -1 : Math.floor(counts.length / 2);
 
-function addEventList() {
-    // 보안문자 입력 관련 이벤트 등록
-    inputButton.addEventListener("click", () => checkCaptcha());
-    inputBox.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-            event.preventDefault(); // 기본 엔터 키 동작 방지 (폼 제출 방지)
-            checkCaptcha();
+    bars.innerHTML = counts.map((count, index) => {
+        const height = Math.max(6, Math.round((count / max) * 100));
+        if (index === distribution.my_bin) {
+            return `<i class="me" style="height:${height}%"></i>`;
         }
-    });
-
-    // 보안문자 입력 테스트 시작 이벤트 등록
-    startButton.addEventListener("click", async () => {
-        if (!await util.getNickname()) {
-            await util.showAlert({ title: '닉네임 필요', msg: '닉네임을 입력해주세요.' });
-            return;
+        if (index === emptySlot) {
+            return `<i class="slot" style="height:${height}%"></i>`;
         }
-        await startCountDown();
-        toggleElements();
-        const startTime = performance.now();
-        await startSecurityTest();
-        const endTime = performance.now();
-        toggleElements();
-        await fetchCreateElapsedTime(startTime, endTime);
-        await updateResultValue();
-    })
+        return `<i style="height:${height}%"></i>`;
+    }).join("");
+
+    const lower = distribution.lower_bound;
+    const middle = lower + distribution.bin_width * (counts.length / 2);
+    const upper = lower + distribution.bin_width * counts.length;
+    axis.innerHTML = `<span>${lower.toFixed(1)}초</span>`
+        + `<span>${middle.toFixed(1)}초</span>`
+        + `<span>${upper.toFixed(1)}초 이상</span>`;
+
+    caption.textContent = "다른 사용자들은 이 정도 걸렸어요";
+    caption.hidden = hasRecord;
+    hint.hidden = hasRecord;
 }
 
-window.onload = async () => {
-    await updateResultValue();
-};
-await updateResultValue();
-addEventList();
+function statCard(label, value, note, highlight) {
+    return `<div class="stat${highlight ? " hi" : ""}">`
+        + `<span>${label}</span><b>${value}</b><em>${note}</em></div>`;
+}
+
+function renderStats(result, hasRecord) {
+    const grid = document.getElementById("stat-grid");
+    const totalCount = result.total_count ?? 0;
+
+    if (!hasRecord) {
+        const fastest = result.top_ranking?.[0];
+        grid.innerHTML = statCard("전체 기록", `${totalCount.toLocaleString()}개`, "지금도 쌓이는 중", false)
+            + statCard("전체 평균", seconds(result.total_avg_result), "모든 기록 기준", false)
+            + statCard("최고 기록", fastest ? seconds(fastest.elapsed_second) : "—", fastest ? `${fastest.nickname} 님` : "", false);
+        return;
+    }
+
+    // 비교 기준을 옆 칸과 같은 "내 평균"으로 맞춘다. 주어를 나로 고정해야 어느 쪽이 빠른지 안 헷갈린다.
+    const gap = result.total_avg_result - result.my_avg_result;
+    const note = Math.abs(gap) < 0.005
+        ? "평균과 같음"
+        : `내가 ${Math.abs(gap).toFixed(2)}초 ${gap > 0 ? "빠름" : "느림"}`;
+    grid.innerHTML = statCard("내 최단", seconds(result.best_result), `${result.my_count}회 중`, false)
+        + statCard("내 평균", seconds(result.my_avg_result), `${result.my_count}회`, false)
+        + statCard("전체 평균", seconds(result.total_avg_result), note, false);
+}
+
+// 자리 수가 고정이라 기록자가 몇 명이든 패널 높이가 변하지 않는다
+function renderRanking(result) {
+    const panel = document.getElementById("rank-panel");
+    const rows = document.getElementById("rank-rows");
+    const ranking = result.top_ranking ?? [];
+    const people = result.today_people ?? 0;
+
+    panel.hidden = false;
+    document.getElementById("rank-total").textContent =
+        people > 0 ? `오늘 ${people.toLocaleString()}명` : "오늘 첫 기록을 기다리는 중";
+
+    rows.innerHTML = Array.from({ length: RANK_SLOTS }, (unused, index) => {
+        const row = ranking[index];
+        if (!row) {
+            return `<div class="rank-row empty"><span class="no">${index + 1}</span>`
+                + `<span class="who">—</span><span class="time">—</span></div>`;
+        }
+        return `<div class="rank-row${row.mine ? " mine" : ""}">`
+            + `<span class="no${index < 3 ? " top" : ""}">${index + 1}</span>`
+            + `<span class="who">${escape(row.nickname)}</span>`
+            + `<span class="time">${seconds(row.elapsed_second)}</span></div>`;
+    }).join("");
+}
+
+function renderTrend(result) {
+    const panel = document.getElementById("trend-panel");
+    const bars = document.getElementById("trend-bars");
+    const recent = result.recent_results ?? [];
+
+    if (recent.length < 2) {
+        panel.hidden = true;
+        return;
+    }
+
+    panel.hidden = false;
+    const max = Math.max(...recent);
+    const best = Math.min(...recent);
+
+    document.getElementById("trend-title").textContent = `내 최근 ${recent.length}회`;
+    document.getElementById("trend-note").textContent =
+        recent[recent.length - 1] <= best ? "최고 기록 경신" : "꾸준히 도전 중";
+
+    bars.innerHTML = recent.map(value => {
+        const height = Math.round(16 + (value / max) * 36);
+        return `<div><i class="${value === best ? "best" : ""}" style="height:${height}px"></i>`
+            + `<span>${value.toFixed(1)}초</span></div>`;
+    }).join("");
+}
+
+// 방금 낸 기록만 분포 카드 머리에 얹는다. 다시 들어오면 사라진다
+function renderHero(result, hasRecord) {
+    const hero = document.getElementById("dist-hero");
+    const title = document.getElementById("dist-title");
+    const show = justFinished !== null && hasRecord;
+
+    hero.hidden = !show;
+    title.hidden = show;
+    if (!show) {
+        return;
+    }
+
+    document.getElementById("dist-hero-time").textContent = seconds(result.latest_result);
+    document.getElementById("dist-hero-meta").textContent =
+        `전체 ${result.latest_rank.toLocaleString()}위 · 상위 ${result.latest_percentile.toFixed(1)}%`;
+}
+
+async function renderStatistic() {
+    const result = await fetchStatistic();
+    if (!result) {
+        return;
+    }
+
+    const hasRecord = (result.my_count ?? 0) > 0;
+    renderHero(result, hasRecord);
+    renderDistribution(result.distribution, hasRecord, result.total_count);
+    renderStats(result, hasRecord);
+    renderRanking(result);
+    renderTrend(result);
+}
+
+startButton.addEventListener("click", async () => {
+    if (!await util.getNickname()) {
+        await util.showAlert({ title: "닉네임 필요", msg: "닉네임을 입력해주세요." });
+        return;
+    }
+    justFinished = null;
+    await startCountDown();
+    openPlay();
+});
+
+inputButton.addEventListener("click", checkAnswer);
+input.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        checkAnswer();
+    }
+});
+refreshButton.addEventListener("click", () => {
+    drawCaptcha();
+    input.value = "";
+    input.focus();
+});
+
+window.addEventListener("load", renderStatistic);

@@ -36,6 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### macOS ###
+.DS_Store
+
 # 실서버 yml 제외
 src/main/resources/application-*.yml
 src/main/generated/**
@@ -43,3 +46,8 @@ src/main/generated/**
 navercc99a5b089096abdec8e622dcd5b05e9.html
 logs
 CLAUDE.md
+# 공개 레포에 올리지 않고 워크트리들이 심링크로 공유하는 문서 공간 — 예외를 뚫지 말 것
+docs/
+
+# Playwright MCP 임시 산출물
+.playwright-mcp/

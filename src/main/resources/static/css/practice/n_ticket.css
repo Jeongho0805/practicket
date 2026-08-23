@@ -1,0 +1,569 @@
+/* n-ticket 대기열 화면 — 실물 tickets.interpark.com/waiting 의 CSS 값에서 받아옴.
+   실물은 html{font-size:62.5%} 라 rem 이 10px 단위다. 우리는 px 로 환산해 적는다.
+   이미지 자산은 남의 것이라 쓰지 않고 같은 효과를 CSS 로 그린다. */
+:root {
+    --nt-ink: #1b1c1f;
+    --nt-sub: #6e6f73;
+    --nt-locked-bg: #f2f3f7;
+    --nt-locked-ink: #8b8d92;
+    --nt-primary: #7a68a8;
+    --nt-plan-bg: #edeff3;
+    --nt-line: #dadbdf;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0 }
+
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+    color: var(--nt-ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background: #fff;
+}
+
+ul { list-style: none }
+button { font-family: inherit; border: 0; background: none; cursor: pointer; color: inherit }
+
+.nt-screen { display: none }
+.nt-screen.is-active { display: block }
+
+/* ═══════════ 1) 대기 순서 확인 중 ═══════════ */
+
+.nt-loading {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    padding: 0 20px 80px;
+    background: #fff;
+}
+
+.nt-spinner {
+    width: 68px;
+    height: 68px;
+    border: 6px solid var(--nt-locked-bg);
+    border-top-color: var(--nt-primary);
+    border-radius: 50%;
+    animation: nt-spin 1s linear infinite;
+}
+
+@keyframes nt-spin { to { transform: rotate(360deg) } }
+
+.nt-loading h2 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 27px;
+}
+
+.nt-loading h2 span,
+.nt-loading h2 strong { display: block }
+.nt-loading h2 strong { color: var(--nt-primary) }
+
+/* ═══════════ 2) 대기열 ═══════════ */
+
+/* 진행률이 90% 를 넘으면 포인트색이 통째로 빨강으로 바뀐다.
+   실물이 --point-color 를 같은 방식으로 갈아끼운다(#4154FF → #FF322E). */
+.nt-wait {
+    --nt-point: var(--nt-primary);
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+.nt-wait.is-almost { --nt-point: #FF322E }
+
+.nt-wait-content { padding: 0 20px 20px }
+
+.nt-wait-title { padding: 10px 4px 20px }
+.nt-wait-title h2 { font-size: 20px; font-weight: 700 }
+.nt-wait-title h2 span { display: block }
+
+.nt-wait-title h2 strong {
+    display: block;
+    color: var(--nt-point);
+    transition: color .25s;
+}
+
+.nt-goods { margin-top: 6px; font-size: 15px; color: #666 }
+
+.nt-status {
+    padding: 0 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(27, 28, 31, .08);
+}
+
+.nt-status-main { padding: 30px 0 20px; border-bottom: 1px solid #f3f3f3 }
+.nt-status-text { text-align: center }
+.nt-status-text h3 { font-size: 15px; font-weight: 400; color: #666 }
+
+.nt-status-text strong {
+    display: block;
+    margin: 2px 0 12px;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+
+/* 실물은 막대 하나 + 좌우 원 두 개로 끝을 둥글게 만들지만, 원이 트랙 밖으로 나가
+   잘리고 채움이 짧아지면 어긋난다. 둥근 알약 하나로 같은 모양을 내고 그 문제를 없앤다.
+   목표 티켓은 트랙 오른쪽 끝에 두고, 채움이 그 위를 덮고 지나간다. */
+.nt-bar {
+    position: relative;
+    height: 28px;
+    background: #f8f8f8;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.nt-bar-active {
+    position: relative;
+    z-index: 1;
+    width: 0;
+    min-width: 28px;
+    max-width: 100%;
+    height: 28px;
+    border-radius: 14px;
+    background: var(--nt-point);
+    transition: width .2s linear, background-color .25s;
+}
+
+.nt-ticket {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    color: #ccc;
+    transition: color .25s;
+}
+
+.nt-ticket svg { display: block; width: 20px; height: 20px }
+
+/* 채움이 티켓을 다 덮으면 티켓이 그 위로 올라와 흰색으로 켜진다 */
+.nt-bar.is-done .nt-ticket {
+    z-index: 2;
+    color: #fff;
+    animation: nt-pulse 2s infinite;
+}
+
+@keyframes nt-pulse {
+    0%, 100% { transform: scale(1) }
+    50% { transform: scale(.78) }
+}
+
+.nt-status-sub { padding: 16px 4px 20px; font-size: 15px }
+.nt-status-row { display: flex }
+.nt-status-row + .nt-status-row { margin-top: 4px }
+.nt-status-row h4 { font-weight: 400; color: #666 }
+.nt-status-row span { margin-left: auto; font-weight: 700 }
+.nt-status-row span[data-rate="100"] { color: #d32f2f }
+
+.nt-notice { padding: 16px 4px }
+
+.nt-notice li {
+    position: relative;
+    padding-left: 7px;
+    margin-bottom: 3px;
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--nt-ink);
+}
+
+.nt-notice li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #ccc;
+}
+
+/* ═══════════ 3) 좌석 선택 ═══════════ */
+
+#screen-seat.is-active {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+}
+
+.nt-hdr {
+    display: none;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 26px 40px 20px;
+    background: #fff;
+    box-shadow: 0 0 4px rgba(0, 0, 0, .05);
+}
+
+.nt-logo { font-size: 20px; font-weight: 800; color: var(--nt-primary) }
+.nt-hdr-menu { display: flex; align-items: center; gap: 20px; margin-left: auto }
+.nt-hdr-menu button { font-size: 14px; font-weight: 600 }
+.nt-hdr-div { width: 1px; height: 14px; background: var(--nt-line) }
+
+/* 모바일이 기본이다. 실물은 이 폭에서 헤더를 통째로 다른 것으로 갈아끼우는데(HeaderMo),
+   거기엔 뒤로가기·"좌석 선택"·타이머만 있고 공연명·날짜는 도면 위 카드로 내려간다.
+   우리는 카드를 만들지 않는 대신 실물의 규칙만 가져온다 — 제목 한 줄 말줄임, 타이머 고정.
+   (2026-08-17 실측: 헤더 50 · 제목 18px/22px · 타이머 flex-shrink 0) */
+.nt-sub {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+    height: 50px;
+    padding: 4px 16px;
+    background: #fff;
+    box-shadow: 0 2px 2px rgba(88, 71, 71, .06);
+}
+
+.nt-sub-title,
+.nt-sub-date { font-size: 15px; font-weight: 700; line-height: 24px }
+.nt-sub-date { color: var(--nt-sub) }
+.nt-sub-div { width: 1px; height: 14px; background: var(--nt-line) }
+
+/* min-width 를 풀지 않으면 flex 항목이 글자 단위로 줄바꿈해 세로로 선다 */
+.nt-sub-title {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 18px;
+    line-height: 22px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 실물 모바일 헤더에는 날짜·회차 변경이 없다. 넣으면 제목이 밀려 잘린다 */
+.nt-sub-div,
+.nt-sub-date,
+.nt-sub-chip { display: none }
+
+.nt-sub-chip {
+    min-height: 32px;
+    min-width: 64px;
+    padding: 2px 8px;
+    border: 1px solid var(--nt-line);
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 700;
+    background: #fff;
+}
+
+/* 타이머는 실물처럼 남은 시간이 1분 밑으로 떨어지면 경고색으로 바뀐다.
+   flex-shrink 0 이 없으면 좁은 폭에서 눌려 화면 밖으로 밀려난다 */
+.nt-timer {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 8px;
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.nt-timer strong { color: var(--nt-primary) }
+.nt-timer.is-urgent strong { color: #FF322E }
+
+.nt-seat-body { display: flex; flex-direction: column; flex: 1; min-height: 0 }
+
+/* 실물은 좌석맵에서 커서를 전혀 바꾸지 않는다(grab 도 pointer 도 아니다).
+   대신 드래그로 글자가 잡히지 않게 선택만 막아둔다. */
+.nt-plan {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--nt-plan-bg);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* 실물과 같은 방식 — 도면은 741×612 로 고정해 두고 transform 으로 키우고 옮긴다.
+   좌석을 다시 그리지 않으므로 확대해도 멈칫하지 않는다.
+   will-change 를 붙이지 말 것. 붙이면 확대가 끝나도 다시 그리지 않아 늘린 그림이 그대로 남는다. */
+.nt-map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 741px;
+    height: 612px;
+    transform-origin: 0 0;
+}
+
+.nt-layer { position: absolute; inset: 0; width: 100%; height: 100% }
+
+/* 확대 전에는 구역 색만 보이고, 확대하면 구역이 사라지며 바탕이 희어지고 좌석만 남는다 */
+#seatLayer { display: none }
+.nt-map.is-seatlevel #blockLayer { display: none }
+.nt-map.is-seatlevel #seatLayer { display: block }
+
+/* 실물 값 그대로 — 기본 .025rem, 선택 .065rem 이 사용자 단위로 .25 와 .65 다 */
+.nt-seat-dot { stroke-width: .25 }
+.nt-seat-dot.is-open { fill-opacity: .35 }
+.nt-seat-dot.is-sold { fill-opacity: 1 }
+.nt-seat-dot.is-picked { fill-opacity: 1; stroke-width: .65; stroke-opacity: .6 }
+
+.nt-hint {
+    position: absolute;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    padding: 6px 12px;
+    border-radius: 9999px;
+    background: rgba(27, 28, 31, .72);
+    color: #fff;
+    font-size: 12px;
+    pointer-events: none;
+    transition: opacity .2s;
+}
+
+.nt-hint[hidden] { display: none }
+
+.nt-grade-chip {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.nt-grade-layer {
+    position: absolute;
+    left: 16px;
+    bottom: 60px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .16);
+    font-size: 13px;
+}
+
+.nt-grade-layer[hidden] { display: none }
+.nt-grade-layer li { display: flex; align-items: center; gap: 8px; white-space: nowrap }
+.nt-grade-layer li + li { margin-top: 6px }
+.nt-grade-layer i { width: 10px; height: 10px; border-radius: 2px }
+.nt-grade-layer b { margin-left: auto; padding-left: 16px }
+
+.nt-zoom,
+.nt-zoom-fit {
+    position: absolute;
+    right: 16px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    overflow: hidden;
+}
+
+.nt-zoom { bottom: 74px; display: flex; flex-direction: column }
+.nt-zoom-fit { bottom: 16px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center }
+
+.nt-zoom button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.nt-zoom button + button { border-top: 1px solid #eee }
+.nt-zoom button:disabled,
+.nt-zoom-fit:disabled { color: #ccc; cursor: default }
+.nt-zoom-fit svg { width: 18px; height: 18px }
+
+/* 미니맵 — 확대 버튼 왼쪽에 놓이고 평소에는 숨어 있다가 도면을 움직이는 동안에만 떠오른다.
+   실물도 opacity 로만 감추고 0.3s 로 전환한다. */
+.nt-minimap {
+    position: absolute;
+    right: 76px;
+    bottom: 16px;
+    width: 158px;
+    height: 150px;
+    border: 1px solid #e4e6ea;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+}
+
+.nt-minimap.is-on { opacity: 1; pointer-events: auto }
+.nt-mini-plan { display: block; width: 100%; height: 100% }
+
+.nt-mini-view {
+    position: absolute;
+    border: 1.5px solid var(--nt-primary);
+    background: rgba(122, 104, 168, .16);
+    pointer-events: none;
+}
+
+.nt-side {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    max-height: 42vh;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.nt-side-head { display: flex; align-items: center; padding: 16px 20px 10px }
+.nt-side h2 { font-size: 16px; font-weight: 700 }
+.nt-side h2 em { font-style: normal; margin-left: 2px; color: var(--nt-primary) }
+
+.nt-clear { margin-left: auto; font-size: 13px; color: var(--nt-sub); text-decoration: underline }
+.nt-clear[hidden] { display: none }
+
+.nt-picked { flex: 1; overflow-y: auto; padding: 0 20px }
+
+.nt-picked li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f3f3;
+    font-size: 14px;
+}
+
+.nt-picked li i { font-style: normal; font-weight: 700; color: var(--nt-primary) }
+.nt-picked li b { font-weight: 700 }
+.nt-picked li span { margin-left: auto; color: var(--nt-sub); white-space: nowrap }
+
+.nt-picked-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--nt-locked-ink);
+    font-size: 14px;
+}
+
+/* display 를 지정한 순간 브라우저 기본 [hidden] 규칙을 이겨버린다 — 직접 되돌려야 숨는다 */
+.nt-picked-empty[hidden] { display: none }
+
+.nt-done {
+    flex-shrink: 0;
+    height: 56px;
+    margin: 0 20px 20px;
+    border-radius: 12px;
+    background: var(--nt-locked-bg);
+    color: var(--nt-locked-ink);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.nt-done:enabled { background: var(--nt-primary); color: #fff }
+
+/* ─── 보안문자 ─── */
+
+.nt-dim { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, .53) }
+.nt-dim[hidden] { display: none }
+
+.nt-cap {
+    position: fixed;
+    z-index: 11;
+    top: 50%;
+    left: 50%;
+    width: min(520px, calc(100vw - 32px));
+    height: min(562px, calc(100dvh - 32px));
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 20px 20px;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.nt-cap[hidden] { display: none }
+.nt-cap h3 { padding: 0 4px 6px; font-size: 20px; font-weight: 700 }
+.nt-cap-sub { padding: 0 4px; font-size: 15px; color: #666 }
+
+.nt-cap-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    margin: 16px 0 12px;
+    border-radius: 4px;
+    background: #eee;
+}
+
+/* 원본은 210×70 이고 실물도 176px 로 줄여 그린다. 그 축소가 글자 경계를 부드럽게 만든다 */
+.nt-cap-box img { display: block; width: 176px; height: 59px }
+
+.nt-cap-round {
+    position: absolute;
+    top: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e4e6ea;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(0, 0, 0, .16);
+}
+
+.nt-cap-round.l { left: 12px }
+.nt-cap-round.r { right: 12px }
+.nt-cap-round svg { width: 20px; height: 20px }
+
+.nt-cap-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+}
+
+.nt-cap-input::placeholder { color: #a0a2a8 }
+.nt-cap-err { min-height: 18px; margin: 8px 4px 0; font-size: 13px; color: #FF322E }
+.nt-cap .nt-done { margin: auto 0 0 }
+
+/* 결과는 result-modal.css 의 공용 모달이 그린다 — 세 예매처가 같은 것을 쓴다 */
+
+@media (min-width: 1025px) {
+    .nt-wait-content { padding: 0 30px 30px }
+    .nt-wait-title { padding: 36px 0 24px }
+    .nt-wait-title h2 { font-size: 22px }
+    .nt-goods { margin-top: 8px; font-size: 17px }
+    .nt-status-text strong { font-size: 50px }
+    .nt-status-sub { padding-bottom: 24px; font-size: 17px }
+    .nt-notice li { font-size: 15px }
+
+    /* 실물도 1024 를 넘으면 헤더를 PC 용으로 바꾸고 공연명·날짜·회차 변경을 되살린다 */
+    .nt-hdr { display: flex }
+    .nt-sub { height: auto; padding: 12px 420px 12px 40px }
+    .nt-sub-div, .nt-sub-date { display: block }
+    .nt-sub-chip { display: inline-block; font-size: 15px }
+    .nt-sub-title, .nt-sub-date { font-size: 18px; line-height: 36px }
+    .nt-sub-title { flex: 0 1 auto; overflow: visible; white-space: normal }
+    .nt-sub-div { margin: 0 4px }
+    .nt-timer { position: absolute; top: 50%; right: 24px; margin: 0; padding-left: 0; font-size: 18px; line-height: 36px; transform: translateY(-50%) }
+
+    .nt-seat-body { flex-direction: row }
+    .nt-side { width: 420px; max-height: none; border-top: 0; border-left: 1px solid #eee }
+    .nt-side h2 { padding: 24px 24px 16px; font-size: 18px }
+    .nt-picked { padding: 0 24px }
+    .nt-side-head { padding: 24px 24px 16px }
+    .nt-done { margin: 0 24px 24px }
+}

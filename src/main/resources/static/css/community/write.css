@@ -1,0 +1,302 @@
+/* 커뮤니티 글쓰기 — 시안 W (docs/community-system.md Q11) */
+
+:root {
+    --pk-purple: #6b5b9a;
+    --pk-purple-light: #8470b3;
+    --pk-purple-deep: #514897;
+    --pk-purple-pale: #f4f2fb;
+    --pk-purple-line: #e2dcf2;
+    --pk-ink: #2d3748;
+    --pk-ink-sub: #7b7490;
+}
+
+@media (min-width: 769px) {
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    #main-section {
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    #community-section {
+        width: 100%;
+        padding: 14px 12px 32px;
+        box-sizing: border-box;
+    }
+}
+
+#write-title {
+    font-family: my-font, sans-serif;
+    font-size: 1.25rem;
+    color: var(--pk-purple-deep);
+    margin: 0 0 14px;
+}
+
+#write-card {
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 16px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.field label {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #5f5878;
+}
+
+.counter {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.72rem;
+    color: #a49dbb;
+}
+
+#title-input,
+#password-input,
+#content-input {
+    width: 100%;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 12px;
+    padding: 11px 15px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    color: var(--pk-ink);
+    outline: none;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+#title-input:focus,
+#password-input:focus,
+#content-input:focus {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
+
+#title-input::placeholder,
+#password-input::placeholder,
+#content-input::placeholder {
+    color: #b3adc4;
+}
+
+#content-input {
+    min-height: 260px;
+    resize: vertical;
+    line-height: 1.75;
+}
+
+#password-input {
+    width: 110px;
+    letter-spacing: 0.3em;
+    text-align: center;
+    border-radius: 999px;
+}
+
+.field-hint {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.72rem;
+    color: var(--pk-ink-sub);
+    margin: 0;
+}
+
+/* 제재 안내는 눈에 띄되 겁주지 않게 — 옅은 퍼플 박스로 */
+#write-notice {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--pk-ink-sub);
+    background: var(--pk-purple-pale);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin: 0;
+}
+
+#write-notice b {
+    color: var(--pk-purple-deep);
+}
+
+#write-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+#cancel-btn,
+#submit-btn {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1px solid var(--pk-purple-line);
+    background: #fff;
+    color: var(--pk-ink-sub);
+}
+
+#submit-btn {
+    border: none;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    color: #fff;
+}
+
+#submit-btn:hover {
+    filter: brightness(1.07);
+}
+
+#submit-btn:disabled {
+    filter: grayscale(0.5);
+    opacity: 0.6;
+    cursor: default;
+}
+
+#cancel-btn:hover {
+    background: var(--pk-purple-pale);
+    color: var(--pk-purple-deep);
+}
+
+/* ---------- 태그 ---------- */
+
+#tag-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 12px;
+    background: #fff;
+    cursor: text;
+    box-sizing: border-box;
+}
+
+#tag-box:focus-within {
+    border-color: var(--pk-purple-light);
+    box-shadow: 0 0 0 3px rgba(132, 112, 179, 0.15);
+}
+
+#tag-selected {
+    display: contents;
+}
+
+.tag-selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--pk-purple), var(--pk-purple-light));
+    border-radius: 999px;
+    padding: 5px 8px 5px 12px;
+}
+
+.tag-remove {
+    border: none;
+    background: none;
+    color: #fff;
+    font-size: 0.95rem;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.tag-remove:hover {
+    opacity: 1;
+}
+
+#tag-input {
+    flex: 1;
+    min-width: 120px;
+    border: none;
+    outline: none;
+    font-family: Pretendard, sans-serif;
+    font-size: 0.92rem;
+    color: var(--pk-ink);
+    background: transparent;
+    padding: 3px 0;
+}
+
+#tag-input[hidden] {
+    display: none;
+}
+
+#tag-input::placeholder {
+    color: #b3adc4;
+}
+
+#tag-suggestions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+#suggestion-label {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #a79fbb;
+    margin-right: 2px;
+}
+
+.tag-suggestion {
+    font-family: Pretendard, sans-serif;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #6f6790;
+    background: #fff;
+    border: 1px solid var(--pk-purple-line);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+}
+
+.tag-suggestion:hover {
+    border-color: var(--pk-purple-light);
+    color: var(--pk-purple-deep);
+    background: var(--pk-purple-pale);
+}

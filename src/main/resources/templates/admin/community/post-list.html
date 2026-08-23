@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('글·댓글 관리')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('community-posts')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>글·댓글 관리</h1>
+                <p>제목·작성자(또는 댓글 내용·작성자)로 찾아 강제로 지웁니다. 이미 삭제된 항목은
+                    <b>완전삭제</b>로 DB에서 실제로 지울 수 있습니다 — 복구 불가.</p>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <div class="card">
+            <header>
+                <div class="seg">
+                    <a th:classappend="${type == 'POST'} ? 'on'" th:href="@{/admin-hoya/community/posts(type='POST')}">글</a>
+                    <a th:classappend="${type == 'COMMENT'} ? 'on'" th:href="@{/admin-hoya/community/posts(type='COMMENT')}">댓글</a>
+                </div>
+                <div class="tools">
+                    <form class="search" method="get" th:action="@{/admin-hoya/community/posts}">
+                        <input type="hidden" name="type" th:value="${type}"/>
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input type="text" name="keyword" th:value="${keyword}"
+                               th:placeholder="${type == 'POST'} ? '제목·작성자 검색' : '댓글 내용·작성자 검색'">
+                    </form>
+                </div>
+            </header>
+
+            <!-- 글 목록 -->
+            <div class="tablewrap" th:if="${type == 'POST' and not posts.empty}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>제목</th>
+                        <th>작성자</th>
+                        <th>등록일</th>
+                        <th>상태</th>
+                        <th class="r">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${posts.content}">
+                        <td><b th:text="${p.title}">제목</b></td>
+                        <td th:text="${p.nickname}">닉네임</td>
+                        <td th:text="${#temporals.format(p.createdAt, 'yyyy.MM.dd')}">2026.07.26</td>
+                        <td>
+                            <span th:if="${p.deletedAt != null}" class="pill off"><i></i><span>삭제됨</span></span>
+                            <span th:if="${p.deletedAt == null and p.blinded}" class="pill wait"><i></i><span>블라인드</span></span>
+                            <span th:if="${p.deletedAt == null and !p.blinded}" class="pill live"><i></i><span>노출중</span></span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact" th:if="${p.deletedAt == null}">
+                                <form th:action="@{'/admin-hoya/community/posts/' + ${p.id} + '/delete'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='POST', keyword=${keyword}, page=${posts.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="정말 삭제?" onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                            <div class="rowact" th:if="${p.deletedAt != null}">
+                                <form th:action="@{'/admin-hoya/community/posts/' + ${p.id} + '/purge'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='POST', keyword=${keyword}, page=${posts.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="복구 불가! 다시 클릭" onclick="return armConfirm(this)">완전삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty" th:if="${type == 'POST' and posts.empty}">조건에 맞는 글이 없습니다.</div>
+
+            <!-- 댓글 목록 -->
+            <div class="tablewrap" th:if="${type == 'COMMENT' and not comments.empty}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>내용</th>
+                        <th>작성자</th>
+                        <th>등록일</th>
+                        <th>상태</th>
+                        <th class="r">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${comments.content}">
+                        <td th:text="${c.content}">댓글 내용</td>
+                        <td th:text="${c.nickname}">닉네임</td>
+                        <td th:text="${#temporals.format(c.createdAt, 'yyyy.MM.dd')}">2026.07.26</td>
+                        <td>
+                            <span th:if="${c.deletedAt != null}" class="pill off"><i></i><span>삭제됨</span></span>
+                            <span th:if="${c.deletedAt == null and c.blinded}" class="pill wait"><i></i><span>블라인드</span></span>
+                            <span th:if="${c.deletedAt == null and !c.blinded}" class="pill live"><i></i><span>노출중</span></span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact" th:if="${c.deletedAt == null}">
+                                <form th:action="@{'/admin-hoya/community/comments/' + ${c.id} + '/delete'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="정말 삭제?" onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                            <div class="rowact" th:if="${c.deletedAt != null}">
+                                <form th:action="@{'/admin-hoya/community/comments/' + ${c.id} + '/purge'}" method="post">
+                                    <input type="hidden" name="redirectTo"
+                                           th:value="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number})}"/>
+                                    <button type="submit" class="btn danger sm"
+                                            data-confirm-text="복구 불가! 다시 클릭" onclick="return armConfirm(this)">완전삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="empty" th:if="${type == 'COMMENT' and comments.empty}">조건에 맞는 댓글이 없습니다.</div>
+        </div>
+
+        <div class="pager" th:if="${type == 'POST' and posts.totalPages > 1}">
+            <a class="btn ghost sm" th:if="${posts.hasPrevious()}"
+               th:href="@{/admin-hoya/community/posts(type='POST', keyword=${keyword}, page=${posts.number - 1})}">이전</a>
+            <span class="note" th:text="${(posts.number + 1)} + ' / ' + ${posts.totalPages}">1 / 1</span>
+            <a class="btn ghost sm" th:if="${posts.hasNext()}"
+               th:href="@{/admin-hoya/community/posts(type='POST', keyword=${keyword}, page=${posts.number + 1})}">다음</a>
+        </div>
+        <div class="pager" th:if="${type == 'COMMENT' and comments.totalPages > 1}">
+            <a class="btn ghost sm" th:if="${comments.hasPrevious()}"
+               th:href="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number - 1})}">이전</a>
+            <span class="note" th:text="${(comments.number + 1)} + ' / ' + ${comments.totalPages}">1 / 1</span>
+            <a class="btn ghost sm" th:if="${comments.hasNext()}"
+               th:href="@{/admin-hoya/community/posts(type='COMMENT', keyword=${keyword}, page=${comments.number + 1})}">다음</a>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
+</body>
+</html>

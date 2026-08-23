@@ -1,6 +1,9 @@
 import { authFetch, showAlert } from '/js/common.js';
 
-const RANKING_TYPE = 'I_TICKET_OLD';
+// 연습을 끝내고 넘어오면 주소에 예매처가 실려 온다. 모르는 값이면 기본 종목을 연다.
+const AGENCIES = ['I_TICKET_OLD', 'N_TICKET', 'M_TICKET'];
+const asked = new URLSearchParams(location.search).get('agency');
+const RANKING_TYPE = AGENCIES.includes(asked) ? asked : 'I_TICKET_OLD';   // 기본 노출 종목
 
 // ── 전체 랭킹 상태 ──
 const rankingState = {
@@ -40,13 +43,61 @@ async function goToITicket(event) {
     window.location.href = '/practice/i-ticket/intro';
 }
 
+async function goToNTicket(event) {
+    event.preventDefault();
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임을 설정해주세요', msg: '랭킹 기록을 남기려면 닉네임이 필요합니다.\n우측 상단에서 닉네임 설정 후 다시 시도해주세요.' });
+            return;
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
+    }
+    window.location.href = '/practice/n-ticket/intro';
+}
+
+async function goToMTicket(event) {
+    event.preventDefault();
+    try {
+        const clientRes = await authFetch('/api/client');
+        const clientData = await clientRes.json();
+        if (!clientData.name) {
+            await showAlert({ title: '닉네임을 설정해주세요', msg: '랭킹 기록을 남기려면 닉네임이 필요합니다.\n우측 상단에서 닉네임 설정 후 다시 시도해주세요.' });
+            return;
+        }
+    } catch (e) {
+        console.error('[Practicket] Failed to fetch client info:', e);
+    }
+    window.location.href = '/practice/m-ticket/intro';
+}
+
 // ── 탭 전환 ──
 function switchMainTab(target, btn) {
     document.querySelectorAll('.view-mode-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + target).classList.add('active');
+    document.querySelector('.ranking-top-bar .period-tabs').hidden = target !== 'ranking';
     if (target === 'myrecord') loadMyPanel();
+}
+
+// ── 종목(연습 타입) 전환 ──
+// 전체 랭킹·내 기록 패널이 각자 agency-tabs 를 갖고 있어, 눌린 버튼이 속한 패널만 갱신한다.
+function selectAgency(btn) {
+    const type = btn.dataset.agency;
+    const tabs = btn.closest('.agency-tabs');
+    tabs.querySelectorAll('.agency-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    if (btn.closest('#panel-ranking')) {
+        rankingState.type = type;
+        loadRanking(true);
+    } else {
+        myState.type = type;
+        loadMyPanel();
+    }
 }
 
 function selectPeriod(btn) {
@@ -54,6 +105,73 @@ function selectPeriod(btn) {
     btn.classList.add('active');
     rankingState.period = PERIOD_MAP[btn.textContent.trim()];
     loadRanking(true);
+}
+
+/* 목록 끝에 고정으로 붙는 내 줄. 위 목록과 같은 기간 기준이라 순위가 어긋나지 않는다. */
+async function loadMyRank() {
+    const wrap = document.getElementById('myRankWrap');
+    const row = document.getElementById('myRankRow');
+    const detail = document.getElementById('myRankDetail');
+    if (!wrap || !row) return;
+
+    try {
+        const res = await authFetch(
+            `/api/practice/my-rank?type=${rankingState.type}&period=${rankingState.period}`);
+        if (!res.ok) throw new Error('API error');
+        const my = await res.json();
+
+        if (my.rank == null) {
+            wrap.style.display = 'none';
+            return;
+        }
+
+        row.querySelector('.mr-rank').textContent = my.rank;
+        row.querySelector('.mr-nick').textContent = my.nickname || '나';
+        row.querySelector('.mr-time').innerHTML =
+            (my.best_ms / 1000).toFixed(3) + 's<span class="badge-arrow">&#9660;</span>';
+        row.querySelector('.rank-split').replaceWith(createSplitBar(my));
+
+        detail.innerHTML = `<div class="rank-exp-inner">${segmentListHtml(my)}</div>`;
+        detail.classList.add('hidden');
+        row.classList.remove('open');
+        row.classList.add('clickable');
+        /* 종목·기간을 바꾸면 이 함수가 다시 돈다. 리스너가 겹치지 않게 매번 새로 건다. */
+        row.onclick = () => {
+            const isOpen = row.classList.contains('open');
+            closeAllDetails();
+            if (isOpen) return;
+            row.classList.add('open');
+            detail.classList.remove('hidden');
+        };
+
+        wrap.style.display = 'block';
+    } catch (e) {
+        wrap.style.display = 'none';
+    }
+}
+
+/* 목록 끝 감지 줄. 스크롤 칸(root) 안으로 들어오면 다음 페이지를 부른다.
+   목록이 짧아 줄이 계속 보이면 옵저버가 다시 울리지 않으므로, 한 페이지 붙일 때마다 다시 건다. */
+const tails = {};
+
+function setupTail(key, sentinelId, rootSelector, loadMore) {
+    const el = document.getElementById(sentinelId);
+    const root = document.querySelector(rootSelector);
+    if (!el || !root) return;
+
+    const io = new IntersectionObserver(
+        entries => { if (entries.some(e => e.isIntersecting)) loadMore(); },
+        { root, rootMargin: '120px' }
+    );
+    tails[key] = { el, io };
+    io.observe(el);
+}
+
+function rearmTail(key) {
+    const tail = tails[key];
+    if (!tail || tail.el.hidden) return;
+    tail.io.unobserve(tail.el);
+    tail.io.observe(tail.el);
 }
 
 // ── 전체 랭킹 ──
@@ -66,8 +184,9 @@ async function loadRanking(reset) {
         rankingState.hasNext = false;
         rankingState.rankOffset = 0;
         document.getElementById('rankingTableBody').innerHTML =
-            '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
-        document.getElementById('loadMoreWrap').style.display = 'none';
+            '<tr class="rank-msg"><td colspan="4">불러오는 중...</td></tr>';
+        document.getElementById('rankingSentinel').hidden = true;
+        loadMyRank();
     }
 
     rankingState.loading = true;
@@ -87,23 +206,26 @@ async function loadRanking(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">아직 기록이 없습니다.</td></tr>';
         } else {
             data.data.forEach((item, i) => {
                 const rank = rankingState.rankOffset + i + 1;
-                tbody.appendChild(createRankRow(rank, item));
+                const { tr, detailTr } = createRankRow(rank, item);
+                tbody.appendChild(tr);
+                tbody.appendChild(detailTr);
             });
             rankingState.rankOffset += data.data.length;
         }
 
         rankingState.hasNext = data.has_next;
         rankingState.cursor = data.has_next ? data.next_cursor : null;
-        document.getElementById('loadMoreWrap').style.display = data.has_next ? 'block' : 'none';
+        document.getElementById('rankingSentinel').hidden = !data.has_next;
+        rearmTail('rank');
 
     } catch (e) {
         if (reset) {
             document.getElementById('rankingTableBody').innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         rankingState.loading = false;
@@ -111,6 +233,71 @@ async function loadRanking(reset) {
 }
 
 const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+const SEGMENT_LABELS = ['반응', '대기열', '보안문자', '좌석 선택'];
+
+/* 구간 합이 곧 총 시간이다(서버가 좌석을 나머지로 낸다). 보안문자 이전 기록은
+   captcha_ms 가 0 이라 세 칸으로 그려진다. */
+function segmentsOf(item) {
+    return [item.reaction_time_ms, item.queue_wait_ms, item.captcha_ms, item.seat_selection_ms]
+        .map(ms => Number(ms) || 0);
+}
+
+function createSplitBar(item, className = 'rank-split') {
+    const bar = document.createElement('span');
+    bar.className = className;
+
+    const segments = segmentsOf(item);
+    const sum = segments.reduce((a, b) => a + b, 0);
+    if (!sum) return bar;
+
+    segments.forEach((ms, i) => {
+        const seg = document.createElement('i');
+        seg.className = `s${i + 1}`;
+        seg.style.width = (ms / sum * 100).toFixed(1) + '%';
+        bar.appendChild(seg);
+    });
+    return bar;
+}
+
+/* 펼쳤을 때 나오는 구간 목록. 막대와 같은 순서·같은 색이라야 둘이 이어진다. */
+function segmentListHtml(item) {
+    const segments = segmentsOf(item);
+    const sum = segments.reduce((a, b) => a + b, 0);
+    if (!sum) return '';
+
+    return segments.map((ms, i) => ms
+        ? `<span class="exp-seg"><i class="lg-dot lg${i + 1}"></i>${SEGMENT_LABELS[i]}`
+          + `<b>${(ms / 1000).toFixed(3)}s</b><em>${Math.round(ms / sum * 100)}%</em></span>`
+        : '').join('');
+}
+
+function createSegmentRow(item, colspan) {
+    const tr = document.createElement('tr');
+    tr.className = 'rank-detail hidden';
+    tr.innerHTML = `<td colspan="${colspan}"><div class="rank-exp-inner">${segmentListHtml(item)}</div></td>`;
+    return tr;
+}
+
+/* 랭킹 줄·내 순위 줄·내 기록 줄이 한 아코디언으로 묶인다. 여러 개가 동시에 열리면
+   목록이 밀려 어느 줄의 상세인지 알기 어려워진다. */
+function closeAllDetails() {
+    document.querySelectorAll('.rank-row-clickable.open, .record-row.open, .my-rank-row.open')
+        .forEach(r => r.classList.remove('open'));
+    document.querySelectorAll('.rank-detail:not(.hidden), .my-rank-detail:not(.hidden)')
+        .forEach(r => r.classList.add('hidden'));
+}
+
+function bindDetailToggle(mainRow, detailRow) {
+    mainRow.addEventListener('click', () => {
+        const isOpen = mainRow.classList.contains('open');
+        closeAllDetails();
+        if (isOpen) return;
+        mainRow.classList.add('open');
+        detailRow.classList.remove('hidden');
+        setTimeout(() => mainRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    });
+}
 
 function createRankRow(rank, item) {
     const tr = document.createElement('tr');
@@ -139,17 +326,25 @@ function createRankRow(rank, item) {
         nameTd.textContent = item.nickname;
     }
 
+    const splitTd = document.createElement('td');
+    splitTd.appendChild(createSplitBar(item));
+
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
-    badge.className = 'time-record-badge';
-    badge.textContent = timeStr;
+    badge.className = 'time-badge';
+    badge.innerHTML = timeStr + '<span class="badge-arrow">&#9660;</span>';
     timeTd.appendChild(badge);
 
     tr.appendChild(rankTd);
     tr.appendChild(nameTd);
+    tr.appendChild(splitTd);
     tr.appendChild(timeTd);
+    tr.classList.add('rank-row-clickable');
 
-    return tr;
+    const detailTr = createSegmentRow(item, 4);
+    bindDetailToggle(tr, detailTr);
+
+    return { tr, detailTr };
 }
 
 // ── 내 기록 패널 ──
@@ -179,8 +374,8 @@ async function loadMyRecords(reset) {
         myState.hasNext = false;
         myState.recordOffset = 0;
         document.getElementById('myRecordTableBody').innerHTML =
-            '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오는 중...</td></tr>';
-        document.getElementById('myRecordLoadMoreWrap').style.display = 'none';
+            '<tr class="rank-msg"><td colspan="4">불러오는 중...</td></tr>';
+        document.getElementById('myRecordSentinel').hidden = true;
     }
 
     myState.loading = true;
@@ -198,7 +393,7 @@ async function loadMyRecords(reset) {
 
         if (data.data.length === 0 && reset) {
             tbody.innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">아직 기록이 없습니다. 연습을 시작해 보세요!</td></tr>';
         } else {
             data.data.forEach((r, i) => {
                 const attemptNum = myState.totalCount - myState.recordOffset - i;
@@ -211,12 +406,13 @@ async function loadMyRecords(reset) {
 
         myState.hasNext = data.has_next;
         myState.cursorId = data.has_next ? data.next_cursor : null;
-        document.getElementById('myRecordLoadMoreWrap').style.display = data.has_next ? 'block' : 'none';
+        document.getElementById('myRecordSentinel').hidden = !data.has_next;
+        rearmTail('myrecord');
 
     } catch (e) {
         if (reset) {
             document.getElementById('myRecordTableBody').innerHTML =
-                '<tr><td colspan="3" style="text-align:center;padding:40px;color:#94a3b8;font-size:14px;">불러오기에 실패했습니다.</td></tr>';
+                '<tr class="rank-msg"><td colspan="4">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
         myState.loading = false;
@@ -246,7 +442,7 @@ function renderMyStats(data) {
     rankEl.textContent = data.monthly_rank ? data.monthly_rank + '위' : '-';
     rankSub.textContent = data.monthly_rank ? '월간 기준' : '이번 달 미참여';
     bestEl.textContent = (data.best_ms / 1000).toFixed(3) + 's';
-    countEl.innerHTML = data.total_count + '<span style="font-size:14px;color:#94a3b8;font-family:Pretendard;font-weight:500">회</span>';
+    countEl.innerHTML = data.total_count + '<span style="font-size:14px;color:#9a93b0;font-family:Pretendard;font-weight:500">회</span>';
 
     if (data.total_count >= 2 && data.first_ms && data.best_ms) {
         const improveSec = ((data.first_ms - data.best_ms) / 1000).toFixed(3);
@@ -278,6 +474,9 @@ function createRecordRows(r, attemptNum) {
     dateTd.style.cssText = 'text-align:left;padding-left:20px;';
     dateTd.textContent = dateStr;
 
+    const splitTd = document.createElement('td');
+    splitTd.appendChild(createSplitBar(r, 'row-split'));
+
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
     badge.className = 'time-badge';
@@ -286,48 +485,13 @@ function createRecordRows(r, attemptNum) {
 
     tr.appendChild(attemptTd);
     tr.appendChild(dateTd);
+    tr.appendChild(splitTd);
     tr.appendChild(timeTd);
 
-    const detailTr = document.createElement('tr');
-    detailTr.className = 'detail-row hidden';
-    detailTr.innerHTML = `
-        <td colspan="3">
-            <div class="detail-title-row">상세 소요 시간</div>
-            <div class="detail-inner">
-                <div class="detail-card">
-                    <div class="detail-label">반응 속도</div>
-                    <div class="detail-value">${(r.reaction_time_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">대기열 소요 시간</div>
-                    <div class="detail-value">${(r.queue_wait_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">좌석 선택 속도</div>
-                    <div class="detail-value">${(r.seat_selection_ms / 1000).toFixed(3)}s</div>
-                </div>
-                <div class="detail-card">
-                    <div class="detail-label">대기열 초기 순번</div>
-                    <div class="detail-value neutral">#${r.queue_initial_rank}번</div>
-                </div>
-            </div>
-        </td>
-    `;
-
-    tr.addEventListener('click', () => toggleDetail(tr, detailTr));
+    const detailTr = createSegmentRow(r, 4);
+    bindDetailToggle(tr, detailTr);
 
     return { tr, detailTr };
-}
-
-function toggleDetail(mainRow, detailRow) {
-    const isOpen = mainRow.classList.contains('open');
-    document.querySelectorAll('.record-row.open').forEach(r => r.classList.remove('open'));
-    document.querySelectorAll('.detail-row:not(.hidden)').forEach(r => r.classList.add('hidden'));
-    if (!isOpen) {
-        mainRow.classList.add('open');
-        detailRow.classList.remove('hidden');
-        setTimeout(() => mainRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
 }
 
 function formatDate(isoString) {
@@ -339,12 +503,20 @@ function formatDate(isoString) {
 
 // ── 전역 노출 (onclick 속성용) ──
 window.goToITicket = goToITicket;
+window.goToNTicket = goToNTicket;
+window.goToMTicket = goToMTicket;
 window.switchMainTab = switchMainTab;
+window.selectAgency = selectAgency;
 window.selectPeriod = selectPeriod;
-window.loadRanking = loadRanking;
-window.loadMyRecords = loadMyRecords;
 
 // ── 초기 로드 ──
 document.addEventListener('DOMContentLoaded', () => {
+    // 상태만 바꾸면 탭은 기본 종목에 켜진 채 남아 표와 어긋난다.
+    document.querySelectorAll('.agency-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.agency === RANKING_TYPE);
+    });
+
+    setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));
+    setupTail('myrecord', 'myRecordSentinel', '.my-record-table-body', () => loadMyRecords(false));
     loadRanking(true);
 });

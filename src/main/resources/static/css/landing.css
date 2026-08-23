@@ -1,0 +1,159 @@
+/* ===== 프랙티켓 랜딩 (/) ===== */
+* { box-sizing: border-box; }
+.mf { font-family: 'my-font', sans-serif; }
+.grad { background: linear-gradient(135deg, #6b5b9a, #8470b3);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+#main-section {
+    width: 100%; height: 100%; max-height: 100%; min-width: 0;
+    overflow-x: hidden; overflow-y: auto;
+    display: flex; flex-direction: column; justify-content: safe center;
+    padding: 22px 18px; gap: 18px;
+    font-family: 'Pretendard', sans-serif;
+}
+.notice, .inq, .bb, .foot { width: 100%; min-width: 0; flex-shrink: 0; }
+#main-section::-webkit-scrollbar { width: 7px; }
+#main-section::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #6b5b9a, #8470b3); border-radius: 4px; }
+
+/* 공지 · 업데이트 */
+/* 공지가 적어도 카드 길이는 유지한다 — 공지 5건(최대) 기준 높이를 min 으로 잡아
+   1건만 있어도 카드가 쪼그라들지 않고 내부가 여백으로 채워지게 한다. */
+.notice { background: linear-gradient(145deg, #ffffff, #f8f9ff); border: 1.5px solid rgba(107, 91, 154, .12);
+    border-radius: 18px; padding: 18px 22px; box-shadow: 0 6px 18px rgba(107, 91, 154, .06); min-height: 220px; }
+.nt-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+.nt-head b { font-size: 16px; }
+.nt-head .more { font-size: 12px; color: #9a93b0; text-decoration: none; }
+.nt-head .more:hover { color: #6b5b9a; }
+.nt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+.nt-list li { display: flex; align-items: center; gap: 10px; }
+.tag { flex-shrink: 0; font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 10.5px; padding: 3px 9px; border-radius: 7px; }
+.tag.t-notice { background: #ece7fb; color: #6b5b9a; }
+.tag.t-fix { background: #eef1f6; color: #7a8499; }
+.nt-txt { flex: 1; min-width: 0; font-size: 13px; color: #4a4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-decoration: none; }
+a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
+.nt-date { flex-shrink: 0; font-size: 11.5px; color: #b0a9c4; }
+.nt-empty { font-size: 13px; color: #b0a9c4; }
+
+/* 문의 */
+.inq-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.inq-card { cursor: pointer; text-align: left; border-radius: 16px; padding: 16px 18px; transition: .15s; border: none; font-family: 'Pretendard', sans-serif; text-decoration: none; display: block; }
+.inq-card b { display: block; font-size: 15px; }
+.inq-card span { display: block; margin-top: 4px; font-size: 11.5px; word-break: keep-all; }
+.inq-card.p { background: linear-gradient(135deg, #8470b3, #6b5b9a); color: #fff; box-shadow: 0 8px 18px rgba(107, 91, 154, .3); }
+.inq-card.p span { opacity: .85; }
+.inq-card.g { background: #fff; color: #6b5b9a; border: 1.5px solid rgba(107, 91, 154, .25); }
+.inq-card.g span { color: #9a93b0; }
+.inq-card:hover { transform: translateY(-2px); }
+
+/* 야구 신규 서비스(호야구) 홍보 - 가로 배너
+   왼쪽 프랙티켓 보라에서 오른쪽 호야구 마젠타(#FF3D7F)로 넘어간다 — 두 서비스를 색으로 잇는다 */
+.bb { border-radius: 20px; background: linear-gradient(115deg, #3d2f73 0%, #6b5b9a 38%, #a33f86 72%, #FF3D7F 100%); color: #fff;
+    padding: 24px 30px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 24px;
+    box-shadow: 0 16px 38px rgba(160, 60, 130, .34); position: relative; overflow: hidden; }
+.bb::after { content: ""; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .16), transparent 70%); }
+.bb-l { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; min-width: 0; z-index: 1; }
+.bb .badge { font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 1px;
+    background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .38); padding: 5px 11px; border-radius: 20px; }
+.bb-l b { font-family: 'my-font', sans-serif; font-size: 17px; word-break: keep-all; }
+.bb .desc { opacity: .9; font-size: 13px; line-height: 1.55; word-break: keep-all; max-width: 560px; }
+.bb-r { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; z-index: 1; }
+.bb-r b { font-family: 'my-font', sans-serif; font-size: 15px; opacity: .92; }
+.bb .soon { font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 11.5px; letter-spacing: .8px;
+    background: rgba(255, 255, 255, .92); color: #c11f5e; border: 1px solid transparent; padding: 9px 16px; border-radius: 20px; white-space: nowrap; }
+
+/* 호야구 로고 — 마크업은 landing.html 의 #hyLogo 심볼(확정 소스 복사본). 여기선 크기만 잡는다.
+   음수 마진은 SVG 내부 여백(viewBox 138 중 글자가 x=14부터 = 10.1%)을 상쇄해
+   로고 글자 시작점을 뱃지·문구와 같은 선에 세운다 */
+.bb .hylogo { height: 52px; width: 120px; display: block; margin: 2px 0 1px -12.2px; }
+
+/* 푸터 */
+.foot { text-align: center; }
+.foot a { font-size: 12px; color: #9a93b0; text-decoration: none; }
+.foot a:hover { color: #6b5b9a; }
+.foot .dot { margin: 0 8px; color: #cfc9dd; }
+.foot .copy { font-size: 11.5px; color: #bcb4cf; }
+
+/* 문의 모달 */
+.overlay { position: fixed; inset: 0; background: rgba(45, 30, 80, .45); display: none; align-items: center; justify-content: center; z-index: 100; }
+.overlay.on { display: flex; }
+.modal { width: 440px; max-width: 92vw; background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 30px 70px rgba(40, 20, 80, .4); }
+.mhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 20px 0; }
+.mhead b { font-family: 'my-font', sans-serif; font-size: 17px; color: #514897; }
+.modal-x { flex-shrink: 0; width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 50%;
+    background: rgba(80, 60, 120, .08); color: #6b6480; font-size: 21px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; transition: .15s; }
+.modal-x:hover { background: rgba(80, 60, 120, .16); color: #514897; }
+.modal .bd { padding: 16px 26px 26px; }
+.modal .bd p { margin: 0 0 14px; color: #7a7390; font-size: 13.5px; }
+.modal input, .modal textarea { width: 100%; border: 1.5px solid rgba(107, 91, 154, .25); border-radius: 12px; padding: 12px;
+    font-family: 'Pretendard', sans-serif; font-size: 14px; margin-bottom: 11px; background: #fbfaff; outline: none; }
+.modal textarea { height: 96px; resize: none; }
+.modal .inq-warn { margin: -2px 0 12px; font-size: 11.5px; color: #b56a6a; line-height: 1.5; word-break: keep-all; }
+.modal .send { width: 100%; border: none; cursor: pointer; font-family: 'my-font', sans-serif; font-size: 16px; color: #fff;
+    background: linear-gradient(135deg, #8470b3, #6b5b9a); border-radius: 12px; padding: 14px; box-shadow: 0 6px 16px rgba(107, 91, 154, .3); }
+
+/* ===== 모바일 ===== */
+@media (max-width: 768px) {
+    /* 채팅 런처는 오른쪽 아래 구석(약 58px)만 가린다 — 아래 전체를 비우지 말고 푸터만 비켜준다 */
+    #main-section { padding: 13px 14px 16px; gap: 8px; justify-content: flex-start; }
+    .foot { padding-right: 62px; }
+    /* 모바일 카드는 shrink 하지 않는다 — overflow:hidden 이라 줄어드는 순간 내용을 잘라먹는다.
+       모자라면 아래 높이별 구간에서 건수·여백을 덜어내 맞춘다.
+       176px 은 모바일 5건 실측치다. PC 값(220px)은 44px 이 빈 여백으로 굳어 배너를 밀어낸다. */
+    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 0 auto; min-height: 176px; overflow: hidden; display: flex; flex-direction: column; }
+    .nt-head { margin-bottom: 7px; } .nt-head b { font-size: 14.5px; }
+    .nt-list { gap: 6px; flex: 1 1 auto; justify-content: flex-start; }
+    .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
+    .inq { display: flex; flex: 0 0 auto; min-height: 0; }
+    .inq-cards { gap: 9px; flex: 1 1 auto; }
+    .inq-card { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; min-height: 120px; }
+    .inq-card b { font-size: 14.5px; } .inq-card span { margin-top: 4px; font-size: 11px; }
+    /* 남는 세로 공간은 문의 카드가 아니라 배너가 흡수한다.
+       커진 높이를 요소가 다닥다닥 뭉치지 않게 위아래로 펼쳐 채운다. */
+    .bb { flex: 1 0 auto; flex-direction: column; align-items: stretch; padding: 22px 18px; gap: 12px; justify-content: space-between; }
+    .bb .badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
+    .bb-l { gap: 16px; }
+    .bb-l b { font-size: 16px; } .bb .desc { font-size: 13px; line-height: 1.45; }
+    .bb .hylogo { height: 44px; width: 101px; margin: 1px 0 2px -10.2px; }
+    .bb-r { flex-direction: row; align-items: center; justify-content: space-between; }
+    .bb-r b { font-size: 14px; } .bb .soon { padding: 8px 16px; font-size: 12px; }
+    .foot .dot { margin: 0 5px; }
+    .foot a { font-size: 11px; } .foot .copy { font-size: 10.5px; }
+}
+
+/* 화면이 짧아질수록 단계적으로 덜어낸다. 목표는 어느 구간에서도 스크롤이 안 생기는 것이다.
+   경계값은 기기 스펙이 아니라 실측으로 잡았다 — 각 구간의 가장 짧은 화면에서 넘침이 0 이 되는 지점이다.
+   광고 띠(폭의 1/4)가 항상 자리를 먹으므로 체감보다 예산이 빠듯하다. */
+
+/* ≤820px: 5건이 안 들어간다. 820 인 이유는 740 짜리 폰이 700 기준에선 걸러지지 않아 넘쳤기 때문이다 */
+@media (max-width: 768px) and (max-height: 820px) {
+    #main-section { gap: 6px; }
+    /* 스크롤·잘림 대신 건수를 줄인다 */
+    .nt-list li:nth-child(n+5) { display: none; }
+    .inq-card { padding: 11px 16px; min-height: 74px; }
+    .notice { padding: 11px 14px; min-height: 140px; }
+    .bb { padding: 10px 14px; gap: 8px; min-height: 0; }
+    .bb-l { gap: 7px; }
+    .bb .hylogo { height: 34px; width: 78px; margin-left: -7.9px; }
+}
+
+/* ≤660px: 공지 3건, 배너 설명 줄을 뺀다 */
+@media (max-width: 768px) and (max-height: 660px) {
+    #main-section { gap: 5px; }
+    .nt-list li:nth-child(n+4) { display: none; }
+    .notice { min-height: 118px; }
+    .inq-card { min-height: 68px; }
+    .bb .desc { display: none; }
+}
+
+/* ≤600px: 구형 소형 기기. 공지 2건에 로고·여백까지 최소로 */
+@media (max-width: 768px) and (max-height: 600px) {
+    #main-section { gap: 4px; padding: 10px 12px 12px; }
+    .nt-list li:nth-child(n+3) { display: none; }
+    .notice { min-height: 92px; }
+    .inq-card { min-height: 58px; }
+    .bb { padding: 9px 12px; gap: 6px; }
+    .bb-l { gap: 5px; }
+    .bb .hylogo { height: 28px; width: 64px; margin-left: -6.5px; }
+}

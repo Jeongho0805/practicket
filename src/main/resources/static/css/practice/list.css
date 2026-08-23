@@ -3,25 +3,37 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 50px;
-    padding: 100px 20px 60px 20px;
+    gap: 16px;
+    padding: 22px 20px 16px 20px;
     margin: 0 auto;
-    height: calc(100vh - 60px);
+    /* 부모(#content-section)의 실제 높이는 body 격자 1fr:10fr 의 아래 칸이다.
+       100vh - 60px 은 그 근사치라 창이 낮으면(1440x768) 넘쳐 목록 아래가 잘렸다.
+       height:100% 로는 못 고친다 — 격자 행이 auto 라 내용 높이로 되돌아가 더 크게 넘친다. */
+    height: calc(100vh * 10 / 11);
+    max-height: calc(100vh * 10 / 11);
     box-sizing: border-box;
+}
+
+/* 랭킹 보드가 남은 높이를 전부 받아야 목록 칸이 생긴다. */
+.ranking-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 /* ----- Section 1: Practice Options ----- */
 .practice-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
 }
 
 .practice-card {
     position: relative;
     display: flex;
     flex-direction: row;
-    min-height: 116px;
+    min-height: 96px;
     border-radius: 16px;
     overflow: hidden;
     text-decoration: none;
@@ -44,8 +56,13 @@
     width: 10px;
     flex-shrink: 0;
 }
-.practice-card.active   .card-stub { background: linear-gradient(180deg, #7c3aed 0%, #a855f7 100%); }
+.practice-card.active   .card-stub { background: var(--brand-stub, linear-gradient(180deg, #7c3aed 0%, #a855f7 100%)); }
 .practice-card.disabled .card-stub { background: #e2e2ec; }
+
+/* 예매처 실물 브랜드색. 면으로만 쓰고 글자에는 쓰지 않는다 — 흰 배경 대비가 모자란다. */
+.practice-card.card-i { --brand-stub: #ed1b24; }
+.practice-card.card-n { --brand-stub: #4154FF; }
+.practice-card.card-m { --brand-stub: #00b523; }
 
 .card-sep {
     width: 1px;
@@ -81,7 +98,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 14px 14px 12px 14px;
+    padding: 13px 14px 11px 14px;
 }
 
 .card-row-top {
@@ -107,7 +124,7 @@
 
 .card-title {
     font-family: 'my-font', sans-serif;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 900;
     letter-spacing: -0.5px;
     line-height: 1.1;
@@ -153,6 +170,8 @@
 }
 
 /* ----- Section 2: Ranking Board ----- */
+/* 전역 기본 폰트는 자란체(my-font)다. 랭킹판은 여기서 한 번 Pretendard 로 내린다 —
+   요소마다 붙이면 새로 추가한 곳에서 자란체가 튀어나온다. 숫자는 각자 Roboto Mono 로 덮는다. */
 .ranking-board {
     background: #fff;
     border-radius: 20px;
@@ -163,37 +182,42 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.ranking-board button {
+    font-family: inherit;
 }
 
 .ranking-top-bar {
     background: #fff;
-    border-bottom: 1px solid #f1f5f9;
-    padding: 0 30px;
+    border-bottom: 1px solid #ece8f3;
+    padding: 0 22px;
     display: flex;
+    align-items: center;
 }
 
 .view-mode-tab {
-    padding: 18px 24px;
-    font-size: 15px;
+    padding: 12px 18px;
+    font-size: 14px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #a49dba;
     border: none;
     background: none;
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    font-family: 'Pretendard', sans-serif;
     transition: color 0.2s, border-color 0.2s;
 }
 
 .view-mode-tab.active {
-    color: #6b196b;
-    border-bottom-color: #6b196b;
+    color: #514897;
+    border-bottom-color: #514897;
 }
 
 .filter-bar {
-    padding: 14px 30px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 10px 22px;
+    border-bottom: 1px solid #ece8f3;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -209,18 +233,17 @@
     border-radius: 30px;
     font-size: 14px;
     font-weight: 600;
-    background: #f4f6f8;
-    color: #64748b;
+    background: #f2f0f7;
+    color: #8a83a0;
     border: 1px solid transparent;
     cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
     transition: all 0.2s;
 }
 
 .agency-tab.active {
-    background: #fdf5fc;
-    color: #6b196b;
-    border-color: #f3e6f3;
+    background: #f1eef9;
+    color: #514897;
+    border-color: #ddd6ee;
 }
 
 .agency-tab.disabled {
@@ -228,29 +251,35 @@
     cursor: not-allowed;
 }
 
+/* 기간 탭은 뷰 탭 줄 오른쪽에 있다. 필터 바에 예매처 4개와 같이 두면
+   좁은 화면에서 M-Ticket 부터 잘려 나가는데, 뷰 탭 줄은 오른쪽이 통째로 비어 있다. */
 .period-tabs {
     display: flex;
-    background: #f4f6f8;
+    margin-left: auto;
+    background: #f2f0f7;
     border-radius: 10px;
     padding: 4px;
 }
 
+.period-tabs[hidden] {
+    display: none;
+}
+
 .period-tab {
-    padding: 7px 18px;
+    padding: 6px 16px;
     font-size: 14px;
     font-weight: 600;
-    color: #64748b;
+    color: #8a83a0;
     border: none;
     background: none;
     border-radius: 8px;
     cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
     transition: background 0.2s, color 0.2s;
 }
 
 .period-tab.active {
     background: #fff;
-    color: #1a1a1a;
+    color: #3a3350;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
@@ -263,6 +292,8 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    /* 펼침 줄이 몇 열로 접힐지는 창이 아니라 이 칸의 폭으로 정한다. */
+    container: rankpanel / inline-size;
 }
 
 /* ----- 전체 랭킹 테이블 ----- */
@@ -271,10 +302,17 @@
     padding: 0;
 }
 
+/* 스크롤바가 생기고 사라져도 열이 안 흔들리게 자리를 늘 잡아둔다. 표 머리와
+   내 순위 줄은 이 칸 밖이라 스크롤바만큼 좁아지지 않아 열이 어긋났다. */
 .ranking-table-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.ranking-table-header {
+    padding-right: 6px;
 }
 
 .ranking-table-body::-webkit-scrollbar {
@@ -286,38 +324,46 @@
 }
 
 .ranking-table-body::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: #ddd6ee;
     border-radius: 3px;
 }
 
 .ranking-table-body::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: #cfc9dd;
 }
 
 .ranking-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     text-align: center;
 }
 
+/* 불러오는 중 · 기록 없음 · 실패 를 알리는 한 칸짜리 줄 */
+.rank-msg td {
+    padding: 40px;
+    text-align: center;
+    color: #9a93b0;
+    font-size: 14px;
+}
+
 .ranking-table th {
     background-color: #fff;
-    font-family: 'Pretendard', sans-serif;
     font-weight: 700;
-    color: #64748b;
-    padding: 18px 15px;
-    border-bottom: 1px solid #f1f5f9;
+    color: #8a83a0;
+    padding: 11px 15px;
+    border-bottom: 1px solid #ece8f3;
     font-size: 13px;
     letter-spacing: 0.8px;
 }
 
 .ranking-table td {
-    padding: 16px 15px;
-    border-bottom: 1px solid #f8fafc;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f5f2fa;
     font-size: 15px;
     font-weight: 500;
-    color: #334155;
+    color: #4a4458;
     transition: background 0.15s;
 }
 
@@ -326,43 +372,193 @@
 }
 
 .ranking-table tr:hover td {
-    background-color: #fbfbfc;
+    background-color: #faf8fd;
 }
 
 .rank-num {
     font-family: 'Roboto Mono', monospace;
     font-size: 15px;
     font-weight: 700;
-    color: #dde1e7;
+    color: #d5cee6;
 }
 
-.rank-1 .rank-num { color: #f59e0b; }
-.rank-2 .rank-num { color: #94a3b8; }
-.rank-3 .rank-num { color: #c97c3a; }
+.rank-1 .rank-num { color: #c9962e; }
+.rank-2 .rank-num { color: #a9a2c0; }
+.rank-3 .rank-num { color: #b0743c; }
 
-.rank-1 { background: linear-gradient(90deg, #fffbeb 0%, #fff 60%); }
-.rank-2 { background: linear-gradient(90deg, #f8fafc 0%, #fff 60%); }
-.rank-3 { background: linear-gradient(90deg, #fff7f0 0%, #fff 60%); }
+.rank-1 { background: linear-gradient(90deg, #fdf8ec 0%, #fff 60%); }
+.rank-2 { background: linear-gradient(90deg, #f7f5fb 0%, #fff 60%); }
+.rank-3 { background: linear-gradient(90deg, #fbf4ee 0%, #fff 60%); }
 
 .rank-1 td,
 .rank-2 td,
 .rank-3 td { background: transparent; }
 
-.rank-1 td:first-child { border-left: 3px solid #f59e0b; }
-.rank-2 td:first-child { border-left: 3px solid #94a3b8; }
-.rank-3 td:first-child { border-left: 3px solid #c97c3a; }
+.rank-1 td:first-child { border-left: 3px solid #c9962e; }
+.rank-2 td:first-child { border-left: 3px solid #a9a2c0; }
+.rank-3 td:first-child { border-left: 3px solid #b0743c; }
 
 .rank-1 .rank-name,
 .rank-2 .rank-name,
 .rank-3 .rank-name {
     font-weight: 700;
-    color: #1a1a1a;
+    color: #3a3350;
+}
+
+.rank-split {
+    display: inline-flex;
+    width: 100%;
+    max-width: 230px;
+    height: 9px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f2f0f7;
+    vertical-align: middle;
+}
+
+.rank-split i {
+    display: block;
+    height: 100%;
+}
+
+.rank-split .s1 { background: #ded5ee; }
+.rank-split .s2 { background: #b3a3d4; }
+.rank-split .s3 { background: #8470b3; }
+.rank-split .s4 { background: #514897; }
+
+/* 막대 색이 무엇을 뜻하는지 알려주는 유일한 곳. 표 머리는 모바일에서 사라지므로 별도 줄로 둔다. */
+.split-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 7px 22px;
+    border-bottom: 1px solid #ece8f3;
+}
+
+.lg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #9a93b0;
+    white-space: nowrap;
+}
+
+.lg-dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.lg1 { background: #ded5ee; }
+.lg2 { background: #b3a3d4; }
+.lg3 { background: #8470b3; }
+.lg4 { background: #514897; }
+
+/* 랭킹 줄을 누르면 그 아래 줄이 열린다. 내 기록의 펼침과 같은 모양을 쓴다. */
+.rank-row-clickable {
+    cursor: pointer;
+}
+
+.rank-row-clickable.open td {
+    background: #f1eef9;
+    border-bottom-color: transparent;
+}
+
+.rank-detail td {
+    padding: 0;
+    border-bottom: 1px solid #ece8f3;
+    background: #fdf8ff;
+}
+
+.rank-detail.hidden {
+    display: none;
+}
+
+/* 막대 조각 하나당 한 덩어리. 색 점이 있어야 막대와 숫자가 이어진다.
+   넷이 한 줄에 안 들어가면 3+1 로 흘러 어긋나 보인다. 격자로 묶어 4열 아니면 2열만 되게 한다. */
+.rank-exp-inner {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    gap: 7px 28px;
+    padding: 10px 22px 12px;
+}
+
+.exp-seg {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8a83a0;
+    white-space: nowrap;
+}
+
+.exp-seg .lg-dot { align-self: center; }
+
+.exp-seg b {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 13px;
+    color: #514897;
+    margin-left: auto;
+}
+
+.exp-seg em {
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 700;
+    color: #b0a9c4;
+    min-width: 30px;
+    text-align: right;
+}
+
+/* 넷이 한 줄에 들어갈 만큼 넓을 때만 한 줄로 편다. */
+@container rankpanel (min-width: 720px) {
+    .rank-exp-inner {
+        grid-template-columns: repeat(4, auto);
+        justify-content: center;
+        gap: 8px clamp(14px, 3cqi, 44px);
+    }
+
+    .exp-seg b { margin-left: 0; }
+    .exp-seg em { min-width: 0; text-align: left; }
+}
+
+/* 내 기록 목록의 막대. 펼치지 않아도 시도끼리 비중을 견줄 수 있다. */
+.row-split {
+    display: inline-flex;
+    width: 100%;
+    max-width: 230px;
+    height: 8px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #f2f0f7;
+    vertical-align: middle;
+}
+
+.row-split i { display: block; height: 100%; }
+.row-split .s1 { background: #ded5ee; }
+.row-split .s2 { background: #b3a3d4; }
+.row-split .s3 { background: #8470b3; }
+.row-split .s4 { background: #514897; }
+
+.rank-name {
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rank-name-wrap {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    max-width: 100%;
 }
 
 .rank-medal {
@@ -370,40 +566,15 @@
     line-height: 1;
 }
 
-.time-record-badge {
-    display: inline-block;
-    background: #f5eef8;
-    color: #6b196b;
-    font-family: 'Roboto Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-    border: 1px solid #e9d8f4;
-}
-
-#loadMoreWrap {
+/* 목록 끝을 알리는 줄. 화면에 들어오면 다음 페이지를 부른다(list.js).
+   버튼이던 시절엔 60px 을 차지했는데 목록 칸이 180~330px 이라 한 행 반을 먹었고,
+   바로 아래 고정된 내 순위 줄과 바닥이 둘로 보였다. */
+.list-sentinel {
     text-align: center;
-    padding: 16px;
-}
-
-#loadMoreBtn {
-    padding: 9px 28px;
-    background: #fdf5fc;
-    color: #6b196b;
-    border: 1px solid #f3e6f3;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 10px 0 14px;
+    font-size: 12px;
     font-weight: 600;
-    cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
-}
-
-#loadMoreBtn:hover {
-    background: #f3e6f3;
-    border-color: #e0c8e0;
+    color: #b0a9c4;
 }
 
 /* ----- 내 기록: 스탯 카드 ----- */
@@ -411,12 +582,12 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1px;
-    background: #f1f5f9;
+    background: #ece8f3;
 }
 
 .stat-card {
     background: #fff;
-    padding: 20px 16px;
+    padding: 11px 16px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -426,7 +597,7 @@
 .stat-label {
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #9a93b0;
     letter-spacing: 0.8px;
     text-transform: uppercase;
 }
@@ -435,17 +606,17 @@
     font-family: 'Roboto Mono', monospace;
     font-size: 22px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: #3a3350;
 }
 
 .stat-value.highlight {
-    color: #6b196b;
+    color: #514897;
 }
 
 .stat-value.muted {
     font-family: 'Pretendard', sans-serif;
     font-size: 14px;
-    color: #94a3b8;
+    color: #9a93b0;
     font-weight: 600;
 }
 
@@ -464,13 +635,13 @@
     font-family: 'Roboto Mono', monospace;
     font-size: 18px;
     font-weight: 700;
-    color: #16a34a;
+    color: #514897;
 }
 
 .improve-pct {
     display: inline-block;
-    background: #dcfce7;
-    color: #16a34a;
+    background: #f1eef9;
+    color: #514897;
     font-size: 12px;
     font-weight: 700;
     padding: 2px 10px;
@@ -480,13 +651,14 @@
 
 /* ----- 내 기록: 테이블 ----- */
 .my-record-table-header {
-    padding: 0;
+    padding: 0 6px 0 0;
 }
 
 .my-record-table-body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .my-record-table-body::-webkit-scrollbar {
@@ -498,24 +670,24 @@
 }
 
 .my-record-table-body::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: #ddd6ee;
     border-radius: 3px;
 }
 
 .record-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
 }
 
 .record-table th {
     background: #fff;
-    font-family: 'Pretendard', sans-serif;
     font-weight: 700;
-    color: #64748b;
-    padding: 14px 16px;
-    border-top: 1px solid #f1f5f9;
-    border-bottom: 1px solid #f1f5f9;
+    color: #8a83a0;
+    padding: 10px 16px;
+    border-top: 1px solid #ece8f3;
+    border-bottom: 1px solid #ece8f3;
     font-size: 12px;
     letter-spacing: 0.8px;
     text-transform: uppercase;
@@ -527,21 +699,21 @@
 }
 
 .record-row td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f8fafc;
+    padding: 9px 16px;
+    border-bottom: 1px solid #f5f2fa;
     font-size: 14px;
     font-weight: 500;
-    color: #334155;
+    color: #4a4458;
     text-align: center;
     transition: background 0.15s;
 }
 
 .record-row:hover td {
-    background: #fdf5fc;
+    background: #f1eef9;
 }
 
 .record-row.open td {
-    background: #fdf5fc;
+    background: #f1eef9;
     border-bottom-color: transparent;
 }
 
@@ -549,14 +721,14 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #f5eef8;
-    color: #6b196b;
+    background: #f1eef9;
+    color: #514897;
     font-family: 'Roboto Mono', monospace;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 10px 6px 14px;
     border-radius: 20px;
-    border: 1px solid #e9d8f4;
+    border: 1px solid #ddd6ee;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
     user-select: none;
@@ -576,151 +748,139 @@
     border-radius: 50%;
     background: rgba(107, 25, 107, 0.1);
     font-size: 9px;
-    color: #6b196b;
+    color: #514897;
     transition: transform 0.2s, background 0.2s;
     flex-shrink: 0;
 }
 
-.record-row.open .time-badge {
-    background: #6b196b;
+/* 펼쳐지는 줄은 셋이다 — 랭킹 줄, 바닥의 내 순위 줄, 내 기록 줄. 모두 같은 배지를 쓴다. */
+.record-row.open .time-badge,
+.rank-row-clickable.open .time-badge,
+.my-rank-row.open .time-badge {
+    background: #514897;
     color: #fff;
-    border-color: #6b196b;
+    border-color: #514897;
 }
 
-.record-row.open .badge-arrow {
+.record-row.open .badge-arrow,
+.rank-row-clickable.open .badge-arrow,
+.my-rank-row.open .badge-arrow {
     background: rgba(255, 255, 255, 0.2);
     color: #fff;
     transform: rotate(180deg);
-}
-
-.detail-row td {
-    padding: 0;
-    border-bottom: 1px solid #f1f5f9;
-    background: #fdf8ff;
-}
-
-.detail-row.hidden td {
-    display: none;
-}
-
-.detail-title-row {
-    padding: 12px 24px 6px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.detail-inner {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: #f3e6f3;
-    margin: 0 24px 16px 24px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #f3e6f3;
-}
-
-.detail-card {
-    background: #fff;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-}
-
-.detail-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-.detail-value {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 16px;
-    font-weight: 700;
-    color: #6b196b;
-}
-
-.detail-value.neutral {
-    color: #334155;
-}
-
-.detail-sub {
-    font-size: 11px;
-    color: #94a3b8;
-    font-weight: 500;
 }
 
 .attempt-num {
     font-family: 'Roboto Mono', monospace;
     font-size: 13px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #9a93b0;
 }
 
 .date-text {
-    color: #64748b;
+    color: #8a83a0;
     font-size: 13px;
 }
 
-#myRecordLoadMoreWrap {
-    text-align: center;
-    padding: 16px;
+.my-rank-wrap {
+    flex-shrink: 0;
+    padding-right: 6px;
 }
 
-#myRecordLoadMoreBtn {
-    padding: 9px 28px;
-    background: #fdf5fc;
-    color: #6b196b;
-    border: 1px solid #f3e6f3;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
+.my-rank-row.clickable {
     cursor: pointer;
-    font-family: 'Pretendard', sans-serif;
-    transition: background 0.2s, border-color 0.2s;
 }
 
-#myRecordLoadMoreBtn:hover {
-    background: #f3e6f3;
-    border-color: #e0c8e0;
+.my-rank-detail {
+    background: #ede9f7;
+    border-top: 1px solid #ddd6ee;
+}
+
+.my-rank-detail.hidden {
+    display: none;
+}
+
+.my-rank-detail .exp-seg {
+    color: #6b6291;
+}
+
+/* 목록 끝에 고정으로 붙는 내 줄. 표 밖에 있어 컬럼 폭을 직접 맞춘다. */
+.my-rank-row {
+    display: grid;
+    grid-template-columns: 13% 40% 25% 22%;
+    align-items: center;
+    padding: 11px 0;
+    background: #f1eef9;
+    border-top: 2px solid #ddd6ee;
+}
+
+.my-rank-row .mr-rank {
+    text-align: center;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #514897;
+}
+
+.my-rank-row .mr-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 30px;
+    min-width: 0;
+}
+
+.my-rank-row .mr-nick {
+    font-size: 15px;
+    font-weight: 800;
+    color: #3d3462;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.my-rank-row .mr-badge {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 800;
+    background: #514897;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 5px;
+}
+
+.my-rank-row .rank-split {
+    justify-self: center;
+    width: calc(100% - 30px);
+}
+
+.my-rank-row .mr-time {
+    justify-self: center;
 }
 
 @media (max-width: 768px) {
     .practice-hub-container {
-        padding: 16px 12px 0;
+        padding: 8px 10px 0;
         height: 100%;
-        gap: 16px;
+        max-height: 100%;
+        gap: 8px;
         overflow: hidden;
         box-sizing: border-box;
     }
 
+    /* 가로 스크롤이면 넷 중 둘만 보인다. 2x2 로 넷을 한 번에 보여준다. */
     .practice-grid {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    .practice-grid::-webkit-scrollbar {
-        display: none;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
 
     .practice-card {
-        flex: 0 0 160px;
-        min-height: 100px;
+        min-height: 78px;
     }
 
     .card-main {
-        padding: 10px 12px 10px 12px;
+        padding: 8px 11px;
     }
 
     .card-label {
@@ -732,7 +892,7 @@
     }
 
     .card-title {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .badge-new-ui {
@@ -751,8 +911,8 @@
     }
 
     .view-mode-tab {
-        padding: 10px 12px;
-        font-size: 12px;
+        padding: 10px 13px;
+        font-size: 13px;
     }
 
     .filter-bar {
@@ -767,109 +927,281 @@
     .agency-tabs {
         flex: 1;
         flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 5px;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        gap: 6px;
     }
 
-    .agency-tabs::-webkit-scrollbar {
-        display: none;
-    }
-
-    .agency-tab {
-        padding: 4px 9px;
-        font-size: 11px;
+    .agency-tab,
+    .period-tab {
+        padding: 5px 11px;
+        font-size: 12px;
         white-space: nowrap;
         flex-shrink: 0;
     }
 
-    .period-tabs {
-        flex-shrink: 0;
+    /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행마다 격자를 다시 짜 카드처럼 쓴다. */
+    .ranking-table-header {
+        display: none;
     }
 
-    .period-tab {
-        padding: 4px 9px;
-        font-size: 11px;
+    .ranking-table-body colgroup,
+    .ranking-table-body .ranking-table,
+    .ranking-table-body tbody {
+        display: block;
+        width: 100%;
     }
 
-    .ranking-table th {
-        padding: 8px 6px;
-        font-size: 11px;
+    .ranking-table-body colgroup {
+        display: none;
     }
 
-    .ranking-table td {
-        padding: 8px 6px;
-        font-size: 12px;
+    .ranking-table-body tr {
+        display: grid;
+        grid-template-columns: 22px 1fr auto;
+        grid-template-areas:
+            "rank name time"
+            "rank split time";
+        align-items: center;
+        gap: 5px 9px;
+        margin-bottom: 5px;
+        padding: 7px 10px;
+        background: #fff;
+        border-radius: 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .ranking-table-body td {
+        display: block;
+        padding: 0 !important;
+        border: none;
+        font-size: 13px;
+    }
+
+    .ranking-table-body td:nth-child(1) { grid-area: rank; }
+    .ranking-table-body td:nth-child(2) { grid-area: name; }
+    .ranking-table-body td:nth-child(3) { grid-area: split; }
+    .ranking-table-body td:nth-child(4) { grid-area: time; }
+
+    /* 안내 문구 줄은 칸이 하나뿐이라 위 격자에 넣으면 26px 짜리 순위 칸으로 들어가
+       글자가 한 자씩 세로로 쪼개진다. 격자를 벗어나게 둔다. */
+    .ranking-table-body tr.rank-msg { display: block }
+
+    .ranking-table-body .rank-split {
+        width: 100%;
+        max-width: none;
+        height: 6px;
+    }
+
+    .ranking-table-body tr:hover td {
+        background: transparent;
+    }
+
+    .my-rank-row {
+        grid-template-columns: 22px 1fr auto;
+        grid-template-areas:
+            "rank name time"
+            "rank split time";
+        gap: 5px 9px;
+        padding: 11px 10px;
+        border-radius: 0;
+    }
+
+    .my-rank-row .mr-rank { grid-area: rank; }
+    .my-rank-row .mr-name { grid-area: name; padding-left: 0; }
+    .my-rank-row .mr-time { grid-area: time; }
+
+    .my-rank-row .rank-split {
+        grid-area: split;
+        display: inline-flex;
+        width: 100%;
+        max-width: none;
     }
 
     .record-table th {
-        padding: 8px 6px;
-        font-size: 10px;
+        padding: 8px 8px;
+        font-size: 11px;
     }
 
     .record-row td {
-        padding: 8px 6px;
-        font-size: 11px;
-    }
-
-    .my-stats-grid {
-        grid-template-columns: repeat(4, 1fr);
+        padding: 9px 8px;
+        font-size: 13px;
     }
 
     .stat-card {
-        padding: 8px 4px;
-        gap: 3px;
+        padding: 7px 6px;
+        gap: 2px;
     }
 
     .stat-label {
-        font-size: 8px;
-        letter-spacing: 0.2px;
+        font-size: 10px;
+        letter-spacing: 0;
     }
 
     .stat-value {
-        font-size: 12px;
+        font-size: 15px;
     }
 
     .improve-sec {
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .improve-pct {
         display: inline-block;
         white-space: nowrap;
-        font-size: 9px;
-        padding: 2px 5px;
+        font-size: 10px;
+        padding: 2px 6px;
     }
 
     .date-text {
-        font-size: 11px;
+        font-size: 12px;
         white-space: nowrap;
     }
 
-    .detail-inner {
-        grid-template-columns: repeat(4, 1fr);
-        margin: 0 8px 10px;
+    .split-legend {
+        gap: 11px;
+        padding: 6px 12px;
     }
 
-    .detail-card {
-        padding: 8px 4px;
-        gap: 2px;
+    .lg-item {
+        font-size: 10px;
     }
 
-    .detail-label {
-        font-size: 8px;
-        white-space: nowrap;
+    /* 랭킹 줄이 카드로 바뀌므로 펼침도 그 카드에 붙은 것처럼 보이게 한다. */
+    .ranking-table-body tr.rank-detail {
+        display: block;
+        padding: 0;
+        margin: -9px 0 5px;
+        border-radius: 0 0 9px 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        background: #fdf8ff;
         overflow: hidden;
-        text-overflow: ellipsis;
+    }
+
+    .ranking-table-body tr.rank-detail.hidden {
+        display: none;
+    }
+
+    .ranking-table-body tr.rank-detail td {
+        display: block;
+        background: transparent;
+        border: none;
+    }
+
+    .ranking-table-body tr.rank-row-clickable.open {
+        margin-bottom: 0;
+        border-radius: 9px 9px 0 0;
+        background: #f8f5fd;
+    }
+
+    .rank-exp-inner {
+        gap: 6px 14px;
+        padding: 9px 12px 11px;
+    }
+
+    .exp-seg {
+        font-size: 11px;
+    }
+
+    .exp-seg b {
+        font-size: 11.5px;
+    }
+
+    .exp-seg em {
+        min-width: 28px;
+    }
+
+    .my-rank-detail .rank-exp-inner {
+        padding: 9px 14px 11px;
+    }
+
+    .row-split {
+        width: 100%;
+        max-width: none;
+        height: 7px;
+    }
+
+    /* 내 기록도 랭킹과 같은 2행 카드로. 4열 표로는 기록 배지가 칸을 넘어
+       가로 스크롤이 생기고, 표 머리가 사라지면 열 뜻을 알 길도 없다. */
+    .my-record-table-header {
+        display: none;
+    }
+
+    .my-record-table-body {
+        padding: 8px 10px 0;
+    }
+
+    .my-record-table-body colgroup {
+        display: none;
+    }
+
+    .my-record-table-body .record-table,
+    .my-record-table-body tbody {
+        display: block;
         width: 100%;
     }
 
-    .detail-value {
-        font-size: 11px;
+    .my-record-table-body tr {
+        display: grid;
+        grid-template-columns: 30px 1fr auto;
+        grid-template-areas:
+            "num date time"
+            "num split time";
+        align-items: center;
+        gap: 5px 10px;
+        margin-bottom: 5px;
+        padding: 8px 11px;
+        background: #fff;
+        border-radius: 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
     }
 
-    .detail-sub {
-        font-size: 8px;
+    .my-record-table-body td {
+        display: block;
+        padding: 0 !important;
+        border: none;
+    }
+
+    .my-record-table-body td:nth-child(1) { grid-area: num; }
+    .my-record-table-body td:nth-child(2) { grid-area: date; }
+    .my-record-table-body td:nth-child(3) { grid-area: split; }
+    .my-record-table-body td:nth-child(4) { grid-area: time; }
+
+    .my-record-table-body .date-text {
+        padding-left: 0 !important;
+    }
+
+    /* 안내 문구 줄은 칸이 하나뿐이라 위 격자에 넣으면 30px 칸으로 들어간다. */
+    .my-record-table-body tr.rank-msg {
+        display: block;
+    }
+
+    .my-record-table-body tr.rank-msg td {
+        padding: 26px 12px !important;
+    }
+
+    /* 펼침은 그 카드에 붙은 것처럼 보이게 한다. 랭킹 쪽과 같은 모양이다. */
+    .my-record-table-body tr.rank-detail {
+        display: block;
+        padding: 0;
+        margin: -9px 0 5px;
+        border-radius: 0 0 9px 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        background: #fdf8ff;
+        overflow: hidden;
+    }
+
+    .my-record-table-body tr.rank-detail.hidden {
+        display: none;
+    }
+
+    .my-record-table-body tr.rank-detail td {
+        display: block;
+        background: transparent;
+        border: none;
+    }
+
+    .my-record-table-body tr.record-row.open {
+        margin-bottom: 0;
+        border-radius: 9px 9px 0 0;
+        background: #f8f5fd;
     }
 }

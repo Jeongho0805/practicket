@@ -1,4 +1,14 @@
 import { authFetch, showAlert } from "../common.js";
+import { GRID_SIZE, drawPixelArt, toStates } from "./pixel.js";
+
+const VIEW_CELL = 12;
+const DOWNLOAD_CELL = 16;
+
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+}
 
 class Detail {
     constructor() {
@@ -12,16 +22,17 @@ class Detail {
         this.commentCountElement = document.getElementById('comment-count');
         this.viewCountElement = document.getElementById('view-count');
         this.artCanvas = document.getElementById('art-canvas');
-        this.artActions = document.getElementById('art-actions');
+        this.artLikesElement = document.getElementById('art-likes');
+
         this.editBtn = document.getElementById('edit-btn');
         this.deleteBtn = document.getElementById('delete-btn');
-        this.artLikesElement = document.getElementById('art-likes');
+        this.downloadBtn = document.getElementById('download-btn');
 
         this.commentInput = document.getElementById('comment-input');
         this.commentSubmitBtn = document.getElementById('comment-submit-btn');
         this.commentsList = document.getElementById('comments-list');
+        this.scroller = document.getElementById('main-section');
 
-        // 무한스크롤 관련 변수
         this.currentPage = 0;
         this.isLoadingComments = false;
         this.hasMoreComments = true;
@@ -43,13 +54,11 @@ class Detail {
                 credentials: 'include'
             });
 
-            if (response.ok) {
-                this.artData = await response.json();
-                this.renderArt();
-                this.updateUIBasedOnResponse();
-            } else {
-                throw new Error('작품을 불러올 수 없습니다.');
-            }
+            if (!response.ok) throw new Error('작품을 불러올 수 없습니다.');
+
+            this.artData = await response.json();
+            this.renderArt();
+            this.updateUIBasedOnResponse();
         } catch (error) {
             console.error('작품 로딩 실패:', error);
             await showAlert({ title: '오류', msg: '작품을 불러오는데 실패했습니다.' });
@@ -58,136 +67,73 @@ class Detail {
     }
 
     renderArt() {
-        const { title, author_name, created_at, view_count, like_count, pixel_data, width, height } = this.artData;
+        const { title, author_name, created_at, view_count, like_count } = this.artData;
 
-        // 기본 정보 표시
         this.titleElement.textContent = title;
         this.authorElement.textContent = author_name;
         this.createdAtElement.textContent = this.formatDate(created_at);
         this.likeCountElement.textContent = this.formatCount(like_count || 0);
-        this.commentCountElement.textContent = '0'; // 댓글 기능 미구현
         this.viewCountElement.textContent = this.formatCount(view_count || 0);
 
-        // 캔버스 설정 및 렌더링
-        this.artCanvas.width = 360;
-        this.artCanvas.height = 360;
-
-        this.renderPixelArt(this.artCanvas, pixel_data, width, height);
+        drawPixelArt(this.artCanvas, this.artStates(), VIEW_CELL, this.gridSize());
     }
 
-    renderPixelArt(canvas, pixelData, gridWidth, gridHeight) {
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
-
-        const cellSize = 12;
-        const gap = 2;
-        const corner = 1.5;
-        const innerSize = cellSize - gap;
-        const radius = Math.min(corner, innerSize / 2);
-
-        // 배경
-        ctx.fillStyle = '#251b3c';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        if (!pixelData || typeof pixelData !== 'string') {
-            return;
-        }
-
-        // 성능 최적화: roundRect 사용 (그림자 제거)
-        // 비활성 픽셀
-        ctx.fillStyle = '#6633cc';
-        ctx.beginPath();
-        for (let i = 0; i < pixelData.length; i++) {
-            if (pixelData[i] === '1') continue; // 활성은 스킵
-
-            const col = i % gridWidth;
-            const row = Math.floor(i / gridWidth);
-            const x = col * cellSize + gap / 2;
-            const y = row * cellSize + gap / 2;
-            ctx.roundRect(x, y, innerSize, innerSize, radius);
-        }
-        ctx.fill();
-
-        // 활성 픽셀
-        ctx.fillStyle = '#cbb5ff';
-        ctx.beginPath();
-        for (let i = 0; i < pixelData.length; i++) {
-            if (pixelData[i] !== '1') continue; // 비활성은 스킵
-
-            const col = i % gridWidth;
-            const row = Math.floor(i / gridWidth);
-            const x = col * cellSize + gap / 2;
-            const y = row * cellSize + gap / 2;
-            ctx.roundRect(x, y, innerSize, innerSize, radius);
-        }
-        ctx.fill();
+    gridSize() {
+        return this.artData.width ?? GRID_SIZE;
     }
 
-    formatCount(count) {
-        if (count >= 1000000) {
-            return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
-        }
-        if (count >= 1000) {
-            return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-        }
-        return count.toString();
+    artStates() {
+        return toStates(this.artData.pixel_data, this.gridSize());
     }
 
     updateUIBasedOnResponse() {
-        // 소유 여부에 따라 수정/삭제 링크 표시
-        const artActions = document.getElementById('art-actions');
-        if (this.artData.is_owned_by_current_user && artActions) {
-            artActions.style.display = 'flex';
+        if (this.artData.is_owned_by_current_user) {
+            this.editBtn.hidden = false;
+            this.deleteBtn.hidden = false;
         }
 
-        // 좋아요 여부에 따라 UI 업데이트
-        if (this.artData.is_liked_by_current_user) {
-            const svgPath = this.artLikesElement.querySelector('svg path');
-            svgPath.setAttribute('fill', '#ed4956');
-            svgPath.setAttribute('stroke', '#ed4956');
-        }
+        this.paintLikeState(this.artData.is_liked_by_current_user);
+    }
+
+    paintLikeState(isLiked) {
+        this.artLikesElement.classList.toggle('liked', !!isLiked);
+        this.artLikesElement.querySelector('svg').setAttribute('fill', isLiked ? 'currentColor' : 'none');
     }
 
     setupEventListeners() {
-        // 좋아요 버튼
-        if (this.artLikesElement) {
-            this.artLikesElement.addEventListener('click', () => this.toggleLike());
-        }
+        this.artLikesElement.addEventListener('click', () => this.toggleLike());
+        this.editBtn.addEventListener('click', () => this.editArt());
+        this.deleteBtn.addEventListener('click', () => this.deleteArt());
+        this.downloadBtn.addEventListener('click', () => this.downloadImage());
+        this.commentSubmitBtn.addEventListener('click', () => this.createComment());
 
-        if (this.editBtn) {
-            this.editBtn.addEventListener('click', () => this.editArt());
-        }
-
-        if (this.deleteBtn) {
-            this.deleteBtn.addEventListener('click', () => this.deleteArt());
-        }
-
-        if (this.commentSubmitBtn) {
-            this.commentSubmitBtn.addEventListener('click', () => this.createComment());
-        }
-
-        if (this.commentInput) {
-            this.commentInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.createComment();
-                }
-            });
-        }
+        this.commentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.createComment();
+            }
+        });
     }
 
     setupInfiniteScroll() {
-        const artDetailSection = document.getElementById('art-detail-section');
-        if (!artDetailSection) return;
-
-        artDetailSection.addEventListener('scroll', () => {
-            const { scrollTop, scrollHeight, clientHeight } = artDetailSection;
-
-            // 스크롤이 하단 100px 이내로 왔을 때 다음 페이지 로드
+        this.scroller.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = this.scroller;
             if (scrollTop + clientHeight >= scrollHeight - 100) {
                 this.loadComments();
             }
         });
+    }
+
+    downloadImage() {
+        if (!this.artData) return;
+
+        const canvas = document.createElement('canvas');
+        drawPixelArt(canvas, this.artStates(), DOWNLOAD_CELL, this.gridSize());
+
+        const link = document.createElement('a');
+        link.download = `${this.artData.title || '포도아트'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     }
 
     async toggleLike() {
@@ -200,22 +146,10 @@ class Detail {
             if (!response.ok) throw new Error('좋아요 실패');
 
             const result = await response.json();
-            const isLiked = result.is_liked;
-            const likeCount = result.like_count;
 
-            // UI 업데이트
-            const svgPath = this.artLikesElement.querySelector('svg path');
-
-            if (isLiked) {
-                svgPath.setAttribute('fill', '#ed4956');
-                svgPath.setAttribute('stroke', '#ed4956');
-            } else {
-                svgPath.setAttribute('fill', 'none');
-                svgPath.setAttribute('stroke', 'currentColor');
-            }
-
-            this.likeCountElement.textContent = this.formatCount(likeCount);
-            this.artData.is_liked_by_current_user = isLiked;
+            this.paintLikeState(result.is_liked);
+            this.likeCountElement.textContent = this.formatCount(result.like_count);
+            this.artData.is_liked_by_current_user = result.is_liked;
         } catch (error) {
             console.error('좋아요 토글 실패:', error);
             await showAlert({ title: '오류', msg: '좋아요 처리에 실패했습니다.' });
@@ -237,12 +171,10 @@ class Detail {
                 credentials: 'include'
             });
 
-            if (response.ok) {
-                await showAlert({ title: '삭제 완료', msg: '작품이 성공적으로 삭제되었습니다.' });
-                window.location.href = '/art';
-            } else {
-                throw new Error('작품 삭제에 실패했습니다.');
-            }
+            if (!response.ok) throw new Error('작품 삭제에 실패했습니다.');
+
+            await showAlert({ title: '삭제 완료', msg: '작품이 성공적으로 삭제되었습니다.' });
+            window.location.href = '/art';
         } catch (error) {
             console.error('작품 삭제 실패:', error);
             await showAlert({ title: '오류', msg: '작품 삭제에 실패했습니다. 다시 시도해주세요.' });
@@ -260,6 +192,16 @@ class Detail {
         return `${year}.${month}.${day} ${hours}:${minutes}`;
     }
 
+    formatCount(count) {
+        if (count >= 1000000) {
+            return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
+        }
+        if (count >= 1000) {
+            return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+        }
+        return count.toString();
+    }
+
     async loadComments(isInitial = false) {
         if (this.isLoadingComments || (!isInitial && !this.hasMoreComments)) return;
 
@@ -271,11 +213,9 @@ class Detail {
             if (response.ok) {
                 const data = await response.json();
 
+                this.renderComments(data.content, isInitial);
                 if (isInitial) {
-                    this.renderComments(data.content, true);
-                    this.commentCountElement.textContent = data.total_elements || data.content.length;
-                } else {
-                    this.renderComments(data.content, false);
+                    this.commentCountElement.textContent = data.total_elements ?? data.content.length;
                 }
 
                 this.hasMoreComments = !data.last;
@@ -306,26 +246,28 @@ class Detail {
             commentItem.className = 'comment-item';
             commentItem.dataset.commentId = comment.id;
 
+            const author = escapeHtml(comment.author_name);
+            const content = escapeHtml(comment.content);
+
             commentItem.innerHTML = `
-                <div class="comment-header">
-                    <span class="comment-author">${comment.author_name}</span>
-                    ${comment.is_owned_by_current_user ? `
-                        <div class="comment-actions">
-                            <span class="comment-edit-link" data-id="${comment.id}">수정</span>
-                            <span class="comment-separator">·</span>
-                            <span class="comment-delete-link" data-id="${comment.id}">삭제</span>
-                        </div>
-                    ` : ''}
-                </div>
+                <div class="comment-avatar">${author.charAt(0)}</div>
                 <div class="comment-body">
-                    <div class="comment-content-wrapper">
-                        <p class="comment-content">${comment.content}</p>
+                    <div class="comment-header">
+                        <span class="comment-author">${author}</span>
                         <span class="comment-date">${this.formatDate(comment.created_at)}</span>
-                        <textarea class="comment-edit-input" style="display: none;">${comment.content}</textarea>
-                        <div class="comment-edit-actions" style="display: none;">
-                            <button class="comment-save-btn" data-id="${comment.id}">저장</button>
-                            <button class="comment-cancel-btn" data-id="${comment.id}">취소</button>
-                        </div>
+                        ${comment.is_owned_by_current_user ? `
+                            <div class="comment-actions">
+                                <span class="comment-edit-link" data-id="${comment.id}">수정</span>
+                                <span class="comment-separator">·</span>
+                                <span class="comment-delete-link" data-id="${comment.id}">삭제</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <p class="comment-content">${content}</p>
+                    <textarea class="comment-edit-input" rows="2" style="display: none;">${content}</textarea>
+                    <div class="comment-edit-actions" style="display: none;">
+                        <button type="button" class="comment-save-btn" data-id="${comment.id}">저장</button>
+                        <button type="button" class="comment-cancel-btn" data-id="${comment.id}">취소</button>
                     </div>
                 </div>
             `;
@@ -333,7 +275,6 @@ class Detail {
             this.commentsList.appendChild(commentItem);
         });
 
-        // 댓글 수정/삭제 이벤트 리스너
         this.commentsList.querySelectorAll('.comment-edit-link').forEach(link => {
             link.addEventListener('click', (e) => this.startEditComment(e.target.dataset.id));
         });
@@ -366,42 +307,42 @@ class Detail {
                 body: JSON.stringify({ content })
             });
 
-            if (response.ok) {
-                this.commentInput.value = '';
-                this.commentInput.blur();
-                this.currentPage = 0;
-                this.hasMoreComments = true;
-                await this.loadComments(true);
-            } else {
-                throw new Error('댓글 작성 실패');
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || '댓글 작성에 실패했습니다.');
             }
+
+            this.commentInput.value = '';
+            this.commentInput.blur();
+            this.reloadComments();
         } catch (error) {
             console.error('댓글 작성 실패:', error);
-            await showAlert({ title: '오류', msg: '댓글 작성에 실패했습니다.' });
+            await showAlert({ title: '오류', msg: error.message || '댓글 작성에 실패했습니다.' });
         }
+    }
+
+    async reloadComments() {
+        this.currentPage = 0;
+        this.hasMoreComments = true;
+        await this.loadComments(true);
     }
 
     startEditComment(commentId) {
         const commentItem = this.commentsList.querySelector(`[data-comment-id="${commentId}"]`);
-        const contentElement = commentItem.querySelector('.comment-content');
-        const editInput = commentItem.querySelector('.comment-edit-input');
-        const editActions = commentItem.querySelector('.comment-edit-actions');
-
-        contentElement.style.display = 'none';
-        editInput.style.display = 'block';
-        editActions.style.display = 'flex';
-        editInput.focus();
+        commentItem.querySelector('.comment-content').style.display = 'none';
+        commentItem.querySelector('.comment-edit-input').style.display = 'block';
+        commentItem.querySelector('.comment-edit-actions').style.display = 'flex';
+        commentItem.querySelector('.comment-edit-input').focus();
     }
 
     cancelEditComment(commentId) {
         const commentItem = this.commentsList.querySelector(`[data-comment-id="${commentId}"]`);
         const contentElement = commentItem.querySelector('.comment-content');
         const editInput = commentItem.querySelector('.comment-edit-input');
-        const editActions = commentItem.querySelector('.comment-edit-actions');
 
         contentElement.style.display = 'block';
         editInput.style.display = 'none';
-        editActions.style.display = 'none';
+        commentItem.querySelector('.comment-edit-actions').style.display = 'none';
         editInput.value = contentElement.textContent;
     }
 
@@ -422,17 +363,16 @@ class Detail {
                 body: JSON.stringify({ content: newContent })
             });
 
-            if (response.ok) {
-                editInput.blur();
-                this.currentPage = 0;
-                this.hasMoreComments = true;
-                await this.loadComments(true);
-            } else {
-                throw new Error('댓글 수정 실패');
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.message || '댓글 수정에 실패했습니다.');
             }
+
+            editInput.blur();
+            this.reloadComments();
         } catch (error) {
             console.error('댓글 수정 실패:', error);
-            await showAlert({ title: '오류', msg: '댓글 수정에 실패했습니다.' });
+            await showAlert({ title: '오류', msg: error.message || '댓글 수정에 실패했습니다.' });
         }
     }
 
@@ -444,13 +384,9 @@ class Detail {
                 method: 'DELETE'
             });
 
-            if (response.ok) {
-                this.currentPage = 0;
-                this.hasMoreComments = true;
-                await this.loadComments(true);
-            } else {
-                throw new Error('댓글 삭제 실패');
-            }
+            if (!response.ok) throw new Error('댓글 삭제 실패');
+
+            this.reloadComments();
         } catch (error) {
             console.error('댓글 삭제 실패:', error);
             await showAlert({ title: '오류', msg: '댓글 삭제에 실패했습니다.' });
@@ -458,7 +394,6 @@ class Detail {
     }
 }
 
-// 페이지 로드 시 상세 페이지 초기화
 document.addEventListener('DOMContentLoaded', () => {
     new Detail();
 });

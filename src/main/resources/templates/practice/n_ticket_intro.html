@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <title>N-Ticket 실전연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/practice/n_ticket_intro.css" />
+    <link rel="stylesheet" href="/css/practice/start-modal.css" />
+    <link rel="stylesheet" href="/css/common/alert.css" />
+</head>
+
+<body>
+
+    <div class="nt-gate">
+        <button type="button" class="nt-back" onclick="location.href='/practice'" aria-label="뒤로">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M15 5 8 12l7 7" />
+            </svg>
+        </button>
+
+        <h1 class="nt-title">예매 준비가 완료됐어요</h1>
+
+        <div class="nt-poster">
+            <img src="/image/practice/hoya-poster.svg" alt="HOYA LIVE 2026 IN SEOUL 포스터" />
+        </div>
+        <p class="nt-name">HOYA LIVE 2026 IN SEOUL</p>
+
+        <button type="button" class="nt-book" id="bookBtn" disabled>남은시간 00:05</button>
+    </div>
+
+    <div th:replace="~{fragments/practice-start-modal :: modal('N-Ticket')}"></div>
+
+    <th:block th:replace="~{fragments/alert :: alert}"></th:block>
+    <script>const HOST = '';</script>
+    <script type="module" src="/js/practice/n_ticket_intro.js"></script>
+</body>
+
+</html>

@@ -4,6 +4,8 @@ import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.TicketException;
 import com.practicket.ticket.domain.TicketToken;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,11 +51,18 @@ public class TicketTokenManager {
     }
 
     public Claims parseAndValidate(String jwt) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(jwt)
-                .getBody();
+        Claims claims;
+        try {
+            claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(jwt)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new TicketException(ErrorCode.TICKET_TOKEN_EXPIRED);
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new TicketException(ErrorCode.TICKET_TOKEN_IS_NOT_VALID);
+        }
         String type = claims.get(TYPE_CLAIM, String.class);
         if (!TOKEN_TYPE.equals(type)) {
             throw new TicketException(ErrorCode.TICKET_TOKEN_IS_NOT_VALID);

@@ -1,6 +1,9 @@
 import * as util from "./common.js";
 
 let isFirst = true;
+/* 매초 표를 통째로 다시 그리면 스크롤이 튄다. 그래서 명단이 실제로 달라졌을 때만 그린다.
+   인원수만 비교하면 라운드가 바뀌어도 인원이 같을 때 옛 명단이 그대로 남는다. */
+let renderedSignature = null;
 
 function displayRank() {
     setInterval(() => {
@@ -14,9 +17,11 @@ function displayRank() {
                 if (data.length === 0) {
                     isFirst = true;
                 }
-                if (data.length === rankBody.children.length ) {
+                const signature = data.map(rank => `${rank.key}|${rank.name}|${rank.second}`).join(",");
+                if (signature === renderedSignature) {
                     return;
                 }
+                renderedSignature = signature;
                 rankBody.innerHTML = "";
                 console.log(JSON.stringify(data));
                 data.forEach((rank, index) => {

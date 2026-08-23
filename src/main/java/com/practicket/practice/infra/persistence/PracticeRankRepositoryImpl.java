@@ -25,9 +25,9 @@ public class PracticeRankRepositoryImpl implements PracticeRankRepository {
                 ? "AND (total_duration_ms > :cursorTotalDurationMs OR (total_duration_ms = :cursorTotalDurationMs AND id > :cursorId)) "
                 : "";
 
-        String sql = "SELECT id, nickname, total_duration_ms "
+        String sql = "SELECT id, nickname, total_duration_ms, reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms "
                 + "FROM ( "
-                + "    SELECT id, nickname, total_duration_ms, "
+                + "    SELECT id, nickname, total_duration_ms, reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms, "
                 + "           ROW_NUMBER() OVER (PARTITION BY client_key ORDER BY total_duration_ms ASC, id ASC) AS rn "
                 + "    FROM practice_result "
                 + "    WHERE type = :type "
@@ -55,7 +55,11 @@ public class PracticeRankRepositoryImpl implements PracticeRankRepository {
                 .map(row -> new PracticeRankEntry(
                         ((Number) row[0]).longValue(),
                         (String) row[1],
-                        ((Number) row[2]).intValue()
+                        ((Number) row[2]).intValue(),
+                        ((Number) row[3]).intValue(),
+                        ((Number) row[4]).intValue(),
+                        ((Number) row[5]).intValue(),
+                        ((Number) row[6]).intValue()
                 ))
                 .toList();
     }

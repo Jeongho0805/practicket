@@ -1,12 +1,15 @@
 package com.practicket.practice.application;
 
 import com.practicket.common.auth.ClientInfo;
-import com.practicket.common.exception.ErrorCode;
-import com.practicket.common.exception.PracticeException;
+import com.practicket.practice.component.PracticeRankCalculator;
+import com.practicket.practice.component.PracticeRankCalculator.MonthlyRank;
+import com.practicket.practice.component.PracticeSessionValidator;
+import com.practicket.practice.component.PracticeSessionValidator.ValidatedSession;
 import com.practicket.practice.domain.PracticeResult;
 import com.practicket.practice.domain.PracticeType;
 import com.practicket.practice.dto.PracticeResultRequest;
 import com.practicket.practice.dto.PracticeStartResponse;
+import com.practicket.practice.infra.persistence.PracticeRankRepository;
 import com.practicket.practice.infra.persistence.PracticeResultRepository;
 import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -18,16 +21,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * 세션 소유자·타이밍 검증은 {@link PracticeSessionValidator} 로 빠져나갔다.
+ * 그 규칙은 {@code PracticeSessionValidatorTest} 가 본다 — 여기서는 검증을 통과한 뒤
+ * 서비스가 무엇을 저장하고 무엇을 지우는지만 본다.
+ */
 @ExtendWith(MockitoExtension.class)
 class PracticeServiceTest {
 
@@ -40,14 +49,25 @@ class PracticeServiceTest {
     @Mock
     private PracticeResultRepository resultRepository;
 
+    @Mock
+    private PracticeRankRepository rankRepository;
+
+    @Mock
+    private PracticeSessionValidator sessionValidator;
+
+    @Mock
+    private PracticeRankCalculator rankCalculator;
+
     // ============ start() ============
+
+    private static final int SERVER_ELAPSED_MS = 10_000;
 
     @Test
     @DisplayName("start - 정상: sessionId를 반환하고 Redis에 세션을 저장한다")
     void startReturnsSessionIdAndSavesToRedis() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        PracticeType type = PracticeType.I_TICKET_NEW;
+        PracticeType type = PracticeType.I_TICKET_OLD;
 
         // when
         PracticeStartResponse response = practiceService.start(clientInfo, type);
@@ -64,65 +84,24 @@ class PracticeServiceTest {
     void completeSavesToDbAndDeletesSession() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli() - 10_000);
-        when(sessionRepository.getType(session)).thenReturn(PracticeType.I_TICKET_NEW.name());
-
-        PracticeResultRequest request = buildRequest(sessionId, 2000, 5000, 2000, 10);
+        PracticeResultRequest request = buildRequest("session-id", 10_000);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
 
         // when
         practiceService.complete(clientInfo, request);
 
         // then
         verify(resultRepository).save(any(PracticeResult.class));
-        verify(sessionRepository).delete(sessionId);
+        verify(sessionRepository).delete("session-id");
     }
 
     @Test
-    @DisplayName("complete - 정상: totalDurationMs는 클라이언트 phaseSum이 아닌 서버 계산값이다")
-    void completeTotalDurationMsIsServerCalculatedNotClientPhaseSum() {
+    @DisplayName("complete - 정상: type은 검증기가 세션에서 꺼내준 값이 저장된다")
+    void completeTypeComesFromValidatedSession() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli() - 10_000);
-        when(sessionRepository.getType(session)).thenReturn(PracticeType.I_TICKET_NEW.name());
-
-        // phaseSum = 2000 + 5000 + 2000 = 9000ms, 실제 서버 경과는 ~10000ms
-        PracticeResultRequest request = buildRequest(sessionId, 2000, 5000, 2000, 10);
-        ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
-
-        // when
-        practiceService.complete(clientInfo, request);
-
-        // then
-        verify(resultRepository).save(captor.capture());
-        PracticeResult saved = captor.getValue();
-        assertThat(saved.getTotalDurationMs()).isNotEqualTo(9_000);
-        assertThat(saved.getTotalDurationMs()).isGreaterThanOrEqualTo(9_000);
-    }
-
-    @Test
-    @DisplayName("complete - 정상: type은 Redis 세션에서 꺼낸 값이 저장된다")
-    void completeTypeIsFromRedisSession() {
-        // given
-        ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli() - 10_000);
-        when(sessionRepository.getType(session)).thenReturn(PracticeType.M_TICKET.name());
-
-        PracticeResultRequest request = buildRequest(sessionId, 2000, 5000, 2000, 10);
+        PracticeResultRequest request = buildRequest("session-id", 10_000);
+        givenValidatedSession(clientInfo, request, PracticeType.M_TICKET);
         ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
         // when
@@ -138,15 +117,8 @@ class PracticeServiceTest {
     void completeNicknameIsFromClientInfoAtThatTime() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli() - 10_000);
-        when(sessionRepository.getType(session)).thenReturn(PracticeType.I_TICKET_NEW.name());
-
-        PracticeResultRequest request = buildRequest(sessionId, 2000, 5000, 2000, 10);
+        PracticeResultRequest request = buildRequest("session-id", 10_000);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
         ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
         // when
@@ -158,81 +130,48 @@ class PracticeServiceTest {
     }
 
     @Test
-    @DisplayName("complete - 세션 없음: PRACTICE_SESSION_NOT_FOUND 예외 발생")
-    void completeThrowsExceptionWhenSessionNotFound() {
-        // given
+    @DisplayName("complete - 저장되는 총 시간은 클라이언트가 신고한 값이 아니라 서버가 잰 값이다")
+    void completeSavesServerMeasuredDuration() {
+        // given — 클라이언트는 1초라고 신고했지만 서버는 10초가 흐른 것을 봤다
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        when(sessionRepository.find(anyString())).thenReturn(Collections.emptyMap());
-        PracticeResultRequest request = buildRequest("expired-id", 1000, 5000, 2000, 10);
+        PracticeResultRequest request = buildRequest("session-id", 1_000);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
+        ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
-        // when & then
-        assertThatThrownBy(() -> practiceService.complete(clientInfo, request))
-                .isInstanceOf(PracticeException.class)
-                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.PRACTICE_SESSION_NOT_FOUND));
+        // when
+        practiceService.complete(clientInfo, request);
+
+        // then
+        verify(resultRepository).save(captor.capture());
+        assertThat(captor.getValue().getTotalDurationMs()).isEqualTo(SERVER_ELAPSED_MS);
     }
 
     @Test
-    @DisplayName("complete - 소유자 불일치: PRACTICE_SESSION_OWNER_MISMATCH 예외 발생")
-    void completeThrowsExceptionWhenOwnerMismatch() {
-        // given
-        ClientInfo clientInfo = buildClientInfo("my-client", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn("other-client");
-
-        PracticeResultRequest request = buildRequest(sessionId, 1000, 5000, 2000, 10);
-
-        // when & then
-        assertThatThrownBy(() -> practiceService.complete(clientInfo, request))
-                .isInstanceOf(PracticeException.class)
-                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.PRACTICE_SESSION_OWNER_MISMATCH));
-    }
-
-    @Test
-    @DisplayName("complete - 너무 빠른 요청: PRACTICE_TOO_FAST 예외 발생")
-    void completeThrowsExceptionWhenTooFast() {
+    @DisplayName("complete - 좌석 구간은 서버 총 시간에서 나머지를 뺀 값이다")
+    void completeDerivesSeatSelectionFromServerTotal() {
         // given
         ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
+        PracticeResultRequest request = buildRequest("session-id", 10_000);
+        givenValidatedSession(clientInfo, request, PracticeType.I_TICKET_OLD);
+        ArgumentCaptor<PracticeResult> captor = ArgumentCaptor.forClass(PracticeResult.class);
 
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli()); // 방금 시작 → 경과 ~0ms
+        // when
+        practiceService.complete(clientInfo, request);
 
-        PracticeResultRequest request = buildRequest(sessionId, 100, 200, 100, 10);
-
-        // when & then
-        assertThatThrownBy(() -> practiceService.complete(clientInfo, request))
-                .isInstanceOf(PracticeException.class)
-                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.PRACTICE_TOO_FAST));
+        // then — 10,000 - (반응 2,000 + 대기 5,000 + 보안문자 1,000)
+        verify(resultRepository).save(captor.capture());
+        assertThat(captor.getValue().getSeatSelectionMs()).isEqualTo(2_000);
+        assertThat(captor.getValue().getCaptchaMs()).isEqualTo(1_000);
     }
 
-    @Test
-    @DisplayName("complete - phase 합산 오차 초과: PRACTICE_INVALID_TIMING 예외 발생")
-    void completeThrowsExceptionWhenInvalidTiming() {
-        // given
-        ClientInfo clientInfo = buildClientInfo("client-token-abc", "tester");
-        String sessionId = "session-id";
-        Map<Object, Object> session = Map.of("exists", "true");
-
-        when(sessionRepository.find(sessionId)).thenReturn(session);
-        when(sessionRepository.getClientKey(session)).thenReturn(clientInfo.getToken());
-        when(sessionRepository.getStartAt(session)).thenReturn(Instant.now().toEpochMilli() - 10_000); // 서버 경과 ~10000ms
-
-        // phaseSum = 1 + 1 + 1 = 3ms → 서버 경과(~10000ms)와 차이 ~10000ms > 허용 오차(2000ms)
-        PracticeResultRequest request = buildRequest(sessionId, 1, 1, 1, 10);
-
-        // when & then
-        assertThatThrownBy(() -> practiceService.complete(clientInfo, request))
-                .isInstanceOf(PracticeException.class)
-                .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
-                        .isEqualTo(ErrorCode.PRACTICE_INVALID_TIMING));
+    /**
+     * 검증을 통과한 상태를 만든다. 검증 자체가 무엇을 막는지는
+     * {@code PracticeSessionValidatorTest} 가 본다.
+     */
+    private void givenValidatedSession(ClientInfo clientInfo, PracticeResultRequest request, PracticeType type) {
+        ValidatedSession validated = new ValidatedSession(type, LocalDateTime.now().minusSeconds(15), SERVER_ELAPSED_MS);
+        when(sessionValidator.validate(clientInfo, request)).thenReturn(validated);
+        when(rankCalculator.calculate(any(PracticeType.class), anyInt())).thenReturn(new MonthlyRank(50, 5, 10));
     }
 
     private ClientInfo buildClientInfo(String token, String name) {
@@ -242,15 +181,14 @@ class PracticeServiceTest {
                 .build();
     }
 
-    private PracticeResultRequest buildRequest(String sessionId, int reactionTimeMs,
-                                               int queueWaitMs, int seatSelectionMs,
-                                               int queueInitialRank) {
+    private PracticeResultRequest buildRequest(String sessionId, int totalDurationMs) {
         PracticeResultRequest request = new PracticeResultRequest();
         ReflectionTestUtils.setField(request, "sessionId", sessionId);
-        ReflectionTestUtils.setField(request, "reactionTimeMs", reactionTimeMs);
-        ReflectionTestUtils.setField(request, "queueWaitMs", queueWaitMs);
-        ReflectionTestUtils.setField(request, "seatSelectionMs", seatSelectionMs);
-        ReflectionTestUtils.setField(request, "queueInitialRank", queueInitialRank);
+        ReflectionTestUtils.setField(request, "totalDurationMs", totalDurationMs);
+        ReflectionTestUtils.setField(request, "reactionTimeMs", 2_000);
+        ReflectionTestUtils.setField(request, "queueWaitMs", 5_000);
+        ReflectionTestUtils.setField(request, "captchaMs", 1_000);
+        ReflectionTestUtils.setField(request, "queueInitialRank", 10);
         return request;
     }
 }

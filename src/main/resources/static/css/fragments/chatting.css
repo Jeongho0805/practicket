@@ -62,12 +62,14 @@
     .chat-unit.received > .chat-content {
         display: flex;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-unit.sent > .chat-content {
         display: flex;
         flex-direction: row-reverse;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-user {
@@ -242,12 +244,14 @@
     .chat-unit.received > .chat-content {
         display: flex;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-unit.sent > .chat-content {
         display: flex;
         flex-direction: row-reverse;
         align-items: flex-end;
+        width: 100%;
     }
 
     .chat-user {
@@ -354,5 +358,162 @@
 
     #chatting-send-button:hover {
         box-shadow: 0 4px 14px rgba(107, 91, 154, 0.35);
+    }
+}
+/* ===== 전역 플로팅 채팅 위젯 =====
+   광고 영역(좌·우 컬럼)을 덮지 않도록 데스크톱에선 콘텐츠 영역(가운데 50vw) 안쪽에 띄운다.
+   content-section = 1fr(좌광고) 2fr(콘텐츠) 1fr(우광고) → 우측 광고는 오른쪽 25vw.
+   그래서 right 기준을 calc(25vw + 여백)으로 잡아 우측 광고 바깥이 아니라 콘텐츠 우측 끝에 배치. */
+#chat-widget { position: fixed; right: calc(25vw + 20px); bottom: 20px; z-index: 900; font-family: 'Pretendard', sans-serif; }
+
+#chat-launcher {
+    position: relative; width: 58px; height: 58px; border-radius: 50%;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: #fff; background: linear-gradient(135deg, #8470b3, #6b5b9a);
+    box-shadow: 0 10px 26px rgba(80, 60, 120, .42); transition: transform .15s, box-shadow .15s;
+}
+#chat-launcher:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 14px 34px rgba(80, 60, 120, .52); }
+#chat-launcher svg { width: 26px; height: 26px; }
+#chat-launcher .chat-dot { position: absolute; bottom: 3px; right: 3px; width: 11px; height: 11px; border-radius: 50%;
+    background: #57e08a; border: 2.5px solid #fff; }
+#chat-widget.open #chat-launcher { display: none; } /* 패널 열리면 런처 숨김(닫기 X로 닫음) */
+
+#chat-hide {
+    position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; border-radius: 50%;
+    border: none; background: #efeaf8; color: #6b5b9a; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 2px #fff; transition: background .15s, color .15s;
+}
+
+#chat-hide svg { width: 9px; height: 9px; }
+#chat-hide:hover { background: #6b5b9a; color: #fff; }
+
+#chat-widget.open #chat-hide { display: none; }
+
+#chat-widget.hidden #chat-launcher,
+#chat-widget.hidden #chat-hide,
+#chat-widget.hidden #chat-panel { display: none; }
+
+/* 접힌 상태에서 되돌릴 손잡이. 무채색 점이면 정체를 알 수 없어 같은 채팅 아이콘을 흐리게 남긴다 */
+#chat-restore {
+    width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(107, 91, 154, .10); color: rgba(107, 91, 154, .55);
+    box-shadow: 0 0 0 1px rgba(107, 91, 154, .10);
+    transition: background .16s, color .16s, transform .16s;
+}
+
+#chat-restore[hidden] { display: none; }
+#chat-restore svg { width: 15px; height: 15px; }
+#chat-restore:hover { background: rgba(107, 91, 154, .9); color: #fff; transform: scale(1.08); }
+
+/* 손잡이만으로는 못 찾는다. 접는 순간에 되돌릴 길을 알려준다 */
+#chat-toast {
+    position: absolute; right: 0; bottom: 40px; white-space: nowrap;
+    display: flex; align-items: center; gap: 10px;
+    background: #302a45; color: #fff; border-radius: 12px; padding: 10px 12px;
+    font-size: 12px; box-shadow: 0 10px 26px rgba(30, 20, 60, .35);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .22s, transform .22s;
+}
+
+#chat-toast[hidden] { display: none; }
+#chat-toast.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+#chat-toast-undo {
+    background: none; border: none; color: #c9b8ff; font-weight: 700;
+    font-size: 12px; cursor: pointer; padding: 2px 4px; font-family: inherit;
+}
+
+#chat-panel {
+    position: fixed; right: calc(25vw + 20px); bottom: 84px; width: 360px; height: 520px;
+    min-width: 330px; min-height: 380px; max-width: 44vw; max-height: 80vh; resize: both;
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'Pretendard', sans-serif;
+    background: #fff; border: 1.5px solid rgba(107, 91, 154, .18); border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(40, 20, 80, .28);
+}
+#chat-widget.open #chat-panel { display: flex; }
+
+#chat-panel-head {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; background: linear-gradient(135deg, #574a99, #8470b3); color: #fff;
+    cursor: move; user-select: none;
+}
+#chat-panel-head > b { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 15px; }
+.chat-head-right { display: flex; align-items: center; gap: 10px; }
+.chat-count { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 20px;
+    background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .32);
+    font-family: 'Pretendard', sans-serif; font-size: 12.5px; font-weight: 700; color: #fff; white-space: nowrap; }
+.chat-count-dot { width: 8px; height: 8px; border-radius: 50%; background: #57e08a; box-shadow: 0 0 0 3px rgba(87, 224, 138, .28); }
+#chat-panel-head b { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: 15px; }
+#chat-close {
+    width: 28px; height: 28px; border: none; cursor: pointer; border-radius: 50%;
+    background: rgba(255,255,255,.18); color: #fff; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; transition: background .15s;
+}
+#chat-close:hover { background: rgba(255,255,255,.32); }
+
+/* 패널 안에서는 채팅 섹션이 남은 공간을 채우도록 (페이지 셀 가정 무력화)
+   입력줄은 8fr:2fr 강제 높이(과도) 대신 '내용 높이(auto)'로 두고 채팅 박스가 나머지를 차지 */
+#chat-panel #chatting-section { flex: 1; min-height: 0; height: auto; width: 100%; grid-template-rows: 1fr auto; }
+#chat-panel #chatting-box-section { width: 100%; border-radius: 0; border: none; box-shadow: none; }
+/* 입력창도 패널 안에선 자체 테두리·둥근모서리 제거(바깥 테두리는 패널이 담당) → 위 메시지 영역과 매끄럽게 이어짐. 구분은 옅은 divider 한 줄로만 */
+#chat-panel #chatting-input-section { width: 100%; height: auto; border: none; border-top: 1px solid rgba(107, 91, 154, .12); border-radius: 0; box-shadow: none; }
+#chat-panel #chatting-input,
+#chat-panel #chatting-input::placeholder,
+#chat-panel #chatting-send-button { font-family: inherit; }
+#chat-panel .chat-message,
+#chat-panel #chatting-input {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+#chat-panel #chatting-input::placeholder {
+    color: #b0adba;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+#chat-panel .chat-user,
+#chat-panel #chatting-send-button { font-weight: 600; }
+#chat-panel #chatting-input { height: auto; min-width: 0; font-size: 14px; }
+#chat-panel #chatting-char-count {
+    flex-shrink: 0; color: #9187a0; font-size: 10px; font-weight: 500; white-space: nowrap;
+}
+#chat-panel #chatting-char-count[hidden] { display: none; }
+/* 패널을 좁게 줄여도 전송 버튼이 세로로 쪼개지지 않도록 */
+#chat-panel #chatting-send-button {
+    height: auto; min-width: 44px; min-height: 44px; white-space: nowrap; flex-shrink: 0; padding: 9px 16px;
+}
+#chat-panel #chatting-send-button:disabled {
+    color: #aaa4b5; background: #e8e4ed; box-shadow: none; cursor: default;
+}
+#chat-panel #chatting-send-button:not(:disabled):active { transform: scale(.96); }
+#chat-panel #chatting-input-section {
+    transition: border-color .18s, background .18s, box-shadow .18s;
+}
+#chat-panel #chatting-input-section:focus-within {
+    border-top-color: #8b75bb; background: #fcfaff; box-shadow: inset 0 2px 0 rgba(117, 94, 166, .08);
+}
+
+@media (max-width: 768px) {
+    #chat-widget { right: 14px; bottom: 14px; }
+    /* 높이는 JS가 인라인으로 제어(드래그·광고 보호 상한). !important 제거해 인라인이 이기게 함 */
+    #chat-panel { right: 0 !important; left: 0 !important; top: auto !important; bottom: 0; width: 100% !important; height: 72vh;
+        min-width: 0; min-height: 0; max-width: none; max-height: 92vh; resize: none; border-radius: 18px 18px 0 0;
+        overscroll-behavior: none; }
+    /* 16px 미만 input은 iOS Safari가 포커스할 때 화면을 자동 확대해 viewport 좌표를 틀어지게 한다. */
+    #chat-panel #chatting-input { font-size: 16px; }
+    #chat-panel #chatting-input-section { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+    /* 메시지 목록의 끝에서 당긴 스크롤이 페이지/visual viewport로 전파되지 않게 한다. */
+    #chat-panel #chatting-box-section {
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* 헤더 = 드래그 핸들(그립 바). 세로 드래그 중 페이지 스크롤 방지(touch-action:none) */
+    #chat-panel-head { cursor: grab; position: relative; padding-top: 16px; touch-action: none; }
+    #chat-panel-head.dragging { cursor: grabbing; }
+    #chat-panel-head::before {
+        content: ''; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+        width: 42px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .5);
     }
 }

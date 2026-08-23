@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="커뮤니티 - 프랙티켓">
+    <meta name="description" content="티켓팅 팁과 후기를 나누는 프랙티켓 커뮤니티입니다.">
+    <!-- 검색 결과 페이지는 색인하지 않는다. 같은 글이 검색어 조합마다 중복 색인된다 -->
+    <meta name="robots" th:content="${keyword != null and !keyword.isBlank()} ? 'noindex, follow' : 'index, follow'"
+          content="index, follow">
+    <!-- 정렬은 넣지 않는다 — 같은 목록이 정렬만 다른 4벌로 중복 색인되면 안 된다 -->
+    <link rel="canonical"
+          th:href="${tag != null and !tag.isEmpty()}
+                   ? 'https://practicket.com/community?tag=' + ${tag}
+                   : 'https://practicket.com/community'"
+          href="https://practicket.com/community">
+    <title>커뮤니티 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/community/list.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="community-section">
+
+        <div id="community-hero">
+            <div id="hero-top">
+                <div id="hero-title-box">
+                    <h1 id="community-title">커뮤니티</h1>
+                    <p id="community-subtitle">티켓팅 팁 · 후기 · 잡담을 나누는 곳</p>
+                </div>
+                <a href="/community/write" id="write-btn">글쓰기</a>
+            </div>
+
+            <form id="community-search" method="get" action="/community">
+                <svg id="search-icon" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+                </svg>
+                <input type="text" id="search-input" name="keyword" maxlength="50"
+                       placeholder="제목이나 태그로 검색" th:value="${keyword}">
+                <!-- 검색해도 걸려 있던 태그·정렬을 잃지 않는다 -->
+                <input type="hidden" name="tag" th:if="${tag != null and !tag.isEmpty()}" th:value="${tag}">
+                <input type="hidden" name="sort" th:if="${sort != 'latest'}" th:value="${sort}">
+                <button type="submit" id="search-btn">검색</button>
+            </form>
+
+            <div id="popular-tags" th:if="${!#lists.isEmpty(popularTags)}">
+                <span id="popular-label">인기</span>
+                <a class="tag-chip" th:classappend="${tag == null or tag.isEmpty()} ? 'current' : ''"
+                   th:href="${links.tag(null)}">전체</a>
+                <a class="tag-chip" th:each="popularTag : ${popularTags}"
+                   th:classappend="${popularTag.tag == tag} ? 'current' : ''"
+                   th:href="${links.tag(popularTag.tag)}">
+                    <span th:text="'#' + ${popularTag.tag}">#꿀팁</span>
+                    <!-- 아직 안 쓰인 씨앗 태그는 숫자를 감춘다 -->
+                    <span class="tag-count" th:if="${popularTag.hasUseCount()}"
+                          th:text="${popularTag.useCount}">128</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="community-toolbar">
+            <!-- 전체 글 수는 목록을 보는 데 쓰이지 않아 뺐다. 지금 무엇으로 걸러졌는지만 남긴다 -->
+            <p id="post-total" th:if="${(keyword != null and !keyword.isBlank()) or (tag != null and !tag.isEmpty())}">
+                <span th:if="${keyword != null and !keyword.isBlank()}"
+                      th:text="'&quot;' + ${keyword} + '&quot; 검색 결과'"></span>
+                <span th:if="${tag != null and !tag.isEmpty()}" th:text="'#' + ${tag}"></span>
+            </p>
+            <div class="toolbar-actions">
+                <!-- 드롭다운이 아니라 링크 칩인 이유: JS 로 만들면 크롤러가 정렬 링크를 못 따라간다 -->
+                <nav id="sort-tabs" aria-label="정렬">
+                    <a class="sort-chip" th:classappend="${sort == 'latest'} ? 'current' : ''"
+                       th:href="${links.sort('latest')}">최신순</a>
+                    <a class="sort-chip" th:classappend="${sort == 'like'} ? 'current' : ''"
+                       th:href="${links.sort('like')}">추천순</a>
+                    <a class="sort-chip" th:classappend="${sort == 'view'} ? 'current' : ''"
+                       th:href="${links.sort('view')}">조회순</a>
+                    <a class="sort-chip" th:classappend="${sort == 'comment'} ? 'current' : ''"
+                       th:href="${links.sort('comment')}">댓글순</a>
+                </nav>
+                <a href="/community/mine" id="mine-link">내가 쓴 글</a>
+            </div>
+        </div>
+
+        <!-- 검색 결과 없음과 게시판이 빈 것은 다른 상황이라 문구를 나눈다 -->
+        <div id="post-empty" th:if="${posts.isEmpty()}">
+            <p th:if="${keyword != null and !keyword.isBlank()}">검색 결과가 없습니다.</p>
+            <p th:if="${(keyword == null or keyword.isBlank()) and tag != null and !tag.isEmpty()}"
+               th:text="'#' + ${tag} + ' 태그가 달린 글이 아직 없습니다.'">태그 글 없음</p>
+            <p th:if="${(keyword == null or keyword.isBlank()) and (tag == null or tag.isEmpty())}">아직 글이 없습니다. 첫 글을 남겨보세요.</p>
+        </div>
+
+        <ul id="post-list" th:unless="${posts.isEmpty()}">
+            <li class="post-row" th:each="post : ${posts.content}">
+                <a class="post-link" th:href="@{'/community/' + ${post.id}}">
+                    <!-- 블라인드된 글은 숫자 대신 — . 자리는 남기고 내용만 가린다 -->
+                    <span class="like-badge" th:if="${!post.blinded}"
+                          th:classappend="${post.likeCount > 0} ? 'has-like' : ''">
+                        <span class="like-count" th:text="${post.likeCount}">0</span>
+                        <span class="like-label">추천</span>
+                    </span>
+                    <span class="like-badge" th:if="${post.blinded}">
+                        <span class="like-count">—</span>
+                        <span class="like-label">추천</span>
+                    </span>
+                    <span class="post-main">
+                        <!-- 자리를 남겨야 신고 어뷰징으로 가려진 글을 누군가 알아챈다 -->
+                        <span class="post-title post-title-blinded" th:if="${post.blinded}">신고 누적으로 숨겨진 글입니다</span>
+                        <span class="post-title" th:if="${!post.blinded}">
+                            <span th:text="${post.title}">제목</span>
+                            <!-- 0 이 줄줄이 붙으면 목록이 더 휑해 보여서 0 일 때는 숨긴다 -->
+                            <span class="post-comment-count" th:if="${post.commentCount > 0}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2.2" aria-hidden="true">
+                                    <path d="M21 11.7a7.9 7.9 0 01-11.4 7L3.5 20.5l1.8-6A7.9 7.9 0 1121 11.7z"/>
+                                </svg>
+                                <span th:text="${post.commentCount}">0</span>
+                            </span>
+                            <!-- 최근 6시간 안에 올라온 글. 기준 시간은 PostListResponse.NEW_WINDOW 가 정본 -->
+                            <span class="post-new" th:if="${post.isNew}" aria-label="새 글">N</span>
+                        </span>
+                        <span class="meta-row">
+                            <span class="post-meta">
+                                <span class="post-author" th:text="${post.nickname}">익명</span>
+                                <span class="post-ip" th:text="${post.ip}">0.0</span>
+                                <span class="meta-dot">·</span>
+                                <span class="post-date" th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">날짜</span>
+                                <span class="meta-dot">·</span>
+                                <span class="post-view" th:text="'조회 ' + ${post.viewCount}">조회 0</span>
+                            </span>
+                            <span class="row-tags" th:if="${!#lists.isEmpty(post.tags)}">
+                                <span class="row-tag" th:each="postTag : ${post.tags}"
+                                      th:text="'#' + ${postTag}">#태그</span>
+                            </span>
+                        </span>
+                    </span>
+                </a>
+            </li>
+        </ul>
+
+        <!-- 무한스크롤이 아니라 링크인 이유: 크롤러가 2페이지 이후를 못 본다. 번호는 PageBlock 이 만든다 -->
+        <nav id="pagination" th:if="${posts.totalPages > 1}">
+            <!-- « 첫 페이지 -->
+            <a class="page-move" th:unless="${pageBlock.first}" aria-label="첫 페이지"
+               th:href="${links.page(0)}">«</a>
+            <span class="page-move disabled" th:if="${pageBlock.first}" aria-hidden="true">«</span>
+
+            <!-- ‹ 이전 블록 (5개씩) -->
+            <a class="page-move" th:if="${pageBlock.hasPrevBlock}" aria-label="이전 페이지 묶음"
+               th:href="${links.page(pageBlock.prevBlockPage)}">‹</a>
+            <span class="page-move disabled" th:unless="${pageBlock.hasPrevBlock}" aria-hidden="true">‹</span>
+
+            <a class="page-num"
+               th:each="i : ${pageBlock.pageNumbers}"
+               th:href="${links.page(i)}"
+               th:classappend="${i == posts.number} ? 'current' : ''"
+               th:attr="aria-current=${i == posts.number} ? 'page' : null"
+               th:text="${i + 1}">1</a>
+
+            <!-- › 다음 블록 -->
+            <a class="page-move" th:if="${pageBlock.hasNextBlock}" aria-label="다음 페이지 묶음"
+               th:href="${links.page(pageBlock.nextBlockPage)}">›</a>
+            <span class="page-move disabled" th:unless="${pageBlock.hasNextBlock}" aria-hidden="true">›</span>
+
+            <!-- » 마지막 페이지 -->
+            <a class="page-move" th:unless="${pageBlock.last}" aria-label="마지막 페이지"
+               th:href="${links.page(pageBlock.lastPage)}">»</a>
+            <span class="page-move disabled" th:if="${pageBlock.last}" aria-hidden="true">»</span>
+        </nav>
+
+    </div>
+</div>
+</body>
+</html>

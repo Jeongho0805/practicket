@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('슬롯 관리')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('slot')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>슬롯 관리</h1>
+                <p>사이트에 미리 정의된 광고 인벤토리입니다. 신규 슬롯 추가는 템플릿 작업이 함께 필요합니다.</p>
+            </div>
+        </div>
+
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <div class="slotgrid">
+            <div class="slot" th:each="row : ${rows}">
+                <div class="top">
+                    <div>
+                        <h3 th:text="${row.slot.name}">슬롯 이름</h3>
+                        <span class="mono" th:text="${row.slot.code}">CODE</span>
+                        <span class="mono" th:text="${row.slot.recommendedSize}">300x250</span>
+                    </div>
+                    <form th:action="@{'/admin-hoya/ad/slots/' + ${row.slot.id} + '/toggle'}" method="post">
+                        <button type="submit" class="sw" th:classappend="${row.slot.enabled} ? 'on'"
+                                th:title="${row.slot.enabled} ? '비활성화' : '활성화'"></button>
+                    </form>
+                </div>
+
+                <div class="meter"><i th:style="'width:' + ${row.fillPercent} + '%'"></i></div>
+                <div class="fillinfo">
+                    <span th:text="'게재중 소재 ' + ${row.liveBannerCount} + '개'">게재중 소재 0개</span>
+                    <span th:text="${row.slot.enabled} ? '사용중' : '비활성'">사용중</span>
+                </div>
+
+                <form class="sizeform" th:action="@{'/admin-hoya/ad/slots/' + ${row.slot.id}}" method="post">
+                    <input type="text" name="recommendedSize" th:value="${row.slot.recommendedSize}"
+                           placeholder="권장 사이즈 (예: 300x250)"/>
+                    <button type="submit" class="btn ghost sm">저장</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card" th:if="${#lists.isEmpty(rows)}">
+            <div class="empty">등록된 슬롯이 없습니다. 초기 시드(schema-ad.sql)가 필요합니다.</div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+</body>
+</html>

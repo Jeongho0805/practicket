@@ -12,21 +12,22 @@ function addEventList() {
 
         const timeErrorMessage = "예매 가능 시간이 아닙니다. \n 예매는 매분 00초 부터 30초까지 가능합니다."
 
-        const response = await util.authFetch(`${HOST}/api/order`, {
-            method: "POST",
-            credentials: 'same-origin',
-            headers: {
-                "Content-Type": "application/json",
-            },
-        });
         try {
+            const response = await util.authFetch(`${HOST}/api/order`, {
+                method: "POST",
+                credentials: 'same-origin',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
             if(!response.ok) {
                 const data = await response.json();
                 if(data.code === "T02") {
                     await util.showAlert({ title: '예매 불가', msg: timeErrorMessage });
                     return;
                 }
-                throw new Error(data.message);
+                await util.showAlert({ title: '예매 실패', msg: data.message });
+                return;
             }
             activateModalToggle();
             setWaitingOrderSse(name);
@@ -61,7 +62,7 @@ function setWaitingOrderSse(name) {
             // 예매 권한 토큰을 localStorage에 저장
             localStorage.setItem('reservationToken', data.reservation_token);
             // 토큰을 쿼리 파라미터로 전달하여 서버에서 검증
-            window.location.href = `${HOST}/reservation?token=${encodeURIComponent(data.reservation_token)}`;
+            window.location.replace(`${HOST}/reservation?token=${encodeURIComponent(data.reservation_token)}`);
             return;
         }
         console.log(event);
@@ -71,7 +72,7 @@ function setWaitingOrderSse(name) {
     });
     eventSource.onerror = (error) => {
         eventSource.close();
-        window.location.href = `${HOST}/rank`;
+        window.location.replace(`${HOST}/ticketing`);
     };
 }
 

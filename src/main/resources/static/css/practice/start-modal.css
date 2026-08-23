@@ -1,0 +1,212 @@
+/* 연습 시작 모달 — i / n / m 세 화면이 함께 쓴다.
+   클래스를 ps- 로 시작하는 이유: 세 intro 페이지가 각자 .card, .badge 같은
+   흔한 이름을 이미 쓰고 있어 접두사 없이는 호스트 쪽 규칙에 덮인다. */
+.ps-overlay {
+    --ps-accent: #7a68a8;
+    --ps-accent-soft: #efeaf7;
+    --ps-ink: #1b1c1f;
+    --ps-sub: #6e6f73;
+    --ps-dim: #8b8d92;
+    --ps-soft: #f2f3f7;
+
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(20, 16, 32, .55);
+    font-family: Pretendard, ui-sans-serif, system-ui, 'Apple SD Gothic Neo', sans-serif;
+}
+
+.ps-overlay * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.ps-overlay button {
+    font: inherit;
+    border: 0;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* 호스트 페이지마다 body 글자 크기가 다르다(m-ticket 은 멜론을 흉내내 12px).
+   물려받으면 예매처마다 모달이 달라 보이므로 여기서 못박는다. */
+.ps-card {
+    width: 100%;
+    max-width: 380px;
+    font-size: 16px;
+    padding: 28px 26px 22px;
+    border-radius: 18px;
+    background: #fff;
+    text-align: center;
+    box-shadow: 0 18px 48px rgba(40, 28, 70, .28);
+}
+
+.ps-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 12px;
+    border-radius: 13px;
+    background: var(--ps-accent-soft);
+    color: var(--ps-accent);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ps-badge i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ps-accent);
+}
+
+.ps-title {
+    margin-top: 14px;
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--ps-ink);
+    letter-spacing: -.3px;
+}
+
+.ps-desc {
+    margin-top: 11px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ps-sub);
+}
+
+.ps-desc strong {
+    color: var(--ps-accent);
+    font-weight: 700;
+}
+
+/* 무엇이 시작되는지 미리 알려주는 줄 */
+/* 칸 수를 열에 박아 두면 구간이 늘 때마다 줄이 접힌다. 몇 개가 오든 한 줄로 나눠 갖게 둔다. */
+.ps-steps {
+    margin-top: 16px;
+    padding: 12px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f8fb;
+    border-radius: 12px;
+}
+
+.ps-step {
+    flex: 1;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ps-sub);
+    line-height: 1.35;
+}
+
+.ps-step b {
+    display: block;
+    margin-bottom: 3px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    color: var(--ps-accent);
+}
+
+.ps-arrow {
+    flex: none;
+    color: #c8cad2;
+    font-size: 11px;
+}
+
+.ps-actions {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ps-primary {
+    height: 50px;
+    border-radius: 13px;
+    background: var(--ps-accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.ps-secondary {
+    height: 46px;
+    border-radius: 13px;
+    background: var(--ps-soft);
+    color: var(--ps-dim);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* 320px 기기에서는 네 칸이 간격까지 감당하지 못해 띠 밖으로 밀린다. 간격만 줄여 담는다. */
+@media (max-width: 360px) {
+    .ps-steps {
+        padding: 12px 8px;
+        gap: 4px;
+    }
+}
+
+/* 큰 화면에서 360px 카드는 폰 팝업처럼 보인다. 카드째 키운다. */
+@media (min-width: 769px) {
+    .ps-card {
+        max-width: 420px;
+        padding: 34px 32px 26px;
+        border-radius: 20px;
+    }
+
+    .ps-badge {
+        height: 28px;
+        padding: 0 14px;
+        border-radius: 14px;
+        font-size: 13px;
+    }
+
+    .ps-title {
+        margin-top: 16px;
+        font-size: 24px;
+    }
+
+    .ps-desc {
+        margin-top: 13px;
+        font-size: 15px;
+    }
+
+    .ps-steps {
+        margin-top: 18px;
+        padding: 15px 12px;
+        border-radius: 14px;
+    }
+
+    .ps-step {
+        font-size: 13px;
+    }
+
+    .ps-step b {
+        font-size: 12px;
+    }
+
+    .ps-actions {
+        margin-top: 24px;
+        gap: 9px;
+    }
+
+    .ps-primary {
+        height: 54px;
+        border-radius: 14px;
+        font-size: 16px;
+    }
+
+    .ps-secondary {
+        height: 48px;
+        border-radius: 14px;
+        font-size: 15px;
+    }
+}

@@ -1,5 +1,12 @@
-<div id="adsence-section" th:fragment="adsence-section">
-    <th:block th:if="${activeProfile == 'prod'}">
+<div id="adsence-section" th:fragment="adsence-section" th:with="banner=${@adSlotView.peek('PC_RIGHT')}">
+    <!-- 직접 판매된 배너가 있으면 그것, 없으면 애드센스 fallback(prod만). 노출 집계는 /js/ad-metrics.js -->
+    <a th:if="${banner != null}" class="ad-slot-link"
+       th:href="@{/ad/click/{id}(id=${banner.id})}" target="_blank" rel="noopener"
+       th:attr="aria-label=${banner.advertiserName} + ' 광고'">
+        <img th:src="${banner.imagePath}" th:alt="${banner.advertiserName}"
+             th:attr="data-banner-id=${banner.id}"/>
+    </a>
+    <th:block th:if="${banner == null and activeProfile == 'prod'}">
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5146591484722882"
                 crossorigin="anonymous"></script>
         <ins class="adsbygoogle"

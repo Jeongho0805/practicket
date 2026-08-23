@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+<div th:fragment="modal(site)" id="start-modal" class="ps-overlay">
+    <div class="ps-card">
+        <span class="ps-badge"><i></i><span th:text="|${site} 연습|">I-Ticket 연습</span></span>
+        <h2 class="ps-title">티켓팅 연습 시작</h2>
+        <p class="ps-desc">
+            실제 예매와 똑같은 흐름으로 연습해요.<br>
+            <strong>연습 시작하기</strong>를 누르면 카운트다운이 시작됩니다.
+        </p>
+        <div class="ps-steps">
+            <div class="ps-step"><b>01</b>카운트다운</div>
+            <div class="ps-arrow">&rsaquo;</div>
+            <div class="ps-step"><b>02</b>대기열</div>
+            <div class="ps-arrow">&rsaquo;</div>
+            <div class="ps-step"><b>03</b>보안문자</div>
+            <div class="ps-arrow">&rsaquo;</div>
+            <div class="ps-step"><b>04</b>좌석 선택</div>
+        </div>
+        <div class="ps-actions">
+            <button type="button" id="start-btn" class="ps-primary">연습 시작하기</button>
+            <button type="button" class="ps-secondary" onclick="location.href='/practice'">돌아가기</button>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

@@ -15,7 +15,8 @@
         </div>
     </div>
     <div id="chatting-input-section">
-        <input id="chatting-input" type="text" placeholder="채팅을 입력해주세요."/>
-        <button id="chatting-send-button">전송</button>
+        <input id="chatting-input" type="text" maxlength="100" placeholder="메시지를 입력하세요"/>
+        <span id="chatting-char-count" hidden>0/100</span>
+        <button id="chatting-send-button" disabled>전송</button>
     </div>
 </div>

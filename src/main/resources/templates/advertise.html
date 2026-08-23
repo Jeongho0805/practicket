@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="title" content="광고·제휴 안내 - 프랙티켓">
+    <meta name="description" content="티켓팅에 진심인 2030이 매일 모이는 프랙티켓. 뚜렷한 타겟에게 직접 배너 광고를 노출하세요.">
+    <meta name="robots" content="index, follow">
+    <title>광고·제휴 안내 - 프랙티켓</title>
+    <link rel="canonical" href="https://practicket.com/advertise">
+    <link rel="stylesheet" href="/css/advertise.css">
+</head>
+<body>
+    <div layout:fragment="content" id="main-section">
+        <a class="back" href="/">← 홈으로</a>
+
+        <!-- 히어로 -->
+        <section class="hero">
+            <span class="eyebrow">광고 · 제휴 안내</span>
+            <h1 class="mf">티켓팅에 진심인 사람들이<br>매일 모이는 곳</h1>
+            <p class="lead">프랙티켓은 실전처럼 티켓팅을 연습하는 니치 서비스입니다.<br>
+                관심사가 뚜렷한 2030에게, 귀사의 배너를 정확히 노출하세요.</p>
+            <a class="cta" href="#inq">제휴 문의하기 →</a>
+            <div class="tags">
+                <span>#뚜렷한타겟</span><span>#고몰입유저</span><span>#직접배너딜</span>
+            </div>
+        </section>
+
+        <!-- 숫자 스트립 -->
+        <section class="stats">
+            <div class="stat"><b class="mf">22만<em>+</em></b><span>2026 누적 방문자</span></div>
+            <div class="stat"><b class="mf">41만</b><span>누적 세션</span></div>
+            <div class="stat"><b class="mf">3.9배<em>↑</em></b><span>전년 대비 성장</span></div>
+            <div class="stat"><b class="mf">1,000<em>+</em></b><span>월 광고 클릭</span></div>
+        </section>
+        <p class="stats-note">2026년 1월–7월 기준 · Google Analytics / AdSense</p>
+
+        <!-- 신뢰 지표 (차트) -->
+        <section class="trust">
+            <h2 class="mf grad">숫자로 증명합니다</h2>
+            <div class="trust-grid">
+                <!-- 성장 막대 -->
+                <div class="card chart-card">
+                    <b class="ct">세션 성장 (1–7월)</b>
+                    <div class="bars">
+                        <div class="bar-col">
+                            <span class="bv">10.6만</span>
+                            <div class="bar y2025" style="height:26%"></div>
+                            <span class="bl">2025</span>
+                        </div>
+                        <div class="bar-col">
+                            <span class="bv">41만</span>
+                            <div class="bar y2026" style="height:100%"></div>
+                            <span class="bl">2026</span>
+                        </div>
+                    </div>
+                    <span class="cnote">전년 동기 대비 <b>+288%</b></span>
+                </div>
+
+                <!-- 기기 도넛 -->
+                <div class="card chart-card">
+                    <b class="ct">기기 비중</b>
+                    <div class="donut-wrap">
+                        <div class="donut"><span class="dcenter mf">모바일<br>54%</span></div>
+                    </div>
+                    <ul class="legend">
+                        <li><i class="lg1"></i>모바일 53.8%</li>
+                        <li><i class="lg2"></i>데스크톱 40%</li>
+                        <li><i class="lg3"></i>태블릿 6%</li>
+                    </ul>
+                </div>
+
+                <!-- 몰입도 -->
+                <div class="card chart-card engage">
+                    <b class="ct">평균 체류 시간</b>
+                    <div class="big-stat mf">5<em>분</em> 20<em>초</em></div>
+                    <span class="cnote">한 번 오면 오래 머뭅니다.<br>실전 연습에 집중하는 유저 특성</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 이용자 -->
+        <section class="who">
+            <h2 class="mf grad">누가 프랙티켓을 쓰나요</h2>
+            <div class="who-cards">
+                <div class="who-card">
+                    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/></svg>
+                    <b>뚜렷한 관심사</b>
+                    <span class="d">콘서트·스포츠 티켓팅을 준비하는 2030 이용자</span>
+                </div>
+                <div class="who-card">
+                    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+                    <b>높은 몰입도</b>
+                    <span class="d">실전 예매 직전, 집중해서 반복 연습하는 순간</span>
+                </div>
+                <div class="who-card">
+                    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16"/><path d="M4 20v-4h4"/></svg>
+                    <b>잦은 재방문</b>
+                    <span class="d">랭킹·기록 경쟁으로 다시 찾아오는 유저들</span>
+                </div>
+            </div>
+            <p class="region">주 이용 지역 · <b>대한민국</b></p>
+        </section>
+
+        <!-- 게재 위치 (실제 캡처) -->
+        <section class="place">
+            <h2 class="mf grad">귀사의 배너가 노출되는 자리</h2>
+            <p class="sub">실제 서비스 화면입니다. 콘텐츠 바로 옆, 스크롤해도 항상 보이는 고정 슬롯.</p>
+
+            <!-- 데스크톱 실제 캡처 + 슬롯 오버레이 -->
+            <div class="shot">
+                <img src="/image/advertise-desktop.jpg" alt="프랙티켓 실제 화면 - 배너 게재 위치">
+                <div class="ov ov-l"><span class="mf">귀사 배너</span></div>
+                <div class="ov ov-r"><span class="mf">귀사 배너</span></div>
+            </div>
+            <p class="shot-cap">PC · 좌·우 세로 배너 (좌측은 현재 실제 게재 중인 예시)</p>
+
+            <!-- 모바일 실제 캡처 -->
+            <div class="phone-wrap">
+                <div class="shot mob">
+                    <img src="/image/advertise-mobile.jpg" alt="프랙티켓 모바일 화면 - 배너 게재 위치">
+                    <div class="ov ov-m"><span class="mf">귀사 배너</span></div>
+                </div>
+                <p class="shot-cap">모바일 · 메뉴 바로 아래 가로 배너</p>
+            </div>
+        </section>
+
+        <!-- 광고 상품 & 단가 -->
+        <section class="products">
+            <h2 class="mf grad">광고 상품 & 단가</h2>
+            <div class="prod-cards">
+                <div class="prod">
+                    <span class="tag-slot">PC</span>
+                    <b>좌·우 세로 배너</b>
+                    <span class="d">콘텐츠 양옆 고정 노출. 전 페이지 공통 노출로 도달률이 높습니다.</span>
+                    <span class="spec">권장 <b>300×600</b> (2x 600×1200) · JPG·PNG·GIF · ~200KB</span>
+                </div>
+                <div class="prod">
+                    <span class="tag-slot">Mobile</span>
+                    <b>상단 가로 배너</b>
+                    <span class="d">메뉴 바로 아래, 첫 화면에서 바로 보이는 최상단 노출.</span>
+                    <span class="spec"><b>320×80</b> 비율(4:1) · 권장 원본 <b>640×160</b> · 화면 가로를 꽉 채워 노출되니 좌우 끝 여백을 두세요 · JPG·PNG·GIF · ~100KB</span>
+                </div>
+                <div class="prod">
+                    <span class="tag-slot">Deal</span>
+                    <b>맞춤 제휴</b>
+                    <span class="d">공지 피드 노출, 이벤트 제휴 등 형태는 함께 설계합니다.</span>
+                    <span class="spec">규격·형태 협의</span>
+                </div>
+            </div>
+            <p class="prod-note">단가는 <b>위치·기간에 따라 협의</b>됩니다 — <b>일·주·월 단위 모두 가능</b>. 문의 주시면 상세 단가표를 보내드립니다.</p>
+        </section>
+
+        <!-- 진행 절차 -->
+        <section class="steps">
+            <h2 class="mf grad">진행은 이렇게</h2>
+            <ol class="step-list">
+                <li><span class="n mf">1</span><div><b>문의 남기기</b><span>아래 폼으로 광고 희망 내용을 남겨주세요.</span></div></li>
+                <li><span class="n mf">2</span><div><b>협의</b><span>담당자가 회신해 위치·기간·소재·단가를 함께 정합니다.</span></div></li>
+                <li><span class="n mf">3</span><div><b>게재</b><span>배너 게재 후 노출 현황을 공유드립니다.</span></div></li>
+            </ol>
+        </section>
+
+        <!-- 문의 폼 -->
+        <section class="inq-form" id="inq">
+            <h2 class="mf">제휴 문의 남기기</h2>
+            <p>회신받을 이메일과 내용을 남겨주시면 담당자가 연락드립니다.</p>
+            <input id="adv-email" type="email" placeholder="회신 받을 이메일">
+            <textarea id="adv-content" placeholder="광고·제휴 희망 내용을 남겨주세요 (예: 게재 위치, 기간, 브랜드 소개)"></textarea>
+            <button type="button" class="send mf" id="adv-send">문의 보내기</button>
+        </section>
+
+        <!-- 푸터 -->
+        <div class="foot">
+            <a href="/terms">이용약관</a><span class="dot">·</span><a href="/privacy">개인정보처리방침</a><span class="dot">·</span><span class="copy">© 2025–2026 프랙티켓</span>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/advertise.js"></script>
+    </th:block>
+</body>
+</html>

@@ -3,9 +3,10 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>I-Ticket 예매 연습 - 프랙티켓</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <title>I-Ticket 실전연습 - 프랙티켓</title>
     <link rel="stylesheet" href="/css/practice/i_ticket.css" />
+    <link rel="stylesheet" href="/css/practice/result-modal.css" />
     <link rel="stylesheet" href="/css/common/alert.css" />
 </head>
 
@@ -242,48 +243,50 @@
     <div id="pkt-complete-overlay">
         <div class="pkt-modal-card">
             <div class="pkt-modal-header">
-                <div class="pkt-header-tag">✓ &nbsp;Practice Complete</div>
+                <div class="pkt-header-tag">Practice Complete</div>
+                <span class="pkt-best-tag" id="pkt-best-tag" style="display:none"><i></i>신기록</span>
                 <div class="pkt-header-title">연습 완료!</div>
                 <div class="pkt-header-meta" id="pkt-meta">I-Ticket</div>
                 <div class="pkt-percentile-bar" id="pkt-percentile-bar" style="display:none">
-                    <span class="pb-icon">🏅</span>
+                    <span class="pb-dot"></span>
                     <div class="pb-texts">
                         <span class="pb-label">이번 달 순위</span>
                         <span class="pb-value" id="pkt-percentile-value">-</span>
                     </div>
                 </div>
+                <div class="pkt-unsaved-bar" id="pkt-unsaved-bar" style="display:none">
+                    <span class="ub-mark"></span>
+                    <div class="ub-texts">
+                        <span class="ub-label">이번 기록은 저장되지 않았어요</span>
+                        <span class="ub-why">비정상 기록이거나 서버 오류예요</span>
+                    </div>
+                </div>
             </div>
             <div class="pkt-total-section">
-                <div class="pkt-total-label-group">
-                    <span class="pkt-total-label">총 소요 시간</span>
-                </div>
+                <span class="pkt-total-label">총 소요 시간</span>
                 <div class="pkt-total-badge">
                     <span class="pkt-total-num" id="pkt-total-num">-</span>
-                    <span class="pkt-total-unit">s</span>
+                    <span class="pkt-total-unit">초</span>
                 </div>
             </div>
             <div class="pkt-divider"></div>
-            <div class="pkt-detail-grid">
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">반응 속도</span>
-                    <span class="pkt-dc-value" id="pkt-reaction">-</span>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
                 </div>
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">대기열 소요 시간</span>
-                    <span class="pkt-dc-value" id="pkt-queue">-</span>
-                </div>
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">좌석 선택 속도</span>
-                    <span class="pkt-dc-value" id="pkt-seat">-</span>
-                </div>
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">대기열 초기 순번</span>
-                    <span class="pkt-dc-value neutral" id="pkt-rank">-</span>
+                <div class="pkt-stack" id="pkt-stack"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-seat">-</b></span>
                 </div>
             </div>
+            <div class="pkt-hint" id="pkt-hint" style="display:none"></div>
             <div class="pkt-btn-section">
                 <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 연습</button>
-                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+                <button class="pkt-btn-share" id="pkt-share">공유</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=I_TICKET_OLD'">순위표 →</button>
             </div>
         </div>
     </div>
@@ -292,32 +295,32 @@
     <div id="pkt-soldout-overlay">
         <div class="pkt-modal-card">
             <div class="pkt-modal-header pkt-modal-header--fail">
-                <div class="pkt-header-tag">✕ &nbsp;Sold Out</div>
+                <div class="pkt-header-tag">Sold Out</div>
                 <div class="pkt-header-title">아쉽네요!</div>
-                <div class="pkt-header-meta">I-Ticket</div>
+                <div class="pkt-header-meta" id="pkt-fail-meta">I-Ticket</div>
             </div>
-            <div class="pkt-total-section">
+            <div class="pkt-total-section pkt-total-section--fail">
                 <div class="pkt-fail-soldout-txt">모든 좌석이 소진되었습니다</div>
-                <div class="pkt-fail-msg">티켓팅은 0.1초 싸움! 다음엔 더 빠르게 도전해보세요</div>
+                <div class="pkt-fail-msg" id="pkt-fail-msg"></div>
             </div>
             <div class="pkt-divider"></div>
-            <div class="pkt-detail-grid">
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">반응 속도</span>
-                    <span class="pkt-dc-value" id="pkt-fail-reaction">-</span>
+            <div class="pkt-split">
+                <div class="pkt-split-head">
+                    <span>구간 비중</span>
+                    <span class="pkt-split-ref">총 <b id="pkt-fail-total">-</b></span>
                 </div>
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">대기열 소요 시간</span>
-                    <span class="pkt-dc-value" id="pkt-fail-queue">-</span>
-                </div>
-                <div class="pkt-dc">
-                    <span class="pkt-dc-label">대기열 초기 순번</span>
-                    <span class="pkt-dc-value neutral" id="pkt-fail-rank">-</span>
+                <div class="pkt-stack" id="pkt-fail-stack"></div>
+                <div class="pkt-legend">
+                    <span><i class="pkt-seg1"></i>반응 <b id="pkt-fail-reaction">-</b></span>
+                    <span><i class="pkt-seg2"></i>대기열 <b id="pkt-fail-queue">-</b></span>
+                    <span><i class="pkt-seg3"></i>보안문자 <b id="pkt-fail-captcha">-</b></span>
+                    <span><i class="pkt-seg4"></i>좌석 <b id="pkt-fail-seat">-</b></span>
                 </div>
             </div>
+            <div class="pkt-hint" id="pkt-fail-hint" style="display:none"></div>
             <div class="pkt-btn-section">
                 <button class="pkt-btn-retry" onclick="location.href='/practice/i-ticket/intro'">다시 도전</button>
-                <button class="pkt-btn-rank" onclick="location.href='/practice'">순위표 보기 →</button>
+                <button class="pkt-btn-rank" onclick="location.href='/practice?agency=I_TICKET_OLD'">순위표 보기 →</button>
             </div>
         </div>
     </div>

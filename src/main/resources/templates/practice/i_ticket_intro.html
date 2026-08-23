@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/default}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/default}">
 
 <head>
-    <title>I-Ticket 예매 - 프랙티켓</title>
+    <title>I-Ticket 실전연습 - 프랙티켓</title>
     <link rel="stylesheet" href="/css/practice/i_ticket_intro.css" />
+    <link rel="stylesheet" href="/css/practice/start-modal.css" />
 </head>
 
 <body layout:fragment="content">
@@ -205,23 +207,7 @@
         <button class="mobile-btn-booking" onclick="startBooking()">예매하기</button>
     </div>
 
-    <div id="start-modal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-badge">
-                <div class="modal-badge-dot"></div>
-                티켓팅 연습
-            </div>
-            <h2 class="modal-title">티켓팅 연습 시작</h2>
-            <p class="modal-desc">
-                실제 예매와 동일한 환경에서 연습해보세요.<br>
-                <strong class="modal-highlight">시작하기</strong>를 누르면 카운트다운이 시작됩니다.
-            </p>
-            <div class="modal-actions">
-                <button onclick="startPractice()" class="modal-btn-primary">연습 시작하기</button>
-                <button onclick="location.href='/practice'" class="modal-btn-secondary">돌아가기</button>
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{fragments/practice-start-modal :: modal('I-Ticket')}"></div>
 
     <script type="module" src="/js/practice/i_ticket_intro.js"></script>
 </body>

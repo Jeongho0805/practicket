@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="robots" content="index, follow">
+    <title th:text="${notice.title} + ' - 프랙티켓'">공지 - 프랙티켓</title>
+    <meta name="title" th:content="${notice.title} + ' - 프랙티켓 공지'" content="공지 - 프랙티켓">
+    <meta name="description" th:content="${#strings.abbreviate(notice.content, 150)}" content="프랙티켓 공지">
+    <link rel="canonical" th:href="'https://practicket.com/notice/' + ${notice.id}">
+    <link rel="stylesheet" href="/css/notice.css">
+</head>
+<body>
+<div layout:fragment="content" id="main-section">
+    <div id="notice-section">
+
+        <article id="notice-detail">
+            <div class="nd-head">
+                <span class="nd-badges">
+                    <span class="nc-pin" th:if="${notice.pinned}">고정</span>
+                    <span class="tag" th:classappend="${notice.type.badgeClass}" th:text="${notice.type.label}">공지</span>
+                </span>
+                <h1 class="nd-title" th:text="${notice.title}">제목</h1>
+                <span class="nd-date" th:text="${#temporals.format(notice.createdAt, 'yyyy.MM.dd')}">2026.06.30</span>
+            </div>
+
+            <!--
+              본문은 저장된 그대로의 순수 텍스트다. HTML 을 허용하지 않으려고
+              블록으로 나눈 뒤에도 각 조각을 th:text 로 찍는다.
+            -->
+            <div class="nd-body">
+                <th:block th:each="block : ${blocks}">
+                    <p class="nd-lead" th:if="${block.kind == 'lead'}" th:text="${block.text}">리드</p>
+                    <p class="nd-p" th:if="${block.kind == 'p'}" th:text="${block.text}">문단</p>
+                    <ul th:if="${block.kind == 'ul'}">
+                        <li th:each="item : ${block.items}" th:text="${item}">항목</li>
+                    </ul>
+                    <p class="nd-tail" th:if="${block.kind == 'tail'}" th:text="${block.text}">맺음말</p>
+                </th:block>
+            </div>
+        </article>
+
+        <div id="notice-back">
+            <a href="/notice">목록으로</a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

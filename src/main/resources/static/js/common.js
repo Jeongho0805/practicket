@@ -29,17 +29,6 @@ export async function getClientInfo() {
 }
 
 
-export function getAuthValue() {
-    const cookies = document.cookie.split('; '); // 모든 쿠키를 배열로 분리
-    for (let cookie of cookies) {
-        const [name, value] = cookie.split('='); // 쿠키 이름과 값을 분리
-        if (name === "auth") {
-            return value;
-        }
-    }
-    return null;
-}
-
 export async function authFetch(url, options = {}) {
     const token = await getOrCreateToken();
 

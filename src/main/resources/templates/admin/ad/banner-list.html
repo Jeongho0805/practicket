@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('배너 관리')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('banner')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>배너 관리</h1>
+                <p>슬롯에 게재되는 광고 소재를 등록하고 노출을 제어합니다.</p>
+            </div>
+            <a class="btn" href="/admin-hoya/ad/banners/new">+ 새 배너 등록</a>
+        </div>
+
+        <div th:if="${error}" class="alert" th:text="${error}"></div>
+
+        <div class="card">
+            <header>
+                <div class="seg" id="filters">
+                    <button type="button" class="on" data-filter="all"
+                            th:text="'전체 ' + ${#lists.size(rows)}">전체 0</button>
+                    <button type="button" data-filter="live"
+                            th:text="'노출중 ' + ${#lists.size(rows.?[status.key == 'live'])}">노출중 0</button>
+                    <button type="button" data-filter="wait"
+                            th:text="'예약 ' + ${#lists.size(rows.?[status.key == 'wait'])}">예약 0</button>
+                    <button type="button" data-filter="ended"
+                            th:text="'중지·종료 ' + ${#lists.size(rows.?[status.key == 'off' or status.key == 'done'])}">중지·종료 0</button>
+                </div>
+                <div class="tools">
+                    <div class="search">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input type="text" id="q" placeholder="광고주·슬롯 검색" autocomplete="off">
+                    </div>
+                </div>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(rows)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>소재 / 광고주</th>
+                        <th>슬롯</th>
+                        <th>게재 기간</th>
+                        <th class="r">노출</th>
+                        <th class="r">클릭</th>
+                        <th class="r">CTR</th>
+                        <th>상태</th>
+                        <th>리포트</th>
+                        <th class="r">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody id="rows">
+                    <tr th:each="row : ${rows}"
+                        th:attr="data-status=${row.status.key},
+                                 data-search=${#strings.toLowerCase(row.banner.advertiserName + ' ' + row.banner.slot.name + ' ' + row.banner.slot.code)}">
+                        <td>
+                            <div class="cellname">
+                                <img class="thumb" th:src="${row.banner.imagePath}" alt="배너 이미지"/>
+                                <div>
+                                    <b th:text="${row.banner.advertiserName}">광고주</b>
+                                    <em th:text="'#' + ${row.banner.id}">#1</em>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:text="${row.banner.slot.name}">슬롯</span><br>
+                            <span class="mono" th:text="${row.banner.slot.code}">CODE</span>
+                        </td>
+                        <td>
+                            <span th:text="${#temporals.format(row.banner.startAt, 'yyyy.MM.dd')}">2026.01.01</span><br>
+                            <span class="note" th:text="'~ ' + ${#temporals.format(row.banner.endAt, 'yyyy.MM.dd')}">~ 2026.12.31</span>
+                        </td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
+                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
+                        <td>
+                            <span class="pill" th:classappend="${row.status.key}">
+                                <i></i><span th:text="${row.status.label}">상태</span>
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn ghost sm copy-report" th:if="${row.reportPath != null}"
+                                    th:attr="data-report=${row.reportPath}">링크 복사</button>
+                            <span class="note" th:if="${row.reportPath == null}">없음</span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact">
+                                <a class="btn ghost sm" th:href="@{'/admin-hoya/ad/banners/' + ${row.banner.id} + '/edit'}">수정</a>
+                                <form th:action="@{'/admin-hoya/ad/banners/' + ${row.banner.id} + '/toggle'}" method="post">
+                                    <button type="submit" class="btn ghost sm"
+                                            th:text="${row.banner.enabled} ? '중지' : '재개'">중지</button>
+                                </form>
+                                <form th:action="@{'/admin-hoya/ad/banners/' + ${row.banner.id} + '/delete'}" method="post"
+                                      onsubmit="return confirm('정말 삭제하시겠습니까? 되돌릴 수 없습니다.');">
+                                    <button type="submit" class="btn danger sm">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" id="noresult" style="display:none">조건에 맞는 배너가 없습니다.</div>
+            <div class="empty" th:if="${#lists.isEmpty(rows)}">
+                등록된 배너가 없습니다. <a href="/admin-hoya/ad/banners/new">첫 배너를 등록</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    // 배너 수가 적어 서버 왕복 없이 화면에서 거른다.
+    (function () {
+        const tbody = document.getElementById('rows');
+        if (!tbody) return;
+
+        const buttons = document.querySelectorAll('#filters button');
+        const search = document.getElementById('q');
+        const noResult = document.getElementById('noresult');
+        let filter = 'all';
+
+        function apply() {
+            const query = search.value.trim().toLowerCase();
+            let visible = 0;
+
+            tbody.querySelectorAll('tr').forEach(tr => {
+                const status = tr.dataset.status;
+                const matchFilter = filter === 'all'
+                    || (filter === 'ended' ? (status === 'off' || status === 'done') : status === filter);
+                const matchQuery = !query || tr.dataset.search.includes(query);
+                const show = matchFilter && matchQuery;
+                tr.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            noResult.style.display = visible === 0 ? '' : 'none';
+        }
+
+        document.querySelectorAll('.copy-report').forEach(button =>
+            button.addEventListener('click', () => copyReportLink(button, button.dataset.report)));
+
+        buttons.forEach(button => button.addEventListener('click', () => {
+            buttons.forEach(other => other.classList.remove('on'));
+            button.classList.add('on');
+            filter = button.dataset.filter;
+            apply();
+        }));
+        search.addEventListener('input', apply);
+    })();
+</script>
+</body>
+</html>

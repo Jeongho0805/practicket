@@ -1,4 +1,9 @@
 import { authFetch, showAlert } from '/js/common.js';
+import {
+    bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
+    renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
+} from '/js/practice/result-split.js';
+import * as run from '/js/practice/run-state.js';
 
 // ════════════════════════════════════════
 // Queue System
@@ -9,81 +14,33 @@ const QueueConfig = {
     MAX_QUEUE: 200_000,
     MAX_REACTION_MS: 3_000,        // 3초 이상은 최대 대기로 처리
     FIXED_DEQUEUE_PER_SEC: 20_000, // MAX_QUEUE / 10초 → 항상 10초 이내 통과
-    STORAGE_KEY: 'iq.queue.payload'
+    LOADING_MS: 800
 };
 
 const QueueManager = {
-    payload: null,
     intervalId: null,
     dom: {},
+    initialQueue: 0,
+    startedAtMs: 0,
+    passed: false,
 
     init() {
-        this.createQueueDOM();
-
-        const stored = sessionStorage.getItem(QueueConfig.STORAGE_KEY);
-        if (stored) {
-            try {
-                this.payload = JSON.parse(stored);
-            } catch (e) {
-                console.error('Queue Payload Corrupted', e);
-                this.createFallbackPayload();
-            }
-        } else {
-            console.warn('No Queue Payload Found. Creating Fallback.');
-            this.createFallbackPayload();
-        }
-
-        const now = Date.now();
-        if (now - this.payload.createdAtMs > 15 * 60 * 1000) {
-            console.warn('Queue Payload Expired. Resetting.');
-            sessionStorage.removeItem(QueueConfig.STORAGE_KEY);
-            this.createFallbackPayload();
-        }
-
-        if (this.payload.status === 'PASSED') {
-            this.removeQueueDOM();
-            if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
-                setTimeout(() => MobileDateScreen.show(), 0);
-            }
+        // 이미 통과한 판이면 줄을 다시 세우지 않는다. 실물도 예매창에서 새로고침하면 좌석에 남는다.
+        if (run.stage() === run.STAGE.SEAT) {
+            this.afterQueue();
             return;
         }
 
-        this.renderPhase('LOADING');
+        this.createQueueDOM();
 
-        if (!this.payload.queueStartAtMs) {
-            setTimeout(() => {
-                this.startQueue();
-            }, this.payload.introLoadingMs || 800);
-        } else {
-            this.startQueue();
-        }
-    },
-
-    createFallbackPayload() {
-        const now = Date.now();
-        const reactionTimeMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
-        const step = Math.min(Math.floor(reactionTimeMs / 100), 30); // 0.1초 단위, 최대 30단계
-        const initialQueue = Math.round(
+        const step = Math.min(Math.floor(run.reactionMs() / 100), 30); // 0.1초 단위, 최대 30단계
+        this.initialQueue = Math.round(
             QueueConfig.MIN_QUEUE + (step / 30) * (QueueConfig.MAX_QUEUE - QueueConfig.MIN_QUEUE)
         );
+        run.setInitialRank(this.initialQueue);
 
-        sessionStorage.setItem('pkt.queueInitialRank', initialQueue.toString());
-
-        this.payload = {
-            version: 2,
-            createdAtMs: now,
-            introClickedAtMs: now,
-            introLoadingMs: 800,
-            queueStartAtMs: null,
-            initialQueue: initialQueue,
-            dequeuePerSec: QueueConfig.FIXED_DEQUEUE_PER_SEC,
-            status: 'INTRO_LOADING'
-        };
-        this.savePayload();
-    },
-
-    savePayload() {
-        sessionStorage.setItem(QueueConfig.STORAGE_KEY, JSON.stringify(this.payload));
+        this.renderPhase('LOADING');
+        setTimeout(() => this.startQueue(), QueueConfig.LOADING_MS);
     },
 
     createQueueDOM() {
@@ -162,13 +119,9 @@ const QueueManager = {
     },
 
     startQueue() {
-        if (!this.payload.queueStartAtMs) {
-            this.payload.queueStartAtMs = Date.now();
-            this.payload.status = 'WAITING';
-            this.savePayload();
-        }
-
-        sessionStorage.setItem('pkt.queueWaitStartMs', this.payload.queueStartAtMs.toString());
+        /* 순번은 대기열 화면이 뜬 시각부터 다시 센다. 실물도 "새로고침 하시면 대기순서가 초기화"된다.
+           걸린 시간은 예매 클릭부터 재므로(run.markQueuePassed) 다시 서는 만큼 손해가 남는다. */
+        this.startedAtMs = Date.now();
 
         this.renderPhase('QUEUE');
         this.updateLoop();
@@ -176,10 +129,9 @@ const QueueManager = {
     },
 
     updateLoop() {
-        const now = Date.now();
-        const elapsedSec = (now - this.payload.queueStartAtMs) / 1000;
+        const elapsedSec = (Date.now() - this.startedAtMs) / 1000;
         let currentQueue = Math.max(0, Math.floor(
-            this.payload.initialQueue - (elapsedSec * this.payload.dequeuePerSec)
+            this.initialQueue - (elapsedSec * QueueConfig.FIXED_DEQUEUE_PER_SEC)
         ));
 
         this.renderQueue(currentQueue);
@@ -194,11 +146,11 @@ const QueueManager = {
 
         this.dom.count.innerText = num.toLocaleString();
 
-        const total = this.payload.initialQueue;
+        const total = this.initialQueue;
         const percent = total > 0 ? Math.min(100, Math.max(0, ((total - num) / total) * 100)) : 100;
         this.dom.progress.style.width = percent + '%';
 
-        const secondsLeft = this.payload.dequeuePerSec > 0 ? Math.ceil(num / this.payload.dequeuePerSec) : 0;
+        const secondsLeft = Math.ceil(num / QueueConfig.FIXED_DEQUEUE_PER_SEC);
         this.dom.timeLeft.innerText = secondsLeft + '초';
 
         if (num <= 5000 && num > 0) {
@@ -213,28 +165,26 @@ const QueueManager = {
             clearInterval(this.intervalId);
         }
 
-        this.payload.status = 'PASSED';
-        this.savePayload();
-
-        const queueWaitStart = parseInt(sessionStorage.getItem('pkt.queueWaitStartMs') || '0');
-        if (queueWaitStart) {
-            sessionStorage.setItem('pkt.queueWaitMs', (Date.now() - queueWaitStart).toString());
-        }
-        sessionStorage.setItem('pkt.seatSelectionStartMs', Date.now().toString());
-
-        const afterQueue = () => {
-            this.removeQueueDOM();
-            if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
-                MobileDateScreen.show();
-            }
-        };
+        run.markQueuePassed();
+        run.sendCheckpoint(authFetch);
 
         if (this.dom.overlay) {
             this.dom.overlay.classList.add('finished');
-            setTimeout(afterQueue, 700);
+            setTimeout(() => this.afterQueue(), 700);
         } else {
-            afterQueue();
+            this.afterQueue();
         }
+    },
+
+    afterQueue() {
+        this.removeQueueDOM();
+        this.passed = true;
+
+        if (window.matchMedia('(max-width: 768px)').matches && sessionStorage.getItem('captcha_solved') !== 'true') {
+            setTimeout(() => MobileDateScreen.show(), 0);
+            return;
+        }
+        openCaptchaWhenReady();
     }
 };
 
@@ -337,7 +287,7 @@ const MobileDateScreen = {
 
         el.querySelector('#mob-date-close').addEventListener('click', () => {
             if (confirm('날짜 선택을 취소하시겠습니까?')) {
-                location.href = '/practice/i-ticket/intro';
+                location.replace('/practice/i-ticket/intro');
             }
         });
 
@@ -359,6 +309,7 @@ const MobileCaptchaScreen = {
     overlay: null,
 
     show() {
+        run.captchaOpened();
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
         document.querySelector('meta[name="viewport"]').content = 'width=device-width, initial-scale=1.0, user-scalable=no';
@@ -461,6 +412,7 @@ const MobileCaptchaScreen = {
 
         const val = input.value.toUpperCase().trim();
         if (val === STATE.captchaAnswer) {
+            run.captchaClosed();
             sessionStorage.setItem('captcha_solved', 'true');
             if (this.overlay) { this.overlay.remove(); this.overlay = null; }
             if (MobileDateScreen.overlay) { MobileDateScreen.overlay.remove(); MobileDateScreen.overlay = null; }
@@ -799,7 +751,6 @@ class SeatManager {
         this.rushSoldRatio = 0.95;
 
         this.storageKeys = {
-            decayStartAt: 'iq.seat.decay.startedAt',
             zoneRanks: 'iq.seat.zoneRanks_v7'
         };
 
@@ -807,11 +758,6 @@ class SeatManager {
     }
 
     init() {
-        const storedDecay = Number(sessionStorage.getItem(this.storageKeys.decayStartAt));
-        if (Number.isFinite(storedDecay) && storedDecay > 0) {
-            this.decayStartAtMs = storedDecay;
-        }
-
         let loaded = false;
         const savedRanks = sessionStorage.getItem(this.storageKeys.zoneRanks);
         if (savedRanks) {
@@ -833,23 +779,11 @@ class SeatManager {
         this.refreshSnapshot();
     }
 
+    /* 좌석은 카운트다운이 끝난 순간부터 팔린다 — 예매를 늦게 눌러도 자리는 이미 줄어 있다.
+       run 이 그 시각을 들고 있어 새로고침에는 살아남고 판이 바뀌면 지워진다. */
     resolveDecayStartAt(fallbackNow = Date.now()) {
-        const queuePayloadRaw = sessionStorage.getItem('iq.queue.payload');
-        if (queuePayloadRaw) {
-            try {
-                const queuePayload = JSON.parse(queuePayloadRaw);
-                if (Number.isFinite(queuePayload.queueStartAtMs) && queuePayload.queueStartAtMs > 0) {
-                    sessionStorage.setItem(this.storageKeys.decayStartAt, String(queuePayload.queueStartAtMs));
-                    return queuePayload.queueStartAtMs;
-                }
-            } catch (e) {
-                // ignore
-            }
-            sessionStorage.removeItem('iq.queue.payload');
-        }
-
-        sessionStorage.setItem(this.storageKeys.decayStartAt, String(fallbackNow));
-        return fallbackNow;
+        const openedAt = run.openedAt();
+        return openedAt > 0 ? openedAt : fallbackNow;
     }
 
     generateAllZoneRanks() {
@@ -1084,15 +1018,38 @@ function showSoldOutModal() {
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
 
-    const fmt = ms => ms > 0 ? (ms / 1000).toFixed(2) + 's' : '-';
+    const fmt = ms => ms > 0 ? (ms / 1000).toFixed(2) + '초' : '-';
 
-    const reactionMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
-    const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
-    const initialRank = sessionStorage.getItem('pkt.queueInitialRank');
+    const reactionMs = run.reactionMs();
+    const queueWaitMs = run.queueWaitMs();
+    const captchaMs = run.captchaMs();
+    const initialRank = run.initialRank();
+    const elapsed = run.openedAt() ? Math.max(0, Date.now() - run.openedAt()) : 0;
+    const seatMs = Math.max(0, elapsed - reactionMs - queueWaitMs - captchaMs);
+    const totalMs = reactionMs + queueWaitMs + captchaMs + seatMs;
+
+    const meta = ['I-Ticket'];
+    if (initialRank) meta.push('대기 순번 ' + Number(initialRank).toLocaleString() + '번에서 출발');
+    document.getElementById('pkt-fail-meta').textContent = meta.join(' · ');
 
     document.getElementById('pkt-fail-reaction').textContent = fmt(reactionMs);
     document.getElementById('pkt-fail-queue').textContent = fmt(queueWaitMs);
-    document.getElementById('pkt-fail-rank').textContent = initialRank ? '#' + initialRank : '-';
+    document.getElementById('pkt-fail-captcha').textContent = fmt(captchaMs);
+    document.getElementById('pkt-fail-seat').textContent = fmt(seatMs);
+    /* 같은 값이 문장에도 나오므로 소수 자릿수를 맞춘다 */
+    document.getElementById('pkt-fail-total').textContent = (totalMs / 1000).toFixed(1) + '초';
+
+    /* 좌석 구간까지 그린다. 매진으로 끝났다면 시간을 가장 많이 쓴 곳이 좌석 화면인데,
+       그 구간을 빼면 막대가 대기열로 꽉 차 "반응 속도를 줄여라"는 힌트와 서로 어긋난다. */
+    renderSplitBar(document.getElementById('pkt-fail-stack'),
+                   [reactionMs, queueWaitMs, captchaMs, seatMs], totalMs);
+
+    const sellOutMs = seatManager ? seatManager.totalSellOutDurationMs : 0;
+    document.getElementById('pkt-fail-msg').textContent = sellOutMs
+        ? `좌석이 다 팔리기까지 ${(sellOutMs / 1000).toFixed(0)}초, 여기까지 ${(totalMs / 1000).toFixed(1)}초 걸렸어요`
+        : '다음엔 더 빠르게 도전해 보세요';
+
+    renderFailHint(document.getElementById('pkt-fail-hint'), [reactionMs, queueWaitMs, captchaMs, seatMs]);
 
     overlay.classList.add('visible');
 }
@@ -1341,6 +1298,8 @@ async function goToStep3() {
 // Main Booking Functions
 // ════════════════════════════════════════
 
+let seatUiReady = false;
+
 function init() {
     bindEvents();
     updateUI();
@@ -1359,14 +1318,26 @@ function init() {
             MobileSeatScreen.show();
         }
         // else: MobileDateScreen이 대기열 종료 후 트리거됨
+    } else if (sessionStorage.getItem('captcha_solved') === 'true') {
+        DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
+        setSeatPhase('AREA');
     } else {
-        if (sessionStorage.getItem('captcha_solved') === 'true') {
-            DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
-            setSeatPhase('AREA');
-        } else {
-            renderCaptcha();
-        }
+        DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
     }
+
+    seatUiReady = true;
+    openCaptchaWhenReady();
+}
+
+/* 보안문자는 대기열이 끝나고 좌석 화면이 준비된 뒤에만 연다. 두 조건 중 나중에 끝나는 쪽이 이 함수를 부른다.
+   대기열 위에 가려진 채로 먼저 열면 보안문자 시계가 대기 시간까지 삼켜, 구간 합이 총 시간을 넘어
+   서버가 기록을 버린다(PracticeSessionValidator). */
+function openCaptchaWhenReady() {
+    if (!QueueManager.passed || !seatUiReady) return;
+    if (window.matchMedia('(max-width: 768px)').matches) return;
+    if (sessionStorage.getItem('captcha_solved') === 'true') return;
+
+    renderCaptcha();
 }
 
 function bindEvents() {
@@ -1411,6 +1382,8 @@ function handleAction(action, target) {
             if (confirm('초기화면으로 돌아가시겠습니까?')) location.reload();
             break;
         case 'captcha-fold':
+            /* 접어두는 동안은 보안문자에 시간을 쓰는 게 아니다. 다시 펼치면 이어서 잰다. */
+            run.captchaClosed();
             setSeatPhase('FOLDED');
             DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
             showToast('좌석을 둘러보시려면 구역을 클릭하세요. 예매하려면 보안문자를 확인해야 합니다.');
@@ -1428,6 +1401,7 @@ function handleAction(action, target) {
 }
 
 function renderCaptcha() {
+    run.captchaOpened();
     STATE.seatPhase = 'CAPTCHA';
     DOM.root.setAttribute('data-seat-phase', 'CAPTCHA');
     DOM.captchaOverlay.setAttribute('aria-hidden', 'false');
@@ -1521,6 +1495,7 @@ function handleCaptchaSubmit() {
     if (!DOM.captchaInput) return;
     const val = DOM.captchaInput.value.toUpperCase().trim();
     if (val === STATE.captchaAnswer) {
+        run.captchaClosed();
         sessionStorage.setItem('captcha_solved', 'true');
         DOM.captchaOverlay.setAttribute('aria-hidden', 'true');
         setSeatPhase('AREA');
@@ -1658,24 +1633,28 @@ function showToast(msg) {
     }, 2000);
 }
 
+/* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function completePractice() {
-    const sessionId = sessionStorage.getItem('pkt.sessionId');
-    const reactionTimeMs = parseInt(sessionStorage.getItem('pkt.reactionTimeMs') || '0');
-    const queueWaitMs = parseInt(sessionStorage.getItem('pkt.queueWaitMs') || '0');
-    const seatStartMs = parseInt(sessionStorage.getItem('pkt.seatSelectionStartMs') || '0');
-    const seatSelectionMs = seatStartMs ? Math.max(0, Date.now() - seatStartMs) : 0;
-    const queueInitialRank = parseInt(sessionStorage.getItem('pkt.queueInitialRank') || '0');
-    const reactionStartMs = parseInt(sessionStorage.getItem('pkt.reactionStartMs') || '0');
-    const totalDurationMs = reactionStartMs ? Math.max(0, Date.now() - reactionStartMs) : 0;
+    const sessionId = run.sessionId();
+    const captchaMs = run.captchaMs();
 
-    ['pkt.sessionId', 'pkt.reactionTimeMs', 'pkt.queueWaitMs',
-        'pkt.queueInitialRank', 'pkt.queueWaitStartMs',
-        'pkt.seatSelectionStartMs', 'pkt.reactionStartMs'
-    ].forEach(k => sessionStorage.removeItem(k));
+    const sent = {
+        total_duration_ms: run.openedAt() ? Math.max(0, Date.now() - run.openedAt()) : 0,
+        reaction_time_ms: run.reactionMs(),
+        queue_wait_ms: run.queueWaitMs(),
+        captcha_ms: captchaMs,
+        queue_initial_rank: run.initialRank(),
+    };
+    const local = {
+        ...sent,
+        seat_selection_ms: Math.max(0, sent.total_duration_ms
+            - sent.reaction_time_ms - sent.queue_wait_ms - captchaMs),
+    };
+
+    clearInterval(soldOutMonitorId);
 
     if (!sessionId) {
-        await showAlert({ title: '오류', msg: '에러가 발생하였습니다. 다시 시도해주세요.' });
-        location.href = '/practice';
+        showCompleteModal(local, false);
         return;
     }
 
@@ -1683,38 +1662,56 @@ async function completePractice() {
         const res = await authFetch('/api/practice/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId, total_duration_ms: totalDurationMs, reaction_time_ms: reactionTimeMs, queue_wait_ms: queueWaitMs, seat_selection_ms: seatSelectionMs, queue_initial_rank: queueInitialRank })
+            body: JSON.stringify({ session_id: sessionId, ...sent })
         });
 
-        clearInterval(soldOutMonitorId);
-
         if (res.ok) {
-            showCompleteModal(await res.json());
+            showCompleteModal({ ...local, ...await res.json() }, true);
         } else {
             console.warn('[Practicket] complete failed');
-            showCompleteModal({ total_duration_ms: totalDurationMs, reaction_time_ms: reactionTimeMs, queue_wait_ms: queueWaitMs, seat_selection_ms: seatSelectionMs, queue_initial_rank: queueInitialRank });
+            showCompleteModal(local, false);
         }
     } catch (e) {
         console.error('[Practicket] complete error:', e);
+        showCompleteModal(local, false);
     }
 }
 
-function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms, seat_selection_ms, queue_initial_rank, percentile, my_rank, total_users }) {
-    const fmt = ms => (ms / 1000).toFixed(3) + 's';
+const BEST_RECORD_KEY = bestRecordKey('i-ticket');
 
-    const now = new Date();
-    const dateStr = [
-        now.getFullYear(),
-        String(now.getMonth() + 1).padStart(2, '0'),
-        String(now.getDate()).padStart(2, '0')
-    ].join('.') + '  ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+function showCompleteModal(r, saved) {
+    const { total_duration_ms, reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms,
+            queue_initial_rank, percentile, my_rank, total_users } = r;
+    const fmt = ms => (ms / 1000).toFixed(3) + '초';
 
-    document.getElementById('pkt-meta').textContent = 'I-Ticket · ' + dateStr;
+    const meta = ['I-Ticket'];
+    if (queue_initial_rank) meta.push('대기 순번 ' + queue_initial_rank.toLocaleString() + '번에서 출발');
+    document.getElementById('pkt-meta').textContent = meta.join(' · ');
+
     document.getElementById('pkt-total-num').textContent = (total_duration_ms / 1000).toFixed(3);
     document.getElementById('pkt-reaction').textContent = fmt(reaction_time_ms);
     document.getElementById('pkt-queue').textContent = fmt(queue_wait_ms);
+    document.getElementById('pkt-captcha').textContent = fmt(captcha_ms);
     document.getElementById('pkt-seat').textContent = fmt(seat_selection_ms);
-    document.getElementById('pkt-rank').textContent = queue_initial_rank ? '#' + queue_initial_rank.toLocaleString() : '-';
+
+    const segments = [reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms];
+    const segmentSum = segments.reduce((a, b) => a + b, 0);
+    const best = readBestRecord(BEST_RECORD_KEY);
+
+    /* 척도는 총 시간이 아니라 구간 합이다. 둘이 어긋나도 막대가 꽉 찬다. */
+    const scale = segmentSum;
+    renderSplitBar(document.getElementById('pkt-stack'), segments, scale);
+
+    renderCompleteHint(segments, segmentSum);
+    renderBestTag(total_duration_ms, best);
+    saveBestRecord(BEST_RECORD_KEY, total_duration_ms, segments, best);
+    bindShareButton();
+
+    if (!saved) {
+        showUnsavedNotice();
+        document.getElementById('pkt-complete-overlay').classList.add('visible');
+        return;
+    }
 
     const bar = document.getElementById('pkt-percentile-bar');
     if (percentile != null && total_users >= 2) {
@@ -1733,8 +1730,8 @@ function showCompleteModal({ total_duration_ms, reaction_time_ms, queue_wait_ms,
 // ════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!sessionStorage.getItem('pkt.sessionId')) {
-        window.location.href = '/practice/i-ticket/intro';
+    if (!run.sessionId()) {
+        window.location.replace('/practice/i-ticket/intro');
         return;
     }
 

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>M-Ticket 실전연습 - 프랙티켓</title>
+    <link rel="stylesheet" href="/css/common/alert.css" />
+    <link rel="stylesheet" href="/css/practice/start-modal.css" />
+    <link rel="stylesheet" href="/css/practice/m_ticket_intro.css" />
+</head>
+
+<body>
+
+<!-- ══════════ 데스크톱 / 태블릿 ══════════ -->
+<div class="pc">
+    <div class="top-bar">
+        <div class="inner">
+            <button class="back-btn" onclick="location.href='/practice'"><span class="arw">‹</span>뒤로</button>
+        </div>
+    </div>
+
+    <div id="cont">
+        <div class="product-box">
+            <div class="product-cont">
+                <div class="thumb">
+                    <div class="poster">
+                        <div class="p-sub">2026 HOYA SOLO CONCERT</div>
+                        <div class="p-tit">HOYA<br />LIVE 2026<br />IN SEOUL</div>
+                        <div class="p-meta">2026.02.08 · 프랙티켓홀</div>
+                    </div>
+                </div>
+
+                <div class="product-txt">
+                    <div class="badges">
+                        <span class="badge b1">연습모드</span>
+                        <span class="badge b2">실전과 동일</span>
+                    </div>
+                    <h1 class="p-title">HOYA LIVE 2026 IN SEOUL</h1>
+                    <div class="p-subtitle">2026 HOYA SOLO CONCERT</div>
+                    <div class="p-rank">프랙티켓 주간 1위</div>
+
+                    <div class="info-grid">
+                        <dl class="left">
+                            <dt>공연기간</dt><dd>2026.02.08</dd>
+                            <dt>공연시간</dt><dd>90분</dd>
+                            <dt>장르</dt><dd>콘서트</dd>
+                        </dl>
+                        <dl>
+                            <dt>장소</dt><dd>프랙티켓홀 <span class="chev">›</span></dd>
+                            <dt>관람연령</dt><dd>전체 관람가</dd>
+                            <dt>할인혜택</dt><dd><span class="pill-tag">무료</span></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-box">
+                <!-- 오픈 전에는 실물처럼 이 줄만 보인다. 날짜·시간 칸과 예매 버튼은 오픈된 뒤에 나타난다 -->
+                <div class="open-line" id="open-line"><span id="open-txt"></span></div>
+
+                <div class="process-cols is-hidden" id="process-cols">
+                    <div class="col">
+                        <div class="col-head">
+                            <span class="sorting"><span>▦</span><b>≡</b></span>날짜 선택
+                        </div>
+                        <div class="col-body" id="date-body"></div>
+                    </div>
+                    <div class="col">
+                        <div class="col-head">시간 선택</div>
+                        <div class="col-body" id="time-body"></div>
+                    </div>
+                    <div class="col">
+                        <div class="col-head">좌석 선택</div>
+                        <div class="col-body" id="seat-body"></div>
+                    </div>
+                </div>
+
+                <div class="btn-bar is-hidden" id="btn-bar">
+                    <div class="msg" id="pick-msg"></div>
+                    <button class="btn-book" id="pc-book" disabled>예매하기</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-tabs">
+            <button class="tab on">연습안내</button>
+            <button class="tab">공연장정보</button>
+            <button class="tab">예매안내</button>
+        </div>
+
+        <div class="detail-body">
+            <h3>연습 방법</h3>
+            <p>
+                카운트다운이 끝나면 예매 영역이 열립니다. 회차가 하나뿐이라 날짜·시간은 미리 선택되어 있으니
+                예매하기를 누르면 그때까지 걸린 시간이 기록됩니다.<br />
+                ※ 실제 예매가 아닌 티켓팅 연습입니다. 결제·발권은 진행되지 않습니다.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!--
+  모바일은 실물 멜론과 같이 상세 화면에 날짜·시간 칸이 없다.
+  예매하기 한 번으로 다음 화면에 넘어간다.
+-->
+<div class="mo">
+    <div class="m-hero">
+        <div class="bg"></div>
+        <div class="top"><button onclick="location.href='/practice'">‹</button></div>
+        <div class="row">
+            <div class="poster-s">
+                <div class="p-sub">2026 HOYA SOLO CONCERT</div>
+                <div class="p-tit">HOYA LIVE 2026 IN SEOUL</div>
+            </div>
+            <div class="meta">
+                <div class="badges">
+                    <span class="badge b1">연습모드</span>
+                    <span class="badge b2">실전과 동일</span>
+                </div>
+                <h1>HOYA LIVE 2026<br />IN SEOUL</h1>
+                <div class="genre">콘서트 · 90분 · 전체 관람가</div>
+            </div>
+        </div>
+    </div>
+
+    <dl class="m-info">
+        <dt>공연기간</dt><dd>2026.02.08</dd>
+        <dt>장소</dt><dd>프랙티켓홀 ›</dd>
+        <dt>공연시간</dt><dd>90분</dd>
+        <dt>할인혜택</dt><dd>무료</dd>
+    </dl>
+
+    <div class="m-tabs">
+        <button class="tab on">연습안내</button>
+        <button class="tab">공연장정보</button>
+        <button class="tab">예매안내</button>
+    </div>
+
+    <div class="m-section">
+        <h3>공연시간</h3>
+        <p>2026년 2월 8일(일)<br />오후 6시</p>
+    </div>
+
+    <div class="m-section">
+        <h3>가격정보</h3>
+        <div class="m-price">
+            <div><i style="background:#e8a0c8"></i>R석<b>154,000원</b></div>
+            <div><i style="background:#8fd4ee"></i>S석<b>143,000원</b></div>
+        </div>
+    </div>
+
+    <div class="m-spacer"></div>
+</div>
+
+<div class="m-bottom">
+    <button id="mo-book" disabled>예매하기</button>
+</div>
+
+<!--
+  대기열. 예매하기를 누르면 뜬다.
+  단계는 회차선택 → 좌석선택 2개다 — 연습은 좌석까지가 끝이라 가격선택·배송결제가 없다.
+  (실물 스킨에도 step02 라는 2단계 변형이 있다.)
+-->
+<div id="queue-dim" style="display:none"></div>
+<div id="queue-pop" style="display:none">
+    <div class="q-head">
+        <h3>HOYA LIVE 2026 IN SEOUL</h3>
+        <span class="q-close">✕</span>
+    </div>
+    <div class="q-body">
+        <div class="q-state">
+            <span class="q-badge delay" id="q-badge">지연</span>
+            좌석 선택 진입 중
+        </div>
+        <div class="q-num">내 대기순서 <strong id="q-count">0</strong>번째</div>
+        <div class="q-time">뒤에 <span id="q-behind">0</span>명 / <span id="q-left">0초</span> 소요 예상</div>
+        <div class="q-steps">
+            <div class="q-track">
+                <span class="line"></span>
+                <span class="fill" id="q-fill" style="width:0"></span>
+                <span class="dot on" style="left:0"></span>
+                <span class="dot" id="q-dot2" style="left:100%"></span>
+            </div>
+            <ol class="q-labels">
+                <li class="on">회차선택</li>
+                <li>좌석선택</li>
+            </ol>
+        </div>
+    </div>
+    <div class="q-noti">
+        <ul>
+            <li>현재 접속량이 많아 대기 중입니다. 잠시만 기다려 주시면 다음 단계로 안전하게 자동 접속합니다.</li>
+            <li><strong>새로 고침 하시면 순번이 뒤로 밀리니 주의해주세요.</strong></li>
+        </ul>
+    </div>
+</div>
+
+<div th:replace="~{fragments/practice-start-modal :: modal('M-Ticket')}"></div>
+
+<th:block th:replace="~{fragments/alert :: alert}"></th:block>
+
+<!-- layout/default 가 내려주던 전역이다. 독립 페이지라 여기서 직접 정의한다(i_ticket_new.html 과 동일) -->
+<script>const HOST = '';</script>
+<script type="module" src="/js/practice/m_ticket_intro.js"></script>
+</body>
+
+</html>
