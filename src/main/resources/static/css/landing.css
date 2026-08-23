@@ -98,10 +98,10 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
     /* 채팅 런처는 오른쪽 아래 구석(약 58px)만 가린다 — 아래 전체를 비우지 말고 푸터만 비켜준다 */
     #main-section { padding: 13px 14px 16px; gap: 8px; justify-content: flex-start; }
     .foot { padding-right: 62px; }
-    /* 공지 카드가 남는 세로 공간을 흡수한다. min-height:0 이 없으면 목록 길이만큼 최소 높이가 잡혀
-       카드가 안 줄고 페이지 전체가 스크롤된다 — 화면이 좁으면 목록만 안에서 스크롤되게 한다 */
-    /* 남는 세로 공간을 공지가 혼자 먹지 않게 문의 카드와 나눠 갖는다 */
-    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 1 auto; min-height: 220px; overflow: hidden; display: flex; flex-direction: column; }
+    /* 모바일 카드는 shrink 하지 않는다 — overflow:hidden 이라 줄어드는 순간 내용을 잘라먹는다.
+       모자라면 아래 높이별 구간에서 건수·여백을 덜어내 맞춘다.
+       176px 은 모바일 5건 실측치다. PC 값(220px)은 44px 이 빈 여백으로 굳어 배너를 밀어낸다. */
+    .notice { padding: 13px 16px; border-radius: 15px; flex: 0.55 0 auto; min-height: 176px; overflow: hidden; display: flex; flex-direction: column; }
     .nt-head { margin-bottom: 7px; } .nt-head b { font-size: 14.5px; }
     .nt-list { gap: 6px; flex: 1 1 auto; justify-content: flex-start; }
     .nt-txt { font-size: 12px; } .nt-date { font-size: 11px; }
@@ -111,7 +111,7 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
     .inq-card b { font-size: 14.5px; } .inq-card span { margin-top: 4px; font-size: 11px; }
     /* 남는 세로 공간은 문의 카드가 아니라 배너가 흡수한다.
        커진 높이를 요소가 다닥다닥 뭉치지 않게 위아래로 펼쳐 채운다. */
-    .bb { flex: 1 1 auto; flex-direction: column; align-items: stretch; padding: 22px 18px; gap: 12px; justify-content: space-between; }
+    .bb { flex: 1 0 auto; flex-direction: column; align-items: stretch; padding: 22px 18px; gap: 12px; justify-content: space-between; }
     .bb .badge { font-size: 10px; padding: 4px 10px; align-self: flex-start; }
     .bb-l { gap: 16px; }
     .bb-l b { font-size: 16px; } .bb .desc { font-size: 13px; line-height: 1.45; }
@@ -122,14 +122,38 @@ a.nt-txt:hover { color: #6b5b9a; text-decoration: underline; }
     .foot a { font-size: 11px; } .foot .copy { font-size: 10.5px; }
 }
 
-/* SE 급 짧은 화면(≤700px)에서만 추가로 덜어낸다 — 큰 폰은 위 값 그대로 */
-@media (max-width: 768px) and (max-height: 700px) {
+/* 화면이 짧아질수록 단계적으로 덜어낸다. 목표는 어느 구간에서도 스크롤이 안 생기는 것이다.
+   경계값은 기기 스펙이 아니라 실측으로 잡았다 — 각 구간의 가장 짧은 화면에서 넘침이 0 이 되는 지점이다.
+   광고 띠(폭의 1/4)가 항상 자리를 먹으므로 체감보다 예산이 빠듯하다. */
+
+/* ≤820px: 5건이 안 들어간다. 820 인 이유는 740 짜리 폰이 700 기준에선 걸러지지 않아 넘쳤기 때문이다 */
+@media (max-width: 768px) and (max-height: 820px) {
     #main-section { gap: 6px; }
-    /* 다섯 건을 다 넣을 높이가 없다. 스크롤·잘림 대신 건수를 줄인다 */
+    /* 스크롤·잘림 대신 건수를 줄인다 */
     .nt-list li:nth-child(n+5) { display: none; }
-    .inq-card { padding: 11px 16px; min-height: 96px; }
-    /* 짧은 화면에선 공지 최소높이를 낮춰 배너가 잘리지 않게 공간을 양보한다 */
-    .notice { padding: 11px 14px; min-height: 150px; }
-    .bb { padding: 10px 14px; gap: 8px; min-height: 150px; }
+    .inq-card { padding: 11px 16px; min-height: 74px; }
+    .notice { padding: 11px 14px; min-height: 140px; }
+    .bb { padding: 10px 14px; gap: 8px; min-height: 0; }
+    .bb-l { gap: 7px; }
     .bb .hylogo { height: 34px; width: 78px; margin-left: -7.9px; }
+}
+
+/* ≤660px: 공지 3건, 배너 설명 줄을 뺀다 */
+@media (max-width: 768px) and (max-height: 660px) {
+    #main-section { gap: 5px; }
+    .nt-list li:nth-child(n+4) { display: none; }
+    .notice { min-height: 118px; }
+    .inq-card { min-height: 68px; }
+    .bb .desc { display: none; }
+}
+
+/* ≤600px: 구형 소형 기기. 공지 2건에 로고·여백까지 최소로 */
+@media (max-width: 768px) and (max-height: 600px) {
+    #main-section { gap: 4px; padding: 10px 12px 12px; }
+    .nt-list li:nth-child(n+3) { display: none; }
+    .notice { min-height: 92px; }
+    .inq-card { min-height: 58px; }
+    .bb { padding: 9px 12px; gap: 6px; }
+    .bb-l { gap: 5px; }
+    .bb .hylogo { height: 28px; width: 64px; margin-left: -6.5px; }
 }
