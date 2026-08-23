@@ -19,7 +19,7 @@ server:
     session:
       cookie:
         name: "auth"
-        http-only: false
+        http-only: true
 management:
   endpoints:
     web:
