@@ -16,7 +16,7 @@ public class PostRateLimiter {
     private static final String TOKEN_KEY_PREFIX = "post:rate:token:";
     private static final String IP_KEY_PREFIX = "post:rate:ip:";
 
-    private static final long TOKEN_WINDOW_SECONDS = 60L;
+    private static final long TOKEN_WINDOW_SECONDS = 30L;
     private static final long TOKEN_MAX_COUNT = 1L;
 
     private static final long IP_WINDOW_SECONDS = 3600L;
