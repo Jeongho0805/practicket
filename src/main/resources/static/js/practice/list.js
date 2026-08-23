@@ -127,7 +127,8 @@ async function loadMyRank() {
 
         row.querySelector('.mr-rank').textContent = my.rank;
         row.querySelector('.mr-nick').textContent = my.nickname || '나';
-        row.querySelector('.mr-time').textContent = (my.best_ms / 1000).toFixed(3) + 's';
+        row.querySelector('.mr-time').innerHTML =
+            (my.best_ms / 1000).toFixed(3) + 's<span class="badge-arrow">&#9660;</span>';
         row.querySelector('.rank-split').replaceWith(createSplitBar(my));
 
         detail.innerHTML = `<div class="rank-exp-inner">${segmentListHtml(my)}</div>`;
@@ -330,8 +331,8 @@ function createRankRow(rank, item) {
 
     const timeTd = document.createElement('td');
     const badge = document.createElement('span');
-    badge.className = 'time-record-badge';
-    badge.textContent = timeStr;
+    badge.className = 'time-badge';
+    badge.innerHTML = timeStr + '<span class="badge-arrow">&#9660;</span>';
     timeTd.appendChild(badge);
 
     tr.appendChild(rankTd);
@@ -441,7 +442,7 @@ function renderMyStats(data) {
     rankEl.textContent = data.monthly_rank ? data.monthly_rank + '위' : '-';
     rankSub.textContent = data.monthly_rank ? '월간 기준' : '이번 달 미참여';
     bestEl.textContent = (data.best_ms / 1000).toFixed(3) + 's';
-    countEl.innerHTML = data.total_count + '<span style="font-size:14px;color:#94a3b8;font-family:Pretendard;font-weight:500">회</span>';
+    countEl.innerHTML = data.total_count + '<span style="font-size:14px;color:#9a93b0;font-family:Pretendard;font-weight:500">회</span>';
 
     if (data.total_count >= 2 && data.first_ms && data.best_ms) {
         const improveSec = ((data.first_ms - data.best_ms) / 1000).toFixed(3);
