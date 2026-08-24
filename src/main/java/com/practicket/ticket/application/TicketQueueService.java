@@ -32,6 +32,9 @@ public class TicketQueueService {
     private final TicketTokenRepository tokenRepository;
     private final ThreadPoolTaskExecutor ticketTaskExecutor;
 
+    /** 무한(0)이면 얼어붙은 연결을 아무도 못 걷어낸다. 만료돼도 브라우저가 곧바로 다시 붙는다. */
+    private static final long EMITTER_TIMEOUT_MS = 30 * 60 * 1000L;
+
     private static final int QUEUE_THROUGHPUT = 10;
     private static final int MAX_CONCURRENT_RESERVATIONS = 5000;
     private static final String WAITING_QUEUE_NAME = "waiting-order";
@@ -45,17 +48,13 @@ public class TicketQueueService {
     }
 
     public SseEmitter saveEmitter(String key) {
-        SseEmitter emitter = new SseEmitter(0L);
+        SseEmitter emitter = new SseEmitter(EMITTER_TIMEOUT_MS);
         emitterRepository.save(key, emitter);
+        // 콜백 안에서 complete() 를 부르면 안 된다. 컨테이너가 비동기요청 락을 쥔 채 부르는 자리라,
+        // 거기서 emitter 모니터를 요구하면 방송 스레드와 락 순서가 엇갈려 서로 영구 대기한다.
         emitter.onCompletion(() -> emitterRepository.deleteByClientKey(key));
-        emitter.onTimeout(() -> {
-            emitter.complete();
-            emitterRepository.deleteByClientKey(key);
-        });
-        emitter.onError((error) -> {
-            emitter.complete();
-            emitterRepository.deleteByClientKey(key);
-        });
+        emitter.onTimeout(() -> emitterRepository.deleteByClientKey(key));
+        emitter.onError((error) -> emitterRepository.deleteByClientKey(key));
         return emitter;
     }
 
