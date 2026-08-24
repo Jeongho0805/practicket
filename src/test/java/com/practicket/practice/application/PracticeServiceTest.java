@@ -9,7 +9,7 @@ import com.practicket.practice.domain.PracticeResult;
 import com.practicket.practice.domain.PracticeType;
 import com.practicket.practice.dto.PracticeResultRequest;
 import com.practicket.practice.dto.PracticeStartResponse;
-import com.practicket.practice.infra.persistence.PracticeRankRepository;
+import com.practicket.practice.infra.persistence.PracticeBestResultRepository;
 import com.practicket.practice.infra.persistence.PracticeResultRepository;
 import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +50,7 @@ class PracticeServiceTest {
     private PracticeResultRepository resultRepository;
 
     @Mock
-    private PracticeRankRepository rankRepository;
+    private PracticeBestResultRepository bestResultRepository;
 
     @Mock
     private PracticeSessionValidator sessionValidator;
@@ -172,6 +172,8 @@ class PracticeServiceTest {
         ValidatedSession validated = new ValidatedSession(type, LocalDateTime.now().minusSeconds(15), SERVER_ELAPSED_MS);
         when(sessionValidator.validate(clientInfo, request)).thenReturn(validated);
         when(rankCalculator.calculate(any(PracticeType.class), anyInt())).thenReturn(new MonthlyRank(50, 5, 10));
+        // 저장된 기록을 그대로 돌려준다 — 서비스가 그 값으로 기간별 최고 기록을 갱신한다
+        when(resultRepository.save(any(PracticeResult.class))).thenAnswer(call -> call.getArgument(0));
     }
 
     private ClientInfo buildClientInfo(String token, String name) {

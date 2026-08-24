@@ -18,8 +18,8 @@ import com.practicket.practice.dto.PracticeRankItem;
 import com.practicket.practice.dto.PracticeRankResponse;
 import com.practicket.practice.dto.PracticeResultRequest;
 import com.practicket.practice.dto.PracticeStartResponse;
-import com.practicket.practice.infra.persistence.PracticeRankEntry;
-import com.practicket.practice.infra.persistence.PracticeRankRepository;
+import com.practicket.practice.domain.PracticeBestResult;
+import com.practicket.practice.infra.persistence.PracticeBestResultRepository;
 import com.practicket.practice.infra.persistence.PracticeResultRepository;
 import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -40,7 +39,7 @@ public class PracticeService {
 
     private final PracticeSessionRepository sessionRepository;
     private final PracticeResultRepository resultRepository;
-    private final PracticeRankRepository rankRepository;
+    private final PracticeBestResultRepository bestResultRepository;
     private final PracticeSessionValidator sessionValidator;
     private final PracticeRankCalculator rankCalculator;
 
@@ -71,7 +70,8 @@ public class PracticeService {
     public PracticeCompleteResponse complete(ClientInfo clientInfo, PracticeResultRequest request) {
         ValidatedSession vs = sessionValidator.validate(clientInfo, request);
 
-        resultRepository.save(vs.toResult(clientInfo, request));
+        PracticeResult saved = resultRepository.save(vs.toResult(clientInfo, request));
+        recordBestResult(saved);
         sessionRepository.delete(request.getSessionId());
 
         MonthlyRank rank = rankCalculator.calculate(vs.type(), vs.serverElapsedMs());
@@ -93,37 +93,34 @@ public class PracticeService {
     public PracticeRankResponse getRanking(PracticeType type, PeriodType period,
                                            Integer cursorTotalDurationMs, Long cursorId,
                                            int limit) {
-        List<PracticeRankEntry> entries = rankRepository.findRanking(
+        List<PracticeBestResult> entries = bestResultRepository.findRanking(
                 type, period, cursorTotalDurationMs, cursorId, limit + 1);
 
         boolean hasNext = entries.size() > limit;
-        List<PracticeRankEntry> data = hasNext ? entries.subList(0, limit) : entries;
+        List<PracticeBestResult> data = hasNext ? entries.subList(0, limit) : entries;
 
         List<PracticeRankItem> items = data.stream()
-                .map(e -> new PracticeRankItem(e.nickname(), e.totalDurationMs(),
-                        e.reactionTimeMs(), e.queueWaitMs(), e.captchaMs(), e.seatSelectionMs()))
+                .map(best -> new PracticeRankItem(best.getNickname(), best.getTotalDurationMs(),
+                        best.getReactionTimeMs(), best.getQueueWaitMs(),
+                        best.getCaptchaMs(), best.getSeatSelectionMs()))
                 .toList();
 
         if (!hasNext) {
             return new PracticeRankResponse(items, null, false);
         }
 
-        PracticeRankEntry last = data.get(data.size() - 1);
+        PracticeBestResult last = data.get(data.size() - 1);
         return new PracticeRankResponse(items,
-                new PracticeRankResponse.NextCursor(last.totalDurationMs(), last.id()), true);
+                new PracticeRankResponse.NextCursor(last.getTotalDurationMs(), last.getResultId()), true);
     }
 
     @Transactional(readOnly = true)
     public PracticeMyRankResponse getMyRank(ClientInfo clientInfo, PracticeType type, PeriodType period) {
-        LocalDateTime start = period.getStartDateTime();
-        long totalUsers = resultRepository.countUsersSince(type.name(), start);
+        long totalUsers = bestResultRepository.countParticipants(type, period);
 
-        return resultRepository
-                .findFirstByClientKeyAndTypeAndStartedAtGreaterThanEqualOrderByTotalDurationMsAscIdAsc(
-                        clientInfo.getToken(), type, start)
+        return bestResultRepository.findMyBest(type, period, clientInfo.getToken())
                 .map(best -> new PracticeMyRankResponse(
-                        resultRepository.countUsersWithBetterRecordSince(
-                                type.name(), start, best.getTotalDurationMs()) + 1,
+                        bestResultRepository.countFasterThan(type, period, best.getTotalDurationMs()) + 1,
                         best.getNickname(),
                         best.getTotalDurationMs(),
                         best.getReactionTimeMs(),
@@ -147,17 +144,10 @@ public class PracticeService {
                 .map(PracticeResult::getTotalDurationMs)
                 .orElse(null);
 
-        LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1)
-                .withHour(0).withMinute(0).withSecond(0).withNano(0);
-        LocalDateTime monthEnd = monthStart.plusMonths(1);
-
-        Long monthlyRank = null;
-        Optional<Integer> myMonthlyBest = resultRepository.findMonthlyBestMs(clientKey, type, monthStart, monthEnd);
-        if (myMonthlyBest.isPresent()) {
-            long betterCount = resultRepository.countUsersWithBetterMonthlyRecord(
-                    type.name(), monthStart, monthEnd, myMonthlyBest.get());
-            monthlyRank = betterCount + 1;
-        }
+        Long monthlyRank = bestResultRepository.findMyBest(type, PeriodType.MONTHLY, clientKey)
+                .map(best -> bestResultRepository
+                        .countFasterThan(type, PeriodType.MONTHLY, best.getTotalDurationMs()) + 1)
+                .orElse(null);
 
         return new PracticeMyStatsResponse(monthlyRank, bestMs, firstMs, (int) totalCount);
     }
@@ -189,5 +179,28 @@ public class PracticeService {
 
         Long nextCursor = hasNext ? data.get(data.size() - 1).getId() : null;
         return new PracticeMyRecordsResponse(items, nextCursor, hasNext);
+    }
+
+    /**
+     * 버킷 기준은 완료 시각이 아니라 시작 시각이다. 자정을 걸쳐 끝난 기록이
+     * 랭킹에서 사라지지 않으려면 조회 조건과 같은 값을 봐야 한다.
+     */
+    private void recordBestResult(PracticeResult result) {
+        LocalDate day = result.getStartedAt().toLocalDate();
+        LocalDate daily = PeriodType.DAILY.bucketStart(day);
+        LocalDate weekly = PeriodType.WEEKLY.bucketStart(day);
+        LocalDate monthly = PeriodType.MONTHLY.bucketStart(day);
+
+        bestResultRepository.insertBucketsIfAbsent(
+                result.getType().name(), daily, weekly, monthly,
+                result.getClientKey(), result.getNickname(), result.getId(),
+                result.getTotalDurationMs(), result.getReactionTimeMs(),
+                result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());
+
+        bestResultRepository.updateBucketsIfFaster(
+                result.getType().name(), daily, weekly, monthly,
+                result.getClientKey(), result.getNickname(), result.getId(),
+                result.getTotalDurationMs(), result.getReactionTimeMs(),
+                result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());
     }
 }
