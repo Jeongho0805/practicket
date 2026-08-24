@@ -19,6 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class ChatConnectionManager {
 
+    /** 무한(0)이면 얼어붙은 연결을 아무도 못 걷어낸다. 만료돼도 브라우저가 곧바로 다시 붙는다. */
+    private static final long EMITTER_TIMEOUT_MS = 30 * 60 * 1000L;
+
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final String EVENT_NAME = "chat";
@@ -27,7 +30,7 @@ public class ChatConnectionManager {
     private final ChatParticipantCounter participantCounter;
 
     public SseEmitter save(String key) {
-        SseEmitter emitter = new SseEmitter(0L);
+        SseEmitter emitter = new SseEmitter(EMITTER_TIMEOUT_MS);
         registerCallbacks(key, emitter);
         emitters.put(key, emitter);
         participantCounter.report(emitters.size());
@@ -35,8 +38,8 @@ public class ChatConnectionManager {
     }
 
     /**
-     * 실제로 지워졌을 때만 알린다. onTimeout/onError 가 complete() 를 부르면 onCompletion 이 또 돌아
-     * 한 번의 종료에 두 번 들어오는데, 그때마다 알리면 전 파드가 헛되이 SSE 를 다시 쏜다.
+     * 종료 경로가 여럿이라 같은 키로 두 번 들어올 수 있다. 실제로 지워졌을 때만 알린다 —
+     * 헛되이 알리면 전 파드가 모든 연결에 SSE 를 다시 쏜다.
      */
     public void deleteByKey(String key) {
         if (emitters.remove(key) != null) {
@@ -80,25 +83,26 @@ public class ChatConnectionManager {
         }
     }
 
+    /** 전송 실패로 걷어낸 만큼 인원도 줄어든다. 안 알리면 Redis 에 옛 숫자가 남는다. */
     public void broadcast(ChatResponseDto data) {
+        List<String> dead = new ArrayList<>();
         for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
             try {
                 entry.getValue().send(SseEmitter.event().name(EVENT_NAME).data(data));
             } catch (Exception e) {
-                emitters.remove(entry.getKey());
+                dead.add(entry.getKey());
             }
         }
+        if (dead.isEmpty()) {
+            return;
+        }
+        dead.forEach(emitters::remove);
+        participantCounter.report(emitters.size());
     }
 
     public void registerCallbacks(String key, SseEmitter emitter) {
         emitter.onCompletion(() -> deleteByKey(key));
-        emitter.onTimeout(() -> {
-            emitter.complete();
-            deleteByKey(key);
-        });
-        emitter.onError((error) -> {
-            emitter.complete();
-            deleteByKey(key);
-        });
+        emitter.onTimeout(() -> deleteByKey(key));
+        emitter.onError((error) -> deleteByKey(key));
     }
 }
