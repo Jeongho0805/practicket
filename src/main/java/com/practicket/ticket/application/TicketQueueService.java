@@ -130,7 +130,7 @@ public class TicketQueueService {
             if (response.isComplete()) {
                 emitterRepository.deleteByClientKey(clientKey);
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             emitterRepository.deleteByClientKey(clientKey);
         }
     }
