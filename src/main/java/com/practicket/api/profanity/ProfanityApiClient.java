@@ -23,6 +23,8 @@ public class ProfanityApiClient {
 
     private final WebClient webClient;
 
+    private static final Duration TIMEOUT = Duration.ofMillis(500);
+
     public ProfanityApiClient(WebClient.Builder webClientBuilder, @Value("${api.profanity.url}") String baseUrl) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
