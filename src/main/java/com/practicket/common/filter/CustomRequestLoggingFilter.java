@@ -22,7 +22,15 @@ public class CustomRequestLoggingFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         
         if (!httpRequest.getRequestURI().startsWith("/api/")) {
-            chain.doFilter(request, response);
+            try {
+                chain.doFilter(request, response);
+            } catch (RuntimeException e) {
+                if (e.getCause() instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                    throw new ServletException(e.getCause());
+                }
+                throw e;
+            }
             return;
         }
 
