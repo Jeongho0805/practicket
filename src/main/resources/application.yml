@@ -28,3 +28,5 @@ management:
   endpoint:
     health:
       show-details: never
+sentry:
+  exception-resolver-order: 2147483647
