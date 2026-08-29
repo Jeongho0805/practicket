@@ -25,6 +25,7 @@ import com.practicket.practice.infra.redis.PracticeSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -43,6 +44,7 @@ public class PracticeService {
     private final PracticeSessionValidator sessionValidator;
     private final PracticeRankCalculator rankCalculator;
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PracticeStartResponse start(ClientInfo clientInfo, PracticeType type) {
         if (clientInfo.getName() == null || clientInfo.getName().isBlank()) {
             throw new PracticeException(ErrorCode.NICKNAME_REQUIRED);
