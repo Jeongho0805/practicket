@@ -26,10 +26,13 @@ public class ChatController {
 
     @GetMapping
     public ResponseEntity<?> findAllChat(
-            @RequestParam("cursor")
+            @RequestParam(name = "cursor", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime cursor
     ) {
+        if (cursor == null) {
+            cursor = LocalDateTime.now();
+        }
         List<ChatResponseDto> chats = chatService.findAllChat(cursor);
         return ResponseEntity.ok(chats);
     }
