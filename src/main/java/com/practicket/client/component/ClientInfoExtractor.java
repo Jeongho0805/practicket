@@ -32,10 +32,15 @@ public class ClientInfoExtractor {
         return request.getRemoteAddr();
     }
 
+    private static final int DEVICE_MAX_LENGTH = 255;
+
     private String extractClientDevice(HttpServletRequest request) {
         String userAgent = request.getHeader(DEVICE_KEY);
         if (userAgent == null) {
-            userAgent = "Unknown Device";
+            return "Unknown Device";
+        }
+        if (userAgent.length() > DEVICE_MAX_LENGTH) {
+            return userAgent.substring(0, DEVICE_MAX_LENGTH);
         }
         return userAgent;
     }
