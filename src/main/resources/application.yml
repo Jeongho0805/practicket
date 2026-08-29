@@ -1,6 +1,9 @@
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}
+  datasource:
+    hikari:
+      keepalive-time: 30000
   jackson:
     property-naming-strategy: SNAKE_CASE
   # 스키마는 Flyway가 관리한다. ddl-auto 는 계속 none 으로 둔다.
