@@ -1,5 +1,8 @@
 package com.practicket.seo;
 
+import com.practicket.blog.domain.BlogPost;
+import com.practicket.blog.domain.BlogPostRepository;
+import com.practicket.blog.domain.BlogPostStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -39,6 +43,9 @@ class SitemapCoverageTest {
     @Autowired
     private SitemapService sitemapService;
 
+    @Autowired
+    private BlogPostRepository blogPostRepository;
+
     @Test
     @DisplayName("모든 화면 라우트는 sitemap 에 싣거나, 이유를 적어 제외하거나 둘 중 하나여야 한다.")
     void everyPageIsEitherIndexedOrExcluded() {
@@ -67,13 +74,35 @@ class SitemapCoverageTest {
     }
 
     @Test
-    @DisplayName("블로그 글은 파일이라 DB 조회가 안 된다 — 템플릿 개수만큼 sitemap 에 실려야 한다.")
-    void blogPostsAreListedFromTemplates() {
+    @DisplayName("공개된 블로그 글은 빠짐없이 sitemap 에 실린다.")
+    void publishedBlogPostsAreListed() {
+        BlogPost first = blogPostRepository.save(post("첫 글", BlogPostStatus.PUBLISHED));
+        BlogPost second = blogPostRepository.save(post("둘째 글", BlogPostStatus.PUBLISHED));
+
         List<String> blogPaths = sitemapService.blogPaths();
 
-        assertThat(blogPaths).isNotEmpty();
-        assertThat(blogPaths).allMatch(path -> path.startsWith("/blog/"));
-        assertThat(blogPaths).doesNotHaveDuplicates();
+        assertThat(blogPaths)
+                .contains("/blog/" + first.getId(), "/blog/" + second.getId())
+                .doesNotHaveDuplicates()
+                .allMatch(path -> path.startsWith("/blog/"));
+    }
+
+    @Test
+    @DisplayName("미발행 글은 sitemap 에 실리지 않는다 — 상세는 막아두고 색인만 되는 상태를 막는다.")
+    void unpublishedBlogPostIsNotListed() {
+        BlogPost hidden = blogPostRepository.save(post("감춘 글", BlogPostStatus.UNPUBLISHED));
+
+        assertThat(sitemapService.blogPaths()).doesNotContain("/blog/" + hidden.getId());
+    }
+
+    private BlogPost post(String title, BlogPostStatus status) {
+        return BlogPost.builder()
+                .title(title)
+                .subtitle("부제")
+                .content("본문")
+                .status(status)
+                .publishedAt(status == BlogPostStatus.PUBLISHED ? LocalDateTime.now() : null)
+                .build();
     }
 
     @Test

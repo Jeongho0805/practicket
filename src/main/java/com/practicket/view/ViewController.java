@@ -1,5 +1,6 @@
 package com.practicket.view;
 
+import com.practicket.blog.application.BlogPostService;
 import com.practicket.community.application.PostCommentService;
 import com.practicket.community.application.PopularTagService;
 import com.practicket.community.application.PostService;
@@ -36,6 +37,7 @@ public class ViewController {
     /** 목록·댓글 DTO 와 같은 문구다(Q7). 완전히 지우지 않고 자리를 남긴다. */
 
     private final TicketQueueService ticketQueueService;
+    private final BlogPostService blogPostService;
     private final PostService postService;
     private final PostCommentService postCommentService;
     private final PopularTagService popularTagService;
@@ -114,17 +116,24 @@ public class ViewController {
 
     @GetMapping("/blog")
     public String blogList(Model model) {
+        model.addAttribute("posts", blogPostService.publishedCards());
         return "blog";
     }
 
     @GetMapping("/blog/{id}")
     public String blogContents(@PathVariable("id") String id, Model model) {
-        // 글은 1~15 로 고정돼 있다. 존재 여부를 안 보고 "blog/"+id 를 렌더하면
-        // 없는 번호에서 템플릿을 못 찾아 500 이 난다 — 없는 글은 목록으로 돌린다.
-        if (!id.matches("[1-9]|1[0-5]")) {
+        // id 를 Long 으로 받지 않는 이유는 /blog/abc 가 400 이 되어 목록으로 돌리지 못하기 때문이다.
+        if (!id.matches("\\d{1,18}")) {
             return "redirect:/blog";
         }
-        return "blog/" + id;
+        return blogPostService.readPublished(Long.parseLong(id))
+                .map(post -> {
+                    model.addAttribute("post", post);
+                    // 레이아웃의 기본 OG 를 끄고 글이 자기 값을 내보내게 한다
+                    model.addAttribute("customOg", true);
+                    return "blog/detail";
+                })
+                .orElse("redirect:/blog");
     }
 
     @GetMapping("/art")

@@ -1,22 +1,18 @@
 package com.practicket.seo;
 
+import com.practicket.blog.application.BlogPostService;
 import com.practicket.community.domain.entity.Post;
 import com.practicket.community.domain.repository.PostRepository;
 import com.practicket.notice.domain.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -43,11 +39,10 @@ public class SitemapService {
 
     private static final DateTimeFormatter LASTMOD = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    private final BlogPostService blogPostService;
     private final PostRepository postRepository;
     private final NoticeRepository noticeRepository;
     private final StringRedisTemplate stringRedisTemplate;
-
-    private final ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
     public String staticSitemap() {
         List<String> urls = new ArrayList<>();
@@ -82,22 +77,11 @@ public class SitemapService {
         return xml;
     }
 
-    /** 블로그 글은 DB 가 아니라 templates/blog/{n}.html 파일이다 */
+    /** 공개된 글만 싣는다. 미발행 글이 여기 새면 상세는 목록으로 돌리는데 색인은 되는 상태가 된다 */
     List<String> blogPaths() {
-        try {
-            Resource[] resources = resourceResolver.getResources("classpath:/templates/blog/*.html");
-            return java.util.Arrays.stream(resources)
-                    .map(Resource::getFilename)
-                    .filter(java.util.Objects::nonNull)
-                    .map(name -> name.replace(".html", ""))
-                    .filter(name -> name.chars().allMatch(Character::isDigit))
-                    .sorted(Comparator.comparingInt(Integer::parseInt))
-                    .map(id -> "/blog/" + id)
-                    .toList();
-        } catch (IOException e) {
-            log.warn("블로그 템플릿을 읽지 못해 sitemap 에서 뺀다: {}", e.getMessage());
-            return List.of();
-        }
+        return blogPostService.publishedIds().stream()
+                .map(id -> "/blog/" + id)
+                .toList();
     }
 
     private LocalDateTime latestNoticeDate() {
