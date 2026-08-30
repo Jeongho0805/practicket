@@ -17,10 +17,16 @@ public interface PracticeBestResultRepository
      * <p>
      * "찾아보고 없으면 넣기" 로 하면 같은 사람이 동시에 두 기록을 끝냈을 때 둘 다 넣으려다
      * 하나가 유니크 제약에 걸려 그 요청의 연습 기록까지 롤백된다. 그 경합을 DB 에 맡긴다.
+     * <p>
+     * ON DUPLICATE KEY UPDATE id = id 대신 INSERT IGNORE 를 쓰는 이유: 중복 행에
+     * ON DUPLICATE KEY UPDATE 가 걸리면 MySQL 이 기존 행에 S 잠금을 획득한 뒤 X 잠금으로
+     * 승격하려 한다. 동일 사용자로부터 요청이 동시에 들어올 경우 두 트랜잭션이 서로 S 잠금을
+     * 잡고 X 잠금을 기다리는 순환 대기가 생겨 데드락이 발생한다. INSERT IGNORE 는 중복을
+     * 감지하면 행 삽입을 조용히 건너뛰므로 S→X 승격 자체가 일어나지 않는다.
      */
     @Modifying
     @Query(value = """
-            INSERT INTO practice_best_result
+            INSERT IGNORE INTO practice_best_result
                 (type, period_type, period_start, client_key, nickname, result_id,
                  total_duration_ms, reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms, updated_at)
             VALUES
@@ -30,7 +36,6 @@ public interface PracticeBestResultRepository
                  :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW()),
                 (:type, 'MONTHLY', :monthlyStart, :clientKey, :nickname, :resultId,
                  :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW())
-            ON DUPLICATE KEY UPDATE id = id
             """, nativeQuery = true)
     void insertBucketsIfAbsent(@Param("type") String type,
                                @Param("dailyStart") LocalDate dailyStart,
