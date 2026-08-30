@@ -1,6 +1,7 @@
 package com.practicket.ad.component;
 
 import com.practicket.ad.admin.AdminNavAdvice;
+import com.practicket.blog.application.BlogPostService;
 import com.practicket.ad.domain.Banner;
 import com.practicket.client.domain.ClientRepository;
 import com.practicket.community.application.PopularTagService;
@@ -59,6 +60,8 @@ class AdSectionRenderTest {
 
     @MockBean
     private TicketQueueService ticketQueueService;
+    @MockBean
+    private BlogPostService blogPostService;
     @MockBean
     private PostService postService;
     @MockBean
