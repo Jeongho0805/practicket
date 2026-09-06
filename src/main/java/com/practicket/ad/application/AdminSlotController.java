@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -22,6 +23,9 @@ import java.util.List;
 @RequestMapping("/admin-hoya/ad/slots")
 @RequiredArgsConstructor
 public class AdminSlotController {
+
+    private static final List<String> NETWORKS = List.of(
+            AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT);
 
     private final AdminSlotService adminSlotService;
 
@@ -33,6 +37,8 @@ public class AdminSlotController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("groups", adminSlotService.getGroups());
+        model.addAttribute("networks", NETWORKS);
+        model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
         return "admin/ad/slot-list";
     }
 
@@ -41,13 +47,26 @@ public class AdminSlotController {
         return adminSlotService.findForm(id)
                 .map(form -> {
                     model.addAttribute("form", form);
-                    model.addAttribute("networks", List.of(
-                            AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT));
+                    model.addAttribute("networks", NETWORKS);
                     model.addAttribute("units", adminSlotService.unitOptions(form));
+                    model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
                     model.addAttribute("unitWarning", adminSlotService.oversizeWarning(form));
                     return "admin/ad/slot-form";
                 })
                 .orElse("redirect:/admin-hoya/ad/slots");
+    }
+
+    /** 목록에서 채울 네트워크만 바꾼다. 나머지 값은 건드리지 않는다 */
+    @PostMapping("/{id}/fill")
+    public String changeFillNetwork(@PathVariable Long id,
+                                    @RequestParam(required = false) String fillNetwork,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            adminSlotService.changeFillNetwork(id, fillNetwork);
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin-hoya/ad/slots";
     }
 
     @PostMapping

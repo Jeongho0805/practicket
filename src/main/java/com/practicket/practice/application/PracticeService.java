@@ -131,6 +131,7 @@ public class PracticeService {
                 .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, null, totalUsers));
     }
 
+    @Transactional(readOnly = true)
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
         String clientKey = clientInfo.getToken();
 
@@ -190,15 +191,16 @@ public class PracticeService {
         LocalDate daily = PeriodType.DAILY.bucketStart(day);
         LocalDate weekly = PeriodType.WEEKLY.bucketStart(day);
         LocalDate monthly = PeriodType.MONTHLY.bucketStart(day);
+        LocalDate allTime = PeriodType.ALL_TIME.bucketStart(day);
 
         bestResultRepository.insertBucketsIfAbsent(
-                result.getType().name(), daily, weekly, monthly,
+                result.getType().name(), daily, weekly, monthly, allTime,
                 result.getClientKey(), result.getNickname(), result.getId(),
                 result.getTotalDurationMs(), result.getReactionTimeMs(),
                 result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());
 
         bestResultRepository.updateBucketsIfFaster(
-                result.getType().name(), daily, weekly, monthly,
+                result.getType().name(), daily, weekly, monthly, allTime,
                 result.getClientKey(), result.getNickname(), result.getId(),
                 result.getTotalDurationMs(), result.getReactionTimeMs(),
                 result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());

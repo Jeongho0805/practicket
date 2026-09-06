@@ -55,6 +55,11 @@ public class AdSlot {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** 목록에서 이 값만 바꾼다. 나머지는 슬롯 수정 폼이 담당한다 */
+    public void changeFillNetwork(String fillNetwork) {
+        this.fillNetwork = fillNetwork;
+    }
+
     public boolean hasPcSize() {
         return pcWidth != null && pcHeight != null;
     }

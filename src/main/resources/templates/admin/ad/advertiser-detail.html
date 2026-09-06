@@ -43,14 +43,15 @@
         <div class="card">
             <header><h2>거래처 정보</h2></header>
             <div class="facts">
-                <div><dt>사업자명</dt><dd th:text="${detail.advertiser.company != null ? detail.advertiser.company : '-'}">-</dd></div>
+                <div><dt>상호</dt><dd th:text="${detail.advertiser.company != null ? detail.advertiser.company : '-'}">-</dd></div>
+                <div><dt>표시 이름</dt><dd th:text="${detail.advertiser.name}">-</dd></div>
                 <div><dt>담당자</dt><dd th:text="${detail.advertiser.manager != null ? detail.advertiser.manager : '-'}">-</dd></div>
                 <div><dt>연락처</dt><dd th:text="${detail.advertiser.phone != null ? detail.advertiser.phone : '-'}">-</dd></div>
                 <div><dt>이메일</dt><dd th:text="${detail.advertiser.email != null ? detail.advertiser.email : '-'}">-</dd></div>
-                <div><dt>사업자번호</dt><dd th:text="${detail.advertiser.bizNo != null ? detail.advertiser.bizNo : '-'}">-</dd></div>
+                <div><dt>사업자등록번호</dt><dd th:text="${detail.advertiser.bizNo != null ? detail.advertiser.bizNo : '-'}">-</dd></div>
             </div>
             <div class="factmemo" th:if="${detail.advertiser.memo != null}">
-                <dt>메모</dt>
+                <dt>단가 · 계약 메모</dt>
                 <p th:text="${detail.advertiser.memo}">메모</p>
             </div>
         </div>
@@ -68,7 +69,7 @@
                         <th>캠페인</th>
                         <th>계약 기간</th>
                         <th class="r">계약 금액</th>
-                        <th class="r">배너</th>
+                        <th>슬롯</th>
                         <th class="r">노출</th>
                         <th class="r">CTR</th>
                         <th>상태</th>
@@ -81,7 +82,11 @@
                         <td th:text="${#temporals.format(row.campaign.startAt, 'yyyy.MM.dd')} + ' ~ '
                                      + ${#temporals.format(row.campaign.endAt, 'yyyy.MM.dd')}">기간</td>
                         <td class="r money" th:text="${#numbers.formatInteger(row.campaign.amount, 1, 'COMMA')} + '원'">0원</td>
-                        <td class="r" th:text="${row.bannerCount} + '개'">0개</td>
+                        <td>
+                            <b th:text="${row.bannerCount} + '개'">0개</b>
+                            <div class="note" th:if="${not #strings.isEmpty(row.slotNames)}"
+                                 th:text="${row.slotNames}">슬롯</div>
+                        </td>
                         <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
                         <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
                         <td>

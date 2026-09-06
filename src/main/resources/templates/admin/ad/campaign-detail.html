@@ -144,7 +144,7 @@
                 <a th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">슬롯을 추가</a>해주세요.
             </div>
 
-            <div th:if="${not #lists.isEmpty(detail.banners)}" style="margin-top:18px">
+            <div class="pad" th:if="${not #lists.isEmpty(detail.banners)}">
                 <div class="sectitle">기간 비교 <small>계약 기간을 가로축으로 둔 배너별 노출 구간</small></div>
                 <div class="tl">
                     <div class="tlrow" th:each="row : ${detail.banners}">

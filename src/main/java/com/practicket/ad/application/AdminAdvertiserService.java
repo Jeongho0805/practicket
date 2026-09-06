@@ -1,6 +1,8 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.domain.AdCampaign;
+import com.practicket.ad.domain.AdSlot;
+import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdCampaignRepository;
 import com.practicket.ad.domain.Advertiser;
 import com.practicket.ad.domain.AdvertiserRepository;
@@ -34,6 +36,7 @@ public class AdminAdvertiserService {
     private final AdvertiserRepository advertiserRepository;
     private final AdCampaignRepository adCampaignRepository;
     private final BannerRepository bannerRepository;
+    private final AdSlotRepository adSlotRepository;
     private final AdminAdStatService adminAdStatService;
 
     @Transactional(readOnly = true)
@@ -59,6 +62,8 @@ public class AdminAdvertiserService {
         return advertiserRepository.findById(id).map(advertiser -> {
             LocalDate today = LocalDate.now();
             Map<Long, AdminAdStatService.Totals> totals = adminAdStatService.totalsByBanner();
+            Map<Long, AdSlot> slots = adSlotRepository.findAll().stream()
+                    .collect(Collectors.toMap(AdSlot::getId, slot -> slot));
             Map<Long, List<Banner>> bannersByCampaign = bannerRepository.findAll().stream()
                     .filter(banner -> banner.getCampaignId() != null)
                     .collect(Collectors.groupingBy(Banner::getCampaignId));
@@ -68,8 +73,9 @@ public class AdminAdvertiserService {
                     .map(campaign -> {
                         AdminAdStatService.Totals sum = sumOf(
                                 bannersByCampaign.getOrDefault(campaign.getId(), List.of()), totals);
+                        List<Banner> mine = bannersByCampaign.getOrDefault(campaign.getId(), List.of());
                         return new CampaignHistory(campaign, CampaignStatus.of(campaign, today),
-                                bannersByCampaign.getOrDefault(campaign.getId(), List.of()).size(),
+                                mine.size(), slotNamesOf(mine, slots),
                                 sum.getImpressions(), sum.getClicks(), sum.getCtr());
                     })
                     .toList();
@@ -79,6 +85,16 @@ public class AdminAdvertiserService {
                     history.stream().mapToLong(CampaignHistory::getImpressions).sum(),
                     history.stream().mapToLong(CampaignHistory::getClicks).sum());
         });
+    }
+
+    /** 이력에는 슬롯 개수보다 어느 슬롯이었는지가 쓸모 있다 */
+    private String slotNamesOf(List<Banner> banners, Map<Long, AdSlot> slots) {
+        return banners.stream()
+                .map(banner -> {
+                    AdSlot slot = slots.get(banner.getSlot().getId());
+                    return slot == null ? "삭제된 슬롯" : slot.getName();
+                })
+                .collect(Collectors.joining(" · "));
     }
 
     @Transactional
@@ -185,6 +201,7 @@ public class AdminAdvertiserService {
         private final AdCampaign campaign;
         private final CampaignStatus status;
         private final int bannerCount;
+        private final String slotNames;
         private final long impressions;
         private final long clicks;
         private final double ctr;

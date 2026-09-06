@@ -357,7 +357,7 @@ class AdminAdPageRenderTest {
 
     private AdminAdvertiserService.AdvertiserDetail advertiserDetail() {
         return new AdminAdvertiserService.AdvertiserDetail(advertiser(),
-                List.of(new AdminAdvertiserService.CampaignHistory(campaign(), CampaignStatus.LIVE, 2, 1200L, 15L, 1.25)),
+                List.of(new AdminAdvertiserService.CampaignHistory(campaign(), CampaignStatus.LIVE, 2, "데스크톱 좌측", 1200L, 15L, 1.25)),
                 1_500_000L, 1200L, 15L);
     }
 

@@ -4,6 +4,8 @@ import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeBestResult;
 import com.practicket.practice.domain.PracticeType;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -45,6 +47,40 @@ public class PracticeBestResultRepositoryImpl implements PracticeBestResultRepos
     @Override
     public long countFasterThan(PracticeType type, PeriodType period, int totalDurationMs) {
         return count(inBucket(type, period), practiceBestResult.totalDurationMs.lt(totalDurationMs));
+    }
+
+    @Override
+    public Optional<Integer> findMsAtOffset(PracticeType type, PeriodType period,
+                                            long offset, boolean fromSlowest) {
+        return Optional.ofNullable(queryFactory
+                .select(practiceBestResult.totalDurationMs)
+                .from(practiceBestResult)
+                .where(inBucket(type, period))
+                .orderBy(fromSlowest
+                        ? practiceBestResult.totalDurationMs.desc()
+                        : practiceBestResult.totalDurationMs.asc())
+                .offset(offset)
+                .limit(1)
+                .fetchOne());
+    }
+
+    @Override
+    public List<HistogramBin> findHistogram(PracticeType type, PeriodType period, int binWidthMs) {
+        NumberExpression<Integer> bin = Expressions.numberTemplate(Integer.class,
+                "floor({0} / {1})", practiceBestResult.totalDurationMs, binWidthMs);
+
+        return queryFactory
+                .select(bin, practiceBestResult.count())
+                .from(practiceBestResult)
+                .where(inBucket(type, period))
+                .groupBy(bin)
+                .orderBy(bin.asc())
+                .fetch()
+                .stream()
+                .map(row -> new HistogramBin(
+                        row.get(0, Integer.class) * binWidthMs,
+                        row.get(1, Long.class).intValue()))
+                .toList();
     }
 
     private long count(BooleanExpression... conditions) {

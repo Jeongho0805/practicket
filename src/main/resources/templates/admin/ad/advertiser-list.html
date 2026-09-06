@@ -29,13 +29,12 @@
                     <thead>
                     <tr>
                         <th>광고주</th>
+                        <th>담당자</th>
                         <th class="r">캠페인</th>
-                        <th>집행 기간</th>
-                        <th class="r">누적 금액</th>
-                        <th class="r">노출</th>
-                        <th class="r">CTR</th>
-                        <th>현재</th>
-                        <th class="r"></th>
+                        <th class="r">누적 계약 금액</th>
+                        <th>최근 집행</th>
+                        <th class="r">누적 노출</th>
+                        <th>상태</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -43,30 +42,27 @@
                         th:onclick="|location.href='/admin-hoya/ad/advertisers/${row.advertiser.id}'|">
                         <td>
                             <b th:text="${row.advertiser.name}">광고주</b>
-                            <div class="note" th:if="${row.advertiser.manager != null}"
-                                 th:text="${row.advertiser.manager}">담당자</div>
+                            <div class="note" th:if="${row.advertiser.company != null}"
+                                 th:text="${row.advertiser.company}">상호</div>
                         </td>
-                        <td class="r" th:text="${row.campaigns} + '개'">0개</td>
+                        <td>
+                            <span th:text="${row.advertiser.manager != null ? row.advertiser.manager : '-'}">담당자</span>
+                            <div class="note" th:if="${row.advertiser.phone != null}"
+                                 th:text="${row.advertiser.phone}">연락처</div>
+                        </td>
+                        <td class="r" th:text="${row.campaigns} + '건'">0건</td>
+                        <td class="r money" th:text="${#numbers.formatInteger(row.amount, 1, 'COMMA')} + '원'">0원</td>
                         <td>
                             <span th:if="${row.firstStart != null}"
                                   th:text="${#temporals.format(row.firstStart, 'yyyy.MM.dd')} + ' ~ '
                                            + ${#temporals.format(row.lastEnd, 'yyyy.MM.dd')}">기간</span>
                             <span class="note" th:if="${row.firstStart == null}">-</span>
                         </td>
-                        <td class="r money" th:text="${#numbers.formatInteger(row.amount, 1, 'COMMA')} + '원'">0원</td>
                         <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
-                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
                         <td>
-                            <span class="pill live" th:if="${row.liveCampaigns > 0}">
-                                <i></i><span th:text="'진행 ' + ${row.liveCampaigns}">진행</span>
-                            </span>
-                            <span class="pill off" th:if="${row.liveCampaigns == 0}"><i></i>없음</span>
-                        </td>
-                        <td class="r">
-                            <div class="rowact">
-                                <a class="btn ghost sm"
-                                   th:href="@{/admin-hoya/ad/advertisers/{id}(id=${row.advertiser.id})}">상세</a>
-                            </div>
+                            <span class="pill live" th:if="${row.liveCampaigns > 0}"><i></i>거래중</span>
+                            <span class="pill off" th:if="${row.liveCampaigns == 0 and row.campaigns > 0}"><i></i>휴면</span>
+                            <span class="pill off" th:if="${row.campaigns == 0}"><i></i>이력 없음</span>
                         </td>
                     </tr>
                     </tbody>

@@ -39,7 +39,10 @@
                     </thead>
                     <tbody>
                     <tr th:each="unit : ${units}">
-                        <td><b th:text="${unit.network}">NETWORK</b></td>
+                        <td>
+                            <b th:text="${networkLabels[unit.network] != null ? networkLabels[unit.network] : unit.network}">네트워크</b>
+                            <div class="note" th:text="${unit.network}">CODE</div>
+                        </td>
                         <td><span class="mono" th:text="${unit.unitId}">unit</span></td>
                         <td th:text="${unit.name != null ? unit.name : '-'}">-</td>
                         <td>
@@ -64,6 +67,15 @@
             <div class="empty" th:if="${#lists.isEmpty(units)}">
                 등록된 광고단위가 없습니다.
                 <a href="/admin-hoya/ad/units/new">첫 광고단위를 추가</a>해보세요.
+            </div>
+        </div>
+
+        <div class="card">
+            <header><h2>노출 범위</h2></header>
+            <div class="pad">
+                <p class="hint">네트워크 광고는 <b>운영 서버에서만</b> 나갑니다. 스테이지·로컬에서는 자리만 잡고 비워 둡니다.</p>
+                <p class="hint">스테이지에서 뜨면 무효 트래픽으로 잡힐 수 있어 코드로 고정해 두었고 화면에서 끄고 켤 수 없습니다.</p>
+                <p class="hint">판매된 배너는 이 규칙과 무관하게 모든 환경에서 나갑니다.</p>
             </div>
         </div>
     </main>

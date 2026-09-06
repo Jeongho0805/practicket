@@ -192,27 +192,9 @@
 .ranking-top-bar {
     background: #fff;
     border-bottom: 1px solid #ece8f3;
-    padding: 0 22px;
+    padding: 8px 22px;
     display: flex;
     align-items: center;
-}
-
-.view-mode-tab {
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #a49dba;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: color 0.2s, border-color 0.2s;
-}
-
-.view-mode-tab.active {
-    color: #514897;
-    border-bottom-color: #514897;
 }
 
 .filter-bar {
@@ -907,12 +889,7 @@
     }
 
     .ranking-top-bar {
-        padding: 0 12px;
-    }
-
-    .view-mode-tab {
-        padding: 10px 13px;
-        font-size: 13px;
+        padding: 6px 12px;
     }
 
     .filter-bar {
@@ -936,6 +913,16 @@
         font-size: 12px;
         white-space: nowrap;
         flex-shrink: 0;
+    }
+
+    .period-tabs {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .period-tab {
+        flex: 1;
+        padding: 5px 0;
     }
 
     /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행마다 격자를 다시 짜 카드처럼 쓴다. */
@@ -1204,4 +1191,274 @@
         border-radius: 9px 9px 0 0;
         background: #f8f5fd;
     }
+}
+
+/* ══ 상단 뷰 탭 ══
+   연습하기·전체 랭킹·내 기록을 한 줄로 편다. 탭 줄이 두 겹이면 그만큼 목록이 짧아진다. */
+.hub-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #efecf7;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.hub-tab {
+    flex: 1;
+    border: 0;
+    cursor: pointer;
+    padding: 10px 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #6f6a86;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    transition: background .16s, color .16s, box-shadow .16s;
+}
+
+.hub-tab.active {
+    background: #fff;
+    color: #6633cc;
+    box-shadow: 0 1px 4px rgba(102, 51, 204, .16);
+}
+
+.hub-view {
+    display: none;
+}
+
+.hub-view.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 14px;
+}
+
+/* ══ 기록 분포 ══ */
+.chart-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 15px 17px 13px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .06), 0 1px 3px rgba(0, 0, 0, .04);
+    font-family: 'Pretendard', sans-serif;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+}
+
+.ch-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ch-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b4266;
+    white-space: nowrap;
+}
+
+.ch-chips {
+    display: flex;
+    gap: 5px;
+}
+
+.ch-chip {
+    border: 1px solid #e6e0f2;
+    background: #fff;
+    color: #8b83a6;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.ch-chip.on {
+    background: #6633cc;
+    border-color: #6633cc;
+    color: #fff;
+}
+
+.ch-hero {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+}
+
+.ch-hero b {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: #6633cc;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+.ch-hero span {
+    font-size: 11.5px;
+    color: #9a93b0;
+    font-weight: 500;
+}
+
+/* 기록이 없을 때 머리글은 숫자가 아니라 문장이다. mono 26px 은 한글에 안 맞는다. */
+.ch-hero.text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+.ch-hero.text b {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #322a4d;
+    letter-spacing: -0.4px;
+    line-height: 1.35;
+}
+
+.ch-plot {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.ch-empty {
+    flex-shrink: 0;
+}
+
+.ce-msg {
+    font-size: 10.5px;
+    color: #b0a8c6;
+    line-height: 1.4;
+}
+
+.hist {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.hist .bin {
+    flex: 1;
+    background: #a99add;
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+}
+
+.hist .bin.me {
+    background: #6633cc;
+}
+
+.hist-axis {
+    position: relative;
+    height: 15px;
+    flex-shrink: 0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    color: #b0a8c6;
+    padding-top: 4px;
+    border-top: 1px solid #f0edf7;
+    margin-top: 5px;
+}
+
+/* 눈금은 구간 경계에 맞춰 절대 위치로 찍는다. 균등 분할하면 막대와 어긋난다. */
+.hist-axis span {
+    position: absolute;
+    top: 4px;
+    transform: translateX(-50%);
+}
+
+.me-flag {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+}
+
+.me-flag .mf-label {
+    background: #322a4d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-family: 'Pretendard', sans-serif;
+}
+
+.me-flag .mf-stem {
+    width: 2px;
+    background: #322a4d;
+    border-radius: 1px;
+}
+
+/* ══ 등급 배지 ══
+   위 셋만 금속 질감을 준다. 아래는 단색으로 눌러 상위가 도드라지게 한다. */
+.tier {
+    display: inline-block;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 999px;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+}
+
+.tier.tier--sss {
+    background: linear-gradient(135deg, #140d26 0%, #3b2270 46%, #7a58b8 100%);
+    color: #f3dc9a;
+    box-shadow: inset 0 0 0 1px rgba(243, 220, 154, .55), 0 2px 8px rgba(59, 34, 112, .45);
+}
+
+.tier.tier--ss {
+    background: linear-gradient(135deg, #2a0c1f 0%, #6d1f45 48%, #b4577f 100%);
+    color: #ffdfe9;
+    box-shadow: inset 0 0 0 1px rgba(255, 223, 233, .45), 0 2px 8px rgba(109, 31, 69, .38);
+}
+
+.tier.tier--s {
+    background: linear-gradient(135deg, #241457 0%, #5b34c4 52%, #9a78f0 100%);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .42), 0 2px 8px rgba(91, 52, 196, .38);
+}
+
+.tier.tier--a { background: #e6efff; color: #2f5fd0; text-shadow: none; }
+.tier.tier--b { background: #e7f6ef; color: #1c7d59; text-shadow: none; }
+.tier.tier--c { background: #fbf2dd; color: #9a7418; text-shadow: none; }
+.tier.tier--d { background: #fdeee9; color: #b05a2c; text-shadow: none; }
+.tier.tier--e { background: #f0f1f4; color: #6b7180; text-shadow: none; }
+.tier.tier--f { background: #f0eff2; color: #96919f; text-shadow: none; }
+
+@media (max-width: 768px) {
+    .hub-tabs { padding: 3px; border-radius: 10px; }
+    .hub-tab { padding: 8px 0; font-size: 13px; }
+    .hub-view.active { gap: 8px; }
+
+    .chart-card { padding: 12px 13px 11px; border-radius: 14px; gap: 8px; }
+    .ch-title { font-size: 12.5px; }
+    .ch-hero b { font-size: 23px; }
+    .ch-hero.text b { font-size: 17px; }
+
+    .tier { font-size: 12px; padding: 2px 8px; letter-spacing: .8px; }
 }

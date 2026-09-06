@@ -74,7 +74,8 @@
                         <select id="fillNetwork" name="fillNetwork">
                             <option value="">비워둠 (아무것도 안 그림)</option>
                             <option th:each="network : ${networks}" th:value="${network}"
-                                    th:selected="${network == form.fillNetwork}" th:text="${network}">NETWORK</option>
+                                    th:selected="${network == form.fillNetwork}"
+                                    th:text="${networkLabels[network] != null ? networkLabels[network] : network}">네트워크</option>
                         </select>
                     </div>
                     <div class="f">

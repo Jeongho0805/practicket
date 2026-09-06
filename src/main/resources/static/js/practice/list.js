@@ -25,7 +25,7 @@ const myState = {
     recordOffset: 0
 };
 
-const PERIOD_MAP = { '일간': 'DAILY', '주간': 'WEEKLY', '월간': 'MONTHLY' };
+const PERIOD_MAP = { '일간': 'DAILY', '주간': 'WEEKLY', '월간': 'MONTHLY', '전체': 'ALL_TIME' };
 
 // ── I-Ticket 카드 클릭 시 닉네임 검증 후 이동 ──
 async function goToITicket(event) {
@@ -73,14 +73,34 @@ async function goToMTicket(event) {
     window.location.href = '/practice/m-ticket/intro';
 }
 
-// ── 탭 전환 ──
-function switchMainTab(target, btn) {
-    document.querySelectorAll('.view-mode-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
+// ── 뷰 전환 ──
+// 목록은 그 탭을 처음 열 때 부른다. 첫 화면이 연습하기라 랭킹까지 미리 부를 이유가 없다.
+let rankingLoaded = false;
+
+function switchHubView(view) {
+    document.querySelectorAll('.hub-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+
+    const practice = view === 'practice';
+    document.getElementById('view-practice').classList.toggle('active', practice);
+    document.getElementById('view-rank').classList.toggle('active', !practice);
+    if (practice) return;
+
+    const panel = view === 'ranking' ? 'ranking' : 'myrecord';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + target).classList.add('active');
-    document.querySelector('.ranking-top-bar .period-tabs').hidden = target !== 'ranking';
-    if (target === 'myrecord') loadMyPanel();
+    document.getElementById('panel-' + panel).classList.add('active');
+    document.querySelector('.ranking-top-bar .period-tabs').hidden = panel !== 'ranking';
+
+    if (panel === 'ranking') {
+        if (!rankingLoaded) {
+            rankingLoaded = true;
+            loadRanking(true);
+        }
+        // 숨어 있는 동안에는 끝 감지 줄이 안 울린다. 열릴 때 다시 건다
+        rearmTail('rank');
+    } else {
+        loadMyPanel();
+        rearmTail('myrecord');
+    }
 }
 
 // ── 종목(연습 타입) 전환 ──
@@ -501,11 +521,146 @@ function formatDate(isoString) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+// ── 기록 분포 그래프 ──
+// 분포와 등급 컷은 종목당 한 벌이라 서버가 만든 것을 그대로 받아 쓴다.
+// 등급도 상위 몇 %인지도 이 한 벌에서 나오므로 그래프와 내 기록 카드가 다른 값을 말할 수 없다.
+
+const TIER_NAMES = ['SSS', 'SS', 'S', 'A', 'B', 'C', 'D', 'E', 'F'];
+const TIER_KEYS = ['sss', 'ss', 's', 'a', 'b', 'c', 'd', 'e', 'f'];
+
+let chartType = RANKING_TYPE;
+const distCache = {};
+const myBestCache = {};
+
+async function fetchDistribution(type) {
+    if (!(type in distCache)) {
+        try {
+            const res = await fetch(`/api/practice/distribution?type=${type}`);
+            distCache[type] = res.ok ? await res.json() : null;
+        } catch (e) {
+            distCache[type] = null;
+        }
+    }
+    return distCache[type];
+}
+
+async function fetchMyBestMs(type) {
+    if (!(type in myBestCache)) {
+        try {
+            const res = await authFetch(`/api/practice/my-stats?type=${type}`);
+            const data = await res.json();
+            myBestCache[type] = data.total_count ? data.best_ms : null;
+        } catch (e) {
+            myBestCache[type] = null;
+        }
+    }
+    return myBestCache[type];
+}
+
+/* 컷은 상위 p% 커트라인이다. 그 안에 들면 그 등급이고, 어느 컷에도 못 들면 마지막 등급이다. */
+function tierIndexOf(cuts, ms) {
+    for (let i = 0; i < cuts.length; i++) {
+        if (ms <= cuts[i]) return i;
+    }
+    return cuts.length;
+}
+
+/* 컷 사이를 직선으로 이어 대략의 백분위를 낸다. 화면에 쓸 정도면 충분하다. */
+function percentileOf(dist, ms) {
+    const cuts = dist.tier_cut_ms;
+    const pcts = dist.tier_percentiles;
+    const i = tierIndexOf(cuts, ms);
+    const loPct = i === 0 ? 0 : pcts[i - 1];
+    const hiPct = i < pcts.length ? pcts[i] : 100;
+    const loMs = i === 0 ? cuts[0] * 0.6 : cuts[i - 1];
+    const hiMs = i < cuts.length ? cuts[i] : cuts[cuts.length - 1] * 1.5;
+    const ratio = Math.min(1, Math.max(0, (ms - loMs) / (hiMs - loMs)));
+    return Math.max(0.1, loPct + (hiPct - loPct) * ratio);
+}
+
+const toSec = ms => (ms / 1000).toFixed(2);
+const withComma = n => n.toLocaleString('en-US');
+
+async function drawChart(type) {
+    const plot = document.getElementById('chartPlot');
+    const hero = document.getElementById('chartHero');
+    const foot = document.querySelector('#chartFoot .ce-msg');
+    if (!plot) return;
+
+    const [dist, myMs] = await Promise.all([fetchDistribution(type), fetchMyBestMs(type)]);
+    // 종목을 빠르게 바꾸면 늦게 온 응답이 지금 화면을 덮는다
+    if (type !== chartType) return;
+
+    if (!dist || !dist.bins.length) {
+        hero.className = 'ch-hero text';
+        hero.innerHTML = '<b>아직 기록이 없어요</b>';
+        plot.innerHTML = '';
+        foot.textContent = '';
+        return;
+    }
+
+    renderHistogram(plot, dist, myMs);
+
+    if (myMs == null) {
+        const peak = dist.bins.indexOf(Math.max(...dist.bins));
+        const peakFrom = toSec(dist.bin_start_ms + peak * dist.bin_width_ms);
+        const peakTo = toSec(dist.bin_start_ms + (peak + 1) * dist.bin_width_ms);
+        hero.className = 'ch-hero text';
+        hero.innerHTML = '<b>내 위치를 확인해보세요</b>'
+            + `<span>지금까지 ${withComma(dist.total_users)}명이 기록을 남겼어요</span>`;
+        foot.textContent = `가장 많은 구간은 ${peakFrom}~${peakTo}초예요`;
+        return;
+    }
+
+    const pct = percentileOf(dist, myMs);
+    const tier = tierIndexOf(dist.tier_cut_ms, myMs);
+    hero.className = 'ch-hero';
+    hero.innerHTML = `<b>상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%</b>`
+        + `<span class="tier tier--${TIER_KEYS[tier]}">${TIER_NAMES[tier]}</span>`;
+    foot.textContent = '';
+}
+
+function renderHistogram(plot, dist, myMs) {
+    const bins = dist.bins;
+    const max = Math.max(...bins);
+    const startMs = dist.bin_start_ms;
+    const widthMs = dist.bin_width_ms;
+    const endMs = startMs + bins.length * widthMs;
+
+    // 마지막 칸보다 느린 기록은 그래프 밖이다. 막대는 안 물들이고 깃발만 오른쪽 끝에 세운다
+    const myAt = myMs == null ? -1
+        : Math.min(bins.length - 1, Math.max(0, Math.floor((myMs - startMs) / widthMs)));
+    const myLeft = myMs == null ? 0
+        : Math.min(100, Math.max(0, (myMs - startMs) / (endMs - startMs) * 100));
+
+    const bars = bins.map((count, i) =>
+        `<div class="bin${i === myAt ? ' me' : ''}" style="height:${(count / max * 100).toFixed(1)}%"></div>`
+    ).join('');
+
+    const flag = myMs == null ? ''
+        : `<div class="me-flag" style="left:${myLeft.toFixed(1)}%;height:100%">`
+          + `<span class="mf-label">나 ${toSec(myMs)}s</span>`
+          + '<span class="mf-stem" style="flex:1"></span></div>';
+
+    plot.innerHTML = `<div class="hist">${bars}${flag}</div>`
+        + `<div class="hist-axis">${axisHtml(startMs, endMs)}</div>`;
+}
+
+/* 눈금은 구간 경계에 맞춰 절대 위치로 찍는다. 균등 분할하면 표시된 초와 막대가 어긋난다. */
+function axisHtml(startMs, endMs) {
+    const stepMs = Math.max(1000, Math.round((endMs - startMs) / 4000) * 1000);
+    const marks = [];
+    for (let ms = Math.ceil(startMs / stepMs) * stepMs; ms <= endMs; ms += stepMs) {
+        const left = (ms - startMs) / (endMs - startMs) * 100;
+        marks.push(`<span style="left:${left.toFixed(1)}%">${Math.round(ms / 1000)}s</span>`);
+    }
+    return marks.join('');
+}
+
 // ── 전역 노출 (onclick 속성용) ──
 window.goToITicket = goToITicket;
 window.goToNTicket = goToNTicket;
 window.goToMTicket = goToMTicket;
-window.switchMainTab = switchMainTab;
 window.selectAgency = selectAgency;
 window.selectPeriod = selectPeriod;
 
@@ -515,8 +670,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.agency-tab').forEach(b => {
         b.classList.toggle('active', b.dataset.agency === RANKING_TYPE);
     });
+    document.querySelectorAll('.ch-chip').forEach(b => {
+        b.classList.toggle('on', b.dataset.agency === RANKING_TYPE);
+        b.addEventListener('click', () => {
+            chartType = b.dataset.agency;
+            document.querySelectorAll('.ch-chip').forEach(c => c.classList.toggle('on', c === b));
+            drawChart(chartType);
+        });
+    });
+    document.querySelectorAll('.hub-tab').forEach(b => {
+        b.addEventListener('click', () => switchHubView(b.dataset.view));
+    });
 
     setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));
     setupTail('myrecord', 'myRecordSentinel', '.my-record-table-body', () => loadMyRecords(false));
-    loadRanking(true);
+
+    drawChart(chartType);
+    window.addEventListener('resize', () => drawChart(chartType));
 });

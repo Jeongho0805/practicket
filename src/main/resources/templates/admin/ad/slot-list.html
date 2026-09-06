@@ -55,8 +55,14 @@
                             </div>
                         </td>
                         <td class="fill">
-                            <span th:if="${row.slot.fillNetwork != null}" th:text="${row.slot.fillNetwork}">COUPANG</span>
-                            <span class="tag inherit" th:if="${row.slot.fillNetwork == null}"><i></i>비워둠</span>
+                            <form method="post" th:action="@{/admin-hoya/ad/slots/{id}/fill(id=${row.slot.id})}">
+                                <select name="fillNetwork" class="inlinesel" onchange="this.form.submit()">
+                                    <option value="" th:selected="${row.slot.fillNetwork == null}">비워두기</option>
+                                    <option th:each="entry : ${networkLabels}" th:value="${entry.key}"
+                                            th:selected="${entry.key == row.slot.fillNetwork}"
+                                            th:text="${entry.value}">네트워크</option>
+                                </select>
+                            </form>
                         </td>
                         <td class="ucol">
                             <div class="ucell" th:if="${row.pcSize != null}">

@@ -114,6 +114,13 @@ public class AdminSlotService {
     }
 
     @Transactional
+    public void changeFillNetwork(Long id, String fillNetwork) {
+        AdSlot slot = adSlotRepository.findById(id)
+                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
+        slot.changeFillNetwork(blankToNull(fillNetwork));
+    }
+
+    @Transactional
     public void save(SlotForm form) {
         AdSlot slot = adSlotRepository.findById(form.getId())
                 .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));

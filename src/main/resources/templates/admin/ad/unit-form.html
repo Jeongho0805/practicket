@@ -27,22 +27,9 @@
                         <select id="network" name="network" required>
                             <option th:each="network : ${networks}" th:value="${network}"
                                     th:selected="${unit != null and network == unit.network}"
-                                    th:text="${network}">NETWORK</option>
+                                    th:text="${networkLabels[network] != null ? networkLabels[network] : network}">네트워크</option>
                         </select>
-                    </div>
-                    <div class="f">
-                        <label for="unitId">단위 ID</label>
-                        <input type="text" id="unitId" name="unitId"
-                               th:value="${unit != null ? unit.unitId : null}" required
-                               placeholder="943782 / 9697904962 / DAN-xxxxxxxx">
-                    </div>
-                </div>
-
-                <div class="two">
-                    <div class="f">
-                        <label for="name">이름</label>
-                        <input type="text" id="name" name="name" th:value="${unit != null ? unit.name : null}"
-                               placeholder="모바일 띠">
+                        <span class="hint" id="netHint">규격을 안 가리는 네트워크입니다 — 등록한 단위가 모든 슬롯을 덮습니다.</span>
                     </div>
                     <div class="f">
                         <label for="width">규격</label>
@@ -67,6 +54,20 @@
                     </div>
                 </div>
 
+                <div class="two">
+                    <div class="f">
+                        <label for="unitId">광고단위 ID</label>
+                        <input type="text" id="unitId" name="unitId"
+                               th:value="${unit != null ? unit.unitId : null}" required
+                               placeholder="943782 / 9697904962 / DAN-xxxxxxxx">
+                    </div>
+                    <div class="f">
+                        <label for="name">이름 (선택)</label>
+                        <input type="text" id="name" name="name" th:value="${unit != null ? unit.name : null}"
+                               placeholder="모바일 띠">
+                        <span class="hint">비워두면 목록에 ID 가 그대로 나옵니다.</span>
+                    </div>
+                </div>
             </div>
 
             <div class="formactions">
@@ -87,8 +88,13 @@
         const width = document.getElementById('width');
         const height = document.getElementById('height');
 
+        const netHint = document.getElementById('netHint');
+
         function sync() {
             size.hidden = network.value !== 'ADFIT';
+            netHint.textContent = network.value === 'ADFIT'
+                ? '규격이 고정된 네트워크입니다 — 슬롯 안에 들어가는 단위만 걸립니다.'
+                : '규격을 안 가리는 네트워크입니다 — 등록한 단위가 모든 슬롯을 덮습니다.';
             if (!size.hidden) {
                 size.value = width.value && height.value ? width.value + 'x' + height.value : '';
             }

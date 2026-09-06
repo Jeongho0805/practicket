@@ -44,6 +44,7 @@ public class AdminUnitController {
     public String list(Model model) {
         model.addAttribute("units", adUnitRepository.findAllByOrderByNetworkAscNameAsc());
         model.addAttribute("networks", networks());
+        model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
         return "admin/ad/unit-list";
     }
 
@@ -51,6 +52,7 @@ public class AdminUnitController {
     public String newForm(Model model) {
         model.addAttribute("unit", null);
         model.addAttribute("networks", networks());
+        model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
         return "admin/ad/unit-form";
     }
 
@@ -60,6 +62,7 @@ public class AdminUnitController {
                 .map(unit -> {
                     model.addAttribute("unit", unit);
                     model.addAttribute("networks", networks());
+                    model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
                     return "admin/ad/unit-form";
                 })
                 .orElse("redirect:/admin-hoya/ad/units");
