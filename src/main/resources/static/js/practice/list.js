@@ -439,46 +439,77 @@ async function loadMyRecords(reset) {
     }
 }
 
-function renderMyStats(data) {
-    const rankEl = document.getElementById('myRankValue');
-    const rankSub = document.getElementById('myRankSub');
+/* 등급·상위·순위는 전체 기간 분포에서 나온다. 연습하기 탭 그래프와 같은 값을 읽는다. */
+async function renderMyStats(data) {
+    const tierEl = document.getElementById('myTier');
+    const pctEl = document.getElementById('myPercentile');
+    const rankEl = document.getElementById('myOverallRank');
     const bestEl = document.getElementById('myBestRecord');
-    const countEl = document.getElementById('myTotalCount');
-    const secEl = document.getElementById('myImproveSec');
-    const pctEl = document.getElementById('myImprovePct');
+    const sheet = document.getElementById('tierSheet');
 
-    if (!data || data.total_count === 0) {
+    const bestMs = data && data.total_count ? data.best_ms : null;
+    myBestCache[myState.type] = bestMs;
+
+    if (bestMs == null) {
+        tierEl.className = 'tier tier--f';
+        tierEl.textContent = '-';
+        tierEl.disabled = true;
+        pctEl.textContent = '-';
         rankEl.textContent = '-';
-        rankEl.className = 'stat-value highlight';
-        rankSub.textContent = '이번 달 미참여';
         bestEl.textContent = '-';
-        countEl.textContent = '-';
-        secEl.textContent = '-';
-        pctEl.style.display = 'none';
+        sheet.hidden = true;
         return;
     }
 
-    rankEl.className = 'stat-value highlight';
-    rankEl.textContent = data.monthly_rank ? data.monthly_rank + '위' : '-';
-    rankSub.textContent = data.monthly_rank ? '월간 기준' : '이번 달 미참여';
-    bestEl.textContent = (data.best_ms / 1000).toFixed(3) + 's';
-    countEl.innerHTML = data.total_count + '<span style="font-size:14px;color:#9a93b0;font-family:Pretendard;font-weight:500">회</span>';
+    bestEl.textContent = (bestMs / 1000).toFixed(3) + 's';
 
-    if (data.total_count >= 2 && data.first_ms && data.best_ms) {
-        const improveSec = ((data.first_ms - data.best_ms) / 1000).toFixed(3);
-        const improvePct = ((data.first_ms - data.best_ms) / data.first_ms * 100).toFixed(1);
-        secEl.textContent = '-' + improveSec + 's';
-        pctEl.textContent = improvePct + '% 단축';
-        pctEl.style.display = 'inline-block';
-    } else {
-        secEl.textContent = '-';
-        pctEl.style.display = 'none';
+    const dist = await fetchDistribution(myState.type);
+    if (!dist || !dist.tier_cut_ms.length) {
+        tierEl.textContent = '-';
+        pctEl.textContent = '-';
+        rankEl.textContent = '-';
+        return;
     }
+
+    const index = tierIndexOf(dist.tier_cut_ms, bestMs);
+    const pct = percentileOf(dist, bestMs);
+
+    tierEl.className = `tier tier--${TIER_KEYS[index]}`;
+    tierEl.textContent = TIER_NAMES[index];
+    tierEl.disabled = false;
+    pctEl.textContent = (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
+    rankEl.textContent = withComma(Math.max(1, Math.round(dist.total_users * pct / 100))) + '위';
+
+    buildTierSheet(sheet, dist, index, bestMs);
+}
+
+/* 카드 줄을 밀어내면 아래 목록이 그만큼 줄어든다. 화면 위에 겹쳐 띄우고 바깥을 누르면 닫는다. */
+function buildTierSheet(sheet, dist, tierIndex, bestMs) {
+    const cuts = dist.tier_cut_ms;
+    const pcts = dist.tier_percentiles;
+
+    const rows = TIER_NAMES.map((name, i) => {
+        const upto = i < cuts.length ? (cuts[i] / 1000).toFixed(2) + 's 이내' : '그보다 느림';
+        const pctText = i < pcts.length ? `상위 ${pcts[i]}%` : '나머지';
+        return `<div class="ts-row${i === tierIndex ? ' ts-row--me' : ''}">`
+            + `<span class="tier tier--${TIER_KEYS[i]}">${name}</span>`
+            + `<span class="ts-pct">${pctText}</span>`
+            + `<span class="ts-cut">${upto}</span></div>`;
+    }).join('');
+
+    // 표를 여는 이유가 이 한 줄이다
+    const next = tierIndex > 0
+        ? `<b>${TIER_NAMES[tierIndex - 1]}</b> 까지 <b>${((bestMs - cuts[tierIndex - 1]) / 1000).toFixed(2)}초</b>`
+        : '가장 높은 등급이에요';
+
+    sheet.innerHTML = '<div class="ts-back"></div><div class="ts-panel">'
+        + '<div class="ts-head">등급 기준</div>'
+        + `<div class="ts-next">${next}</div>${rows}</div>`;
+    sheet.querySelector('.ts-back').addEventListener('click', () => { sheet.hidden = true; });
 }
 
 function createRecordRows(r, attemptNum) {
     const timeStr = (r.total_duration_ms / 1000).toFixed(3) + 's';
-    const dateStr = formatDate(r.started_at);
 
     const tr = document.createElement('tr');
     tr.className = 'record-row';
@@ -492,7 +523,7 @@ function createRecordRows(r, attemptNum) {
     const dateTd = document.createElement('td');
     dateTd.className = 'date-text';
     dateTd.style.cssText = 'text-align:left;padding-left:20px;';
-    dateTd.textContent = dateStr;
+    dateTd.innerHTML = whenCellHtml(r.started_at);
 
     const splitTd = document.createElement('td');
     splitTd.appendChild(createSplitBar(r, 'row-split'));
@@ -514,11 +545,21 @@ function createRecordRows(r, attemptNum) {
     return { tr, detailTr };
 }
 
-function formatDate(isoString) {
+/* 한 덩어리로 붙으면 어느 쪽도 안 읽힌다. 눈이 날짜를 먼저 타도록 무게를 달리 준다. */
+function whenCellHtml(isoString) {
     if (!isoString) return '-';
     const d = new Date(isoString);
     const pad = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const dayGap = Math.round((startOfDay(new Date()) - startOfDay(d)) / 86400000);
+    const day = dayGap === 0 ? '오늘'
+        : dayGap === 1 ? '어제'
+        : `${d.getMonth() + 1}월 ${d.getDate()}일`;
+    return `<span class="rec-day">${day}</span>`
+        + `<span class="rec-time">${pad(d.getHours())}:${pad(d.getMinutes())}</span>`;
+}
+
+function startOfDay(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
 // ── 기록 분포 그래프 ──
@@ -680,6 +721,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('.hub-tab').forEach(b => {
         b.addEventListener('click', () => switchHubView(b.dataset.view));
+    });
+    document.getElementById('myTier').addEventListener('click', () => {
+        const sheet = document.getElementById('tierSheet');
+        if (!sheet.innerHTML) return;
+        sheet.hidden = !sheet.hidden;
     });
 
     setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));

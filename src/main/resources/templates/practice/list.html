@@ -201,29 +201,26 @@
 
                         <div class="my-stats-grid">
                             <div class="stat-card">
-                                <div class="stat-label">이번 달 순위</div>
-                                <div id="myRankValue" class="stat-value highlight">-</div>
-                                <div id="myRankSub" class="stat-sub">월간 기준</div>
+                                <div class="stat-label">내 등급</div>
+                                <div class="tier-line">
+                                    <button type="button" id="myTier" class="tier tier--f" disabled>-</button>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">상위</div>
+                                <div id="myPercentile" class="stat-value highlight">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">내 순위</div>
+                                <div id="myOverallRank" class="stat-value highlight">-</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-label">최고 기록</div>
                                 <div id="myBestRecord" class="stat-value highlight">-</div>
-                                <div class="stat-sub">전체 기록 중 최고</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-label">총 시도</div>
-                                <div id="myTotalCount" class="stat-value">-</div>
-                                <div class="stat-sub">I-Ticket</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-label">개선도</div>
-                                <div class="improve-wrap" style="padding-top: 4px;">
-                                    <span id="myImproveSec" class="improve-sec">-</span>
-                                    <span id="myImprovePct" class="improve-pct" style="display:none;">-</span>
-                                </div>
-                                <div class="stat-sub">첫 기록 대비</div>
                             </div>
                         </div>
+
+                        <div id="tierSheet" hidden></div>
 
                         <div class="my-record-table-header">
                             <table class="record-table">

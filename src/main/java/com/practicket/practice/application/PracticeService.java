@@ -131,26 +131,21 @@ public class PracticeService {
                 .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, null, totalUsers));
     }
 
+    /**
+     * 등급·상위 %·내 순위는 여기서 내지 않는다. 전체 기간 분포 한 벌만 있으면 화면이 계산할 수 있고,
+     * 같은 값을 그래프도 쓰므로 두 화면이 어긋날 자리를 없앤다.
+     */
     @Transactional(readOnly = true)
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
         String clientKey = clientInfo.getToken();
 
         long totalCount = resultRepository.countByClientKeyAndType(clientKey, type);
         if (totalCount == 0) {
-            return new PracticeMyStatsResponse(null, null, null, 0);
+            return new PracticeMyStatsResponse(null, 0);
         }
 
-        Integer bestMs = resultRepository.findBestMs(clientKey, type).orElse(null);
-        Integer firstMs = resultRepository.findTopByClientKeyAndTypeOrderByIdAsc(clientKey, type)
-                .map(PracticeResult::getTotalDurationMs)
-                .orElse(null);
-
-        Long monthlyRank = bestResultRepository.findMyBest(type, PeriodType.MONTHLY, clientKey)
-                .map(best -> bestResultRepository
-                        .countFasterThan(type, PeriodType.MONTHLY, best.getTotalDurationMs()) + 1)
-                .orElse(null);
-
-        return new PracticeMyStatsResponse(monthlyRank, bestMs, firstMs, (int) totalCount);
+        return new PracticeMyStatsResponse(
+                resultRepository.findBestMs(clientKey, type).orElse(null), (int) totalCount);
     }
 
     @Transactional(readOnly = true)

@@ -72,6 +72,23 @@
                 </div>
             </div>
 
+            <div class="card formcard wide" id="assetbox">
+                <header>
+                    <h2>소재<small id="asset-count">이 계약에 쓸 이미지 · 0장</small></h2>
+                    <label class="btn ghost sm addasset">
+                        + 소재 올리기
+                        <input type="file" id="asset-input" accept="image/*" multiple hidden>
+                    </label>
+                </header>
+                <div class="pad">
+                    <div class="assets" id="asset-list"></div>
+                    <p class="hint" id="asset-empty">
+                        이미지를 여기로 끌어다 놓거나 <b>+ 소재 올리기</b> 를 누르세요.
+                        올린 뒤 아래 표의 소재 칸으로 끌어다 붙입니다.
+                    </p>
+                </div>
+            </div>
+
             <div class="card formcard wide">
                 <header>
                     <h2>슬롯별 배너</h2>
@@ -104,14 +121,17 @@
                                     <option th:each="slot : ${slots}"
                                             th:value="${slot.id}"
                                             th:selected="${slot.id == banner.slotId}"
+                                            th:attr="data-pcw=${slot.pcWidth},data-pch=${slot.pcHeight},
+                                                     data-mow=${slot.mobileWidth},data-moh=${slot.mobileHeight}"
                                             th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
                                 </select>
                             </td>
                             <td>
-                                <div class="fname">
+                                <div class="fname drop" data-dev="pc">
                                     <img class="thumb" th:if="${banner.pcImagePath != null}"
                                          th:src="${banner.pcImagePath}" alt="데스크톱 소재">
                                     <div class="thumb ph" th:if="${banner.pcImagePath == null}"><span>없음</span></div>
+                                    <span class="fit"></span>
                                 </div>
                                 <input type="hidden" th:name="'banners[' + ${iter.index} + '].pcImagePath'"
                                        th:value="${banner.pcImagePath}">
@@ -122,10 +142,11 @@
                                 </label>
                             </td>
                             <td>
-                                <div class="fname">
+                                <div class="fname drop" data-dev="mobile">
                                     <img class="thumb" th:if="${banner.mobileImagePath != null}"
                                          th:src="${banner.mobileImagePath}" alt="모바일 소재">
                                     <div class="thumb ph" th:if="${banner.mobileImagePath == null}"><span>없음</span></div>
+                                    <span class="fit"></span>
                                 </div>
                                 <input type="hidden" th:name="'banners[' + ${iter.index} + '].mobileImagePath'"
                                        th:value="${banner.mobileImagePath}">
@@ -136,11 +157,16 @@
                                 </label>
                             </td>
                             <td>
-                                <input type="url" th:name="'banners[' + ${iter.index} + '].linkUrl'"
-                                       th:value="${banner.linkUrl}" placeholder="비우면 계약 기본 주소">
+                                <div class="percell linkcell">
+                                    <span class="tag inherit inherit-chip"><i></i>계약 링크 따름</span>
+                                    <input type="url" th:name="'banners[' + ${iter.index} + '].linkUrl'"
+                                           th:value="${banner.linkUrl}" placeholder="이 배너 전용 주소">
+                                    <button type="button" class="linkbtn link-toggle">링크 직접 지정</button>
+                                </div>
                             </td>
                             <td>
-                                <div class="percell">
+                                <div class="percell period">
+                                    <span class="tag inherit inherit-chip"><i></i>계약 기간 따름</span>
                                     <div class="dates2">
                                         <input type="date" th:name="'banners[' + ${iter.index} + '].startAt'"
                                                th:value="${banner.startAt}">
@@ -148,7 +174,7 @@
                                         <input type="date" th:name="'banners[' + ${iter.index} + '].endAt'"
                                                th:value="${banner.endAt}">
                                     </div>
-                                    <span class="txt">비우면 계약 기간을 따릅니다</span>
+                                    <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
                                 </div>
                             </td>
                             <td>
@@ -181,30 +207,37 @@
             <input type="hidden" name="banners[__i__].deleted" value="false" class="deleted-flag">
             <select name="banners[__i__].slotId">
                 <option th:each="slot : ${slots}" th:value="${slot.id}"
+                        th:attr="data-pcw=${slot.pcWidth},data-pch=${slot.pcHeight},
+                                 data-mow=${slot.mobileWidth},data-moh=${slot.mobileHeight}"
                         th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
             </select>
         </td>
         <td>
-            <div class="fname"><div class="thumb ph"><span>없음</span></div></div>
+            <div class="fname drop" data-dev="pc"><div class="thumb ph"><span>없음</span></div><span class="fit"></span></div>
             <input type="hidden" name="banners[__i__].pcImagePath" value="">
             <input type="file" name="banners[__i__].pcImage" accept="image/*">
         </td>
         <td>
-            <div class="fname"><div class="thumb ph"><span>없음</span></div></div>
+            <div class="fname drop" data-dev="mobile"><div class="thumb ph"><span>없음</span></div><span class="fit"></span></div>
             <input type="hidden" name="banners[__i__].mobileImagePath" value="">
             <input type="file" name="banners[__i__].mobileImage" accept="image/*">
         </td>
         <td>
-            <input type="url" name="banners[__i__].linkUrl" placeholder="비우면 계약 기본 주소">
+            <div class="percell linkcell">
+                <span class="tag inherit inherit-chip"><i></i>계약 링크 따름</span>
+                <input type="url" name="banners[__i__].linkUrl" placeholder="이 배너 전용 주소">
+                <button type="button" class="linkbtn link-toggle">링크 직접 지정</button>
+            </div>
         </td>
         <td>
-            <div class="percell">
+            <div class="percell period">
+                <span class="tag inherit inherit-chip"><i></i>계약 기간 따름</span>
                 <div class="dates2">
                     <input type="date" name="banners[__i__].startAt">
                     <span class="sep">~</span>
                     <input type="date" name="banners[__i__].endAt">
                 </div>
-                <span class="txt">비우면 계약 기간을 따릅니다</span>
+                <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
             </div>
         </td>
         <td>
@@ -239,6 +272,195 @@
         row.querySelector('.deleted-flag').value = 'true';
         row.style.display = 'none';
     });
+
+    // ── 기간·링크 상속 전환 ──
+    // 값이 비어 있으면 계약을 따른다는 규칙은 서버와 같다. 화면은 그 상태를 눈에 보이게만 한다.
+    function label(cell) {
+        const period = cell.classList.contains('period');
+        cell.querySelector('.linkbtn').textContent = cell.classList.contains('own')
+            ? (period ? '계약 기간 따르기' : '계약 링크 따르기')
+            : (period ? '기간 직접 지정' : '링크 직접 지정');
+    }
+
+    // 처음 그릴 때만 값으로 상태를 정한다. 그 뒤로는 버튼이 상태를 갖는다
+    function syncAllInherit(scope) {
+        scope.querySelectorAll('.period, .linkcell').forEach(cell => {
+            cell.classList.toggle('own', [...cell.querySelectorAll('input')].some(i => i.value));
+            label(cell);
+        });
+    }
+
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('period-toggle')
+            && !event.target.classList.contains('link-toggle')) return;
+        const cell = event.target.closest('.percell');
+        if (cell.classList.contains('own')) {
+            cell.querySelectorAll('input').forEach(i => { i.value = ''; });
+            cell.classList.remove('own');
+        } else {
+            cell.classList.add('own');
+            cell.querySelector('input').focus();
+        }
+        label(cell);
+    });
+
+    // ── 소재함 ──
+    // 서버는 지금처럼 행마다 파일을 받는다. 소재함은 그 파일을 고르는 방법을 바꿀 뿐이다.
+    const assetList = document.getElementById('asset-list');
+    const assetInput = document.getElementById('asset-input');
+    const assetBox = document.getElementById('assetbox');
+    const assetCount = document.getElementById('asset-count');
+    const assetEmpty = document.getElementById('asset-empty');
+    const assets = new Map();
+    let assetSeq = 0;
+    let picked = null;
+
+    function addAssets(files) {
+        [...files].filter(f => f.type.startsWith('image/')).forEach(file => {
+            const id = 'a' + (++assetSeq);
+            const url = URL.createObjectURL(file);
+            const image = new Image();
+            image.onload = () => {
+                assets.get(id).width = image.naturalWidth;
+                assets.get(id).height = image.naturalHeight;
+                renderAssets();
+            };
+            image.src = url;
+            assets.set(id, { id, file, url, width: 0, height: 0 });
+        });
+        renderAssets();
+    }
+
+    function renderAssets() {
+        assetList.innerHTML = '';
+        assets.forEach(asset => {
+            const card = document.createElement('div');
+            card.className = 'asset' + (picked === asset.id ? ' picked' : '');
+            card.draggable = true;
+            card.dataset.id = asset.id;
+            const size = asset.width ? asset.width + ' x ' + asset.height : '읽는 중';
+            card.innerHTML = '<img src="' + asset.url + '" alt="">'
+                + '<div class="am"><b></b><span>' + size + '</span></div>'
+                + '<button type="button" class="linkbtn asset-del">보관함에서 지우기</button>';
+            card.querySelector('b').textContent = asset.file.name;
+            assetList.appendChild(card);
+        });
+        assetCount.textContent = '이 계약에 쓸 이미지 · ' + assets.size + '장';
+        assetEmpty.hidden = assets.size > 0;
+    }
+
+    assetInput.addEventListener('change', () => { addAssets(assetInput.files); assetInput.value = ''; });
+
+    assetList.addEventListener('click', (event) => {
+        const card = event.target.closest('.asset');
+        if (!card) return;
+        if (event.target.classList.contains('asset-del')) {
+            const asset = assets.get(card.dataset.id);
+            URL.revokeObjectURL(asset.url);
+            assets.delete(card.dataset.id);
+            if (picked === card.dataset.id) picked = null;
+            renderAssets();
+            return;
+        }
+        picked = picked === card.dataset.id ? null : card.dataset.id;
+        document.body.classList.toggle('picking', picked !== null);
+        renderAssets();
+    });
+
+    assetList.addEventListener('dragstart', (event) => {
+        const card = event.target.closest('.asset');
+        if (!card) return;
+        event.dataTransfer.setData('text/plain', card.dataset.id);
+        event.dataTransfer.effectAllowed = 'copy';
+        document.body.classList.add('dragging-asset');
+    });
+    assetList.addEventListener('dragend', () => document.body.classList.remove('dragging-asset'));
+
+    [assetBox].forEach(box => {
+        box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('over'); });
+        box.addEventListener('dragleave', () => box.classList.remove('over'));
+        box.addEventListener('drop', e => {
+            if (!e.dataTransfer.files.length) return;
+            e.preventDefault();
+            box.classList.remove('over');
+            addAssets(e.dataTransfer.files);
+        });
+    });
+
+    /** 파일 입력칸에 File 을 직접 심는다. 서버 쪽은 손대지 않아도 된다 */
+    function attach(cell, asset) {
+        const row = cell.closest('tr');
+        const dev = cell.dataset.dev;
+        const input = row.querySelector('input[type=file][name$="' + (dev === 'pc' ? 'pcImage' : 'mobileImage') + '"]');
+        const transfer = new DataTransfer();
+        transfer.items.add(asset.file);
+        input.files = transfer.files;
+
+        cell.querySelector('img, .thumb.ph').outerHTML =
+            '<img class="thumb" src="' + asset.url + '" alt="소재">';
+        markFit(cell, asset);
+    }
+
+    /** 슬롯 규격과 비율이 맞는지 알려준다. 막지는 않는다 */
+    function markFit(cell, asset) {
+        const row = cell.closest('tr');
+        const option = row.querySelector('select').selectedOptions[0];
+        const dev = cell.dataset.dev;
+        const w = Number(option.dataset[dev === 'pc' ? 'pcw' : 'mow']);
+        const h = Number(option.dataset[dev === 'pc' ? 'pch' : 'moh']);
+        const fit = cell.querySelector('.fit');
+        if (!fit) return;
+        if (!w || !h || !asset.width) { fit.textContent = ''; return; }
+        const same = Math.abs((asset.width / asset.height) - (w / h)) < 0.02;
+        fit.textContent = same ? '비율 맞음' : '비율 다름 · 슬롯 ' + w + 'x' + h;
+        fit.className = 'fit' + (same ? ' ok' : ' bad');
+    }
+
+    rows.addEventListener('dragover', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        cell.classList.add('over');
+    });
+    rows.addEventListener('dragleave', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (cell) cell.classList.remove('over');
+    });
+    rows.addEventListener('drop', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell) return;
+        event.preventDefault();
+        cell.classList.remove('over');
+        const asset = assets.get(event.dataTransfer.getData('text/plain'));
+        if (asset) attach(cell, asset);
+    });
+
+    // 고른 소재가 있으면 칸을 눌러서도 붙는다 — 끌기가 어려운 화면을 위해 남긴다
+    rows.addEventListener('click', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell || !picked) return;
+        attach(cell, assets.get(picked));
+    });
+
+    // 안 붙은 소재는 저장돼도 아무 데도 안 간다. 한 번은 알려준다
+    let warned = false;
+    document.querySelector('form').addEventListener('submit', (event) => {
+        const used = [...rows.querySelectorAll('input[type=file]')].filter(i => i.files.length).length;
+        const left = assets.size - used;
+        if (warned || left <= 0) return;
+        event.preventDefault();
+        warned = true;
+        const box = document.createElement('div');
+        box.className = 'warnbox';
+        box.textContent = '안 붙은 소재 ' + left + '장은 저장되지 않습니다. 그대로 저장하려면 다시 누르세요.';
+        document.querySelector('form').prepend(box);
+        box.scrollIntoView({ block: 'center' });
+    });
+
+    syncAllInherit(rows);
+    document.getElementById('add-banner').addEventListener('click', () => syncAllInherit(rows));
+    renderAssets();
 </script>
 </body>
 </html>

@@ -429,3 +429,36 @@ tr.rowlink:hover td { background: #faf8ff; }
 @media (max-width: 900px) { .tlrow, .tlhead { grid-template-columns: 130px 1fr; } .tlmeta { grid-column: 2; } }
 
 .formcard.wide { max-width: 100%; }
+
+/* ── 소재함 ── */
+.addasset { position: relative; cursor: pointer; }
+.assets { display: flex; flex-wrap: wrap; gap: 10px; }
+.asset {
+    width: 150px; border: 1px solid var(--line); border-radius: 11px; padding: 8px;
+    background: #fff; cursor: grab; transition: .12s;
+}
+.asset:hover { border-color: #cfc2ef; }
+.asset.picked { border-color: var(--brand); background: var(--brand-soft); }
+.asset img { width: 100%; height: 72px; object-fit: contain; border-radius: 7px; background: #f7f6fb; display: block; }
+.asset .am { margin-top: 6px; font-size: 11.5px; line-height: 1.5; }
+.asset .am b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asset .am span { color: var(--muted); font-family: ui-monospace, Menlo, monospace; }
+.asset .asset-del { margin-top: 4px; font-size: 11px; }
+#assetbox.over { border-color: var(--brand); background: #faf8ff; }
+
+/* 소재를 받을 칸 */
+.bulkrows .fname.drop {
+    border: 1px dashed transparent; border-radius: 9px; padding: 5px; margin: -5px; transition: .12s;
+}
+body.dragging-asset .bulkrows .fname.drop { border-color: #cfc2ef; }
+body.picking .bulkrows .fname.drop { border-color: #b9a6ea; cursor: pointer; }
+.bulkrows .fname.drop.over { border-color: var(--brand); background: #f2ecff; }
+.bulkrows .fname .fit { display: block; font-size: 10.5px; margin-top: 3px; }
+.bulkrows .fname .fit.ok { color: var(--ok); }
+.bulkrows .fname .fit.bad { color: var(--warn); }
+
+/* 기간·링크 상속 전환 — 따를 때는 입력칸을 감춘다 */
+.percell .dates2, .percell.linkcell input[type=url] { display: none; }
+.percell.own .dates2 { display: flex; }
+.percell.own.linkcell input[type=url] { display: block; }
+.percell.own .inherit-chip { display: none; }

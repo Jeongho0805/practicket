@@ -602,35 +602,6 @@
     font-weight: 600;
 }
 
-.stat-sub {
-    display: none;
-}
-
-.improve-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: center;
-}
-
-.improve-sec {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 18px;
-    font-weight: 700;
-    color: #514897;
-}
-
-.improve-pct {
-    display: inline-block;
-    background: #f1eef9;
-    color: #514897;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-family: 'Roboto Mono', monospace;
-}
-
 /* ----- 내 기록: 테이블 ----- */
 .my-record-table-header {
     padding: 0 6px 0 0;
@@ -1025,17 +996,6 @@
 
     .stat-value {
         font-size: 15px;
-    }
-
-    .improve-sec {
-        font-size: 13px;
-    }
-
-    .improve-pct {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 10px;
-        padding: 2px 6px;
     }
 
     .date-text {
@@ -1461,4 +1421,129 @@
     .ch-hero.text b { font-size: 17px; }
 
     .tier { font-size: 12px; padding: 2px 8px; letter-spacing: .8px; }
+}
+
+/* ══ 내 기록 통계 4칸 ══ */
+.tier-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button.tier {
+    border: 0;
+    cursor: pointer;
+}
+
+button.tier:disabled {
+    cursor: default;
+}
+
+/* 등급표는 카드 줄을 밀지 않고 위에 겹친다. 밀면 아래 목록이 그만큼 짧아진다. */
+.panel {
+    position: relative;
+}
+
+#tierSheet {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+}
+
+#tierSheet[hidden] {
+    display: none;
+}
+
+.ts-back {
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 24, 52, .28);
+}
+
+.ts-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(340px, 92%);
+    background: #fff;
+    border-radius: 16px;
+    padding: 14px 16px 12px;
+    box-shadow: 0 12px 40px rgba(30, 24, 52, .24);
+    font-family: 'Pretendard', sans-serif;
+}
+
+.ts-head {
+    font-size: 12px;
+    font-weight: 700;
+    color: #9a93b0;
+    letter-spacing: .6px;
+}
+
+.ts-next {
+    margin: 6px 0 10px;
+    font-size: 13px;
+    color: #5b5375;
+    background: #f5f2fc;
+    border-radius: 9px;
+    padding: 8px 10px;
+}
+
+.ts-next b {
+    color: #6633cc;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.ts-row {
+    display: grid;
+    grid-template-columns: 54px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.ts-row--me {
+    background: #f1eef9;
+    box-shadow: inset 0 0 0 1px #ddd2f4;
+}
+
+.ts-row .tier {
+    font-size: 11px;
+    padding: 2px 0;
+    width: 54px;
+    text-align: center;
+}
+
+.ts-pct {
+    color: #9a93b0;
+    font-weight: 600;
+}
+
+.ts-cut {
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    color: #5b5375;
+}
+
+/* ══ 기록 표 날짜 ══ */
+.rec-day {
+    font-weight: 600;
+    display: inline-block;
+    min-width: 42px;
+}
+
+.rec-time {
+    margin-left: 7px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.86em;
+    color: #b0a8c6;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .rec-day { min-width: 36px; }
+    .rec-time { margin-left: 5px; }
+    .ts-panel { padding: 12px 13px 10px; }
 }
