@@ -17,7 +17,7 @@
 
         <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
 
-        <form method="post" action="/admin-hoya/ad/campaigns" enctype="multipart/form-data">
+        <form id="campaign-form" method="post" action="/admin-hoya/ad/campaigns" enctype="multipart/form-data">
             <input type="hidden" name="id" th:value="${form.id}">
 
             <div class="card formcard wide">
@@ -445,7 +445,7 @@
 
     // 안 붙은 소재는 저장돼도 아무 데도 안 간다. 한 번은 알려준다
     let warned = false;
-    document.querySelector('form').addEventListener('submit', (event) => {
+    document.getElementById('campaign-form').addEventListener('submit', (event) => {
         const used = [...rows.querySelectorAll('input[type=file]')].filter(i => i.files.length).length;
         const left = assets.size - used;
         if (warned || left <= 0) return;
@@ -454,7 +454,7 @@
         const box = document.createElement('div');
         box.className = 'warnbox';
         box.textContent = '안 붙은 소재 ' + left + '장은 저장되지 않습니다. 그대로 저장하려면 다시 누르세요.';
-        document.querySelector('form').prepend(box);
+        document.getElementById('campaign-form').prepend(box);
         box.scrollIntoView({ block: 'center' });
     });
 
