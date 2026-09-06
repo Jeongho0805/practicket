@@ -186,9 +186,10 @@ public class AdminCampaignService {
             if (banner.getSlotId() == null) {
                 throw new AdException("배너마다 슬롯을 골라주세요.");
             }
-            if (banner.getStartAt() != null && banner.getEndAt() != null
-                    && banner.getEndAt().isBefore(banner.getStartAt())) {
-                throw new AdException("배너 종료일이 시작일보다 앞설 수 없습니다.");
+            LocalDate bannerStart = banner.getStartAt() == null ? form.getStartAt() : banner.getStartAt();
+            LocalDate bannerEnd = banner.getEndAt() == null ? form.getEndAt() : banner.getEndAt();
+            if (bannerEnd.isBefore(bannerStart)) {
+                throw new AdException("배너 게재 기간이 뒤집힙니다. 비운 쪽은 계약 기간을 따릅니다.");
             }
         }
     }
