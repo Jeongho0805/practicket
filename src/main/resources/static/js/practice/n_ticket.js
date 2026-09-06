@@ -1,9 +1,6 @@
 /* ============================================================
    n-ticket 대기열 + 좌석 선택 — 인트로에서 넘어온 반응속도로 시작한다.
 
-   순번 상수는 난이도 조정을 위해 n-ticket 만 먼저 바꿔 둔 상태다. 대기 시간이 랭킹의
-   일부라 다른 종목과 기록을 나란히 놓고 볼 수 없다 — 반응을 보고 나머지도 맞춘다.
-
    진행률과 단계 판정은 실물 tickets.interpark.com/waiting 의 로직 그대로다.
        barPercent = (firstRank - rank) / firstRank * 100
        isAlmost   = barPercent > 90     → 포인트색이 빨강으로 바뀐다
@@ -21,17 +18,13 @@ import {
     renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
 } from '/js/practice/result-split.js';
 import * as run from '/js/practice/run-state.js';
+import { QUEUE, initialRank } from '/js/practice/queue-model.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
 const BEST_RECORD_KEY = bestRecordKey('n-ticket');
 
-/* FLOOR 안쪽은 사람이 겨눠서 맞추는 구간이 아니라 전부 최저 순번으로 묶는다.
-   EXP 가 1 이면 직선이고, 낮출수록 앞쪽이 가팔라 밀리초 차이가 순번으로 벌어진다. */
-const QUEUE = { MIN: 5000, MAX: 200000, DEQ: 10000, MAX_REACTION: 3000, FLOOR: 10, EXP: 0.45 };
 const ALMOST_PERCENT = 90;
 const AWAITERS_BEHIND = 15320;
-const LOADING_MS = 800;
-const TICK_MS = 200;
 
 const SEAT_LIMIT_MS = 10 * 60 * 1000;
 const MAX_PICK = 4;
@@ -67,15 +60,8 @@ function phase(state) {
     return ['접속 인원이 많아 대기 중입니다.', '조금만 기다려주세요.'];
 }
 
-function rankFor(reaction) {
-    if (reaction <= QUEUE.FLOOR) return QUEUE.MIN;
-    const span = QUEUE.MAX_REACTION - QUEUE.FLOOR;
-    const t = Math.min((reaction - QUEUE.FLOOR) / span, 1);
-    return Math.round(QUEUE.MIN + Math.pow(t, QUEUE.EXP) * (QUEUE.MAX - QUEUE.MIN));
-}
-
 function startQueue() {
-    const firstRank = rankFor(reaction);
+    const firstRank = initialRank(reaction);
     T.firstRank = firstRank;
 
     const rootEl = $('waitRoot');
@@ -125,7 +111,7 @@ function startQueue() {
     };
 
     render();
-    const timer = setInterval(render, TICK_MS);
+    const timer = setInterval(render, QUEUE.TICK_MS);
 }
 
 /* ═══════════ 좌석 도면 ═══════════ */
@@ -301,7 +287,9 @@ const SEAT = { spacing: 3, radius: 1 };
    실측이 아니라 목업(docs/mockups/n-ticket/seat-decay.html)으로 체감을 맞춘 값이다. */
 /* random 은 자리를 안 가리고 사는 비율이다. 이게 없으면 앞 구역이 통째로 비워진 뒤에야
    뒤 구역이 팔려서, 뒤쪽에 빈자리가 흩어져 있는 실제 예매창과 달라진다. */
-const SELL = { totalMs: 30000, k: 6, jitter: 400, random: .20 };
+/* k 를 6 에서 3 으로 낮췄다. 6 이면 좌석 화면에 닿기도 전에 98% 가 팔려 고르는 동안에는
+   초당 몇 석밖에 안 빠진다 — 눈앞에서 자리가 사라지는 긴장이 없었다. 매진 시각은 그대로다. */
+const SELL = { totalMs: 30000, k: 3, jitter: 400, random: .20 };
 
 /* 무대에서 가까운 자리부터 팔린다. 흔들림을 안 섞으면 동심원으로 퍼져 부자연스럽다 */
 const STAGE_AT = { x: 370.5, y: 74 };
@@ -425,9 +413,9 @@ function closeSeat(i) {
     dot.setAttribute('stroke', SOLD_FILL);
 }
 
-/* 실물은 좌석 상태를 주기적으로 받아오지 않는다(2026-08-17 측정: 가만히 35초 동안 요청 0건).
-   확대·이동으로 보이는 블록이 바뀔 때만 다시 받아오므로, 가만히 있으면 화면이 낡은 채로 남는다.
-   낡은 화면을 누르면 그때 서버가 거절해 바로잡힌다 — 그 몫이 onPointerUp 의 선점 검사다. */
+/* 실물은 가만히 있어도 4초마다 좌석 상태를 다시 받아온다(2026-09-06 측정: 30초에 80건).
+   우리는 그보다 촘촘한 0.5초로 칠한다 — 실물의 4초는 트래픽을 아끼려는 간격이고,
+   자리가 눈앞에서 사라지는 것이 이 연습에서 재현해야 할 긴장이기 때문이다. */
 function syncSeats() {
     while (syncedIdx < soldList.length) closeSeat(soldList[syncedIdx++]);
 }
@@ -794,6 +782,7 @@ function startSeatTimer() {
 
     const tick = () => {
         sellUpTo(soldAt(soldElapsed()));
+        syncSeats();
         if (isSoldOut()) {
             clearInterval(seatTimer);
             showSoldOut();
@@ -1082,5 +1071,5 @@ if (reaction) {
         // 도면을 같은 프레임에서 만들면 대기열 첫 화면이 늦게 뜬다
         setTimeout(buildPlan, 0);
         loadCaptchaPool();
-    }, LOADING_MS);
+    }, QUEUE.LOADING_MS);
 }
