@@ -346,10 +346,15 @@ tr.rowlink:hover td { background: #faf8ff; }
 .facts > div { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f1eef8; }
 .facts dt { width: 108px; flex: none; font-size: 12px; color: #7a7290; font-weight: 600; }
 .facts dd { margin: 0; font-size: 13.5px; }
+/* 각 열의 맨 아랫줄은 밑줄을 뗀다 — 홀수 개면 오른쪽 열이 먼저 끝나 선이 허공에 남는다 */
+.facts > div:nth-last-child(-n+2) { border-bottom: none; }
 .factmemo { padding-top: 12px; }
 .factmemo dt { font-size: 12px; color: #7a7290; font-weight: 600; margin-bottom: 5px; }
 .factmemo p { margin: 0; font-size: 13.5px; line-height: 1.7; }
-@media (max-width: 900px) { .facts { grid-template-columns: 1fr; } }
+@media (max-width: 900px) {
+    .facts { grid-template-columns: 1fr; }
+    .facts > div:nth-last-child(2) { border-bottom: 1px solid #f1eef8; }
+}
 
 /* ── 자리 표 ── */
 .slottable td { padding: 12px 16px; vertical-align: top; }

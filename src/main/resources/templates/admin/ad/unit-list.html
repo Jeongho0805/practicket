@@ -40,7 +40,7 @@
                     <tbody>
                     <tr th:each="unit : ${units}">
                         <td><b th:text="${unit.network}">NETWORK</b></td>
-                        <td class="mono" th:text="${unit.unitId}">unit</td>
+                        <td><span class="mono" th:text="${unit.unitId}">unit</span></td>
                         <td th:text="${unit.name != null ? unit.name : '-'}">-</td>
                         <td>
                             <span class="tag resp" th:if="${unit.responsive}"><i></i>반응형</span>
