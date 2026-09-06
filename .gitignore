@@ -51,3 +51,8 @@ docs/
 
 # Playwright MCP 임시 산출물
 .playwright-mcp/
+
+# 세션 임시 산출물 — 스크린샷·중간 파일. 버려도 되는 것
+/tmp/
+# 목업·시안 — 다시 볼 산출물. 커밋 대상은 아니다
+/sample/
