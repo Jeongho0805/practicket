@@ -591,8 +591,13 @@ $('cap-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('cap-
 
 /* ══════════ 완료 ══════════ */
 
+let submittingResult = false;
+
 /* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function finish() {
+    if (submittingResult) return;
+    submittingResult = true;
+
     const captchaMs = run.captchaMs();
     const sent = {
         total_duration_ms: Math.max(0, Date.now() - run.openedAt()),

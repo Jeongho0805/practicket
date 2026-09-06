@@ -1633,8 +1633,13 @@ function showToast(msg) {
     }, 2000);
 }
 
+let submittingResult = false;
+
 /* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function completePractice() {
+    if (submittingResult) return;
+    submittingResult = true;
+
     const sessionId = run.sessionId();
     const captchaMs = run.captchaMs();
 
