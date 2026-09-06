@@ -10,6 +10,7 @@
  */
 const COUPANG_SCRIPT = 'https://ads-partners.coupang.com/g.js';
 const ADSENSE_SCRIPT = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+const ADFIT_SCRIPT = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
 
 const loaded = new Map();
 
@@ -70,14 +71,45 @@ function fillCoupang(el) {
     });
 }
 
+/**
+ * 애드핏은 자기 스크립트가 실행되는 그 순간의 문서만 훑는다. 나중에 만든 자리는 못 보므로
+ * 자리마다 script 태그를 새로 붙인다 — 같은 주소라도 태그를 새로 만들면 다시 실행된다.
+ * 그래서 여기만 loadScript(한 번 받아 재사용)를 쓰지 않는다.
+ *
+ * ins 태그의 클래스·style·data 속성은 카카오가 준 그대로 둔다. 고치면 광고 요청이 실패한다.
+ */
+function fillAdfit(el) {
+    const [width, height] = (el.dataset.size || '').split('x');
+
+    const ins = document.createElement('ins');
+    ins.className = 'kakao_ad_area';
+    ins.style.display = 'none';
+    ins.dataset.adUnit = el.dataset.unit;
+    ins.dataset.adWidth = width;
+    ins.dataset.adHeight = height;
+    el.appendChild(ins);
+
+    const script = document.createElement('script');
+    script.src = ADFIT_SCRIPT;
+    script.async = true;
+    el.appendChild(script);
+
+    return Promise.resolve();
+}
+
 function fill(el) {
     if (el.dataset.filled) return;
-    if (!el.dataset.account || !el.dataset.unit) return;
+    if (!el.dataset.unit) return;
+    // 애드핏은 계정 값이 따로 없다. 광고단위 ID 하나가 계정 노릇까지 한다.
+    if (el.dataset.network !== 'ADFIT' && !el.dataset.account) return;
+    // 애드핏은 코드에 크기를 박아야 하므로 규격을 모르면 요청 자체가 성립하지 않는다.
+    if (el.dataset.network === 'ADFIT' && !el.dataset.size) return;
     el.dataset.filled = '1';
 
     const filler = el.dataset.network === 'ADSENSE' ? fillAdsense
         : el.dataset.network === 'COUPANG' ? fillCoupang
-            : null;
+            : el.dataset.network === 'ADFIT' ? fillAdfit
+                : null;
     if (!filler) return;
 
     filler(el).catch(() => {

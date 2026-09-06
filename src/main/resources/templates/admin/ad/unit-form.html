@@ -46,11 +46,21 @@
                     </div>
                     <div class="f">
                         <label for="width">규격</label>
+                        <select id="adfitSize" hidden>
+                            <option value="">규격을 고르세요</option>
+                            <option value="320x480">320x480 · 모바일 세로형</option>
+                            <option value="320x100">320x100 · 모바일 띠</option>
+                            <option value="320x50">320x50 · 모바일 얇은 띠</option>
+                            <option value="728x90">728x90 · PC 가로형</option>
+                            <option value="300x250">300x250 · PC/모바일 겸용</option>
+                            <option value="250x250">250x250 · 정사각형</option>
+                            <option value="160x600">160x600 · PC 세로형</option>
+                        </select>
                         <div class="dates">
                             <input type="number" id="width" name="width"
                                    th:value="${unit != null ? unit.width : null}" placeholder="가로" min="0">
                             <span class="sep">x</span>
-                            <input type="number" name="height"
+                            <input type="number" id="height" name="height"
                                    th:value="${unit != null ? unit.height : null}" placeholder="세로" min="0">
                         </div>
                         <span class="hint">애드핏처럼 규격이 고정된 네트워크만 채웁니다.</span>
@@ -77,5 +87,30 @@
 
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    // 애드핏은 카카오가 정한 일곱 규격 밖을 못 쓴다. 손으로 치면 오타가 나므로 골라서 채운다.
+    (function () {
+        const network = document.getElementById('network');
+        const size = document.getElementById('adfitSize');
+        const width = document.getElementById('width');
+        const height = document.getElementById('height');
+
+        function sync() {
+            size.hidden = network.value !== 'ADFIT';
+            if (!size.hidden) {
+                size.value = width.value && height.value ? width.value + 'x' + height.value : '';
+            }
+        }
+
+        size.addEventListener('change', function () {
+            if (!size.value) return;
+            const [w, h] = size.value.split('x');
+            width.value = w;
+            height.value = h;
+        });
+        network.addEventListener('change', sync);
+        sync();
+    })();
+</script>
 </body>
 </html>

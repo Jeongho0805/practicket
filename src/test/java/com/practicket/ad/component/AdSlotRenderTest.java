@@ -111,6 +111,24 @@ class AdSlotRenderTest {
     }
 
     @Test
+    @DisplayName("애드핏은 계정 값이 없고 규격이 대신 나간다")
+    void adfitEmitsSizeWithoutAccount() throws Exception {
+        given(adSlotView.render("PC_LEFT")).willReturn(new AdSlotRender("PC_LEFT",
+                AdFace.fill(true, new AdSlotSnapshot.Unit("ADFIT", "DAN-BicR0BE99mzbLjlm", 160, 600), null, null),
+                AdFace.none()));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-network=\"ADFIT\"")))
+                .andExpect(content().string(containsString("data-unit=\"DAN-BicR0BE99mzbLjlm\"")))
+                .andExpect(content().string(containsString("data-size=\"160x600\"")))
+                .andExpect(content().string(containsString("pc-fill pc-net-ADFIT")))
+                .andExpect(content().string(not(containsString("data-account"))))
+                .andExpect(content().string(not(containsString("kakao_ad_area"))))
+                .andExpect(content().string(not(containsString("t1.kakaocdn.net"))));
+    }
+
+    @Test
     @DisplayName("프로파일이 막으면 자리 정보조차 안 나간다")
     void fillDisabledEmitsNothing() throws Exception {
         given(adSlotView.render("PC_LEFT")).willReturn(new AdSlotRender("PC_LEFT",
