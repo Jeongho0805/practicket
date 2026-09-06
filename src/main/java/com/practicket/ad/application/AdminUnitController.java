@@ -73,31 +73,21 @@ public class AdminUnitController {
                        @RequestParam(required = false) String name,
                        @RequestParam(required = false) Integer width,
                        @RequestParam(required = false) Integer height,
-                       @RequestParam(required = false, defaultValue = "false") boolean isDefault,
                        RedirectAttributes redirectAttributes) {
         try {
-            AdUnit saved = id == null
-                    ? adUnitRepository.save(AdUnit.builder()
-                            .network(network).unitId(unitId).name(name)
-                            .width(width).height(height).isDefault(false)
-                            .build())
-                    : update(id, network, unitId, name, width, height);
-            if (isDefault) {
-                markDefault(saved);
+            if (id == null) {
+                adUnitRepository.save(AdUnit.builder()
+                        .network(network).unitId(unitId).name(name)
+                        .width(width).height(height)
+                        .build());
+            } else {
+                update(id, network, unitId, name, width, height);
             }
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return id == null ? "redirect:/admin-hoya/ad/units/new"
                     : "redirect:/admin-hoya/ad/units/" + id + "/edit";
         }
-        return "redirect:/admin-hoya/ad/units";
-    }
-
-    @PostMapping("/{id}/default")
-    @Transactional
-    public String setDefault(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        adUnitRepository.findById(id).ifPresentOrElse(this::markDefault,
-                () -> redirectAttributes.addFlashAttribute("error", "존재하지 않는 광고단위입니다."));
         return "redirect:/admin-hoya/ad/units";
     }
 
@@ -120,13 +110,6 @@ public class AdminUnitController {
                 .orElseThrow(() -> new AdException("존재하지 않는 광고단위입니다."));
         unit.update(network, unitId, width, height, name);
         return unit;
-    }
-
-    /** 네트워크마다 기본은 하나다. 새로 세우면 같은 네트워크의 나머지를 내린다 */
-    private void markDefault(AdUnit unit) {
-        adUnitRepository.findByNetwork(unit.getNetwork())
-                .forEach(other -> other.markDefault(other.getId().equals(unit.getId())));
-        unit.markDefault(true);
     }
 
     private List<String> networks() {

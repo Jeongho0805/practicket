@@ -256,7 +256,7 @@ class AdminAdPageRenderTest {
     private AdUnit unit() {
         return AdUnit.builder()
                 .id(1L).network("ADSENSE").unitId("9697904962").name("애드센스 기본")
-                .isDefault(true).createdAt(TODAY.atStartOfDay())
+                .createdAt(TODAY.atStartOfDay())
                 .build();
     }
 

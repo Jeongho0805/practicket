@@ -64,8 +64,6 @@ CREATE TABLE IF NOT EXISTS `ad_unit` (
   `width` smallint unsigned DEFAULT NULL,
   `height` smallint unsigned DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
-  -- 반응형 네트워크에서 규격을 안 따지고 기본으로 쓸 단위. 네트워크당 하나만 1 이다
-  `is_default` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_ad_unit_network_unit` (`network`,`unit_id`)
@@ -140,9 +138,9 @@ UPDATE `ad_slot` SET
 WHERE `code` = 'MOBILE_TOP';
 
 -- 지금 템플릿에 하드코딩돼 있는 단위 둘. 위 fill_network 가 가리킬 대상이라 함께 넣는다.
-INSERT IGNORE INTO `ad_unit` (`network`, `unit_id`, `name`, `is_default`, `created_at`)
-VALUES ('COUPANG', '943782', '쿠팡 파트너스 기본', 1, NOW()),
-       ('ADSENSE', '9697904962', '애드센스 기본', 1, NOW());
+INSERT IGNORE INTO `ad_unit` (`network`, `unit_id`, `name`, `created_at`)
+VALUES ('COUPANG', '943782', '쿠팡 파트너스 기본', NOW()),
+       ('ADSENSE', '9697904962', '애드센스 기본', NOW());
 
 -- ── 기존 배너 이관 ─────────────────────────────────────────────
 -- 광고주 이름 문자열만 있던 배너를 광고주·계약 밑으로 옮긴다.

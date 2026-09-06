@@ -32,9 +32,6 @@ public class AdUnit {
 
     private String name;
 
-    @Column(name = "is_default", nullable = false)
-    private Boolean isDefault;
-
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,10 +42,6 @@ public class AdUnit {
         this.width = width;
         this.height = height;
         this.name = name;
-    }
-
-    public void markDefault(boolean value) {
-        this.isDefault = value;
     }
 
     /** 규격을 안 가리는 반응형 단위. 애드센스·쿠팡이 여기 해당한다. */

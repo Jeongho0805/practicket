@@ -34,7 +34,6 @@
                         <th>단위 ID</th>
                         <th>이름</th>
                         <th>규격</th>
-                        <th>기본</th>
                         <th class="r"></th>
                     </tr>
                     </thead>
@@ -47,13 +46,6 @@
                             <span class="tag resp" th:if="${unit.responsive}"><i></i>반응형</span>
                             <span class="mono" th:unless="${unit.responsive}"
                                   th:text="${unit.width} + 'x' + ${unit.height}">300x250</span>
-                        </td>
-                        <td>
-                            <span class="pill live" th:if="${unit.isDefault}"><i></i>기본</span>
-                            <form method="post" th:unless="${unit.isDefault}"
-                                  th:action="@{/admin-hoya/ad/units/{id}/default(id=${unit.id})}">
-                                <button type="submit" class="linkbtn">기본으로</button>
-                            </form>
                         </td>
                         <td class="r">
                             <div class="rowact">
