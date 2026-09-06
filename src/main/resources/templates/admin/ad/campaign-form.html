@@ -11,7 +11,7 @@
         <div class="topbar">
             <div>
                 <h1 th:text="${form.id == null} ? '새 캠페인' : ${form.name}">새 캠페인</h1>
-                <p>계약 한 건과 그 아래 자리별 배너를 한 화면에서 만듭니다.</p>
+                <p>계약 한 건과 그 아래 슬롯별 배너를 한 화면에서 만듭니다.</p>
             </div>
         </div>
 
@@ -74,8 +74,8 @@
 
             <div class="card formcard wide">
                 <header>
-                    <h2>자리별 배너</h2>
-                    <button type="button" class="btn ghost sm" id="add-banner">+ 자리 추가</button>
+                    <h2>슬롯별 배너</h2>
+                    <button type="button" class="btn ghost sm" id="add-banner">+ 슬롯 추가</button>
                 </header>
                 <p class="note">
                     기간을 비우면 계약 기간을 따릅니다. 소재는 기기별로 따로 올립니다 —
@@ -86,7 +86,7 @@
                     <table>
                         <thead>
                         <tr>
-                            <th style="width:200px">자리</th>
+                            <th style="width:200px">슬롯</th>
                             <th style="width:220px">데스크톱 소재</th>
                             <th style="width:220px">모바일 소재</th>
                             <th style="width:220px">착지 주소</th>
@@ -104,7 +104,7 @@
                                     <option th:each="slot : ${slots}"
                                             th:value="${slot.id}"
                                             th:selected="${slot.id == banner.slotId}"
-                                            th:text="${slot.name} + ' · ' + ${slot.code}">자리</option>
+                                            th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
                                 </select>
                             </td>
                             <td>
@@ -158,7 +158,7 @@
                                            value="true" th:checked="${banner.enabled}">
                                     노출
                                 </label>
-                                <button type="button" class="linkbtn remove-banner">이 자리 빼기</button>
+                                <button type="button" class="linkbtn remove-banner">이 슬롯 빼기</button>
                             </td>
                         </tr>
                         </tbody>
@@ -181,7 +181,7 @@
             <input type="hidden" name="banners[__i__].deleted" value="false" class="deleted-flag">
             <select name="banners[__i__].slotId">
                 <option th:each="slot : ${slots}" th:value="${slot.id}"
-                        th:text="${slot.name} + ' · ' + ${slot.code}">자리</option>
+                        th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
             </select>
         </td>
         <td>
@@ -213,7 +213,7 @@
                 <input type="checkbox" name="banners[__i__].enabled" value="true" checked>
                 노출
             </label>
-            <button type="button" class="linkbtn remove-banner">이 자리 빼기</button>
+            <button type="button" class="linkbtn remove-banner">이 슬롯 빼기</button>
         </td>
     </tr>
 </template>

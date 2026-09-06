@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 자리 관리. 자리를 새로 만들지는 못한다 — 템플릿에 조각을 넣어야 실제로 뜨므로
+ * 슬롯 관리. 슬롯을 새로 만들지는 못한다 — 템플릿에 조각을 넣어야 실제로 뜨므로
  * 어드민에서 행만 만들면 아무 데도 안 나가는 유령이 된다. 값 수정만 한다.
  */
 @Service
@@ -34,7 +34,7 @@ public class AdminSlotService {
     private final AdUnitResolver adUnitResolver;
     private final AdminCampaignService adminCampaignService;
 
-    /** 어드민 목록은 자리를 묶어서 보여준다. 묶음이 없는 자리는 맨 뒤에 따로 모은다 */
+    /** 어드민 목록은 슬롯을 묶어서 보여준다. 묶음이 없는 슬롯은 맨 뒤에 따로 모은다 */
     @Transactional(readOnly = true)
     public List<SlotGroup> getGroups() {
         List<AdUnit> units = adUnitRepository.findAll();
@@ -78,7 +78,7 @@ public class AdminSlotService {
     @Transactional
     public void save(SlotForm form) {
         AdSlot slot = adSlotRepository.findById(form.getId())
-                .orElseThrow(() -> new AdException("존재하지 않는 자리입니다."));
+                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
 
         adSlotRepository.save(AdSlot.builder()
                 .id(slot.getId())
@@ -138,7 +138,7 @@ public class AdminSlotService {
         private final String mobileSize;
         private final AdUnit pcUnit;
         private final AdUnit mobileUnit;
-        /** 채울 네트워크는 정했는데 규격에 맞는 단위가 없다 — 그 기기 자리가 빈 채로 나간다 */
+        /** 채울 네트워크는 정했는데 규격에 맞는 단위가 없다 — 그 기기 슬롯이 빈 채로 나간다 */
         private final boolean pcUnitMissing;
         private final boolean mobileUnitMissing;
 

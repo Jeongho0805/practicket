@@ -119,7 +119,7 @@ class AdminAdPageRenderTest {
     }
 
     @Test
-    @DisplayName("광고단위가 빈 자리가 있으면 대시보드가 경고한다")
+    @DisplayName("광고단위가 빈 슬롯이 있으면 대시보드가 경고한다")
     void dashboardWarnsUnitGap() throws Exception {
         given(adminSlotService.getGroups()).willReturn(List.of(
                 new AdminSlotService.SlotGroup("전 페이지 공통", "GLOBAL", List.of(
@@ -127,7 +127,7 @@ class AdminAdPageRenderTest {
 
         mockMvc.perform(get("/admin-hoya/ad"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("광고단위가 비어 있는 자리가 있습니다")));
+                .andExpect(content().string(containsString("광고단위가 비어 있는 슬롯이 있습니다")));
     }
 
     @Test
@@ -151,13 +151,13 @@ class AdminAdPageRenderTest {
     }
 
     @Test
-    @DisplayName("캠페인 등록 폼이 렌더된다 — 자리 줄 템플릿까지")
+    @DisplayName("캠페인 등록 폼이 렌더된다 — 슬롯 줄 템플릿까지")
     void campaignFormRenders() throws Exception {
         mockMvc.perform(get("/admin-hoya/ad/campaigns/new"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/ad/campaign-form"))
                 .andExpect(content().string(containsString("banner-row-template")))
-                .andExpect(content().string(containsString("자리별 배너")));
+                .andExpect(content().string(containsString("슬롯별 배너")));
     }
 
     @Test
@@ -188,7 +188,7 @@ class AdminAdPageRenderTest {
     }
 
     @Test
-    @DisplayName("자리 목록·수정 폼이 렌더된다")
+    @DisplayName("슬롯 목록·수정 폼이 렌더된다")
     void slotScreensRender() throws Exception {
         mockMvc.perform(get("/admin-hoya/ad/slots"))
                 .andExpect(status().isOk())

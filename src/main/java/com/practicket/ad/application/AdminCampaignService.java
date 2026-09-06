@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 /**
  * 캠페인(계약) 한 건과 그 아래 배너들을 함께 다룬다.
  *
- * 배너를 캠페인과 떼어 놓지 않는 이유는 저장 단위가 계약이기 때문이다. 자리를 셋 판 계약이면
+ * 배너를 캠페인과 떼어 놓지 않는 이유는 저장 단위가 계약이기 때문이다. 슬롯을 셋 판 계약이면
  * 배너 셋이 한 화면에서 같이 만들어지고, 계약을 지우면 배너도 같은 트랜잭션에서 사라져야 한다 —
  * 외래키를 안 쓰므로 그 책임이 전부 여기 있다.
  */
@@ -79,7 +79,7 @@ public class AdminCampaignService {
                 .toList();
     }
 
-    /** 자리마다 지금 걸려 있는 계약 수. 자리 화면과 대시보드가 같이 쓴다. */
+    /** 슬롯마다 지금 걸려 있는 계약 수. 슬롯 화면과 대시보드가 같이 쓴다. */
     @Transactional(readOnly = true)
     public Map<Long, Long> countLiveBannersBySlot() {
         LocalDate today = LocalDate.now();
@@ -95,7 +95,7 @@ public class AdminCampaignService {
         return adCampaignRepository.findById(id).map(this::toDetail);
     }
 
-    /** 새 캠페인 폼. 자리 하나짜리 거래도 배너 한 줄로 시작한다 */
+    /** 새 캠페인 폼. 슬롯 하나짜리 거래도 배너 한 줄로 시작한다 */
     @Transactional(readOnly = true)
     public CampaignForm blankForm() {
         CampaignForm form = new CampaignForm();
@@ -184,7 +184,7 @@ public class AdminCampaignService {
                 continue;
             }
             if (banner.getSlotId() == null) {
-                throw new AdException("배너마다 자리를 골라주세요.");
+                throw new AdException("배너마다 슬롯을 골라주세요.");
             }
             if (banner.getStartAt() != null && banner.getEndAt() != null
                     && banner.getEndAt().isBefore(banner.getStartAt())) {
@@ -227,7 +227,7 @@ public class AdminCampaignService {
                 continue;
             }
             AdSlot slot = adSlotRepository.findById(form.getSlotId())
-                    .orElseThrow(() -> new AdException("존재하지 않는 자리입니다."));
+                    .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
 
             Banner banner = form.getId() == null ? null : existing.remove(form.getId());
             String pcImagePath = resolveImage(form.getPcImage(), form.getPcImagePath(), form.isClearPcImage());
@@ -366,8 +366,8 @@ public class AdminCampaignService {
     }
 
     /**
-     * 같은 자리에 기간이 겹치는 다른 계약의 배너를 찾는다. 겹치면 노출이 무작위로 나뉘므로
-     * 단독 노출로 판 자리라면 사고다. 막지는 않고 알려만 준다.
+     * 같은 슬롯에 기간이 겹치는 다른 계약의 배너를 찾는다. 겹치면 노출이 무작위로 나뉘므로
+     * 단독 노출로 판 슬롯이라면 사고다. 막지는 않고 알려만 준다.
      */
     private Map<Long, List<String>> findOverlaps(AdCampaign campaign, List<Banner> mine) {
         Map<Long, AdCampaign> campaigns = campaignsById();
@@ -518,7 +518,7 @@ public class AdminCampaignService {
         private final double widthPercent;
         private final List<String> overlappingCampaigns;
 
-        /** 그림이 하나도 없으면 렌더에서 빠진다 — 자리만 잡고 아무것도 안 나간다 */
+        /** 그림이 하나도 없으면 렌더에서 빠진다 — 슬롯만 잡고 아무것도 안 나간다 */
         public boolean isMissingCreative() {
             return pcImagePath == null && mobileImagePath == null;
         }

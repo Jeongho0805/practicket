@@ -9,7 +9,7 @@
         <div class="topbar">
             <div>
                 <h1>캠페인</h1>
-                <p>계약 한 건이 캠페인 하나입니다. 자리별 배너는 캠페인 아래에 달립니다.</p>
+                <p>계약 한 건이 캠페인 하나입니다. 슬롯별 배너는 캠페인 아래에 달립니다.</p>
             </div>
             <div class="tools">
                 <a class="btn" href="/admin-hoya/ad/campaigns/new">+ 새 캠페인</a>
@@ -72,7 +72,7 @@
                         <td class="r money" th:text="${#numbers.formatInteger(row.amount, 1, 'COMMA')} + '원'">0원</td>
                         <td>
                             <b th:text="${row.bannerCount} + '개'">0개</b><br>
-                            <span class="note" th:text="${row.slotNames}">자리</span>
+                            <span class="note" th:text="${row.slotNames}">슬롯</span>
                             <br th:if="${row.ownPeriodCount > 0}">
                             <span class="tag own" th:if="${row.ownPeriodCount > 0}" style="margin-top:4px">
                                 <i></i><span th:text="'기간 따로 ' + ${row.ownPeriodCount} + '개'">기간 따로</span>

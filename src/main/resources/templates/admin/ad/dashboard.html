@@ -39,10 +39,10 @@
         <p class="note" style="margin:-8px 0 14px">집계는 매시 정각에 반영됩니다 — 오늘 수치는 최대 1시간 지연될 수 있습니다.</p>
 
         <div class="warnbox" th:if="${not #lists.isEmpty(unitGaps)}">
-            <b>광고단위가 비어 있는 자리가 있습니다.</b>
+            <b>광고단위가 비어 있는 슬롯이 있습니다.</b>
             <ul>
                 <li th:each="row : ${unitGaps}">
-                    <span th:text="${row.slot.name}">자리</span> —
+                    <span th:text="${row.slot.name}">슬롯</span> —
                     <span th:text="${row.pcUnitMissing ? '데스크톱' : ''}
                                    + ${row.pcUnitMissing and row.mobileUnitMissing ? ' · ' : ''}
                                    + ${row.mobileUnitMissing ? '모바일' : ''}">데스크톱</span>

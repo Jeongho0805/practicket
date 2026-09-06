@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 /**
- * 광고 설정 — 네트워크가 발급한 광고단위를 등록해 둔다. 자리가 팔리지 않았을 때 이 중 하나가 들어간다.
+ * 광고 설정 — 네트워크가 발급한 광고단위를 등록해 둔다. 슬롯이 팔리지 않았을 때 이 중 하나가 들어간다.
  *
  * 계정 값(쿠팡 trackingCode, 애드센스 client)은 여기 없다. 사이트에 하나뿐이고 바뀌지 않아
  * {@link AdNetworkSettings} 가 설정에서 읽는다.
@@ -101,14 +101,14 @@ public class AdminUnitController {
         return "redirect:/admin-hoya/ad/units";
     }
 
-    /** 자리가 직접 고른 단위는 지우지 않는다. 지우면 그 자리가 조용히 비어 버린다 */
+    /** 슬롯이 직접 고른 단위는 지우지 않는다. 지우면 그 슬롯이 조용히 비어 버린다 */
     @PostMapping("/{id}/delete")
     @Transactional
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         boolean used = adSlotRepository.findAll().stream()
                 .anyMatch(slot -> id.equals(slot.getPcAdUnitId()) || id.equals(slot.getMobileAdUnitId()));
         if (used) {
-            redirectAttributes.addFlashAttribute("error", "자리가 직접 지정해 쓰고 있어 삭제할 수 없습니다.");
+            redirectAttributes.addFlashAttribute("error", "슬롯이 직접 지정해 쓰고 있어 삭제할 수 없습니다.");
             return "redirect:/admin-hoya/ad/units";
         }
         adUnitRepository.deleteById(id);

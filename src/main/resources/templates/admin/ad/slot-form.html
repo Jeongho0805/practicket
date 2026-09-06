@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/fragments/admin-shell :: head('자리 수정')}"></head>
+<head th:replace="~{admin/fragments/admin-shell :: head('슬롯 수정')}"></head>
 <body>
 <div class="app">
     <aside th:replace="~{admin/fragments/admin-shell :: sidebar('slot')}"></aside>
 
     <main class="main">
-        <div class="crumb"><a href="/admin-hoya/ad/slots">자리</a> · 수정</div>
+        <div class="crumb"><a href="/admin-hoya/ad/slots">슬롯</a> · 수정</div>
 
         <div class="topbar">
             <div>
-                <h1 th:text="${form.name}">자리</h1>
-                <p>규격을 비우면 그 기기에서는 이 자리가 아예 안 나갑니다.</p>
+                <h1 th:text="${form.name}">슬롯</h1>
+                <p>규격을 비우면 그 기기에서는 이 슬롯이 아예 안 나갑니다.</p>
             </div>
         </div>
 

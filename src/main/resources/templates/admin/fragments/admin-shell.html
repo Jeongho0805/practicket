@@ -38,7 +38,7 @@
         </a>
         <a class="nav" th:classappend="${active == 'slot'} ? 'on'" href="/admin-hoya/ad/slots">
             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="10" height="6" rx="1"/></svg>
-            자리
+            슬롯
             <span class="count" th:if="${navSlotCount != null}" th:text="${navSlotCount}">0</span>
         </a>
         <a class="nav" th:classappend="${active == 'unit'} ? 'on'" href="/admin-hoya/ad/units">

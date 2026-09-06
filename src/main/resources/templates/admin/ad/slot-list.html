@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/fragments/admin-shell :: head('자리')}"></head>
+<head th:replace="~{admin/fragments/admin-shell :: head('슬롯')}"></head>
 <body>
 <div class="app">
     <aside th:replace="~{admin/fragments/admin-shell :: sidebar('slot')}"></aside>
@@ -8,8 +8,8 @@
     <main class="main">
         <div class="topbar">
             <div>
-                <h1>자리</h1>
-                <p>자리는 어드민에서 만들 수 없습니다 — 화면 템플릿에 조각을 넣어야 실제로 뜹니다.</p>
+                <h1>슬롯</h1>
+                <p>슬롯은 어드민에서 만들 수 없습니다 — 화면 템플릿에 조각을 넣어야 실제로 뜹니다.</p>
             </div>
         </div>
 
@@ -21,14 +21,14 @@
                     <h2 th:text="${group.name}">묶음</h2>
                     <span class="mono" th:if="${group.path != null}" th:text="${group.path}">/path</span>
                 </div>
-                <span class="note" th:text="${#lists.size(group.slots)} + '개 자리'">0개 자리</span>
+                <span class="note" th:text="${#lists.size(group.slots)} + '개 슬롯'">0개 슬롯</span>
             </header>
 
             <div class="tablewrap">
                 <table class="slottable">
                     <thead>
                     <tr>
-                        <th class="place">자리</th>
+                        <th class="place">슬롯</th>
                         <th>규격</th>
                         <th class="fill">미판매 시</th>
                         <th class="ucol">데스크톱 단위</th>
@@ -40,7 +40,7 @@
                     <tbody>
                     <tr th:each="row : ${group.slots}">
                         <td class="place">
-                            <b th:text="${row.slot.name}">자리</b>
+                            <b th:text="${row.slot.name}">슬롯</b>
                             <div class="meta" th:text="${row.slot.format != null ? row.slot.format : '-'}">디스플레이</div>
                             <div class="slotcode" th:text="${row.slot.code}">CODE</div>
                         </td>
@@ -98,7 +98,7 @@
         </div>
 
         <div class="card" th:if="${#lists.isEmpty(groups)}">
-            <div class="empty">등록된 자리가 없습니다.</div>
+            <div class="empty">등록된 슬롯이 없습니다.</div>
         </div>
     </main>
 </div>

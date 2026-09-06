@@ -32,17 +32,17 @@
         <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
 
         <div class="warnbox" th:if="${not #lists.isEmpty(detail.missingCreatives)}">
-            <b>소재가 없는 배너가 있습니다. 그 자리는 아무것도 안 나갑니다.</b>
+            <b>소재가 없는 배너가 있습니다. 그 슬롯은 아무것도 안 나갑니다.</b>
             <ul>
-                <li th:each="row : ${detail.missingCreatives}" th:text="${row.slotName}">자리</li>
+                <li th:each="row : ${detail.missingCreatives}" th:text="${row.slotName}">슬롯</li>
             </ul>
         </div>
 
         <div class="warnbox" th:if="${not #lists.isEmpty(detail.overlapping)}">
-            <b>같은 기간 같은 자리를 쓰는 다른 캠페인이 있습니다. 노출이 나뉩니다.</b>
+            <b>같은 기간 같은 슬롯을 쓰는 다른 캠페인이 있습니다. 노출이 나뉩니다.</b>
             <ul>
                 <li th:each="row : ${detail.overlapping}">
-                    <span th:text="${row.slotName}">자리</span> —
+                    <span th:text="${row.slotName}">슬롯</span> —
                     <span th:text="${#strings.listJoin(row.overlappingCampaigns, ', ')}">캠페인</span>
                 </li>
             </ul>
@@ -77,7 +77,7 @@
 
         <div class="card">
             <header>
-                <h2>자리별 배너<small th:text="${#lists.size(detail.banners)} + '개'">0개</small></h2>
+                <h2>슬롯별 배너<small th:text="${#lists.size(detail.banners)} + '개'">0개</small></h2>
                 <span class="note">기간을 비운 배너는 계약 기간을 그대로 따릅니다</span>
             </header>
 
@@ -85,7 +85,7 @@
                 <table>
                     <thead>
                     <tr>
-                        <th>자리</th>
+                        <th>슬롯</th>
                         <th>소재</th>
                         <th>노출 기간</th>
                         <th class="r">노출</th>
@@ -98,7 +98,7 @@
                     <tbody>
                     <tr th:each="row : ${detail.banners}">
                         <td>
-                            <b th:text="${row.slotName}">자리</b>
+                            <b th:text="${row.slotName}">슬롯</b>
                             <div class="slotcode mono" th:text="${row.slotCode}">CODE</div>
                         </td>
                         <td>
@@ -141,7 +141,7 @@
 
             <div class="empty" th:if="${#lists.isEmpty(detail.banners)}">
                 이 캠페인에 배너가 없습니다.
-                <a th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">자리를 추가</a>해주세요.
+                <a th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">슬롯을 추가</a>해주세요.
             </div>
 
             <div th:if="${not #lists.isEmpty(detail.banners)}" style="margin-top:18px">
@@ -149,7 +149,7 @@
                 <div class="tl">
                     <div class="tlrow" th:each="row : ${detail.banners}">
                         <div class="tlname">
-                            <b th:text="${row.slotName}">자리</b>
+                            <b th:text="${row.slotName}">슬롯</b>
                             <span class="mono" th:text="${row.slotCode}">CODE</span>
                         </div>
                         <div class="tltrack">
