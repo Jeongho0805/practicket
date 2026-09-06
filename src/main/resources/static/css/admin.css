@@ -228,7 +228,7 @@ tbody tr:last-child td { border-bottom: none; }
 .sw.on::after { transform: translateX(16px); }
 
 /* ── 폼 ── */
-.formcard { max-width: 560px; }
+.formcard { max-width: 560px; padding: 18px; }
 .f { margin-bottom: 16px; }
 .f label { display: block; font-size: 12px; font-weight: 600; color: #655d80; margin-bottom: 6px; }
 .f input[type=text], .f input[type=url], .f input[type=date], .f input[type=number], .f select, .f input[type=file], .f textarea {
@@ -342,13 +342,13 @@ tr.rowlink:hover td { background: #faf8ff; }
 .tag.resp { background: var(--ok-bg); color: var(--ok); }
 
 /* 읽기 전용 정보는 입력칸이 아니라 값으로 보여준다 */
-.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 28px; margin: 0 0 4px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 28px; margin: 0; padding: 6px 18px 12px; }
 .facts > div { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f1eef8; }
 .facts dt { width: 108px; flex: none; font-size: 12px; color: #7a7290; font-weight: 600; }
 .facts dd { margin: 0; font-size: 13.5px; }
 /* 각 열의 맨 아랫줄은 밑줄을 뗀다 — 홀수 개면 오른쪽 열이 먼저 끝나 선이 허공에 남는다 */
 .facts > div:nth-last-child(-n+2) { border-bottom: none; }
-.factmemo { padding-top: 12px; }
+.factmemo { padding: 0 18px 16px; }
 .factmemo dt { font-size: 12px; color: #7a7290; font-weight: 600; margin-bottom: 5px; }
 .factmemo p { margin: 0; font-size: 13.5px; line-height: 1.7; }
 @media (max-width: 900px) {
