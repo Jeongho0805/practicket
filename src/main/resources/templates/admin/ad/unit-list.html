@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('광고 설정')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('unit')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>광고 설정</h1>
+                <p>네트워크가 발급한 광고단위입니다. 자리가 팔리지 않았을 때 이 중 하나가 들어갑니다.</p>
+            </div>
+            <div class="tools">
+                <a class="btn" href="/admin-hoya/ad/units/new">+ 광고단위 추가</a>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <div class="card">
+            <header>
+                <div class="grouphead">
+                    <h2>광고단위<small th:text="${#lists.size(units)} + '개'">0개</small></h2>
+                </div>
+                <span class="note">계정 값(쿠팡 trackingCode · 애드센스 client)은 서버 설정에 있습니다</span>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(units)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>네트워크</th>
+                        <th>단위 ID</th>
+                        <th>이름</th>
+                        <th>규격</th>
+                        <th>기본</th>
+                        <th class="r"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="unit : ${units}">
+                        <td><b th:text="${unit.network}">NETWORK</b></td>
+                        <td class="mono" th:text="${unit.unitId}">unit</td>
+                        <td th:text="${unit.name != null ? unit.name : '-'}">-</td>
+                        <td>
+                            <span class="tag resp" th:if="${unit.responsive}"><i></i>반응형</span>
+                            <span class="mono" th:unless="${unit.responsive}"
+                                  th:text="${unit.width} + 'x' + ${unit.height}">300x250</span>
+                        </td>
+                        <td>
+                            <span class="pill live" th:if="${unit.isDefault}"><i></i>기본</span>
+                            <form method="post" th:unless="${unit.isDefault}"
+                                  th:action="@{/admin-hoya/ad/units/{id}/default(id=${unit.id})}">
+                                <button type="submit" class="linkbtn">기본으로</button>
+                            </form>
+                        </td>
+                        <td class="r">
+                            <div class="rowact">
+                                <a class="btn ghost sm" th:href="@{/admin-hoya/ad/units/{id}/edit(id=${unit.id})}">수정</a>
+                                <form method="post" th:action="@{/admin-hoya/ad/units/{id}/delete(id=${unit.id})}">
+                                    <button type="submit" class="btn danger sm" data-confirm-text="정말 삭제?"
+                                            onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(units)}">
+                등록된 광고단위가 없습니다.
+                <a href="/admin-hoya/ad/units/new">첫 광고단위를 추가</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
+</body>
+</html>

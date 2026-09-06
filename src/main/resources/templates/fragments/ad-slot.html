@@ -1,0 +1,56 @@
+<!--
+  광고 자리 하나. 코드만 받아 그린다.
+
+  네트워크(애드센스·쿠팡) 코드는 여기서 내보내지 않는다. 자리 정보만 data-* 로 적어 두고
+  /js/ad-fill.js 가 그 자리가 실제로 화면에 보일 때만 삽입한다. 화면 폭에 따라 숨겨지는 자리에
+  코드를 미리 넣어 두면 안 보이는 광고를 요청하는 셈이라 정책 위반이다.
+
+  그림은 <picture> 가 화면 폭을 보고 한 장만 내려받는다. 기기 한쪽만 그림이 있는 배너는
+  반대 기기에서 1x1 투명 GIF 로 떨어지므로 그쪽 요청이 아예 안 나간다.
+-->
+<div th:fragment="slot(code)"
+     th:with="s=${@adSlotView.render(code)},
+              blank='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'"
+     th:id="'ad-slot-' + ${code}"
+     th:class="'ad-slot ' + ${s.pcClass} + ' ' + ${s.mobileClass}">
+
+    <a th:if="${s.singlePicture}" class="ad-slot-link ad-face"
+       th:href="@{/ad/click/{id}(id=${s.pc.bannerId})}" target="_blank" rel="noopener"
+       th:attr="aria-label=${s.pc.advertiserName} + ' 광고'">
+        <picture>
+            <source media="(max-width: 768px)" th:attr="srcset=${s.mobile.imagePath}">
+            <img th:src="${s.pc.imagePath}" th:alt="${s.pc.advertiserName}"
+                 th:attr="data-banner-id=${s.pc.bannerId}">
+        </picture>
+    </a>
+
+    <th:block th:unless="${s.singlePicture}">
+        <a th:if="${s.pc.banner}" class="ad-slot-link ad-face ad-face-pc"
+           th:href="@{/ad/click/{id}(id=${s.pc.bannerId})}" target="_blank" rel="noopener"
+           th:attr="aria-label=${s.pc.advertiserName} + ' 광고'">
+            <picture>
+                <source media="(min-width: 769px)" th:attr="srcset=${s.pc.imagePath}">
+                <img th:src="${blank}" th:alt="${s.pc.advertiserName}"
+                     th:attr="data-banner-id=${s.pc.bannerId}">
+            </picture>
+        </a>
+
+        <a th:if="${s.mobile.banner}" class="ad-slot-link ad-face ad-face-mobile"
+           th:href="@{/ad/click/{id}(id=${s.mobile.bannerId})}" target="_blank" rel="noopener"
+           th:attr="aria-label=${s.mobile.advertiserName} + ' 광고'">
+            <picture>
+                <source media="(max-width: 768px)" th:attr="srcset=${s.mobile.imagePath}">
+                <img th:src="${blank}" th:alt="${s.mobile.advertiserName}"
+                     th:attr="data-banner-id=${s.mobile.bannerId}">
+            </picture>
+        </a>
+
+        <div th:if="${s.pc.fill and s.pc.fillEnabled}" class="ad-fill ad-face ad-face-pc"
+             th:attr="data-network=${s.pc.network}, data-unit=${s.pc.unitId},
+                      data-account=${s.pc.account}, data-template=${s.pc.template}, data-size=${s.pc.size}"></div>
+
+        <div th:if="${s.mobile.fill and s.mobile.fillEnabled}" class="ad-fill ad-face ad-face-mobile"
+             th:attr="data-network=${s.mobile.network}, data-unit=${s.mobile.unitId},
+                      data-account=${s.mobile.account}, data-template=${s.mobile.template}, data-size=${s.mobile.size}"></div>
+    </th:block>
+</div>

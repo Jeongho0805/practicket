@@ -20,6 +20,14 @@ server:
       cookie:
         name: "auth"
         http-only: true
+# 네트워크 계정 값. 광고단위(ad_unit)와 달리 사이트에 하나뿐이고 바뀌지 않는다.
+# 프로파일별 파일(application-*.yml)은 git 에 안 올라가므로 여기 둔다.
+ad:
+  adsense:
+    client: ca-pub-5146591484722882
+  coupang:
+    tracking-code: AF2647827
+    template: carousel
 management:
   endpoints:
     web:

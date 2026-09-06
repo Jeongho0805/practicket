@@ -32,11 +32,24 @@
                     <input type="date" name="to" th:value="${dashboard.to}" required>
                     <button type="submit" class="btn sm">적용</button>
                 </form>
-                <a class="btn" href="/admin-hoya/ad/banners/new">+ 새 배너</a>
+                <a class="btn" href="/admin-hoya/ad/campaigns/new">+ 새 캠페인</a>
             </div>
         </div>
 
         <p class="note" style="margin:-8px 0 14px">집계는 매시 정각에 반영됩니다 — 오늘 수치는 최대 1시간 지연될 수 있습니다.</p>
+
+        <div class="warnbox" th:if="${not #lists.isEmpty(unitGaps)}">
+            <b>광고단위가 비어 있는 자리가 있습니다.</b>
+            <ul>
+                <li th:each="row : ${unitGaps}">
+                    <span th:text="${row.slot.name}">자리</span> —
+                    <span th:text="${row.pcUnitMissing ? '데스크톱' : ''}
+                                   + ${row.pcUnitMissing and row.mobileUnitMissing ? ' · ' : ''}
+                                   + ${row.mobileUnitMissing ? '모바일' : ''}">데스크톱</span>
+                    단위 없음 (<span th:text="${row.slot.fillNetwork}">네트워크</span>)
+                </li>
+            </ul>
+        </div>
 
         <div class="kpis">
             <div class="kpi">
@@ -70,11 +83,9 @@
                                + '%p 직전 ' + dashboard.days + '일 대비'}">▲ 0.00%p</div>
             </div>
             <div class="kpi">
-                <div class="l">노출중 배너</div>
-                <div class="v" th:text="${dashboard.banners.live} + '개'">0개</div>
-                <div class="d flat"
-                     th:text="'전체 ' + ${dashboard.banners.total} + '개 · 슬롯 ' + ${dashboard.slots.enabled}
-                              + '개 중 ' + ${dashboard.slots.sold} + '개 판매'">전체 0개</div>
+                <div class="l">진행중 계약 금액</div>
+                <div class="v money" th:text="${#numbers.formatInteger(liveAmount, 1, 'COMMA')} + '원'">0원</div>
+                <div class="d flat" th:text="'캠페인 ' + ${liveCount} + '건'">캠페인 0건</div>
             </div>
         </div>
 
@@ -104,36 +115,34 @@
 
         <div class="card">
             <header>
-                <h2>성과 상위 캠페인<small th:text="'선택한 ' + ${dashboard.days} + '일 노출순'">노출순</small></h2>
-                <a class="btn ghost sm" href="/admin-hoya/ad/banners">전체 보기</a>
+                <h2>캠페인<small>진행 · 예정 순</small></h2>
+                <a class="btn ghost sm" href="/admin-hoya/ad/campaigns">전체 보기</a>
             </header>
             <div class="tablewrap">
-                <table th:if="${not #lists.isEmpty(dashboard.topCampaigns)}">
+                <table th:if="${not #lists.isEmpty(campaigns)}">
                     <thead>
                     <tr>
                         <th>캠페인</th>
-                        <th>슬롯</th>
+                        <th>광고주</th>
+                        <th>기간</th>
+                        <th class="r">금액</th>
+                        <th class="r">배너</th>
                         <th class="r">노출</th>
-                        <th class="r">클릭</th>
-                        <th class="r">CTR</th>
                         <th>상태</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="row : ${dashboard.topCampaigns}">
+                    <tr th:each="row : ${campaigns}" class="rowlink"
+                        th:onclick="|location.href='/admin-hoya/ad/campaigns/${row.id}'|">
+                        <td><b th:text="${row.name}">캠페인</b></td>
+                        <td th:text="${row.advertiserName}">광고주</td>
                         <td>
-                            <div class="cellname">
-                                <img class="thumb" th:src="${row.banner.imagePath}" alt="배너 이미지"/>
-                                <div>
-                                    <b th:text="${row.banner.advertiserName}">광고주</b>
-                                    <em th:text="'#' + ${row.banner.id}">#1</em>
-                                </div>
-                            </div>
+                            <span th:text="${#temporals.format(row.startAt, 'yyyy.MM.dd')}">2026.08.01</span><br>
+                            <span class="note" th:text="'~ ' + ${#temporals.format(row.endAt, 'yyyy.MM.dd')}">~ 2026.08.31</span>
                         </td>
-                        <td th:text="${row.banner.slot.name}">슬롯</td>
+                        <td class="r money" th:text="${#numbers.formatInteger(row.amount, 1, 'COMMA')} + '원'">0원</td>
+                        <td class="r" th:text="${row.bannerCount} + '개'">0개</td>
                         <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
-                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
-                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
                         <td>
                             <span class="pill" th:classappend="${row.status.key}">
                                 <i></i><span th:text="${row.status.label}">상태</span>
@@ -143,8 +152,8 @@
                     </tbody>
                 </table>
             </div>
-            <div class="empty" th:if="${#lists.isEmpty(dashboard.topCampaigns)}">
-                등록된 배너가 없습니다. <a href="/admin-hoya/ad/banners/new">첫 배너를 등록</a>해보세요.
+            <div class="empty" th:if="${#lists.isEmpty(campaigns)}">
+                등록된 캠페인이 없습니다. <a href="/admin-hoya/ad/campaigns/new">첫 캠페인을 등록</a>해보세요.
             </div>
         </div>
     </main>

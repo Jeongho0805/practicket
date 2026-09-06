@@ -460,7 +460,7 @@ function captureMobileFocusSnapshot() {
     const panel = document.getElementById("chat-panel");
     if (!panel) return;
     const viewport = mobileViewportMetrics();
-    const ad = document.getElementById("ad-section");
+    const ad = document.getElementById("ad-slot-MOBILE_TOP");
     const guardTop = ad
         ? Math.max(8, ad.getBoundingClientRect().bottom - viewport.top + 6)
         : Math.round(viewport.height * 0.12);
@@ -482,7 +482,7 @@ function mobileMaxHeight(viewport = mobileViewportMetrics()) {
 
     let guardTop = mobileFocusSnapshot?.guardTop;
     if (guardTop == null) {
-        const ad = document.getElementById("ad-section");
+        const ad = document.getElementById("ad-slot-MOBILE_TOP");
         guardTop = ad
             ? Math.max(8, ad.getBoundingClientRect().bottom - viewport.top + 6)
             : Math.round(viewport.height * 0.12);

@@ -89,11 +89,12 @@
     </div>
 
     <div class="head">
-        <span class="badge">통합 리포트</span>
-        <h1 th:text="${advertiserName} + ' 광고 성과'">광고 성과</h1>
+        <span class="badge" th:text="${advertiserName}">광고주</span>
+        <h1 th:text="${campaign.name}">캠페인</h1>
         <div class="meta">
-            <span>캠페인 <b th:text="${#lists.size(campaigns)} + '건'">0건</b></span>
+            <span>계약기간 <b th:text="${#temporals.format(campaign.startAt, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(campaign.endAt, 'yyyy.MM.dd')}">기간</b></span>
             <span>집계기간 <b th:text="${#temporals.format(periodFrom, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(periodTo, 'yyyy.MM.dd')}">기간</b></span>
+            <span>게재 자리 <b th:text="${#lists.size(slots)} + '곳'">0곳</b></span>
         </div>
     </div>
 
@@ -113,7 +114,7 @@
     </div>
 
     <div class="section">
-        <h2>캠페인별 성과</h2>
+        <h2>자리별 성과</h2>
         <div class="table-scroll">
             <table>
                 <thead>
@@ -126,17 +127,20 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="row : ${campaigns}">
+                <tr th:each="row : ${slots}">
                     <td>
-                        <b th:text="${row.banner.slot != null ? row.banner.slot.name : '-'}">슬롯</b><br>
+                        <b th:text="${row.slotName}">자리</b><br>
                         <span class="slot"
-                              th:text="${#temporals.format(row.banner.startAt, 'yyyy.MM.dd')} + ' ~ '
-                                       + ${#temporals.format(row.banner.endAt, 'yyyy.MM.dd')}">기간</span>
+                              th:text="${#temporals.format(row.startAt, 'yyyy.MM.dd')} + ' ~ '
+                                       + ${#temporals.format(row.endAt, 'yyyy.MM.dd')}">기간</span>
                     </td>
                     <td th:text="${#numbers.formatInteger(row.impressions, 0, 'COMMA')}">0</td>
                     <td th:text="${#numbers.formatInteger(row.clicks, 0, 'COMMA')}">0</td>
                     <td th:text="${row.impressions == 0 ? '-' : #numbers.formatDecimal(row.ctr, 1, 2, 'POINT') + '%'}">-</td>
                     <td><span class="status" th:text="${row.statusLabel}">상태</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(slots)}">
+                    <td colspan="5" style="text-align:center; color:#b0a9c4;">아직 게재된 자리가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>
@@ -144,7 +148,7 @@
     </div>
 
     <div class="section">
-        <h2>일별 노출 추이 (전체 캠페인 합산)</h2>
+        <h2>일별 노출 추이 (전체 자리 합산)</h2>
         <div class="chart" th:if="${not #lists.isEmpty(dailyRows)}">
             <div class="bar-col" th:each="row : ${dailyRows}"
                  th:title="${#temporals.format(row.date, 'MM.dd')} + ' · 노출 ' + ${#numbers.formatInteger(row.impressions, 0, 'COMMA')} + ' · 클릭 ' + ${#numbers.formatInteger(row.clicks, 0, 'COMMA')}">

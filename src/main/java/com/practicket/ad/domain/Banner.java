@@ -25,7 +25,13 @@ public class Banner {
     @JoinColumn(name = "slot_id", nullable = false)
     private AdSlot slot;
 
+    private Long campaignId;
+
     private String imagePath;
+
+    private String pcImagePath;
+
+    private String mobileImagePath;
 
     @Column(columnDefinition = "TEXT")
     private String linkUrl;

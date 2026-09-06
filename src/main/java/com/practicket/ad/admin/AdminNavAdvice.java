@@ -1,10 +1,13 @@
 package com.practicket.ad.admin;
 
-import com.practicket.ad.application.AdminBannerController;
+import com.practicket.ad.application.AdminAdvertiserController;
+import com.practicket.ad.application.AdminCampaignController;
 import com.practicket.ad.application.AdminDashboardController;
 import com.practicket.ad.application.AdminSlotController;
+import com.practicket.ad.application.AdminUnitController;
+import com.practicket.ad.domain.AdCampaignRepository;
 import com.practicket.ad.domain.AdSlotRepository;
-import com.practicket.ad.domain.BannerRepository;
+import com.practicket.ad.domain.AdUnitRepository;
 import com.practicket.community.admin.AdminCommunityPostController;
 import com.practicket.community.admin.AdminCommunityReportController;
 import com.practicket.community.domain.repository.PostReportRepository;
@@ -21,8 +24,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  */
 @ControllerAdvice(assignableTypes = {
         AdminDashboardController.class,
-        AdminBannerController.class,
+        AdminCampaignController.class,
         AdminSlotController.class,
+        AdminUnitController.class,
+        AdminAdvertiserController.class,
         AdminNoticeController.class,
         AdminCommunityReportController.class,
         AdminCommunityPostController.class
@@ -30,19 +35,25 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @RequiredArgsConstructor
 public class AdminNavAdvice {
 
-    private final BannerRepository bannerRepository;
+    private final AdCampaignRepository adCampaignRepository;
     private final AdSlotRepository adSlotRepository;
+    private final AdUnitRepository adUnitRepository;
     private final NoticeRepository noticeRepository;
     private final PostReportRepository postReportRepository;
 
-    @ModelAttribute("navBannerCount")
-    public long navBannerCount() {
-        return bannerRepository.count();
+    @ModelAttribute("navCampaignCount")
+    public long navCampaignCount() {
+        return adCampaignRepository.count();
     }
 
     @ModelAttribute("navSlotCount")
     public long navSlotCount() {
         return adSlotRepository.count();
+    }
+
+    @ModelAttribute("navUnitCount")
+    public long navUnitCount() {
+        return adUnitRepository.count();
     }
 
     @ModelAttribute("navNoticeCount")

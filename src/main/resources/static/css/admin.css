@@ -291,3 +291,120 @@ tbody tr:last-child td { border-bottom: none; }
     .tablewrap { overflow-x: auto; }
     .tablewrap table { min-width: 760px; }
 }
+
+/* ── 캠페인 층 화면 (목업 sample/ad-admin-mock 에서 가져옴) ── */
+.main { min-width: 0; }
+.tablewrap { overflow-x: auto; max-width: 100%; }
+.tablewrap table { min-width: 760px; }
+.tablewrap table.slottable { min-width: 1040px; }
+.tablewrap td, .tablewrap th { white-space: nowrap; }
+
+tr.rowlink { cursor: pointer; }
+tr.rowlink:hover td { background: #faf8ff; }
+.subrow td { background: #fbfaff; }
+
+.crumb { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.crumb a { color: var(--brand); text-decoration: none; }
+.crumb a:hover { text-decoration: underline; }
+
+.sectitle { font-size: 12px; font-weight: 700; color: #655d80; margin: 4px 0 12px; }
+.sectitle small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.secbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 4px 0 12px; }
+.secbar .sectitle { margin: 0; }
+.divider { height: 1px; background: var(--line); margin: 22px 0; }
+.grouphead { display: flex; align-items: baseline; gap: 9px; }
+.money { font-variant-numeric: tabular-nums; font-weight: 700; }
+.hint { font-size: 11.5px; color: var(--muted); line-height: 1.65; }
+.warn-t { color: var(--warn); }
+.three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 760px) { .three { grid-template-columns: 1fr; } }
+
+.pill.soon { background: var(--warn-bg); color: var(--warn); }
+.pill.done { background: #f0eff6; color: #7b7397; }
+.linkbox { display: flex; align-items: center; gap: 8px; }
+.linkbox .mono { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linkbtn {
+    border: none; background: none; color: var(--brand); font-family: inherit;
+    font-size: 11.5px; cursor: pointer; padding: 2px 0; text-decoration: underline; white-space: nowrap;
+}
+.linkbtn:hover { color: var(--brand-ink); }
+
+/* 물려받음 / 직접 지정 / 없음 표시 */
+.tag {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: .2px; padding: 2px 7px; border-radius: 5px; white-space: nowrap;
+}
+.tag i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; display: block; }
+.tag.inherit { background: #f0eff6; color: #7b7397; }
+.tag.own { background: var(--brand-soft); color: var(--brand); }
+.tag.miss { background: var(--warn-bg); color: var(--warn); }
+.tag.resp { background: var(--ok-bg); color: var(--ok); }
+
+/* 읽기 전용 정보는 입력칸이 아니라 값으로 보여준다 */
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 28px; margin: 0 0 4px; }
+.facts > div { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f1eef8; }
+.facts dt { width: 108px; flex: none; font-size: 12px; color: #7a7290; font-weight: 600; }
+.facts dd { margin: 0; font-size: 13.5px; }
+.factmemo { padding-top: 12px; }
+.factmemo dt { font-size: 12px; color: #7a7290; font-weight: 600; margin-bottom: 5px; }
+.factmemo p { margin: 0; font-size: 13.5px; line-height: 1.7; }
+@media (max-width: 900px) { .facts { grid-template-columns: 1fr; } }
+
+/* ── 자리 표 ── */
+.slottable td { padding: 12px 16px; vertical-align: top; }
+.slottable .place b { font-size: 13.5px; display: block; margin-bottom: 3px; }
+.slottable .place { width: 190px; }
+.slottable .fill { width: 180px; }
+.slottable .ucol { width: 210px; }
+.slottable .meta { font-size: 11.5px; color: var(--muted); line-height: 1.7; }
+.slottable .slotcode { margin-top: 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; color: #a8a2bd; letter-spacing: -.2px; }
+.ucell { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+.ucell .uid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; color: #6f6889; }
+.ucell .usize { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 600; color: var(--ink); letter-spacing: -.2px; }
+.ucell .unm { font-size: 11.5px; color: var(--muted); }
+
+/* ── 배너 줄 (캠페인 폼) ── */
+.bulkrows { border: 1px solid var(--line); border-radius: 11px; margin-top: 14px; overflow-x: auto; }
+.bulkrows table { font-size: 12.5px; min-width: 1080px; }
+.bulkrows th, .bulkrows td { padding: 10px 12px; vertical-align: top; }
+.bulkrows .fname { display: flex; align-items: center; gap: 10px; }
+.bulkrows .fname .thumb { width: 52px; height: 30px; }
+.bulkrows .fname .nm { font-size: 12.5px; }
+.bulkrows input[type=url], .bulkrows input[type=file] {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px;
+    font-size: 12px; font-family: inherit; background: #fbfaff; outline: none;
+}
+.bulkrows input[type=url]:focus { border-color: #b8aede; background: #fff; }
+.thumb.ph { background: repeating-linear-gradient(45deg, #efecf9, #efecf9 5px, #e6e2f4 5px, #e6e2f4 10px); display: grid; place-items: center; }
+.thumb.ph span { font-size: 9px; font-weight: 700; color: #9a8fc0; }
+.spechint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+.percell { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+.percell .dates2 { display: flex; align-items: center; gap: 4px; }
+.percell input[type=date] {
+    padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px;
+    font-size: 11.5px; font-family: inherit; background: #fbfaff; outline: none; color: inherit;
+}
+.percell input[type=date]:focus { border-color: #b8aede; background: #fff; }
+.percell .sep { color: var(--muted); font-size: 11px; }
+.percell .txt { font-size: 11.5px; color: var(--muted); }
+
+/* ── 기간 비교 타임라인 ── */
+.tl { display: flex; flex-direction: column; gap: 9px; }
+.tlrow, .tlhead { display: grid; grid-template-columns: 186px 1fr 178px; gap: 14px; align-items: center; }
+.tlhead { font-size: 11px; color: var(--muted); }
+.tlname b { font-size: 12.5px; display: block; }
+.tlname span { font-size: 11px; color: var(--muted); }
+.tltrack { position: relative; height: 22px; background: #f3f1f9; border-radius: 6px; }
+.tlbar { position: absolute; top: 3px; height: 16px; border-radius: 5px; background: linear-gradient(90deg, #8470b3, var(--brand)); min-width: 3px; }
+.tlbar.inherit { background: #ddd6f3; }
+.tlbar.off { background: #ddd9e6; }
+.tltoday { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--danger); opacity: .5; border-radius: 2px; }
+.tlaxis { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.tlmeta { font-size: 11.5px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.tllegend { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.tllegend span { display: flex; align-items: center; gap: 6px; }
+.tllegend i { width: 16px; height: 8px; border-radius: 3px; display: block; }
+@media (max-width: 900px) { .tlrow, .tlhead { grid-template-columns: 130px 1fr; } .tlmeta { grid-column: 2; } }
+
+.formcard.wide { max-width: 100%; }

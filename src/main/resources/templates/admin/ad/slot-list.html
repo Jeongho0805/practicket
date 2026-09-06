@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/fragments/admin-shell :: head('슬롯 관리')}"></head>
+<head th:replace="~{admin/fragments/admin-shell :: head('자리')}"></head>
 <body>
 <div class="app">
     <aside th:replace="~{admin/fragments/admin-shell :: sidebar('slot')}"></aside>
@@ -8,43 +8,97 @@
     <main class="main">
         <div class="topbar">
             <div>
-                <h1>슬롯 관리</h1>
-                <p>사이트에 미리 정의된 광고 인벤토리입니다. 신규 슬롯 추가는 템플릿 작업이 함께 필요합니다.</p>
+                <h1>자리</h1>
+                <p>자리는 어드민에서 만들 수 없습니다 — 화면 템플릿에 조각을 넣어야 실제로 뜹니다.</p>
             </div>
         </div>
 
-        <div th:if="${error}" class="alert" th:text="${error}"></div>
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
 
-        <div class="slotgrid">
-            <div class="slot" th:each="row : ${rows}">
-                <div class="top">
-                    <div>
-                        <h3 th:text="${row.slot.name}">슬롯 이름</h3>
-                        <span class="mono" th:text="${row.slot.code}">CODE</span>
-                        <span class="mono" th:text="${row.slot.recommendedSize}">300x250</span>
-                    </div>
-                    <form th:action="@{'/admin-hoya/ad/slots/' + ${row.slot.id} + '/toggle'}" method="post">
-                        <button type="submit" class="sw" th:classappend="${row.slot.enabled} ? 'on'"
-                                th:title="${row.slot.enabled} ? '비활성화' : '활성화'"></button>
-                    </form>
+        <div class="card" th:each="group : ${groups}">
+            <header>
+                <div class="grouphead">
+                    <h2 th:text="${group.name}">묶음</h2>
+                    <span class="mono" th:if="${group.path != null}" th:text="${group.path}">/path</span>
                 </div>
+                <span class="note" th:text="${#lists.size(group.slots)} + '개 자리'">0개 자리</span>
+            </header>
 
-                <div class="meter"><i th:style="'width:' + ${row.fillPercent} + '%'"></i></div>
-                <div class="fillinfo">
-                    <span th:text="'게재중 소재 ' + ${row.liveBannerCount} + '개'">게재중 소재 0개</span>
-                    <span th:text="${row.slot.enabled} ? '사용중' : '비활성'">사용중</span>
-                </div>
-
-                <form class="sizeform" th:action="@{'/admin-hoya/ad/slots/' + ${row.slot.id}}" method="post">
-                    <input type="text" name="recommendedSize" th:value="${row.slot.recommendedSize}"
-                           placeholder="권장 사이즈 (예: 300x250)"/>
-                    <button type="submit" class="btn ghost sm">저장</button>
-                </form>
+            <div class="tablewrap">
+                <table class="slottable">
+                    <thead>
+                    <tr>
+                        <th class="place">자리</th>
+                        <th>규격</th>
+                        <th class="fill">미판매 시</th>
+                        <th class="ucol">데스크톱 단위</th>
+                        <th class="ucol">모바일 단위</th>
+                        <th>지금</th>
+                        <th class="r"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${group.slots}">
+                        <td class="place">
+                            <b th:text="${row.slot.name}">자리</b>
+                            <div class="meta" th:text="${row.slot.format != null ? row.slot.format : '-'}">디스플레이</div>
+                            <div class="slotcode" th:text="${row.slot.code}">CODE</div>
+                        </td>
+                        <td>
+                            <div class="meta">
+                                <span th:if="${row.pcSize != null}">데스크톱 <b class="mono" th:text="${row.pcSize}">300x600</b></span>
+                                <span th:if="${row.pcSize == null}" class="tag inherit"><i></i>데스크톱 안 나감</span>
+                            </div>
+                            <div class="meta">
+                                <span th:if="${row.mobileSize != null}">모바일 <b class="mono" th:text="${row.mobileSize}">320x100</b></span>
+                                <span th:if="${row.mobileSize == null}" class="tag inherit"><i></i>모바일 안 나감</span>
+                            </div>
+                        </td>
+                        <td class="fill">
+                            <span th:if="${row.slot.fillNetwork != null}" th:text="${row.slot.fillNetwork}">COUPANG</span>
+                            <span class="tag inherit" th:if="${row.slot.fillNetwork == null}"><i></i>비워둠</span>
+                        </td>
+                        <td class="ucol">
+                            <div class="ucell" th:if="${row.pcSize != null}">
+                                <span class="usize mono" th:if="${row.pcUnit != null}"
+                                      th:text="${row.pcUnit.unitId}">unit</span>
+                                <span class="unm" th:if="${row.pcUnit != null and row.pcUnit.name != null}"
+                                      th:text="${row.pcUnit.name}">이름</span>
+                                <span class="tag resp" th:if="${row.pcUnit != null and row.pcUnit.responsive}"><i></i>반응형</span>
+                                <span class="tag miss" th:if="${row.pcUnitMissing}"><i></i>단위 없음</span>
+                                <span class="tag inherit" th:if="${row.pcUnit == null and !row.pcUnitMissing}"><i></i>채우지 않음</span>
+                            </div>
+                            <span class="note" th:if="${row.pcSize == null}">-</span>
+                        </td>
+                        <td class="ucol">
+                            <div class="ucell" th:if="${row.mobileSize != null}">
+                                <span class="usize mono" th:if="${row.mobileUnit != null}"
+                                      th:text="${row.mobileUnit.unitId}">unit</span>
+                                <span class="unm" th:if="${row.mobileUnit != null and row.mobileUnit.name != null}"
+                                      th:text="${row.mobileUnit.name}">이름</span>
+                                <span class="tag resp" th:if="${row.mobileUnit != null and row.mobileUnit.responsive}"><i></i>반응형</span>
+                                <span class="tag miss" th:if="${row.mobileUnitMissing}"><i></i>단위 없음</span>
+                                <span class="tag inherit" th:if="${row.mobileUnit == null and !row.mobileUnitMissing}"><i></i>채우지 않음</span>
+                            </div>
+                            <span class="note" th:if="${row.mobileSize == null}">-</span>
+                        </td>
+                        <td>
+                            <span class="pill live" th:if="${row.sold}">
+                                <i></i><span th:text="'판매중 ' + ${row.liveBannerCount}">판매중</span>
+                            </span>
+                            <span class="pill off" th:unless="${row.sold}"><i></i>미판매</span>
+                        </td>
+                        <td class="r">
+                            <a class="btn ghost sm" th:href="@{/admin-hoya/ad/slots/{id}/edit(id=${row.slot.id})}">수정</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="card" th:if="${#lists.isEmpty(rows)}">
-            <div class="empty">등록된 슬롯이 없습니다. 초기 시드(schema-ad.sql)가 필요합니다.</div>
+        <div class="card" th:if="${#lists.isEmpty(groups)}">
+            <div class="empty">등록된 자리가 없습니다.</div>
         </div>
     </main>
 </div>

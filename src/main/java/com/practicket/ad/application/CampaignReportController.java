@@ -1,10 +1,13 @@
 package com.practicket.ad.application;
 
-import com.practicket.ad.component.AdvertiserReportToken;
+import com.practicket.ad.domain.AdCampaign;
+import com.practicket.ad.domain.AdCampaignRepository;
+import com.practicket.ad.domain.Advertiser;
+import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.ad.domain.Banner;
 import com.practicket.ad.domain.BannerRepository;
-import com.practicket.ad.domain.BannerStatDailyRepository;
 import com.practicket.ad.domain.BannerStatus;
+import com.practicket.ad.domain.BannerStatDailyRepository;
 import com.practicket.ad.domain.DailyStatSum;
 import com.practicket.common.exception.ErrorCode;
 import com.practicket.common.exception.GlobalException;
@@ -25,54 +28,38 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 광고주가 로그인 없이 보는 통합 리포트. 그 광고주의 모든 캠페인을 합쳐 보여준다.
- * 캠페인 하나짜리 리포트는 기존 {@link AdReportController}(/ad/report/{token})가 그대로 담당한다.
+ * 광고주가 로그인 없이 보는 계약 리포트. 자리를 셋 산 광고주가 링크를 셋 받던 것을 하나로 합쳤고,
+ * 수치는 그 계약에 달린 배너들을 합산한다.
  *
- * 광고주는 테이블이 아니라 배너의 이름 문자열이므로, 토큰을 저장하는 대신
- * {@link AdvertiserReportToken}이 이름을 서명한 값과 대조해 찾는다.
+ * 토큰은 계약 행에 저장돼 있다. 이전의 이름 서명 방식과 달리 계약 하나만 따로 폐기할 수 있다.
  */
 @Controller
 @RequiredArgsConstructor
-public class AdvertiserReportController {
+public class CampaignReportController {
 
+    private final AdCampaignRepository adCampaignRepository;
+    private final AdvertiserRepository advertiserRepository;
     private final BannerRepository bannerRepository;
     private final BannerStatDailyRepository bannerStatDailyRepository;
-    private final AdvertiserReportToken advertiserReportToken;
 
-    @GetMapping("/ad/report/advertiser/{token}")
+    @GetMapping("/ad/report/campaign/{token}")
     public String report(@PathVariable String token, Model model) {
-        List<Banner> banners = bannerRepository.findAllWithSlotOrderByCreatedAtDesc();
-
-        String advertiserName = banners.stream()
-                .map(Banner::getAdvertiserName)
-                .filter(name -> name != null && !name.isBlank())
-                .map(String::trim)
-                .distinct()
-                .filter(name -> advertiserReportToken.matches(name, token))
-                .findFirst()
+        AdCampaign campaign = adCampaignRepository.findByReportToken(token)
                 .orElseThrow(() -> new GlobalException(ErrorCode.RESOURCE_NOT_FOUND));
 
-        List<Banner> mine = banners.stream()
-                .filter(banner -> advertiserName.equals(
-                        banner.getAdvertiserName() == null ? null : banner.getAdvertiserName().trim()))
-                .sorted(Comparator.comparing(Banner::getStartAt,
-                        Comparator.nullsLast(Comparator.reverseOrder())))
+        List<Banner> banners = bannerRepository.findByCampaignIdWithSlot(campaign.getId()).stream()
+                .sorted(Comparator.comparing(Banner::getId))
                 .toList();
 
         LocalDate today = LocalDate.now();
-        LocalDate periodFrom = mine.stream().map(Banner::getStartAt)
-                .filter(java.util.Objects::nonNull).min(LocalDate::compareTo).orElse(today);
-        LocalDate periodTo = mine.stream().map(Banner::getEndAt)
-                .filter(java.util.Objects::nonNull).max(LocalDate::compareTo).orElse(today);
-        if (periodTo.isAfter(today)) {
-            periodTo = today;   // 아직 오지 않은 날까지 표를 그릴 이유가 없다
-        }
+        LocalDate periodFrom = campaign.getStartAt();
+        LocalDate periodTo = campaign.getEndAt().isAfter(today) ? today : campaign.getEndAt();
         if (periodFrom.isAfter(periodTo)) {
-            periodFrom = periodTo;
+            periodFrom = periodTo;   // 아직 시작 전인 계약. 표는 비지만 화면은 정상적으로 뜬다
         }
 
         Map<LocalDate, DailyStatSum> statsByDate = bannerStatDailyRepository
-                .sumGroupByDateForBanners(mine.stream().map(Banner::getId).toList(), periodFrom, periodTo)
+                .sumGroupByDateForBanners(banners.stream().map(Banner::getId).toList(), periodFrom, periodTo)
                 .stream()
                 .collect(Collectors.toMap(DailyStatSum::getStatDate, Function.identity(), (a, b) -> a));
 
@@ -88,8 +75,10 @@ public class AdvertiserReportController {
             dailyRows.add(new DailyRow(date, impressions, clicks));
         }
 
-        model.addAttribute("advertiserName", advertiserName);
-        model.addAttribute("campaigns", toCampaignRows(mine, today));
+        model.addAttribute("campaign", campaign);
+        model.addAttribute("advertiserName", advertiserRepository.findById(campaign.getAdvertiserId())
+                .map(Advertiser::getName).orElse(campaign.getName()));
+        model.addAttribute("slots", toSlotRows(campaign, banners, today));
         model.addAttribute("periodFrom", periodFrom);
         model.addAttribute("periodTo", periodTo);
         model.addAttribute("totalImpressions", totalImpressions);
@@ -98,10 +87,10 @@ public class AdvertiserReportController {
         model.addAttribute("dailyRows", dailyRows);
         model.addAttribute("maxImpressions",
                 Math.max(dailyRows.stream().mapToLong(DailyRow::getImpressions).max().orElse(0L), 1L));
-        return "ad/advertiser-report";
+        return "ad/campaign-report";
     }
 
-    private List<CampaignRow> toCampaignRows(List<Banner> banners, LocalDate today) {
+    private List<SlotRow> toSlotRows(AdCampaign campaign, List<Banner> banners, LocalDate today) {
         Map<Long, com.practicket.ad.domain.BannerStatSum> totals =
                 bannerStatDailyRepository.sumGroupByBanner().stream()
                         .collect(Collectors.toMap(com.practicket.ad.domain.BannerStatSum::getBannerId,
@@ -112,9 +101,13 @@ public class AdvertiserReportController {
                     var sum = totals.get(banner.getId());
                     long impressions = sum != null ? nullSafe(sum.getImpressions()) : 0L;
                     long clicks = sum != null ? nullSafe(sum.getClicks()) : 0L;
-                    return new CampaignRow(banner, impressions, clicks,
+                    return new SlotRow(
+                            banner.getSlot().getName(),
+                            BannerStatus.effectiveStart(banner, campaign),
+                            BannerStatus.effectiveEnd(banner, campaign),
+                            impressions, clicks,
                             impressions == 0L ? 0.0 : clicks * 100.0 / impressions,
-                            BannerStatus.of(banner, today).getLabel());
+                            BannerStatus.of(banner, campaign, today).getLabel());
                 })
                 .toList();
     }
@@ -133,8 +126,10 @@ public class AdvertiserReportController {
 
     @Getter
     @AllArgsConstructor
-    public static class CampaignRow {
-        private final Banner banner;
+    public static class SlotRow {
+        private final String slotName;
+        private final LocalDate startAt;
+        private final LocalDate endAt;
         private final long impressions;
         private final long clicks;
         private final double ctr;

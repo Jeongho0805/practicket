@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('광고단위')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('unit')}"></aside>
+
+    <main class="main">
+        <div class="crumb"><a href="/admin-hoya/ad/units">광고 설정</a> · <span th:text="${unit == null} ? '추가' : '수정'">추가</span></div>
+
+        <div class="topbar">
+            <div>
+                <h1 th:text="${unit == null} ? '광고단위 추가' : '광고단위 수정'">광고단위 추가</h1>
+                <p>규격을 비우면 반응형으로 봅니다 — 자리 크기를 가리지 않고 들어갑니다.</p>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <form method="post" action="/admin-hoya/ad/units">
+            <input type="hidden" name="id" th:if="${unit != null}" th:value="${unit.id}">
+
+            <div class="card formcard">
+                <div class="two">
+                    <div class="f">
+                        <label for="network">네트워크</label>
+                        <select id="network" name="network" required>
+                            <option th:each="network : ${networks}" th:value="${network}"
+                                    th:selected="${unit != null and network == unit.network}"
+                                    th:text="${network}">NETWORK</option>
+                        </select>
+                    </div>
+                    <div class="f">
+                        <label for="unitId">단위 ID</label>
+                        <input type="text" id="unitId" name="unitId"
+                               th:value="${unit != null ? unit.unitId : null}" required
+                               placeholder="943782 / 9697904962 / DAN-xxxxxxxx">
+                    </div>
+                </div>
+
+                <div class="two">
+                    <div class="f">
+                        <label for="name">이름</label>
+                        <input type="text" id="name" name="name" th:value="${unit != null ? unit.name : null}"
+                               placeholder="모바일 띠">
+                    </div>
+                    <div class="f">
+                        <label for="width">규격</label>
+                        <div class="dates">
+                            <input type="number" id="width" name="width"
+                                   th:value="${unit != null ? unit.width : null}" placeholder="가로" min="0">
+                            <span class="sep">x</span>
+                            <input type="number" name="height"
+                                   th:value="${unit != null ? unit.height : null}" placeholder="세로" min="0">
+                        </div>
+                        <span class="hint">애드핏처럼 규격이 고정된 네트워크만 채웁니다.</span>
+                    </div>
+                </div>
+
+                <div class="f">
+                    <label class="checkrow">
+                        <input type="checkbox" name="isDefault" value="true"
+                               th:checked="${unit != null and unit.isDefault}">
+                        이 네트워크의 기본 단위로 쓴다
+                    </label>
+                    <span class="hint">네트워크마다 하나만 기본입니다. 새로 세우면 기존 기본은 내려갑니다.</span>
+                </div>
+            </div>
+
+            <div class="formactions">
+                <a class="btn ghost" href="/admin-hoya/ad/units">취소</a>
+                <button type="submit" class="btn">저장</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+</body>
+</html>

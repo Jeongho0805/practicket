@@ -1,71 +1,64 @@
 package com.practicket.ad.application;
 
-import com.practicket.ad.domain.AdSlot;
-import com.practicket.ad.domain.AdSlotRepository;
+import com.practicket.ad.component.AdNetworkSettings;
+import com.practicket.ad.domain.AdUnitRepository;
 import com.practicket.ad.exception.AdException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * 어드민 슬롯 관리 — 목록 조회, enable/disable 토글, recommendedSize 편집(간단히).
- * 슬롯 신규 생성/삭제는 범위 밖(운영자가 미리 시드 등록 — docs/ad-admin-system.md Q3).
- * AdSlot 엔티티는 setter가 없어(불변 스타일) 수정 시 builder로 새 상태를 만들어 save(merge)한다.
- */
+import java.util.List;
+
+/** 자리 목록과 값 수정. 자리 신설·삭제는 없다 — 템플릿에 조각이 있어야 실제로 뜬다. */
 @Controller
 @RequestMapping("/admin-hoya/ad/slots")
 @RequiredArgsConstructor
 public class AdminSlotController {
 
-    private final AdSlotRepository adSlotRepository;
-    private final AdminAdStatService adminAdStatService;
+    private final AdminSlotService adminSlotService;
+    private final AdUnitRepository adUnitRepository;
+
+    @InitBinder
+    void trimEmptyToNull(WebDataBinder binder) {
+        binder.registerCustomEditor(String.class, new StringTrimmerEditor(true));
+    }
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("rows", adminAdStatService.getSlotRows());
+        model.addAttribute("groups", adminSlotService.getGroups());
         return "admin/ad/slot-list";
     }
 
-    @PostMapping("/{id}/toggle")
-    public String toggle(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        AdSlot slot = findSlotOrThrow(id);
-        AdSlot updated = AdSlot.builder()
-                .id(slot.getId())
-                .code(slot.getCode())
-                .name(slot.getName())
-                .recommendedSize(slot.getRecommendedSize())
-                .enabled(!Boolean.TRUE.equals(slot.getEnabled()))
-                .createdAt(slot.getCreatedAt())
-                .build();
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        return adminSlotService.findForm(id)
+                .map(form -> {
+                    model.addAttribute("form", form);
+                    model.addAttribute("networks", List.of(
+                            AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT));
+                    model.addAttribute("units", adUnitRepository.findAllByOrderByNetworkAscNameAsc());
+                    return "admin/ad/slot-form";
+                })
+                .orElse("redirect:/admin-hoya/ad/slots");
+    }
+
+    @PostMapping
+    public String save(@ModelAttribute AdminSlotService.SlotForm form, RedirectAttributes redirectAttributes) {
         try {
-            adSlotRepository.save(updated);
+            adminSlotService.save(form);
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin-hoya/ad/slots/" + form.getId() + "/edit";
         }
         return "redirect:/admin-hoya/ad/slots";
-    }
-
-    @PostMapping("/{id}")
-    public String updateRecommendedSize(@PathVariable Long id,
-                                         @RequestParam String recommendedSize,
-                                         RedirectAttributes redirectAttributes) {
-        AdSlot slot = findSlotOrThrow(id);
-        AdSlot updated = AdSlot.builder()
-                .id(slot.getId())
-                .code(slot.getCode())
-                .name(slot.getName())
-                .recommendedSize(recommendedSize)
-                .enabled(slot.getEnabled())
-                .createdAt(slot.getCreatedAt())
-                .build();
-        adSlotRepository.save(updated);
-        return "redirect:/admin-hoya/ad/slots";
-    }
-
-    private AdSlot findSlotOrThrow(Long id) {
-        return adSlotRepository.findById(id)
-                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
     }
 }
