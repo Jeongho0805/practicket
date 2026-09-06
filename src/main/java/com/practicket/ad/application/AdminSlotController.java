@@ -1,7 +1,6 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdNetworkSettings;
-import com.practicket.ad.domain.AdUnitRepository;
 import com.practicket.ad.exception.AdException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -25,7 +24,6 @@ import java.util.List;
 public class AdminSlotController {
 
     private final AdminSlotService adminSlotService;
-    private final AdUnitRepository adUnitRepository;
 
     @InitBinder
     void trimEmptyToNull(WebDataBinder binder) {
@@ -45,7 +43,8 @@ public class AdminSlotController {
                     model.addAttribute("form", form);
                     model.addAttribute("networks", List.of(
                             AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT));
-                    model.addAttribute("units", adUnitRepository.findAllByOrderByNetworkAscNameAsc());
+                    model.addAttribute("units", adminSlotService.unitOptions(form));
+                    model.addAttribute("unitWarning", adminSlotService.oversizeWarning(form));
                     return "admin/ad/slot-form";
                 })
                 .orElse("redirect:/admin-hoya/ad/slots");

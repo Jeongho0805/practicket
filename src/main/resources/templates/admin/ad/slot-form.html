@@ -16,6 +16,7 @@
         </div>
 
         <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+        <div class="warnbox" th:if="${unitWarning != null}" th:text="${unitWarning}">경고</div>
 
         <form method="post" action="/admin-hoya/ad/slots">
             <input type="hidden" name="id" th:value="${form.id}">
@@ -86,22 +87,24 @@
                     <div class="f">
                         <label for="pcAdUnitId">데스크톱 광고단위</label>
                         <select id="pcAdUnitId" name="pcAdUnitId">
-                            <option value="">자동 (규격에 맞는 기본 단위)</option>
+                            <option value="">자동 (규격에 맞는 가장 큰 단위)</option>
                             <option th:each="unit : ${units}" th:value="${unit.id}"
                                     th:selected="${unit.id == form.pcAdUnitId}"
-                                    th:text="${unit.network} + ' · ' + ${unit.unitId}
-                                             + (${unit.name != null} ? ' (' + ${unit.name} + ')' : '')">단위</option>
+                                    th:text="${unit.pcLabel()}">단위</option>
                         </select>
+                        <span class="hint" th:if="${form.pcWidth == null or form.pcHeight == null}">
+                            데스크톱 규격이 비어 있어 이 슬롯은 데스크톱에서 안 나갑니다.</span>
                     </div>
                     <div class="f">
                         <label for="mobileAdUnitId">모바일 광고단위</label>
                         <select id="mobileAdUnitId" name="mobileAdUnitId">
-                            <option value="">자동 (규격에 맞는 기본 단위)</option>
+                            <option value="">자동 (규격에 맞는 가장 큰 단위)</option>
                             <option th:each="unit : ${units}" th:value="${unit.id}"
                                     th:selected="${unit.id == form.mobileAdUnitId}"
-                                    th:text="${unit.network} + ' · ' + ${unit.unitId}
-                                             + (${unit.name != null} ? ' (' + ${unit.name} + ')' : '')">단위</option>
+                                    th:text="${unit.mobileLabel()}">단위</option>
                         </select>
+                        <span class="hint" th:if="${form.mobileWidth == null or form.mobileHeight == null}">
+                            모바일 규격이 비어 있어 이 슬롯은 모바일에서 안 나갑니다.</span>
                     </div>
                 </div>
             </div>

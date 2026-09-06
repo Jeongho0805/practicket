@@ -19,7 +19,9 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * 슬롯 관리. 슬롯을 새로 만들지는 못한다 — 템플릿에 조각을 넣어야 실제로 뜨므로
@@ -73,6 +75,42 @@ public class AdminSlotService {
             form.setMobileAdUnitId(slot.getMobileAdUnitId());
             return form;
         });
+    }
+
+    /**
+     * 슬롯 폼의 광고단위 후보. 안 들어가는 단위도 고를 수 있게 두고 표시만 한다 —
+     * 잠그면 그 값이 폼 전송에서 빠져 지정이 조용히 사라진다.
+     */
+    @Transactional(readOnly = true)
+    public List<UnitOption> unitOptions(SlotForm form) {
+        return adUnitRepository.findAllByOrderByNetworkAscNameAsc().stream()
+                .map(unit -> new UnitOption(unit,
+                        tooBig(unit, form.getPcWidth(), form.getPcHeight()),
+                        tooBig(unit, form.getMobileWidth(), form.getMobileHeight())))
+                .toList();
+    }
+
+    /** 규격이 비어 있는 기기는 슬롯 자체가 안 나가므로 단위를 따지지 않는다 */
+    private boolean tooBig(AdUnit unit, Integer slotWidth, Integer slotHeight) {
+        return slotWidth != null && slotHeight != null && !unit.fitsIn(slotWidth, slotHeight);
+    }
+
+    /** 이미 고른 단위가 슬롯보다 크면 폼 위에 띄울 경고. 저장은 막지 않는다 */
+    @Transactional(readOnly = true)
+    public String oversizeWarning(SlotForm form) {
+        List<AdUnit> units = adUnitRepository.findAllById(
+                Stream.of(form.getPcAdUnitId(), form.getMobileAdUnitId()).filter(Objects::nonNull).toList());
+
+        boolean pcOver = units.stream().anyMatch(unit -> unit.getId().equals(form.getPcAdUnitId())
+                && tooBig(unit, form.getPcWidth(), form.getPcHeight()));
+        boolean mobileOver = units.stream().anyMatch(unit -> unit.getId().equals(form.getMobileAdUnitId())
+                && tooBig(unit, form.getMobileWidth(), form.getMobileHeight()));
+
+        if (!pcOver && !mobileOver) {
+            return null;
+        }
+        String device = pcOver && mobileOver ? "데스크톱과 모바일" : (pcOver ? "데스크톱" : "모바일");
+        return device + " 광고단위가 슬롯보다 큽니다. 저장은 되지만 광고가 잘려 나갑니다.";
     }
 
     @Transactional
@@ -148,6 +186,31 @@ public class AdminSlotService {
 
         public boolean isUnitMissing() {
             return pcUnitMissing || mobileUnitMissing;
+        }
+    }
+
+    @Getter
+    public static class UnitOption {
+        private final Long id;
+        private final String label;
+        private final boolean pcTooBig;
+        private final boolean mobileTooBig;
+
+        UnitOption(AdUnit unit, boolean pcTooBig, boolean mobileTooBig) {
+            this.id = unit.getId();
+            this.label = unit.getNetwork() + " · " + unit.getUnitId()
+                    + (unit.getName() == null ? "" : " (" + unit.getName() + ")")
+                    + (unit.isResponsive() ? "" : " · " + unit.getWidth() + "x" + unit.getHeight());
+            this.pcTooBig = pcTooBig;
+            this.mobileTooBig = mobileTooBig;
+        }
+
+        public String pcLabel() {
+            return pcTooBig ? label + " — 슬롯보다 큼" : label;
+        }
+
+        public String mobileLabel() {
+            return mobileTooBig ? label + " — 슬롯보다 큼" : label;
         }
     }
 

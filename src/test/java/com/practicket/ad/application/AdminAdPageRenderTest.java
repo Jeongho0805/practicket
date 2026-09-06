@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -201,6 +202,45 @@ class AdminAdPageRenderTest {
     }
 
     @Test
+    @DisplayName("슬롯보다 큰 광고단위는 잠그지 않고 이유만 표시한다")
+    void slotFormMarksOversizeUnit() throws Exception {
+        AdminSlotService.SlotForm form = new AdminSlotService.SlotForm();
+        form.setMobileWidth(320);
+        form.setMobileHeight(100);
+        form.setMobileAdUnitId(2L);
+
+        given(adminSlotService.findForm(1L)).willReturn(Optional.of(form));
+        given(adminSlotService.unitOptions(form)).willReturn(List.of(
+                new AdminSlotService.UnitOption(unit(), false, false),
+                new AdminSlotService.UnitOption(adfitUnit(), false, true)));
+        given(adminSlotService.oversizeWarning(form))
+                .willReturn("모바일 광고단위가 슬롯보다 큽니다. 저장은 되지만 광고가 잘려 나갑니다.");
+
+        mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("슬롯보다 큼")))
+                .andExpect(content().string(containsString("저장은 되지만 광고가 잘려 나갑니다")))
+                .andExpect(content().string(not(containsString("disabled"))));
+    }
+
+    @Test
+    @DisplayName("규격이 빈 기기는 항목이 아니라 한 줄 안내로 알린다")
+    void slotFormExplainsMissingSize() throws Exception {
+        AdminSlotService.SlotForm form = new AdminSlotService.SlotForm();
+        form.setMobileWidth(320);
+        form.setMobileHeight(100);
+
+        given(adminSlotService.findForm(1L)).willReturn(Optional.of(form));
+        given(adminSlotService.unitOptions(form))
+                .willReturn(List.of(new AdminSlotService.UnitOption(unit(), false, false)));
+
+        mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("데스크톱에서 안 나갑니다")))
+                .andExpect(content().string(not(containsString("모바일에서 안 나갑니다"))));
+    }
+
+    @Test
     @DisplayName("광고 설정 목록·폼이 렌더된다")
     void unitScreensRender() throws Exception {
         mockMvc.perform(get("/admin-hoya/ad/units"))
@@ -257,6 +297,13 @@ class AdminAdPageRenderTest {
         return AdUnit.builder()
                 .id(1L).network("ADSENSE").unitId("9697904962").name("애드센스 기본")
                 .createdAt(TODAY.atStartOfDay())
+                .build();
+    }
+
+    private AdUnit adfitUnit() {
+        return AdUnit.builder()
+                .id(2L).network("ADFIT").unitId("DAN-BicR0BE99mzbLjlm").name("PC 세로형")
+                .width(160).height(600).createdAt(TODAY.atStartOfDay())
                 .build();
     }
 
