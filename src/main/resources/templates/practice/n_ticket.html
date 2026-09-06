@@ -88,11 +88,30 @@
         </header>
 
         <div class="nt-sub">
+            <h2 class="nt-mo-title">좌석 선택</h2>
             <span class="nt-sub-title">HOYA LIVE 2026 IN SEOUL</span>
             <span class="nt-sub-div"></span>
             <span class="nt-sub-date">2026.12.05(토) 6:00 PM</span>
             <button type="button" class="nt-sub-chip">일정변경</button>
-            <p class="nt-timer">좌석 선택 시간 <strong id="seatTimer">10:00</strong></p>
+            <p class="nt-timer"><span class="nt-timer-label">좌석 선택 시간</span> <strong id="seatTimer">10:00</strong></p>
+            <button type="button" class="nt-help" id="timerHelp" aria-label="좌석 선택 시간 안내">?</button>
+            <button type="button" class="nt-close" id="closeBtn" aria-label="닫기">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <path d="M5 5l10 10M15 5L5 15" />
+                </svg>
+            </button>
+            <div class="nt-help-tip" id="timerTip" hidden>
+                <strong>좌석 선택 시간</strong>
+                <p>제한 시간이 지나면 처음부터 다시 예매해야 돼요. 시간 내 선택 및 입력을 완료해 주세요.</p>
+            </div>
+        </div>
+
+        <div class="nt-mo-card">
+            <p class="nt-mo-card-title">HOYA LIVE 2026 IN SEOUL</p>
+            <div class="nt-mo-card-row">
+                <span class="nt-mo-card-date">2026.12.05(토) 6:00 PM</span>
+                <button type="button" class="nt-mo-card-chip">일정변경 ›</button>
+            </div>
         </div>
 
         <div class="nt-seat-body">
@@ -130,6 +149,12 @@
             </div>
 
             <aside class="nt-side">
+                <button type="button" class="nt-sheet-arrow" id="sheetArrow" aria-label="선택 좌석 펼치기">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12l5-5 5 5" />
+                    </svg>
+                </button>
                 <div class="nt-side-head">
                     <h2>선택 좌석<em id="pickedNum"></em></h2>
                     <button type="button" class="nt-clear" id="clearBtn" hidden>전체삭제</button>
