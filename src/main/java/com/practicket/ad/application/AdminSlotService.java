@@ -205,12 +205,13 @@ public class AdminSlotService {
             this.mobileTooBig = mobileTooBig;
         }
 
+        /** 이유를 앞에 둔다 — 닫힌 드롭다운은 폭이 좁아 뒤가 잘린다 */
         public String pcLabel() {
-            return pcTooBig ? label + " — 슬롯보다 큼" : label;
+            return pcTooBig ? "슬롯보다 큼 — " + label : label;
         }
 
         public String mobileLabel() {
-            return mobileTooBig ? label + " — 슬롯보다 큼" : label;
+            return mobileTooBig ? "슬롯보다 큼 — " + label : label;
         }
     }
 

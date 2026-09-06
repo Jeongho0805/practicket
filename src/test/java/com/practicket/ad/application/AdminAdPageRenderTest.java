@@ -236,8 +236,8 @@ class AdminAdPageRenderTest {
 
         mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("데스크톱에서 안 나갑니다")))
-                .andExpect(content().string(not(containsString("모바일에서 안 나갑니다"))));
+                .andExpect(content().string(containsString("규격이 비어 있어 데스크톱에서는")))
+                .andExpect(content().string(not(containsString("규격이 비어 있어 모바일에서는"))));
     }
 
     @Test

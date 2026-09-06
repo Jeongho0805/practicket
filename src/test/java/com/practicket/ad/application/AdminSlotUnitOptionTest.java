@@ -40,7 +40,7 @@ class AdminSlotUnitOptionTest {
 
         assertThat(options).extracting(UnitOption::mobileLabel)
                 .anySatisfy(label -> assertThat(label).doesNotContain("슬롯보다 큼"));
-        assertThat(options.get(2).mobileLabel()).endsWith("160x600 — 슬롯보다 큼");
+        assertThat(options.get(2).mobileLabel()).startsWith("슬롯보다 큼 — ");
         assertThat(options.get(0).mobileLabel()).doesNotContain("—");
         assertThat(options.get(1).mobileLabel()).doesNotContain("—");
     }
