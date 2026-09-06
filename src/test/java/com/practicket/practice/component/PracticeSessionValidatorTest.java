@@ -28,8 +28,8 @@ import static org.mockito.Mockito.when;
  * 세션 소유자·타이밍 검증. 원래 {@code PracticeService} 안에 있던 규칙이 이 클래스로 빠져나왔고,
  * 그때 테스트가 따라오지 않아 한동안 검증 규칙에 테스트가 없는 상태였다.
  *
- * <p>시간 계산에 카운트다운 5초가 빠진다는 점에 주의 —
- * {@code serverElapsedMs = (now - startAt) - 5000} 이라 세션을 15초 전에 만들면 경과는 10초다.
+ * <p>시간 계산에 카운트다운 6초가 빠진다는 점에 주의 —
+ * {@code serverElapsedMs = (now - startAt) - 6000} 이라 세션을 15초 전에 만들면 경과는 9초다.
  */
 @ExtendWith(MockitoExtension.class)
 class PracticeSessionValidatorTest {
@@ -53,12 +53,12 @@ class PracticeSessionValidatorTest {
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(15));
         when(sessionRepository.getType(session)).thenReturn(PracticeType.M_TICKET.name());
 
-        // 서버 경과 10초. 클라이언트가 보낸 값도 10초라 허용 오차 안에 든다
-        ValidatedSession result = validator.validate(clientInfo, buildRequest(sessionId, 10_000));
+        // 서버 경과 9초. 클라이언트가 보낸 값도 9초라 허용 오차 안에 든다
+        ValidatedSession result = validator.validate(clientInfo, buildRequest(sessionId, 9_000));
 
         assertThat(result.type()).isEqualTo(PracticeType.M_TICKET);
         assertThat(result.startedAt()).isNotNull();
-        assertThat(result.serverElapsedMs()).isCloseTo(10_000, org.assertj.core.data.Offset.offset(200));
+        assertThat(result.serverElapsedMs()).isCloseTo(9_000, org.assertj.core.data.Offset.offset(200));
     }
 
     @Test
@@ -145,7 +145,7 @@ class PracticeSessionValidatorTest {
         when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(15));
 
-        // 서버 경과는 10초인데 3ms 걸렸다고 보냈다 — 허용 오차 2초를 한참 넘는다
+        // 서버 경과는 9초인데 3ms 걸렸다고 보냈다 — 허용 오차 2초를 한참 넘는다
         assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 3)))
                 .isInstanceOf(PracticeException.class)
                 .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())
@@ -164,7 +164,7 @@ class PracticeSessionValidatorTest {
         when(sessionRepository.hasCheckpoint(session)).thenReturn(true);
         when(sessionRepository.getStartAt(session)).thenReturn(startedSecondsAgo(9));
 
-        // 서버 경과는 4초인데 구간 합은 8초를 신고했다
+        // 서버 경과는 3초인데 구간 합은 8초를 신고했다
         assertThatThrownBy(() -> validator.validate(clientInfo, buildRequest(sessionId, 4_000)))
                 .isInstanceOf(PracticeException.class)
                 .satisfies(e -> assertThat(((PracticeException) e).getErrorCode())

@@ -5,16 +5,17 @@
    - /start 는 "연습 시작하기" 시점에 호출된다 (서버가 startAt 기록)
    - 카운트다운이 0 이 되는 순간을 찍고(markOpened), 예매하기 클릭 때 반응을 확정한다(markBooked).
      같은 순간이 대기 구간의 시작이기도 하다 — 구간 사이에 틈이 생기지 않는다
-   - 서버 검증이 카운트다운을 5초로 고정 취급하므로(COUNTDOWN_MS) 초를 바꾸면 기록이 거부된다
+   - 서버 검증이 카운트다운을 6초로 고정 취급하므로(COUNTDOWN_MS) 초를 바꾸면 기록이 거부된다
    ============================================================ */
 import { authFetch, showAlert } from '/js/common.js';
 import { clearRun, setSessionId, markOpened, markBooked } from '/js/practice/run-state.js';
+import { startCountdown } from '/js/practice/countdown.js';
 
 /* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
    앞으로가기 한 번에 끝난 판이 되살아난다. */
 clearRun();
 
-const COUNTDOWN_SEC = 5;
+const COUNTDOWN_SEC = 6;
 const NEXT_URL = '/practice/n-ticket';
 
 const modal = document.getElementById('start-modal');
@@ -48,21 +49,14 @@ async function startPractice() {
 
     modal.style.display = 'none';
 
-    let seconds = COUNTDOWN_SEC;
-    bookBtn.textContent = `남은시간 ${formatTime(seconds)}`;
-
-    const interval = setInterval(() => {
-        seconds--;
-        if (seconds > 0) {
-            bookBtn.textContent = `남은시간 ${formatTime(seconds)}`;
-            return;
-        }
-        clearInterval(interval);
+    startCountdown(COUNTDOWN_SEC, (sec) => {
+        bookBtn.textContent = `남은시간 ${formatTime(sec)}`;
+    }, () => {
         markOpened();
         bookBtn.textContent = '예매하기';
         bookBtn.classList.add('is-open');
         bookBtn.disabled = false;
-    }, 1000);
+    });
 }
 
 function book() {

@@ -1,11 +1,12 @@
 import { authFetch, showAlert } from '/js/common.js';
 import * as run from '/js/practice/run-state.js';
+import { startCountdown } from '/js/practice/countdown.js';
 
 /* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
    앞으로가기 한 번에 끝난 판이 되살아난다. */
 run.clearRun();
 
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 6;
 
 /*
   대기열 상수는 i_ticket_new.js 와 같은 값을 쓴다.
@@ -129,25 +130,13 @@ function unlock() {
 }
 
 function runCountdown() {
-    let seconds = COUNTDOWN_SECONDS;
+    $('mo-book').classList.add('pre-open');
 
-    const paint = () => {
-        const left = `(남은시간 ${formatCounter(seconds)})`;
+    startCountdown(COUNTDOWN_SECONDS, (sec) => {
+        const left = `(남은시간 ${formatCounter(sec)})`;
         $('open-txt').textContent = `${OPEN_NOTICE.pc} ${left}`;
         $('mo-book').textContent = `${OPEN_NOTICE.mo} ${left}`;
-    };
-
-    $('mo-book').classList.add('pre-open');
-    paint();
-
-    const timer = setInterval(() => {
-        seconds -= 1;
-        paint();
-        if (seconds > 0) return;
-
-        clearInterval(timer);
-        unlock();
-    }, 1000);
+    }, unlock);
 }
 
 async function startPractice() {
