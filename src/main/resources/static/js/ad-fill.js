@@ -21,14 +21,14 @@ function isVisible(el) {
 }
 
 /** 같은 외부 스크립트를 자리마다 다시 받지 않는다 */
-function loadScript(src) {
+function loadScript(src, crossOrigin = false) {
     if (loaded.has(src)) return loaded.get(src);
 
     const promise = new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = src;
         script.async = true;
-        script.crossOrigin = 'anonymous';
+        if (crossOrigin) script.crossOrigin = 'anonymous';
         script.onload = resolve;
         script.onerror = reject;
         document.head.appendChild(script);
@@ -45,7 +45,7 @@ function fillAdsense(el) {
     ins.dataset.adSlot = el.dataset.unit;
     el.appendChild(ins);
 
-    return loadScript(`${ADSENSE_SCRIPT}?client=${encodeURIComponent(el.dataset.account)}`)
+    return loadScript(`${ADSENSE_SCRIPT}?client=${encodeURIComponent(el.dataset.account)}`, true)
         .then(() => {
             (window.adsbygoogle = window.adsbygoogle || []).push({});
         });
