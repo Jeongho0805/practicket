@@ -79,6 +79,13 @@
                 </div>
             </div>
 
+            <!-- 목록 탭에서만 사용하는 단일 슬롯의 숨겨진 보관 위치. -->
+            <div id="practiceMidHome" class="practice-mid-home" hidden>
+                <div id="practiceMidHost">
+                    <div th:replace="~{fragments/ad-slot::slot('PRACTICE_MID')}"></div>
+                </div>
+            </div>
+
             <div class="chart-card">
                 <div class="ch-head">
                     <div class="ch-title">기록 분포</div>
@@ -90,7 +97,6 @@
                 </div>
                 <div id="chartHero" class="ch-hero"></div>
                 <div id="chartPlot" class="ch-plot"></div>
-                <div id="chartFoot" class="ch-empty"><span class="ce-msg"></span></div>
             </div>
 
         </div>

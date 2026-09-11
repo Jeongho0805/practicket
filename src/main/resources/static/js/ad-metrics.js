@@ -47,3 +47,6 @@ if (document.readyState === 'complete') {
 } else {
     window.addEventListener('load', reportVisibleBanners);
 }
+
+// 탭 뒤에 숨어 있던 배너는 load 때 안 보여서 집계에서 빠진다. 드러낸 쪽이 직접 알려야 한다.
+window.reportVisibleAdBanners = reportVisibleBanners;

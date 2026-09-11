@@ -129,3 +129,6 @@ if (document.readyState === 'complete') {
     window.addEventListener('load', fillVisibleSlots);
 }
 window.addEventListener('resize', fillVisibleSlots);
+
+// 탭 뒤에 숨어 있던 자리는 load 때 안 보여서 건너뛴다. 드러낸 쪽이 직접 알려야 한다.
+window.fillVisibleAdSlots = fillVisibleSlots;

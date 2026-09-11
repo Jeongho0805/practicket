@@ -989,6 +989,11 @@
         gap: 2px;
     }
 
+    /* 모바일에서는 표 머리를 숨기므로 지표와 기록 목록 사이의 구분선을 직접 그린다. */
+    .my-stats-grid {
+        border-bottom: 1px solid #ece8f3;
+    }
+
     .stat-label {
         font-size: 10px;
         letter-spacing: 0;
@@ -1294,16 +1299,6 @@
     flex-direction: column;
 }
 
-.ch-empty {
-    flex-shrink: 0;
-}
-
-.ce-msg {
-    font-size: 10.5px;
-    color: #b0a8c6;
-    line-height: 1.4;
-}
-
 .hist {
     display: flex;
     align-items: flex-end;
@@ -1415,9 +1410,18 @@
     .hub-tab { padding: 8px 0; font-size: 13px; }
     .hub-view.active { gap: 8px; }
 
-    .chart-card { padding: 12px 13px 11px; border-radius: 14px; gap: 8px; }
+    /* 짧은 폰에서도 한 화면에 들어와야 한다. 광고·카드 뒤 남는 높이를 차트가 받고,
+       막대 영역만은 54px 이상 남긴다. */
+    .chart-card {
+        padding: 8px 13px 7px;
+        border-radius: 14px;
+        gap: 4px;
+        flex: 1;
+        min-height: 0;
+    }
+    .ch-plot { flex: 1 0 54px; min-height: 54px; }
     .ch-title { font-size: 12.5px; }
-    .ch-hero b { font-size: 23px; }
+    .ch-hero b { font-size: 20px; }
     .ch-hero.text b { font-size: 17px; }
 
     .tier { font-size: 12px; padding: 2px 8px; letter-spacing: .8px; }
@@ -1546,4 +1550,56 @@ button.tier:disabled {
     .rec-day { min-width: 36px; }
     .rec-time { margin-left: 5px; }
     .ts-panel { padding: 12px 13px 10px; }
+}
+
+/* ----- 실전연습 중간 광고 ----- */
+
+/* 전역 자리 규칙(default.css 의 .ad-slot.pc-banner 등)은 사이드바 300x600 비율이라 여기서 덮는다.
+   이 슬롯은 전체 랭킹·내 기록의 첫 목록 행으로 옮겨 다닌다. */
+.practice-mid-home {
+    display: none;
+}
+
+#practiceMidHost {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#ad-slot-PRACTICE_MID {
+    /* 목록 행은 가득 쓰되, 소재 자체는 슬롯 권장 폭 이상 확대하지 않는다. */
+    width: min(100%, 560px);
+    height: auto;
+    aspect-ratio: 560 / 100;
+    max-height: none;
+    margin: 0 auto;
+    border-radius: 10px;
+}
+
+tr.practice-mid-row > td {
+    padding: 10px 0;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    #ad-slot-PRACTICE_MID {
+        /* 좁은 화면에서는 가용 폭까지 줄고, 320x100 이상 확대하지 않는다. */
+        width: min(100%, 320px);
+        aspect-ratio: 320 / 100;
+    }
+
+    .ranking-table-body tr.practice-mid-row,
+    .my-record-table-body tr.practice-mid-row {
+        display: block;
+        margin: 0 0 5px;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .ranking-table-body tr.practice-mid-row > td,
+    .my-record-table-body tr.practice-mid-row > td {
+        display: block;
+        padding: 6px 0 10px !important;
+    }
 }

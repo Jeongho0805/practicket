@@ -77,13 +77,50 @@ async function goToMTicket(event) {
 // 목록은 그 탭을 처음 열 때 부른다. 첫 화면이 연습하기라 랭킹까지 미리 부를 이유가 없다.
 let rankingLoaded = false;
 
+/* PRACTICE_MID는 목록 탭에서만 보이는 단일 슬롯이다.
+   연습하기에서는 숨겨 보관하고 전체 랭킹·내 기록 첫 행으로 옮긴다. */
+function notifyVisiblePracticeMid() {
+    window.fillVisibleAdSlots?.();
+    window.reportVisibleAdBanners?.();
+}
+
+function restorePracticeMidHome() {
+    const home = document.getElementById('practiceMidHome');
+    const host = document.getElementById('practiceMidHost');
+    if (home && host) home.appendChild(host);
+}
+
+function placePracticeMidInfeed(tbodyId, rowSelector) {
+    const host = document.getElementById('practiceMidHost');
+    const tbody = document.getElementById(tbodyId);
+    if (!host || !tbody) return;
+
+    // 광고는 1위/최신 기록 바로 위에 둔다. 빈 목록도 안내 행 위에 남긴다.
+    document.querySelectorAll('tr.practice-mid-row').forEach(row => row.remove());
+
+    const tr = document.createElement('tr');
+    tr.className = 'practice-mid-row';
+    const td = document.createElement('td');
+    td.colSpan = 4;
+    td.appendChild(host);
+    tr.appendChild(td);
+
+    const firstItem = tbody.querySelector(rowSelector) || tbody.querySelector('tr');
+    if (firstItem) tbody.insertBefore(tr, firstItem);
+    else tbody.appendChild(tr);
+}
+
 function switchHubView(view) {
     document.querySelectorAll('.hub-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
 
     const practice = view === 'practice';
     document.getElementById('view-practice').classList.toggle('active', practice);
     document.getElementById('view-rank').classList.toggle('active', !practice);
-    if (practice) return;
+    if (practice) {
+        restorePracticeMidHome();
+        notifyVisiblePracticeMid();
+        return;
+    }
 
     const panel = view === 'ranking' ? 'ranking' : 'myrecord';
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -94,6 +131,9 @@ function switchHubView(view) {
         if (!rankingLoaded) {
             rankingLoaded = true;
             loadRanking(true);
+        } else {
+            placePracticeMidInfeed('rankingTableBody', '.rank-row-clickable');
+            notifyVisiblePracticeMid();
         }
         // 숨어 있는 동안에는 끝 감지 줄이 안 울린다. 열릴 때 다시 건다
         rearmTail('rank');
@@ -200,6 +240,8 @@ async function loadRanking(reset) {
     if (!reset && !rankingState.hasNext) return;
 
     if (reset) {
+        // tbody를 통째로 비우기 전에 인피드 슬롯을 안전한 홈으로 꺼낸다.
+        restorePracticeMidHome();
         rankingState.cursor = null;
         rankingState.hasNext = false;
         rankingState.rankOffset = 0;
@@ -240,6 +282,10 @@ async function loadRanking(reset) {
         rankingState.hasNext = data.has_next;
         rankingState.cursor = data.has_next ? data.next_cursor : null;
         document.getElementById('rankingSentinel').hidden = !data.has_next;
+        placePracticeMidInfeed('rankingTableBody', '.rank-row-clickable');
+        if (document.getElementById('panel-ranking').classList.contains('active')) {
+            notifyVisiblePracticeMid();
+        }
         rearmTail('rank');
 
     } catch (e) {
@@ -390,6 +436,8 @@ async function loadMyRecords(reset) {
     if (!reset && !myState.hasNext) return;
 
     if (reset) {
+        // 목록 재조회는 tbody를 갈아끼우므로, 살아 있는 슬롯을 먼저 보관한다.
+        restorePracticeMidHome();
         myState.cursorId = null;
         myState.hasNext = false;
         myState.recordOffset = 0;
@@ -427,6 +475,10 @@ async function loadMyRecords(reset) {
         myState.hasNext = data.has_next;
         myState.cursorId = data.has_next ? data.next_cursor : null;
         document.getElementById('myRecordSentinel').hidden = !data.has_next;
+        placePracticeMidInfeed('myRecordTableBody', '.record-row');
+        if (document.getElementById('panel-myrecord').classList.contains('active')) {
+            notifyVisiblePracticeMid();
+        }
         rearmTail('myrecord');
 
     } catch (e) {
@@ -625,7 +677,6 @@ const withComma = n => n.toLocaleString('en-US');
 async function drawChart(type) {
     const plot = document.getElementById('chartPlot');
     const hero = document.getElementById('chartHero');
-    const foot = document.querySelector('#chartFoot .ce-msg');
     if (!plot) return;
 
     const [dist, myMs] = await Promise.all([fetchDistribution(type), fetchMyBestMs(type)]);
@@ -636,20 +687,15 @@ async function drawChart(type) {
         hero.className = 'ch-hero text';
         hero.innerHTML = '<b>아직 기록이 없어요</b>';
         plot.innerHTML = '';
-        foot.textContent = '';
         return;
     }
 
     renderHistogram(plot, dist, myMs);
 
     if (myMs == null) {
-        const peak = dist.bins.indexOf(Math.max(...dist.bins));
-        const peakFrom = toSec(dist.bin_start_ms + peak * dist.bin_width_ms);
-        const peakTo = toSec(dist.bin_start_ms + (peak + 1) * dist.bin_width_ms);
         hero.className = 'ch-hero text';
         hero.innerHTML = '<b>내 위치를 확인해보세요</b>'
             + `<span>지금까지 ${withComma(dist.total_users)}명이 기록을 남겼어요</span>`;
-        foot.textContent = `가장 많은 구간은 ${peakFrom}~${peakTo}초예요`;
         return;
     }
 
@@ -658,7 +704,6 @@ async function drawChart(type) {
     hero.className = 'ch-hero';
     hero.innerHTML = `<b>상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%</b>`
         + `<span class="tier tier--${TIER_KEYS[tier]}">${TIER_NAMES[tier]}</span>`;
-    foot.textContent = '';
 }
 
 function renderHistogram(plot, dist, myMs) {
