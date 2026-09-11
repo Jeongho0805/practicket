@@ -1,5 +1,6 @@
 package com.practicket.ad.application;
 
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.ad.domain.CampaignStatus;
@@ -35,6 +36,7 @@ import java.util.Map;
 public class AdminCampaignController {
 
     private final AdminCampaignService adminCampaignService;
+    private final AdSlotSnapshotStore adSlotSnapshotStore;
     private final AdvertiserRepository advertiserRepository;
     private final AdSlotRepository adSlotRepository;
 
@@ -101,6 +103,7 @@ public class AdminCampaignController {
                        RedirectAttributes redirectAttributes) {
         try {
             Long id = adminCampaignService.save(form);
+            adSlotSnapshotStore.refresh();
             return "redirect:/admin-hoya/ad/campaigns/" + id;
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -115,6 +118,7 @@ public class AdminCampaignController {
                                RedirectAttributes redirectAttributes) {
         try {
             adminCampaignService.toggleBanner(bannerId);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

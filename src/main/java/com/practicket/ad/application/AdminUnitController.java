@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdNetworkSettings;
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdUnit;
 import com.practicket.ad.domain.AdUnitRepository;
@@ -35,6 +36,7 @@ public class AdminUnitController {
     private final AdUnitRepository adUnitRepository;
     private final AdSlotRepository adSlotRepository;
     private final AdNetworkExposureService adNetworkExposureService;
+    private final AdSlotSnapshotStore adSlotSnapshotStore;
 
     @InitBinder
     void trimEmptyToNull(WebDataBinder binder) {
@@ -98,6 +100,7 @@ public class AdminUnitController {
             } else {
                 update(id, network, unitId, name, width, height);
             }
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return id == null ? "redirect:/admin-hoya/ad/units/new"
@@ -117,6 +120,7 @@ public class AdminUnitController {
             return "redirect:/admin-hoya/ad/units";
         }
         adUnitRepository.deleteById(id);
+        adSlotSnapshotStore.refresh();
         return "redirect:/admin-hoya/ad/units";
     }
 

@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdNetworkSettings;
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.exception.AdException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -28,6 +29,7 @@ public class AdminSlotController {
             AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT);
 
     private final AdminSlotService adminSlotService;
+    private final AdSlotSnapshotStore adSlotSnapshotStore;
 
     @InitBinder
     void trimEmptyToNull(WebDataBinder binder) {
@@ -64,6 +66,7 @@ public class AdminSlotController {
                                     RedirectAttributes redirectAttributes) {
         try {
             adminSlotService.changeFillNetwork(id, fillNetwork);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
@@ -74,6 +77,7 @@ public class AdminSlotController {
     public String save(@ModelAttribute AdminSlotService.SlotForm form, RedirectAttributes redirectAttributes) {
         try {
             adminSlotService.save(form);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/admin-hoya/ad/slots/" + form.getId() + "/edit";
@@ -89,6 +93,7 @@ public class AdminSlotController {
                               RedirectAttributes redirectAttributes) {
         try {
             adminSlotService.changeUnits(id, fillNetwork, pcAdUnitId, mobileAdUnitId);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
