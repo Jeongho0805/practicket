@@ -35,6 +35,23 @@ class AdSlotViewTest {
         verify(exposureService, times(1)).currentExposure();
     }
 
+    @Test
+    void keepsSlotSizeWhenNothingCanFillIt() {
+        AdSlotSnapshotStore store = mock(AdSlotSnapshotStore.class);
+        AdNetworkExposureService exposureService = mock(AdNetworkExposureService.class);
+        AdNetworkSettings networkSettings = new AdNetworkSettings("ca-pub-test", "tracking-test", "carousel");
+        given(store.get()).willReturn(new AdSlotSnapshot(List.of(
+                new AdSlotSnapshot.Slot("NO_UNIT", 300, 250, null, null,
+                        "디스플레이", "ADFIT", null, null, List.of()))));
+
+        AdSlotRender render = new AdSlotView(store, networkSettings, exposureService).render("NO_UNIT");
+
+        assertThat(render.getPc().isEmpty()).isTrue();
+        assertThat(render.getPcClass()).isEqualTo("pc-empty");
+        assertThat(render.getMobile().isEmpty()).isFalse();
+        assertThat(render.getMobileClass()).isEqualTo("mo-none");
+    }
+
     private AdSlotSnapshot.Slot slot(String code, AdSlotSnapshot.Unit unit) {
         return new AdSlotSnapshot.Slot(code, 300, 250, null, null,
                 "디스플레이", unit.network(), unit, null, List.of());

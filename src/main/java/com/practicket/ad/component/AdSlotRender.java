@@ -47,6 +47,9 @@ public class AdSlotRender {
         if (face.isFill()) {
             return prefix + "-fill " + prefix + "-net-" + face.getNetwork();
         }
+        if (face.isEmpty()) {
+            return prefix + "-empty";
+        }
         return prefix + "-none";
     }
 }

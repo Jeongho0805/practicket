@@ -63,7 +63,7 @@ public class AdSlotView {
 
     /**
      * 판정 순서는 하나다. 기기 규격이 없으면 안 그리고, 그 기기 그림이 있으면 배너,
-     * 없으면 네트워크가 채우고, 채울 네트워크마저 없으면 안 그린다.
+     * 없으면 네트워크가 채우고, 채울 네트워크마저 없으면 자리만 비워 둔다.
      */
     private AdFace face(boolean served, boolean hasImage,
                         AdSlotSnapshot.Banner banner, String imagePath, AdSlotSnapshot.Unit unit) {
@@ -74,7 +74,7 @@ public class AdSlotView {
             return AdFace.banner(banner.id(), banner.advertiserName(), imagePath);
         }
         if (unit == null) {
-            return AdFace.none();
+            return AdFace.empty();
         }
         if (networkExposure == null) {
             networkExposure = adNetworkExposureService.currentExposure();

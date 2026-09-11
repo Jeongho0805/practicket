@@ -43,7 +43,8 @@
        에서 역산한 값이라 그 둘을 바꾸면 같이 손봐야 한다.
        max-height 는 계산이 어긋났을 때 광고가 화면을 밀지 않게 막는 안전장치다. */
     .ad-slot.pc-banner,
-    .ad-slot.pc-fill {
+    .ad-slot.pc-fill,
+    .ad-slot.pc-empty {
         width: min(300px, 31vh);
         height: auto;
         aspect-ratio: 1 / 2;
@@ -99,7 +100,8 @@
        폭이 높이를 정한다. 반대로 두면 짧은 폰에서 폭이 화면 폭보다 좁게 쪼그라든다.
        광고 행을 auto 로 두는 것도 그래서다 — 고정 fr 은 필요 높이가 폰마다 11~14% 로 갈려 아래를 덮는다. */
     .ad-slot.mo-banner,
-    .ad-slot.mo-fill {
+    .ad-slot.mo-fill,
+    .ad-slot.mo-empty {
         width: 100%;
         height: auto;
         aspect-ratio: 4 / 1;
