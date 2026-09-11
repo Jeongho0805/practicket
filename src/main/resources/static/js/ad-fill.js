@@ -52,22 +52,20 @@ function fillAdsense(el) {
 }
 
 /**
- * 쿠팡 위젯은 자기를 실행한 script 태그의 부모에 iframe 을 넣는다. 그래서 모듈에서 직접 호출하지 않고
- * 자리 안에 script 태그를 만들어 그 안에서 부른다 — 안 그러면 iframe 이 body 끝에 붙는다.
+ * 쿠팡 위젯은 container 를 안 주면 문서의 마지막 script 태그 앞에 iframe 을 넣는다.
+ * 자리 안에 인라인 script 를 만들어도 마지막 태그가 아니라서 페이지 끝에 붙는다.
  */
 function fillCoupang(el) {
     return loadScript(COUPANG_SCRIPT).then(() => {
-        const options = {
+        new PartnersCoupang.G({
             id: Number(el.dataset.unit),
             template: el.dataset.template || 'carousel',
             trackingCode: el.dataset.account,
             width: '100%',
             height: '100%',
             tsource: '',
-        };
-        const inline = document.createElement('script');
-        inline.text = `new PartnersCoupang.G(${JSON.stringify(options)});`;
-        el.appendChild(inline);
+            container: el,
+        });
     });
 }
 
