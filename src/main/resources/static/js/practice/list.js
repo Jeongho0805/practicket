@@ -77,6 +77,13 @@ async function goToMTicket(event) {
 // 목록은 그 탭을 처음 열 때 부른다. 첫 화면이 연습하기라 랭킹까지 미리 부를 이유가 없다.
 let rankingLoaded = false;
 
+/* 모바일 카드 행의 순위 칸은 고정 폭이다. 네 자리부터는 자간만 아주 조금 줄여
+   숫자가 다음 열을 밀지 않게 한다. 공개 랭킹·내 순위·내 기록이 같은 규칙을 쓴다. */
+function mobileNumberDigitsClass(value) {
+    const digits = String(Math.abs(Number(value) || 0)).length;
+    return digits >= 5 ? 'mobile-num-digits-5plus' : `mobile-num-digits-${digits}`;
+}
+
 /* PRACTICE_MID는 목록 탭에서만 보이는 단일 슬롯이다.
    연습하기에서는 숨겨 보관하고 전체 랭킹·내 기록 첫 행으로 옮긴다. */
 function notifyVisiblePracticeMid() {
@@ -185,7 +192,11 @@ async function loadMyRank() {
             return;
         }
 
-        row.querySelector('.mr-rank').textContent = my.rank;
+        const myRank = row.querySelector('.mr-rank');
+        myRank.textContent = my.rank;
+        myRank.classList.remove('mobile-num-digits-1', 'mobile-num-digits-2',
+            'mobile-num-digits-3', 'mobile-num-digits-4', 'mobile-num-digits-5plus');
+        myRank.classList.add(mobileNumberDigitsClass(my.rank));
         row.querySelector('.mr-nick').textContent = my.nickname || '나';
         row.querySelector('.mr-time').innerHTML =
             (my.best_ms / 1000).toFixed(3) + 's<span class="badge-arrow">&#9660;</span>';
@@ -372,7 +383,7 @@ function createRankRow(rank, item) {
     const timeStr = (item.total_duration_ms / 1000).toFixed(3) + 's';
 
     const rankTd = document.createElement('td');
-    rankTd.className = 'rank-num';
+    rankTd.className = `rank-num ${mobileNumberDigitsClass(rank)}`;
     rankTd.textContent = rank;
 
     const nameTd = document.createElement('td');
@@ -568,7 +579,7 @@ function createRecordRows(r, attemptNum) {
 
     const attemptTd = document.createElement('td');
     const attemptSpan = document.createElement('span');
-    attemptSpan.className = 'attempt-num';
+    attemptSpan.className = `attempt-num ${mobileNumberDigitsClass(attemptNum)}`;
     attemptSpan.textContent = '#' + attemptNum;
     attemptTd.appendChild(attemptSpan);
 

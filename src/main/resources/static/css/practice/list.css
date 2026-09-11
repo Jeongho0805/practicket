@@ -914,7 +914,7 @@
 
     .ranking-table-body tr {
         display: grid;
-        grid-template-columns: 22px 1fr auto;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -954,7 +954,7 @@
     }
 
     .my-rank-row {
-        grid-template-columns: 22px 1fr auto;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -966,6 +966,26 @@
     .my-rank-row .mr-rank { grid-area: rank; }
     .my-rank-row .mr-name { grid-area: name; padding-left: 0; }
     .my-rank-row .mr-time { grid-area: time; }
+
+    /* 번호는 자릿수와 무관하게 고정 칸 가운데에 둔다. 가운데 열은 남은 폭만 쓰므로
+       4000·10000도 닉네임·그래프·기록 배지를 밀거나 가로 스크롤을 만들지 않는다. */
+    .ranking-table-body .rank-num,
+    .my-rank-row .mr-rank,
+    .my-record-table-body .attempt-num {
+        display: block;
+        min-width: 0;
+        text-align: center;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .ranking-table-body .rank-num { color: #4a4458; }
+    .ranking-table-body .rank-1 .rank-num { color: #c9962e; }
+    .ranking-table-body .rank-2 .rank-num { color: #a9a2c0; }
+    .ranking-table-body .rank-3 .rank-num { color: #b0743c; }
+
+    .mobile-num-digits-4 { letter-spacing: -0.35px; }
+    .mobile-num-digits-5plus { letter-spacing: -0.65px; }
 
     .my-rank-row .rank-split {
         grid-area: split;
@@ -1093,7 +1113,7 @@
 
     .my-record-table-body tr {
         display: grid;
-        grid-template-columns: 30px 1fr auto;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
         grid-template-areas:
             "num date time"
             "num split time";
