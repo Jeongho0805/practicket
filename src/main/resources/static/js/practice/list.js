@@ -174,7 +174,7 @@ function selectPeriod(btn) {
     loadRanking(true);
 }
 
-/* 목록 끝에 고정으로 붙는 내 줄. 위 목록과 같은 기간 기준이라 순위가 어긋나지 않는다. */
+/* 표 머리 위에 고정으로 붙는 내 줄. 위 목록과 같은 기간 기준이라 순위가 어긋나지 않는다. */
 async function loadMyRank() {
     const wrap = document.getElementById('myRankWrap');
     const row = document.getElementById('myRankRow');
@@ -182,8 +182,10 @@ async function loadMyRank() {
     if (!wrap || !row) return;
 
     try {
-        const res = await authFetch(
-            `/api/practice/my-rank?type=${rankingState.type}&period=${rankingState.period}`);
+        const [res, dist] = await Promise.all([
+            authFetch(`/api/practice/my-rank?type=${rankingState.type}&period=${rankingState.period}`),
+            fetchDistribution(rankingState.type),
+        ]);
         if (!res.ok) throw new Error('API error');
         const my = await res.json();
 
@@ -198,6 +200,10 @@ async function loadMyRank() {
             'mobile-num-digits-3', 'mobile-num-digits-4', 'mobile-num-digits-5plus');
         myRank.classList.add(mobileNumberDigitsClass(my.rank));
         row.querySelector('.mr-nick').textContent = my.nickname || '나';
+        applyTierBadge(row.querySelector('.mr-tier'), dist, my.best_ms, rankingState.type, true);
+        const pct = my.rank / my.total_users * 100;
+        row.querySelector('.mr-pct').textContent =
+            `상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}% · ${withComma(my.total_users)}명`;
         row.querySelector('.mr-time').innerHTML =
             (my.best_ms / 1000).toFixed(3) + 's<span class="badge-arrow">&#9660;</span>';
         row.querySelector('.rank-split').replaceWith(createSplitBar(my));
@@ -270,7 +276,7 @@ async function loadRanking(reset) {
     }
 
     try {
-        const res = await fetch(url);
+        const [res, dist] = await Promise.all([fetch(url), fetchDistribution(rankingState.type)]);
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
 
@@ -283,7 +289,7 @@ async function loadRanking(reset) {
         } else {
             data.data.forEach((item, i) => {
                 const rank = rankingState.rankOffset + i + 1;
-                const { tr, detailTr } = createRankRow(rank, item);
+                const { tr, detailTr } = createRankRow(rank, item, dist);
                 tbody.appendChild(tr);
                 tbody.appendChild(detailTr);
             });
@@ -308,8 +314,6 @@ async function loadRanking(reset) {
         rankingState.loading = false;
     }
 }
-
-const RANK_MEDALS = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 const SEGMENT_LABELS = ['반응', '대기열', '보안문자', '좌석 선택'];
 
@@ -376,7 +380,111 @@ function bindDetailToggle(mainRow, detailRow) {
     });
 }
 
-function createRankRow(rank, item) {
+/* 등급은 기록 초에 붙는다. 컷이 전체 기간 분포 하나라 기간 탭을 바꿔도 같은 기록이면 같은 등급이다. */
+function applyTierBadge(el, dist, ms, type, mine = false) {
+    if (!dist || !dist.tier_cut_ms.length || ms == null) {
+        el.hidden = true;
+        return;
+    }
+    const index = tierIndexOf(dist.tier_cut_ms, ms);
+    el.className = `tier tier-sm tier--${TIER_KEYS[index]}`;
+    el.textContent = TIER_NAMES[index];
+    el.hidden = false;
+    bindTierPop(el, { type, index, ms, mine });
+}
+
+/* 배지 하나에 카드 하나. 줄 클릭(펼침)과 겹치지 않게 전파를 끊는다. */
+function bindTierPop(el, info) {
+    el.dataset.tier = info.index;
+    el.dataset.type = info.type;
+    el.dataset.mine = info.mine ? '1' : '';
+    if (info.ms != null) el.dataset.ms = info.ms;
+    if (el.dataset.popBound) return;
+    el.dataset.popBound = '1';
+    el.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleTierPop(el);
+    });
+}
+
+const tierPop = document.getElementById('tierPop');
+
+function closeTierPop() {
+    if (!tierPop) return;
+    tierPop.hidden = true;
+    tierPop.anchorEl = null;
+}
+
+async function toggleTierPop(anchor) {
+    if (!tierPop) return;
+    if (!tierPop.hidden && tierPop.anchorEl === anchor) {
+        closeTierPop();
+        return;
+    }
+    const dist = await fetchDistribution(anchor.dataset.type);
+    if (!dist || !dist.tier_cut_ms.length) return;
+
+    const index = Number(anchor.dataset.tier);
+    const mine = anchor.dataset.mine === '1';
+    const ms = anchor.dataset.ms ? Number(anchor.dataset.ms) : null;
+    tierPop.innerHTML = tierPopHtml(dist, index, mine, ms);
+    tierPop.anchorEl = anchor;
+    tierPop.hidden = false;
+    placeTierPop(anchor);
+}
+
+function tierPopHtml(dist, index, mine, ms) {
+    const cuts = dist.tier_cut_ms;
+    const pcts = dist.tier_percentiles;
+    const cutText = i => i < cuts.length ? (cuts[i] / 1000).toFixed(2) + 's 이내' : '그보다 느림';
+    const pctText = i => i < pcts.length ? `상위 ${pcts[i]}%` : '나머지';
+
+    const rows = TIER_NAMES.map((name, i) =>
+        `<div class="ts-row${mine && i === index ? ' ts-row--me' : ''}">`
+        + `<span class="tier tier--${TIER_KEYS[i]}">${name}</span>`
+        + `<span class="ts-pct">${pctText(i)}</span>`
+        + `<span class="ts-cut">${cutText(i)}</span></div>`).join('');
+
+    let next = '';
+    if (mine && ms != null) {
+        next = index > 0
+            ? `<b>${TIER_NAMES[index - 1]}</b> 까지 <b>${((ms - cuts[index - 1]) / 1000).toFixed(2)}초</b>`
+            : '가장 높은 등급이에요';
+        next = `<div class="ts-next">${next}</div>`;
+    }
+
+    return `<div class="ts-head"><span class="tier tier--${TIER_KEYS[index]}">${TIER_NAMES[index]}</span>`
+        + `<span class="ts-lab">${mine ? '내 등급' : '이 기록의 등급'}</span>`
+        + `<span class="ts-crit">${pctText(index)} · ${cutText(index)}</span></div>`
+        + next + rows;
+}
+
+/* 아래에 자리가 없으면 위로 붙인다. 폰은 양옆 12px 만 남기고 꼬리표만 배지를 가리킨다. */
+function placeTierPop(anchor) {
+    const a = anchor.getBoundingClientRect();
+    const gap = 10;
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    const width = mobile ? window.innerWidth - 24 : 300;
+    const left = mobile ? 12 : Math.max(8, Math.min(window.innerWidth - width - 8, a.left + a.width / 2 - 24));
+    tierPop.style.width = width + 'px';
+    tierPop.style.left = left + 'px';
+    tierPop.style.setProperty('--ax', (a.left + a.width / 2 - left - 6) + 'px');
+
+    const h = tierPop.offsetHeight;
+    const below = a.bottom + gap + h <= window.innerHeight - 8;
+    tierPop.classList.toggle('above', !below);
+    tierPop.style.top = (below ? a.bottom + gap : Math.max(8, a.top - gap - h)) + 'px';
+}
+
+document.addEventListener('click', e => {
+    if (!tierPop || tierPop.hidden || e.target.closest('#tierPop')) return;
+    closeTierPop();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTierPop(); });
+/* 목록이 스크롤되면 배지가 움직여 카드가 허공에 남는다. 그냥 닫는다. */
+document.addEventListener('scroll', closeTierPop, true);
+
+function createRankRow(rank, item, dist) {
     const tr = document.createElement('tr');
     if (rank <= 3) tr.classList.add(`rank-${rank}`);
 
@@ -390,18 +498,16 @@ function createRankRow(rank, item) {
     nameTd.className = 'rank-name';
     nameTd.style.cssText = 'text-align:left;padding-left:30px;';
 
-    if (RANK_MEDALS[rank]) {
-        const wrap = document.createElement('span');
-        wrap.className = 'rank-name-wrap';
-        const medal = document.createElement('span');
-        medal.className = 'rank-medal';
-        medal.textContent = RANK_MEDALS[rank];
-        wrap.appendChild(medal);
-        wrap.appendChild(document.createTextNode(item.nickname));
-        nameTd.appendChild(wrap);
-    } else {
-        nameTd.textContent = item.nickname;
-    }
+    const wrap = document.createElement('span');
+    wrap.className = 'rank-name-wrap';
+    const tier = document.createElement('span');
+    applyTierBadge(tier, dist, item.total_duration_ms, rankingState.type);
+    const nick = document.createElement('span');
+    nick.className = 'rank-nick';
+    nick.textContent = item.nickname;
+    wrap.appendChild(tier);
+    wrap.appendChild(nick);
+    nameTd.appendChild(wrap);
 
     const splitTd = document.createElement('td');
     splitTd.appendChild(createSplitBar(item));
@@ -508,10 +614,10 @@ async function renderMyStats(data) {
     const pctEl = document.getElementById('myPercentile');
     const rankEl = document.getElementById('myOverallRank');
     const bestEl = document.getElementById('myBestRecord');
-    const sheet = document.getElementById('tierSheet');
 
     const bestMs = data && data.total_count ? data.best_ms : null;
     myBestCache[myState.type] = bestMs;
+    closeTierPop();
 
     if (bestMs == null) {
         tierEl.className = 'tier tier--f';
@@ -520,7 +626,6 @@ async function renderMyStats(data) {
         pctEl.textContent = '-';
         rankEl.textContent = '-';
         bestEl.textContent = '-';
-        sheet.hidden = true;
         return;
     }
 
@@ -542,33 +647,7 @@ async function renderMyStats(data) {
     tierEl.disabled = false;
     pctEl.textContent = (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
     rankEl.textContent = withComma(Math.max(1, Math.round(dist.total_users * pct / 100))) + '위';
-
-    buildTierSheet(sheet, dist, index, bestMs);
-}
-
-/* 카드 줄을 밀어내면 아래 목록이 그만큼 줄어든다. 화면 위에 겹쳐 띄우고 바깥을 누르면 닫는다. */
-function buildTierSheet(sheet, dist, tierIndex, bestMs) {
-    const cuts = dist.tier_cut_ms;
-    const pcts = dist.tier_percentiles;
-
-    const rows = TIER_NAMES.map((name, i) => {
-        const upto = i < cuts.length ? (cuts[i] / 1000).toFixed(2) + 's 이내' : '그보다 느림';
-        const pctText = i < pcts.length ? `상위 ${pcts[i]}%` : '나머지';
-        return `<div class="ts-row${i === tierIndex ? ' ts-row--me' : ''}">`
-            + `<span class="tier tier--${TIER_KEYS[i]}">${name}</span>`
-            + `<span class="ts-pct">${pctText}</span>`
-            + `<span class="ts-cut">${upto}</span></div>`;
-    }).join('');
-
-    // 표를 여는 이유가 이 한 줄이다
-    const next = tierIndex > 0
-        ? `<b>${TIER_NAMES[tierIndex - 1]}</b> 까지 <b>${((bestMs - cuts[tierIndex - 1]) / 1000).toFixed(2)}초</b>`
-        : '가장 높은 등급이에요';
-
-    sheet.innerHTML = '<div class="ts-back"></div><div class="ts-panel">'
-        + '<div class="ts-head">등급 기준</div>'
-        + `<div class="ts-next">${next}</div>${rows}</div>`;
-    sheet.querySelector('.ts-back').addEventListener('click', () => { sheet.hidden = true; });
+    bindTierPop(tierEl, { type: myState.type, index, ms: bestMs, mine: true });
 }
 
 function createRecordRows(r, attemptNum) {
@@ -715,7 +794,13 @@ async function drawChart(type) {
     hero.className = 'ch-hero';
     hero.innerHTML = `<b>상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%</b>`
         + `<span class="tier tier--${TIER_KEYS[tier]}">${TIER_NAMES[tier]}</span>`;
+    bindTierPop(hero.querySelector('.tier'), { type, index: tier, ms: myMs, mine: true });
 }
+
+/* 막대 대신 면 곡선. 칸 가운데를 점으로 잡고 이웃과 가로 중간에서 꺾어 잇는다.
+   세로는 늘려 그리므로(preserveAspectRatio none) 선 굵기는 non-scaling 으로 고정한다. */
+const CURVE_W = 1000;
+const CURVE_H = 100;
 
 function renderHistogram(plot, dist, myMs) {
     const bins = dist.bins;
@@ -723,24 +808,60 @@ function renderHistogram(plot, dist, myMs) {
     const startMs = dist.bin_start_ms;
     const widthMs = dist.bin_width_ms;
     const endMs = startMs + bins.length * widthMs;
+    const xOf = ms => (ms - startMs) / (endMs - startMs);
+    const yOf = count => CURVE_H - count / max * (CURVE_H - 2);
 
-    // 마지막 칸보다 느린 기록은 그래프 밖이다. 막대는 안 물들이고 깃발만 오른쪽 끝에 세운다
-    const myAt = myMs == null ? -1
-        : Math.min(bins.length - 1, Math.max(0, Math.floor((myMs - startMs) / widthMs)));
-    const myLeft = myMs == null ? 0
-        : Math.min(100, Math.max(0, (myMs - startMs) / (endMs - startMs) * 100));
+    const pts = bins.map((c, i) => [(i + 0.5) / bins.length * CURVE_W, yOf(c)]);
+    let line = `M0,${yOf(bins[0])} L${pts[0][0]},${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+        const cx = (x0 + x1) / 2;
+        line += ` C${cx},${y0} ${cx},${y1} ${x1},${y1}`;
+    }
+    line += ` L${CURVE_W},${yOf(bins[bins.length - 1])}`;
+    const area = `${line} L${CURVE_W},${CURVE_H} L0,${CURVE_H} Z`;
 
-    const bars = bins.map((count, i) =>
-        `<div class="bin${i === myAt ? ' me' : ''}" style="height:${(count / max * 100).toFixed(1)}%"></div>`
-    ).join('');
+    const cutLines = dist.tier_cut_ms.filter(c => c > startMs && c < endMs).map(c =>
+        `<line x1="${(xOf(c) * CURVE_W).toFixed(1)}" y1="0" x2="${(xOf(c) * CURVE_W).toFixed(1)}" y2="${CURVE_H}" class="ch-cut"/>`).join('');
 
-    const flag = myMs == null ? ''
-        : `<div class="me-flag" style="left:${myLeft.toFixed(1)}%;height:100%">`
-          + `<span class="mf-label">나 ${toSec(myMs)}s</span>`
-          + '<span class="mf-stem" style="flex:1"></span></div>';
+    // 마지막 칸보다 느린 기록은 그래프 밖이다. 점은 오른쪽 끝 바닥에 세운다
+    let me = '';
+    if (myMs != null) {
+        const at = Math.floor((myMs - startMs) / widthMs);
+        const inside = at >= 0 && at < bins.length;
+        const left = Math.min(100, Math.max(0, xOf(myMs) * 100));
+        const top = inside ? yOf(bins[at]) : CURVE_H;
+        me = `<div class="ch-me" style="left:${left.toFixed(1)}%;top:calc(${top.toFixed(1)}% - 22px)">`
+            + `<span class="mf-label">나 ${toSec(myMs)}s</span><i class="ch-dot"></i><span class="mf-stem"></span></div>`;
+    }
 
-    plot.innerHTML = `<div class="hist">${bars}${flag}</div>`
-        + `<div class="hist-axis">${axisHtml(startMs, endMs)}</div>`;
+    plot.innerHTML = '<div class="ch-area"><div class="ch-bands"></div>'
+        + `<svg class="ch-svg" viewBox="0 0 ${CURVE_W} ${CURVE_H}" preserveAspectRatio="none" aria-hidden="true">`
+        + '<defs><linearGradient id="chFill" x1="0" y1="0" x2="0" y2="1">'
+        + '<stop offset="0" stop-color="#8f7fd0" stop-opacity=".55"/><stop offset="1" stop-color="#8f7fd0" stop-opacity=".05"/>'
+        + '</linearGradient></defs>'
+        + `<path d="${area}" fill="url(#chFill)"/>${cutLines}<path d="${line}" class="ch-line"/></svg>`
+        + `<div class="ch-overlay">${me}</div></div>`
+        + `<div class="ch-axis">${axisHtml(startMs, endMs)}</div>`;
+
+    renderTierBands(plot.querySelector('.ch-bands'), dist, startMs, endMs);
+}
+
+/* 등급 구간 가운데에 배지. 폭이 40px 도 안 되는 구간은 배지가 겹치니 건너뛴다. */
+function renderTierBands(host, dist, startMs, endMs) {
+    const edges = [startMs, ...dist.tier_cut_ms, endMs];
+    const pxPerMs = host.clientWidth / (endMs - startMs);
+    for (let i = 0; i < TIER_NAMES.length; i++) {
+        const lo = Math.max(startMs, edges[i]);
+        const hi = Math.min(endMs, edges[i + 1]);
+        if ((hi - lo) * pxPerMs < 40) continue;
+        const badge = document.createElement('span');
+        badge.className = `tier tier-sm tier--${TIER_KEYS[i]}`;
+        badge.textContent = TIER_NAMES[i];
+        badge.style.left = ((lo + hi) / 2 - startMs) / (endMs - startMs) * 100 + '%';
+        bindTierPop(badge, { type: chartType, index: i, ms: null, mine: false });
+        host.appendChild(badge);
+    }
 }
 
 /* 눈금은 구간 경계에 맞춰 절대 위치로 찍는다. 균등 분할하면 표시된 초와 막대가 어긋난다. */
@@ -777,11 +898,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('.hub-tab').forEach(b => {
         b.addEventListener('click', () => switchHubView(b.dataset.view));
-    });
-    document.getElementById('myTier').addEventListener('click', () => {
-        const sheet = document.getElementById('tierSheet');
-        if (!sheet.innerHTML) return;
-        sheet.hidden = !sheet.hidden;
     });
 
     setupTail('rank', 'rankingSentinel', '.ranking-table-body', () => loadRanking(false));

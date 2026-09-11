@@ -133,6 +133,21 @@
                             <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
                         </div>
 
+                        <div id="myRankWrap" class="my-rank-wrap" style="display: none;">
+                            <div id="myRankRow" class="my-rank-row">
+                                <span class="mr-rank">-</span>
+                                <span class="mr-name">
+                                    <span class="tier tier-sm mr-tier" hidden></span>
+                                    <span class="mr-nick"></span>
+                                    <span class="mr-badge">ME</span>
+                                    <span class="mr-pct"></span>
+                                </span>
+                                <span class="rank-split"></span>
+                                <span class="time-badge mr-time">-<span class="badge-arrow">&#9660;</span></span>
+                            </div>
+                            <div id="myRankDetail" class="my-rank-detail hidden"></div>
+                        </div>
+
                         <div class="ranking-table-header">
                             <table class="ranking-table">
                                 <colgroup>
@@ -172,18 +187,6 @@
                             <div id="rankingSentinel" class="list-sentinel" hidden>불러오는 중</div>
                         </div>
 
-                        <div id="myRankWrap" class="my-rank-wrap" style="display: none;">
-                            <div id="myRankRow" class="my-rank-row">
-                                <span class="mr-rank">-</span>
-                                <span class="mr-name">
-                                    <span class="mr-nick"></span>
-                                    <span class="mr-badge">ME</span>
-                                </span>
-                                <span class="rank-split"></span>
-                                <span class="time-badge mr-time">-<span class="badge-arrow">&#9660;</span></span>
-                            </div>
-                            <div id="myRankDetail" class="my-rank-detail hidden"></div>
-                        </div>
                     </div>
 
                     <!-- ── 내 기록 패널 ── -->
@@ -225,8 +228,6 @@
                                 <div id="myBestRecord" class="stat-value highlight">-</div>
                             </div>
                         </div>
-
-                        <div id="tierSheet" hidden></div>
 
                         <div class="my-record-table-header">
                             <table class="record-table">
@@ -272,6 +273,7 @@
             </section>
         </div>
 
+        <div id="tierPop" hidden></div>
     </div>
 
     <script type="module" src="/js/practice/list.js"></script>

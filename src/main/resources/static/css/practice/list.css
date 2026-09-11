@@ -537,15 +537,16 @@
 }
 
 .rank-name-wrap {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
-    max-width: 100%;
+    gap: 7px;
+    min-width: 0;
 }
 
-.rank-medal {
-    font-size: 15px;
-    line-height: 1;
+.rank-nick {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 목록 끝을 알리는 줄. 화면에 들어오면 다음 페이지를 부른다(list.js).
@@ -747,6 +748,7 @@
 .my-rank-detail {
     background: #ede9f7;
     border-top: 1px solid #ddd6ee;
+    border-bottom: 1px solid #ddd6ee;
 }
 
 .my-rank-detail.hidden {
@@ -757,14 +759,14 @@
     color: #6b6291;
 }
 
-/* 목록 끝에 고정으로 붙는 내 줄. 표 밖에 있어 컬럼 폭을 직접 맞춘다. */
+/* 표 머리 위에 고정으로 붙는 내 줄. 표 밖에 있어 컬럼 폭을 직접 맞춘다. */
 .my-rank-row {
     display: grid;
     grid-template-columns: 13% 40% 25% 22%;
     align-items: center;
     padding: 11px 0;
-    background: #f1eef9;
-    border-top: 2px solid #ddd6ee;
+    background: #f6f3fc;
+    border-bottom: 1px solid #ece8f3;
 }
 
 .my-rank-row .mr-rank {
@@ -800,6 +802,14 @@
     color: #fff;
     padding: 2px 6px;
     border-radius: 5px;
+}
+
+.my-rank-row .mr-pct {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9a93b0;
+    white-space: nowrap;
 }
 
 .my-rank-row .rank-split {
@@ -914,7 +924,7 @@
 
     .ranking-table-body tr {
         display: grid;
-        grid-template-columns: 56px minmax(0, 1fr) auto;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -954,7 +964,7 @@
     }
 
     .my-rank-row {
-        grid-template-columns: 56px minmax(0, 1fr) auto;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -964,7 +974,7 @@
     }
 
     .my-rank-row .mr-rank { grid-area: rank; }
-    .my-rank-row .mr-name { grid-area: name; padding-left: 0; }
+    .my-rank-row .mr-name { grid-area: name; padding-left: 0; flex-wrap: wrap; row-gap: 2px; }
     .my-rank-row .mr-time { grid-area: time; }
 
     /* 번호는 자릿수와 무관하게 고정 칸 가운데에 둔다. 가운데 열은 남은 폭만 쓰므로
@@ -1319,27 +1329,76 @@
     flex-direction: column;
 }
 
-.hist {
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
+/* 위 24px 은 등급 배지와 내 깃발 라벨 자리다. 곡선은 그 아래에서만 그린다. */
+.ch-area {
     flex: 1;
     min-height: 0;
     position: relative;
+    padding-top: 24px;
 }
 
-.hist .bin {
-    flex: 1;
-    background: #a99add;
-    border-radius: 4px 4px 0 0;
-    min-height: 2px;
+.ch-bands {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 20px;
 }
 
-.hist .bin.me {
+.ch-bands .tier {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+.ch-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ch-svg .ch-line {
+    fill: none;
+    stroke: #8f7fd0;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+}
+
+.ch-svg .ch-cut {
+    stroke: #e4dff0;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+}
+
+.ch-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 24px;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.ch-me {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.ch-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
     background: #6633cc;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #6633cc;
 }
 
-.hist-axis {
+.ch-axis {
     position: relative;
     height: 15px;
     flex-shrink: 0;
@@ -1352,78 +1411,106 @@
 }
 
 /* 눈금은 구간 경계에 맞춰 절대 위치로 찍는다. 균등 분할하면 막대와 어긋난다. */
-.hist-axis span {
+.ch-axis span {
     position: absolute;
     top: 4px;
     transform: translateX(-50%);
 }
 
-.me-flag {
-    position: absolute;
-    bottom: 0;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    pointer-events: none;
-}
-
-.me-flag .mf-label {
+.mf-label {
     background: #322a4d;
     color: #fff;
     font-size: 10px;
     font-weight: 700;
     padding: 2px 7px;
-    border-radius: 5px;
+    border-radius: 6px;
     white-space: nowrap;
-    font-family: 'Pretendard', sans-serif;
 }
 
-.me-flag .mf-stem {
+.mf-stem {
+    flex: 1;
     width: 2px;
     background: #322a4d;
-    border-radius: 1px;
 }
 
 /* ══ 등급 배지 ══
-   위 셋만 금속 질감을 준다. 아래는 단색으로 눌러 상위가 도드라지게 한다. */
+   흰 하이라이트가 가운데를 지나는 유리 광택. 색은 보석 이름을 따르고 D 아래는 빛을 뺀다.
+   SSS 는 무색 다이아라 파랑을 빼고 프리즘 테로만 구분한다 — S(사파이어)와 겹치지 않게. */
 .tier {
     display: inline-block;
+    box-sizing: border-box;
     font-family: 'Roboto Mono', monospace;
     font-size: 15px;
     font-weight: 700;
-    padding: 3px 12px;
+    padding: 2px 11px;
+    border: 1px solid var(--tier-border, transparent);
     border-radius: 999px;
     letter-spacing: 1.2px;
     white-space: nowrap;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+    background: linear-gradient(135deg, var(--tier-edge) 0%, #fff 38%, var(--tier-mid) 68%, var(--tier-edge) 100%);
+    color: var(--tier-text);
+    box-shadow: 0 0 6px var(--tier-glow);
 }
 
 .tier.tier--sss {
-    background: linear-gradient(135deg, #140d26 0%, #3b2270 46%, #7a58b8 100%);
-    color: #f3dc9a;
-    box-shadow: inset 0 0 0 1px rgba(243, 220, 154, .55), 0 2px 8px rgba(59, 34, 112, .45);
+    --tier-text: #2b2f3a;
+    --tier-glow: rgba(170, 150, 255, .85);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(135deg, #fff, #fbfbff 45%, #fff) padding-box,
+        linear-gradient(135deg, #ff7fcb, #5fd4ff, #a98bff, #6cf5c8, #ffd166, #ff7fcb) border-box;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .9), 0 0 9px var(--tier-glow), 0 0 18px rgba(120, 190, 255, .45);
 }
 
-.tier.tier--ss {
-    background: linear-gradient(135deg, #2a0c1f 0%, #6d1f45 48%, #b4577f 100%);
-    color: #ffdfe9;
-    box-shadow: inset 0 0 0 1px rgba(255, 223, 233, .45), 0 2px 8px rgba(109, 31, 69, .38);
+/* 프리즘 빛줄기가 4초마다 한 번 지나간다. 배지 자체는 가만히 있어 목록이 흔들리지 않는다. */
+.tier.tier--sss::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .95) 45%, rgba(190, 220, 255, .9) 50%, rgba(255, 200, 240, .9) 55%, transparent 70%);
+    transform: translateX(-100%);
+    animation: tier-sss-shine 4s ease-in-out infinite;
+    pointer-events: none;
 }
 
-.tier.tier--s {
-    background: linear-gradient(135deg, #241457 0%, #5b34c4 52%, #9a78f0 100%);
-    color: #fff;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .42), 0 2px 8px rgba(91, 52, 196, .38);
+@keyframes tier-sss-shine {
+    0%, 55% { transform: translateX(-100%); }
+    85%, 100% { transform: translateX(100%); }
 }
 
-.tier.tier--a { background: #e6efff; color: #2f5fd0; text-shadow: none; }
-.tier.tier--b { background: #e7f6ef; color: #1c7d59; text-shadow: none; }
-.tier.tier--c { background: #fbf2dd; color: #9a7418; text-shadow: none; }
-.tier.tier--d { background: #fdeee9; color: #b05a2c; text-shadow: none; }
-.tier.tier--e { background: #f0f1f4; color: #6b7180; text-shadow: none; }
-.tier.tier--f { background: #f0eff2; color: #96919f; text-shadow: none; }
+.tier.tier--ss { --tier-edge: #ffe1ea; --tier-mid: #ffc2d4; --tier-text: #b0123f; --tier-border: #ffb3c8; --tier-glow: rgba(255, 120, 160, .5); }
+.tier.tier--s  { --tier-edge: #e0e9ff; --tier-mid: #c3d2ff; --tier-text: #1f47b8; --tier-border: #b3c6ff; --tier-glow: rgba(100, 140, 255, .5); }
+.tier.tier--a  { --tier-edge: #dcf8ec; --tier-mid: #b9efd7; --tier-text: #0b7a4f; --tier-border: #a6e7c9; --tier-glow: rgba(60, 200, 140, .45); }
+.tier.tier--b  { --tier-edge: #ece3ff; --tier-mid: #d9c8ff; --tier-text: #5b2fb8; --tier-border: #cdb8ff; --tier-glow: rgba(150, 110, 255, .4); }
+.tier.tier--c  { --tier-edge: #fff1d6; --tier-mid: #ffe1a8; --tier-text: #a2620a; --tier-border: #ffd98f; --tier-glow: rgba(255, 190, 80, .4); }
+.tier.tier--d  { --tier-edge: #e3e6ec; --tier-mid: #cfd4dc; --tier-text: #3b4452; --tier-border: #c5cbd4; --tier-glow: transparent; }
+.tier.tier--e  { --tier-edge: #f3f4f6; --tier-mid: #e6e8ec; --tier-text: #6b7280; --tier-border: #dcdfe4; --tier-glow: transparent; }
+.tier.tier--f  { --tier-edge: #f6f7f8; --tier-mid: #eef0f2; --tier-text: #9ca3af; --tier-border: #e5e7eb; --tier-glow: transparent; }
+
+/* 목록 줄 안의 작은 배지. 폭을 고정해 닉네임 시작점이 줄마다 맞는다. */
+.tier.tier-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 19px;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: .8px;
+    flex-shrink: 0;
+    box-shadow: 0 0 4px var(--tier-glow);
+}
+
+.tier.tier-sm.tier--sss {
+    border: 1.5px solid transparent;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .9), 0 0 6px var(--tier-glow), 0 0 12px rgba(120, 190, 255, .45);
+}
+
+.tier.tier-sm[hidden] {
+    display: none;
+}
 
 @media (max-width: 768px) {
     .hub-tabs { padding: 3px; border-radius: 10px; }
@@ -1444,7 +1531,8 @@
     .ch-hero b { font-size: 20px; }
     .ch-hero.text b { font-size: 17px; }
 
-    .tier { font-size: 12px; padding: 2px 8px; letter-spacing: .8px; }
+    .tier { font-size: 12px; padding: 1px 8px; letter-spacing: .8px; }
+    .tier.tier-sm { width: 34px; height: 18px; padding: 0; font-size: 9px; letter-spacing: .6px; }
 }
 
 /* ══ 내 기록 통계 4칸 ══ */
@@ -1455,7 +1543,6 @@
 }
 
 button.tier {
-    border: 0;
     cursor: pointer;
 }
 
@@ -1463,49 +1550,75 @@ button.tier:disabled {
     cursor: default;
 }
 
-/* 등급표는 카드 줄을 밀지 않고 위에 겹친다. 밀면 아래 목록이 그만큼 짧아진다. */
-.panel {
-    position: relative;
+/* 등급 팝오버. 배지 아래 붙는 카드 하나를 화면 전체가 같이 쓴다. 목록이 스크롤 칸 안이라
+   화면 좌표(fixed)로 띄워야 칸에 안 잘린다. 꼬리표 위치는 --ax 로 받는다. */
+#tierPop {
+    position: fixed;
+    z-index: 60;
+    width: 300px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 12px 10px;
+    box-shadow: 0 12px 34px rgba(50, 40, 90, .18), 0 0 0 1px #ece8f3;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 12px;
 }
 
-#tierSheet {
-    position: absolute;
-    inset: 0;
-    z-index: 40;
-}
-
-#tierSheet[hidden] {
+#tierPop[hidden] {
     display: none;
 }
 
-.ts-back {
+#tierPop::before {
+    content: '';
     position: absolute;
-    inset: 0;
-    background: rgba(30, 24, 52, .28);
+    left: var(--ax);
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -1px -1px 0 #ece8f3;
 }
 
-.ts-panel {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: min(340px, 92%);
-    background: #fff;
-    border-radius: 16px;
-    padding: 14px 16px 12px;
-    box-shadow: 0 12px 40px rgba(30, 24, 52, .24);
-    font-family: 'Pretendard', sans-serif;
+#tierPop.above::before {
+    top: auto;
+    bottom: -6px;
+    box-shadow: 1px 1px 0 #ece8f3;
 }
 
 .ts-head {
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 4px 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f0edf7;
     font-weight: 700;
-    color: #9a93b0;
+    color: #3a3350;
+}
+
+.ts-head .tier {
+    font-size: 11px;
+    padding: 1px 0;
+    width: 46px;
+    text-align: center;
     letter-spacing: .6px;
 }
 
+.ts-lab {
+    color: #9a93b0;
+    font-weight: 600;
+}
+
+.ts-crit {
+    margin-left: auto;
+    font-family: 'Roboto Mono', monospace;
+    color: #514897;
+    white-space: nowrap;
+}
+
 .ts-next {
-    margin: 6px 0 10px;
+    margin: 0 0 8px;
     font-size: 13px;
     color: #5b5375;
     background: #f5f2fc;
@@ -1520,10 +1633,10 @@ button.tier:disabled {
 
 .ts-row {
     display: grid;
-    grid-template-columns: 54px 1fr auto;
+    grid-template-columns: 48px 1fr auto;
     align-items: center;
-    gap: 8px;
-    padding: 5px 6px;
+    gap: 6px;
+    padding: 3px 6px;
     border-radius: 8px;
     font-size: 12px;
 }
@@ -1534,10 +1647,11 @@ button.tier:disabled {
 }
 
 .ts-row .tier {
-    font-size: 11px;
-    padding: 2px 0;
-    width: 54px;
+    font-size: 10px;
+    padding: 1px 0;
+    width: 46px;
     text-align: center;
+    letter-spacing: .6px;
 }
 
 .ts-pct {
@@ -1569,7 +1683,6 @@ button.tier:disabled {
 @media (max-width: 768px) {
     .rec-day { min-width: 36px; }
     .rec-time { margin-left: 5px; }
-    .ts-panel { padding: 12px 13px 10px; }
 }
 
 /* ----- 실전연습 중간 광고 ----- */
