@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdUnitResolver;
+import com.practicket.ad.component.AdNetworkSettings;
 import com.practicket.ad.domain.AdSlot;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdUnit;
@@ -90,6 +91,11 @@ public class AdminSlotService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<AdUnit> allUnits() {
+        return adUnitRepository.findAllByOrderByNetworkAscNameAsc();
+    }
+
     /** 규격이 비어 있는 기기는 슬롯 자체가 안 나가므로 단위를 따지지 않는다 */
     private boolean tooBig(AdUnit unit, Integer slotWidth, Integer slotHeight) {
         return slotWidth != null && slotHeight != null && !unit.fitsIn(slotWidth, slotHeight);
@@ -117,13 +123,59 @@ public class AdminSlotService {
     public void changeFillNetwork(Long id, String fillNetwork) {
         AdSlot slot = adSlotRepository.findById(id)
                 .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
-        slot.changeFillNetwork(blankToNull(fillNetwork));
+        String network = validNetwork(fillNetwork);
+        slot.changeFillNetwork(network);
+        // 기존 데이터에 남아 있던 다른 네트워크 지정도 해제한다.
+        List<AdUnit> units = adUnitRepository.findAll();
+        slot.changeAdUnits(matchingUnitId(network, slot.getPcAdUnitId(), units),
+                matchingUnitId(network, slot.getMobileAdUnitId(), units));
+    }
+
+    @Transactional
+    public void changeUnits(Long id, String fillNetwork, Long pcAdUnitId, Long mobileAdUnitId) {
+        AdSlot slot = adSlotRepository.findById(id)
+                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
+        String network = validNetwork(fillNetwork);
+        if (!Objects.equals(network, slot.getFillNetwork())) {
+            throw new AdException("슬롯의 네트워크가 변경되었습니다. 새로고침 후 다시 선택해 주세요.");
+        }
+        validateUnit(network, pcAdUnitId);
+        validateUnit(network, mobileAdUnitId);
+        slot.changeAdUnits(slot.hasPcSize() ? pcAdUnitId : null,
+                slot.hasMobileSize() ? mobileAdUnitId : null);
+    }
+
+    private String validNetwork(String value) {
+        String network = blankToNull(value);
+        if (network != null && !AdNetworkSettings.LABELS.containsKey(network)) {
+            throw new AdException("지원하지 않는 광고 네트워크입니다.");
+        }
+        return network;
+    }
+
+    private Long matchingUnitId(String network, Long id, List<AdUnit> units) {
+        return units.stream().filter(unit -> Objects.equals(unit.getId(), id)
+                        && Objects.equals(unit.getNetwork(), network))
+                .map(AdUnit::getId).findFirst().orElse(null);
+    }
+
+    private void validateUnit(String network, Long id) {
+        if (id == null) return;
+        AdUnit unit = adUnitRepository.findById(id)
+                .orElseThrow(() -> new AdException("존재하지 않는 광고단위입니다."));
+        if (!Objects.equals(network, unit.getNetwork())) {
+            throw new AdException("선택한 네트워크에 속한 광고단위만 지정할 수 있습니다.");
+        }
     }
 
     @Transactional
     public void save(SlotForm form) {
         AdSlot slot = adSlotRepository.findById(form.getId())
                 .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
+
+        String network = validNetwork(form.getFillNetwork());
+        validateUnit(network, form.getPcAdUnitId());
+        validateUnit(network, form.getMobileAdUnitId());
 
         adSlotRepository.save(AdSlot.builder()
                 .id(slot.getId())
@@ -139,7 +191,7 @@ public class AdminSlotService {
                 .groupPath(blankToNull(form.getGroupPath()))
                 .format(blankToNull(form.getFormat()))
                 .sortOrder(form.getSortOrder() == null ? 0 : form.getSortOrder())
-                .fillNetwork(blankToNull(form.getFillNetwork()))
+                .fillNetwork(network)
                 .pcAdUnitId(form.getPcAdUnitId())
                 .mobileAdUnitId(form.getMobileAdUnitId())
                 .createdAt(slot.getCreatedAt())
@@ -199,12 +251,14 @@ public class AdminSlotService {
     @Getter
     public static class UnitOption {
         private final Long id;
+        private final String network;
         private final String label;
         private final boolean pcTooBig;
         private final boolean mobileTooBig;
 
         UnitOption(AdUnit unit, boolean pcTooBig, boolean mobileTooBig) {
             this.id = unit.getId();
+            this.network = unit.getNetwork();
             this.label = unit.getNetwork() + " · " + unit.getUnitId()
                     + (unit.getName() == null ? "" : " (" + unit.getName() + ")")
                     + (unit.isResponsive() ? "" : " · " + unit.getWidth() + "x" + unit.getHeight());

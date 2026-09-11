@@ -22,10 +22,6 @@
                 <button type="button" class="btn ghost sm copy-report"
                         th:attr="data-report=${detail.reportPath}">리포트 링크</button>
                 <a class="btn ghost sm" th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">수정</a>
-                <form method="post" th:action="@{/admin-hoya/ad/campaigns/{id}/delete(id=${detail.campaign.id})}">
-                    <button type="submit" class="btn danger sm" data-confirm-text="정말 삭제?"
-                            onclick="return armConfirm(this)">삭제</button>
-                </form>
             </div>
         </div>
 
@@ -102,9 +98,17 @@
                             <div class="slotcode mono" th:text="${row.slotCode}">CODE</div>
                         </td>
                         <td>
-                            <div class="cellname">
-                                <img class="thumb" th:if="${row.pcImagePath != null}" th:src="${row.pcImagePath}" alt="데스크톱 소재"/>
-                                <img class="thumb" th:if="${row.mobileImagePath != null}" th:src="${row.mobileImagePath}" alt="모바일 소재"/>
+                            <div class="creative-list">
+                                <div class="creative-item" th:if="${row.pcImagePath != null}">
+                                    <span class="note">데스크톱</span>
+                                    <img class="thumb creative-thumb" th:src="${row.pcImagePath}" alt="데스크톱 소재"/>
+                                    <span class="tag miss creative-load-error" hidden><i></i>불러오기 실패</span>
+                                </div>
+                                <div class="creative-item" th:if="${row.mobileImagePath != null}">
+                                    <span class="note">모바일</span>
+                                    <img class="thumb creative-thumb" th:src="${row.mobileImagePath}" alt="모바일 소재"/>
+                                    <span class="tag miss creative-load-error" hidden><i></i>불러오기 실패</span>
+                                </div>
                                 <span class="tag miss" th:if="${row.missingCreative}"><i></i>소재 없음</span>
                             </div>
                             <div class="spechint">
@@ -209,10 +213,17 @@
 
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
-<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
 <script>
     document.querySelectorAll('.copy-report').forEach(button =>
         button.addEventListener('click', () => copyReportLink(button, button.dataset.report)));
+    document.querySelectorAll('.creative-thumb').forEach(image => {
+        const showLoadError = () => {
+            image.hidden = true;
+            image.parentElement.querySelector('.creative-load-error').hidden = false;
+        };
+        image.addEventListener('error', showLoadError);
+        if (image.complete && image.naturalWidth === 0) showLoadError();
+    });
 </script>
 </body>
 </html>

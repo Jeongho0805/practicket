@@ -35,13 +35,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 캠페인(계약) 한 건과 그 아래 배너들을 함께 다룬다.
  *
  * 배너를 캠페인과 떼어 놓지 않는 이유는 저장 단위가 계약이기 때문이다. 슬롯을 셋 판 계약이면
- * 배너 셋이 한 화면에서 같이 만들어지고, 계약을 지우면 배너도 같은 트랜잭션에서 사라져야 한다 —
- * 외래키를 안 쓰므로 그 책임이 전부 여기 있다.
+ * 배너 셋이 한 화면에서 같이 만들어지고 수정된다. 캠페인은 계약·성과 이력이라 삭제하지 않는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -141,16 +141,6 @@ public class AdminCampaignService {
 
         saveBanners(campaign, form.getBanners());
         return campaign.getId();
-    }
-
-    /** 계약을 지우면 배너도 같은 트랜잭션에서 지운다. 통계는 남긴다 — 지난 성과까지 사라질 이유가 없다. */
-    @Transactional
-    public void delete(Long id) {
-        if (!adCampaignRepository.existsById(id)) {
-            throw new AdException("존재하지 않는 캠페인입니다.");
-        }
-        bannerRepository.deleteAll(bannerRepository.findByCampaignId(id));
-        adCampaignRepository.deleteById(id);
     }
 
     @Transactional
@@ -577,6 +567,14 @@ public class AdminCampaignService {
         private String linkUrl;
         private String memo;
         private List<BannerForm> banners = new ArrayList<>();
+
+        public List<String> getExistingImagePaths() {
+            return banners.stream()
+                    .flatMap(banner -> Stream.of(banner.getPcImagePath(), banner.getMobileImagePath()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+        }
     }
 
     @Getter

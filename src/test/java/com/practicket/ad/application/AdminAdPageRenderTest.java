@@ -34,7 +34,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -81,6 +83,8 @@ class AdminAdPageRenderTest {
     @MockBean
     AdminSlotService adminSlotService;
     @MockBean
+    AdNetworkExposureService adNetworkExposureService;
+    @MockBean
     AdvertiserRepository advertiserRepository;
     @MockBean
     AdSlotRepository adSlotRepository;
@@ -106,6 +110,10 @@ class AdminAdPageRenderTest {
         given(advertiserRepository.findAllByOrderByNameAsc()).willReturn(List.of(advertiser()));
         given(adSlotRepository.findAll()).willReturn(List.of(slot()));
         given(adUnitRepository.findAllByOrderByNetworkAscNameAsc()).willReturn(List.of(unit()));
+        given(adNetworkExposureService.rows()).willReturn(List.of(
+                new AdNetworkExposureService.ExposureRow("COUPANG", "쿠팡 파트너스", true, true),
+                new AdNetworkExposureService.ExposureRow("ADSENSE", "구글 애드센스", false, true),
+                new AdNetworkExposureService.ExposureRow("ADFIT", "카카오 애드핏", false, true)));
     }
 
     @Test
@@ -148,7 +156,9 @@ class AdminAdPageRenderTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/ad/campaign-detail"))
                 .andExpect(content().string(containsString("기간 비교")))
-                .andExpect(content().string(containsString("/ad/report/campaign/TOKEN")));
+                .andExpect(content().string(containsString("/ad/report/campaign/TOKEN")))
+                .andExpect(content().string(not(containsString("/campaigns/1/delete"))))
+                .andExpect(content().string(containsString("creative-load-error")));
     }
 
     @Test
@@ -159,6 +169,19 @@ class AdminAdPageRenderTest {
                 .andExpect(view().name("admin/ad/campaign-form"))
                 .andExpect(content().string(containsString("banner-row-template")))
                 .andExpect(content().string(containsString("슬롯별 배너")));
+    }
+
+    @Test
+    @DisplayName("캠페인 수정 폼은 기존 소재를 소재함에 다시 올린다")
+    void campaignEditFormIncludesExistingAssets() throws Exception {
+        AdminCampaignService.CampaignForm form = blankForm();
+        form.setId(1L);
+        form.getBanners().get(0).setPcImagePath("/ad-images/existing.png");
+        given(adminCampaignService.findForm(1L)).willReturn(Optional.of(form));
+
+        mockMvc.perform(get("/admin-hoya/ad/campaigns/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-path=\"/ad-images/existing.png\"")));
     }
 
     @Test
@@ -199,6 +222,33 @@ class AdminAdPageRenderTest {
         mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/ad/slot-form"));
+    }
+
+    @Test
+    void inlineSlotChoicesContainOnlyCurrentNetwork() throws Exception {
+        AdSlot slot = slot();
+        slot.changeFillNetwork("ADSENSE");
+        given(adminSlotService.getGroups()).willReturn(List.of(new AdminSlotService.SlotGroup(
+                "전 페이지 공통", "GLOBAL", List.of(new AdminSlotService.SlotRow(
+                slot, 0, "300x600", null, unit(), null, false, false)))));
+        given(adminSlotService.allUnits()).willReturn(List.of(unit(), adfitUnit()));
+
+        mockMvc.perform(get("/admin-hoya/ad/slots"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"pcAdUnitId\"")))
+                .andExpect(content().string(containsString("form=\"slot-units-1\"")))
+                .andExpect(content().string(containsString("9697904962")))
+                .andExpect(content().string(not(containsString(adfitUnit().getUnitId()))))
+                .andExpect(content().string(not(containsString("/slots/1/edit"))));
+    }
+
+    @Test
+    void inlineSlotPostBindsBothDevicesAndNetwork() throws Exception {
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/units")
+                        .param("fillNetwork", "ADSENSE")
+                        .param("pcAdUnitId", "1").param("mobileAdUnitId", ""))
+                .andExpect(status().is3xxRedirection());
+        verify(adminSlotService).changeUnits(1L, "ADSENSE", 1L, null);
     }
 
     @Test
@@ -246,7 +296,9 @@ class AdminAdPageRenderTest {
         mockMvc.perform(get("/admin-hoya/ad/units"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/ad/unit-list"))
-                .andExpect(content().string(containsString("9697904962")));
+                .andExpect(content().string(containsString("9697904962")))
+                .andExpect(content().string(containsString("쿠팡 파트너스")))
+                .andExpect(content().string(containsString("스테이지에서 실제 네트워크 광고")));
 
         mockMvc.perform(get("/admin-hoya/ad/units/new"))
                 .andExpect(status().isOk())

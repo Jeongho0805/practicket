@@ -90,6 +90,7 @@
                         <select id="pcAdUnitId" name="pcAdUnitId">
                             <option value="">자동 (규격에 맞는 가장 큰 단위)</option>
                             <option th:each="unit : ${units}" th:value="${unit.id}"
+                                    th:attr="data-network=${unit.network}"
                                     th:selected="${unit.id == form.pcAdUnitId}"
                                     th:text="${unit.pcLabel()}">단위</option>
                         </select>
@@ -101,6 +102,7 @@
                         <select id="mobileAdUnitId" name="mobileAdUnitId">
                             <option value="">자동 (규격에 맞는 가장 큰 단위)</option>
                             <option th:each="unit : ${units}" th:value="${unit.id}"
+                                    th:attr="data-network=${unit.network}"
                                     th:selected="${unit.id == form.mobileAdUnitId}"
                                     th:text="${unit.mobileLabel()}">단위</option>
                         </select>
@@ -120,5 +122,22 @@
 
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    (() => {
+        const network = document.getElementById('fillNetwork');
+        const selects = ['pcAdUnitId', 'mobileAdUnitId'].map(id => document.getElementById(id));
+        const options = selects.map(select => Array.from(select.options));
+        function sync(reset) {
+            selects.forEach((select, index) => {
+                const previous = reset ? '' : select.value;
+                select.replaceChildren(...options[index].filter(option =>
+                    !option.value || option.dataset.network === network.value));
+                select.value = Array.from(select.options).some(option => option.value === previous) ? previous : '';
+            });
+        }
+        network.addEventListener('change', () => sync(true));
+        sync(false);
+    })();
+</script>
 </body>
 </html>

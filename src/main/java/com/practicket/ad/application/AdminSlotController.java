@@ -37,6 +37,7 @@ public class AdminSlotController {
     @GetMapping
     public String list(Model model) {
         model.addAttribute("groups", adminSlotService.getGroups());
+        model.addAttribute("units", adminSlotService.allUnits());
         model.addAttribute("networks", NETWORKS);
         model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
         return "admin/ad/slot-list";
@@ -76,6 +77,20 @@ public class AdminSlotController {
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/admin-hoya/ad/slots/" + form.getId() + "/edit";
+        }
+        return "redirect:/admin-hoya/ad/slots";
+    }
+
+    @PostMapping("/{id}/units")
+    public String changeUnits(@PathVariable Long id,
+                              @RequestParam(required = false) String fillNetwork,
+                              @RequestParam(required = false) Long pcAdUnitId,
+                              @RequestParam(required = false) Long mobileAdUnitId,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            adminSlotService.changeUnits(id, fillNetwork, pcAdUnitId, mobileAdUnitId);
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin-hoya/ad/slots";
     }

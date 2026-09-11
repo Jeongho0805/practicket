@@ -33,7 +33,12 @@ public class AdUnitResolver {
             return Optional.empty();
         }
         if (explicitUnitId != null) {
-            return units.stream().filter(unit -> unit.getId().equals(explicitUnitId)).findFirst();
+            Optional<AdUnit> explicit = units.stream()
+                    .filter(unit -> unit.getId().equals(explicitUnitId) && unit.getNetwork().equals(network))
+                    .findFirst();
+            if (explicit.isPresent()) {
+                return explicit;
+            }
         }
         return units.stream()
                 .filter(unit -> unit.getNetwork().equals(network))

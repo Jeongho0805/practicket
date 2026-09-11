@@ -9,7 +9,7 @@
         <div class="topbar">
             <div>
                 <h1>슬롯</h1>
-                <p>슬롯은 어드민에서 만들 수 없습니다 — 화면 템플릿에 조각을 넣어야 실제로 뜹니다.</p>
+                <p>판매된 배너가 먼저 나가고, 미판매 시 선택한 네트워크의 광고단위로 채웁니다. 선택을 바꾸면 바로 저장됩니다.</p>
             </div>
         </div>
 
@@ -29,12 +29,10 @@
                     <thead>
                     <tr>
                         <th class="place">슬롯</th>
-                        <th>규격</th>
                         <th class="fill">미판매 시</th>
-                        <th class="ucol">데스크톱 단위</th>
-                        <th class="ucol">모바일 단위</th>
+                        <th class="ucol">데스크톱 슬롯</th>
+                        <th class="ucol">모바일 슬롯</th>
                         <th>지금</th>
-                        <th class="r"></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -44,19 +42,10 @@
                             <div class="meta" th:text="${row.slot.format != null ? row.slot.format : '-'}">디스플레이</div>
                             <div class="slotcode" th:text="${row.slot.code}">CODE</div>
                         </td>
-                        <td>
-                            <div class="meta">
-                                <span th:if="${row.pcSize != null}">데스크톱 <b class="mono" th:text="${row.pcSize}">300x600</b></span>
-                                <span th:if="${row.pcSize == null}" class="tag inherit"><i></i>데스크톱 안 나감</span>
-                            </div>
-                            <div class="meta">
-                                <span th:if="${row.mobileSize != null}">모바일 <b class="mono" th:text="${row.mobileSize}">320x100</b></span>
-                                <span th:if="${row.mobileSize == null}" class="tag inherit"><i></i>모바일 안 나감</span>
-                            </div>
-                        </td>
                         <td class="fill">
                             <form method="post" th:action="@{/admin-hoya/ad/slots/{id}/fill(id=${row.slot.id})}">
-                                <select name="fillNetwork" class="inlinesel" onchange="this.form.submit()">
+                                <select name="fillNetwork" class="inlinesel" onchange="this.form.requestSubmit()"
+                                        th:attr="aria-label=${row.slot.name} + ' 미판매 네트워크'">
                                     <option value="" th:selected="${row.slot.fillNetwork == null}">비워두기</option>
                                     <option th:each="entry : ${networkLabels}" th:value="${entry.key}"
                                             th:selected="${entry.key == row.slot.fillNetwork}"
@@ -65,37 +54,58 @@
                             </form>
                         </td>
                         <td class="ucol">
+                            <form method="post" th:id="'slot-units-' + ${row.slot.id}"
+                                  th:action="@{/admin-hoya/ad/slots/{id}/units(id=${row.slot.id})}">
+                                <input type="hidden" name="fillNetwork" th:value="${row.slot.fillNetwork}">
+                            </form>
                             <div class="ucell" th:if="${row.pcSize != null}">
-                                <span class="usize mono" th:if="${row.pcUnit != null}"
+                                <b class="usize mono" th:text="${row.pcSize}">300x600</b>
+                                <select name="pcAdUnitId" class="inlinesel"
+                                        th:if="${row.slot.fillNetwork != null}"
+                                        th:attr="form='slot-units-' + ${row.slot.id},aria-label=${row.slot.name} + ' 데스크톱 광고단위'"
+                                        onchange="this.form.requestSubmit()">
+                                    <option value="">자동 (규격에 맞춰 선택)</option>
+                                    <option th:each="unit : ${units}" th:if="${unit.network == row.slot.fillNetwork}"
+                                            th:value="${unit.id}" th:selected="${unit.id == row.slot.pcAdUnitId}"
+                                            th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.pcWidth, row.slot.pcHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
+                                </select>
+                                <span class="usize mono" th:if="${row.pcUnit != null and row.slot.pcAdUnitId == null}"
                                       th:text="${row.pcUnit.unitId}">unit</span>
-                                <span class="unm" th:if="${row.pcUnit != null and row.pcUnit.name != null}"
+                                <span class="unm" th:if="${row.pcUnit != null and row.pcUnit.name != null and row.slot.pcAdUnitId == null}"
                                       th:text="${row.pcUnit.name}">이름</span>
                                 <span class="tag resp" th:if="${row.pcUnit != null and row.pcUnit.responsive}"><i></i>반응형</span>
                                 <span class="tag miss" th:if="${row.pcUnitMissing}"><i></i>단위 없음</span>
                                 <span class="tag inherit" th:if="${row.pcUnit == null and !row.pcUnitMissing}"><i></i>채우지 않음</span>
                             </div>
-                            <span class="note" th:if="${row.pcSize == null}">-</span>
+                            <span class="note" th:if="${row.pcSize == null}">데스크톱 안 나감</span>
                         </td>
                         <td class="ucol">
                             <div class="ucell" th:if="${row.mobileSize != null}">
-                                <span class="usize mono" th:if="${row.mobileUnit != null}"
+                                <b class="usize mono" th:text="${row.mobileSize}">320x100</b>
+                                <select name="mobileAdUnitId" class="inlinesel"
+                                        th:if="${row.slot.fillNetwork != null}"
+                                        th:attr="form='slot-units-' + ${row.slot.id},aria-label=${row.slot.name} + ' 모바일 광고단위'"
+                                        onchange="this.form.requestSubmit()">
+                                    <option value="">자동 (규격에 맞춰 선택)</option>
+                                    <option th:each="unit : ${units}" th:if="${unit.network == row.slot.fillNetwork}"
+                                            th:value="${unit.id}" th:selected="${unit.id == row.slot.mobileAdUnitId}"
+                                            th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.mobileWidth, row.slot.mobileHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
+                                </select>
+                                <span class="usize mono" th:if="${row.mobileUnit != null and row.slot.mobileAdUnitId == null}"
                                       th:text="${row.mobileUnit.unitId}">unit</span>
-                                <span class="unm" th:if="${row.mobileUnit != null and row.mobileUnit.name != null}"
+                                <span class="unm" th:if="${row.mobileUnit != null and row.mobileUnit.name != null and row.slot.mobileAdUnitId == null}"
                                       th:text="${row.mobileUnit.name}">이름</span>
                                 <span class="tag resp" th:if="${row.mobileUnit != null and row.mobileUnit.responsive}"><i></i>반응형</span>
                                 <span class="tag miss" th:if="${row.mobileUnitMissing}"><i></i>단위 없음</span>
                                 <span class="tag inherit" th:if="${row.mobileUnit == null and !row.mobileUnitMissing}"><i></i>채우지 않음</span>
                             </div>
-                            <span class="note" th:if="${row.mobileSize == null}">-</span>
+                            <span class="note" th:if="${row.mobileSize == null}">모바일 안 나감</span>
                         </td>
                         <td>
                             <span class="pill live" th:if="${row.sold}">
                                 <i></i><span th:text="'판매중 ' + ${row.liveBannerCount}">판매중</span>
                             </span>
                             <span class="pill off" th:unless="${row.sold}"><i></i>미판매</span>
-                        </td>
-                        <td class="r">
-                            <a class="btn ghost sm" th:href="@{/admin-hoya/ad/slots/{id}/edit(id=${row.slot.id})}">수정</a>
                         </td>
                     </tr>
                     </tbody>

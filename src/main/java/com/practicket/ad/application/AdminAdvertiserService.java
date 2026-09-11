@@ -133,7 +133,7 @@ public class AdminAdvertiserService {
     @Transactional
     public void delete(Long id) {
         if (adCampaignRepository.countByAdvertiserId(id) > 0) {
-            throw new AdException("캠페인이 남아 있어 삭제할 수 없습니다. 캠페인을 먼저 정리해주세요.");
+            throw new AdException("캠페인 이력이 있어 삭제할 수 없습니다.");
         }
         advertiserRepository.deleteById(id);
     }

@@ -34,6 +34,7 @@ public class AdminUnitController {
 
     private final AdUnitRepository adUnitRepository;
     private final AdSlotRepository adSlotRepository;
+    private final AdNetworkExposureService adNetworkExposureService;
 
     @InitBinder
     void trimEmptyToNull(WebDataBinder binder) {
@@ -45,7 +46,18 @@ public class AdminUnitController {
         model.addAttribute("units", adUnitRepository.findAllByOrderByNetworkAscNameAsc());
         model.addAttribute("networks", networks());
         model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
+        model.addAttribute("exposureRows", adNetworkExposureService.rows());
         return "admin/ad/unit-list";
+    }
+
+    @PostMapping("/exposure/{network}/toggle")
+    public String toggleExposure(@PathVariable String network, RedirectAttributes redirectAttributes) {
+        try {
+            adNetworkExposureService.toggleStage(network);
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin-hoya/ad/units";
     }
 
     @GetMapping("/new")

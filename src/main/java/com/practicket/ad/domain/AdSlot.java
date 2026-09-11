@@ -55,9 +55,18 @@ public class AdSlot {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    /** 목록에서 이 값만 바꾼다. 나머지는 슬롯 수정 폼이 담당한다 */
+    /** 네트워크를 바꾸면 이전 네트워크의 직접 지정을 해제한다. */
     public void changeFillNetwork(String fillNetwork) {
+        if (!java.util.Objects.equals(this.fillNetwork, fillNetwork)) {
+            this.pcAdUnitId = null;
+            this.mobileAdUnitId = null;
+        }
         this.fillNetwork = fillNetwork;
+    }
+
+    public void changeAdUnits(Long pcAdUnitId, Long mobileAdUnitId) {
+        this.pcAdUnitId = pcAdUnitId;
+        this.mobileAdUnitId = mobileAdUnitId;
     }
 
     public boolean hasPcSize() {

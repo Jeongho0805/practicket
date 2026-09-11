@@ -81,6 +81,9 @@
                     </label>
                 </header>
                 <div class="pad">
+                    <div id="existing-assets" hidden>
+                        <span th:each="path : ${form.existingImagePaths}" th:attr="data-path=${path}"></span>
+                    </div>
                     <div class="assets" id="asset-list"></div>
                     <p class="hint" id="asset-empty">
                         이미지를 여기로 끌어다 놓거나 <b>+ 소재 올리기</b> 를 누르세요.
@@ -315,6 +318,22 @@
     let assetSeq = 0;
     let picked = null;
 
+    document.querySelectorAll('#existing-assets [data-path]').forEach(node => {
+        const path = node.dataset.path;
+        const id = 'a' + (++assetSeq);
+        const name = decodeURIComponent(path.substring(path.lastIndexOf('/') + 1));
+        const asset = { id, file: null, path, url: path, name, width: 0, height: 0 };
+        const image = new Image();
+        image.onload = () => {
+            asset.width = image.naturalWidth;
+            asset.height = image.naturalHeight;
+            renderAssets();
+            markExistingUsage(asset);
+        };
+        image.src = path;
+        assets.set(id, asset);
+    });
+
     function addAssets(files) {
         [...files].filter(f => f.type.startsWith('image/')).forEach(file => {
             const id = 'a' + (++assetSeq);
@@ -326,7 +345,7 @@
                 renderAssets();
             };
             image.src = url;
-            assets.set(id, { id, file, url, width: 0, height: 0 });
+            assets.set(id, { id, file, path: null, url, name: file.name, width: 0, height: 0 });
         });
         renderAssets();
     }
@@ -342,7 +361,8 @@
             card.innerHTML = '<img src="' + asset.url + '" alt="">'
                 + '<div class="am"><b></b><span>' + size + '</span></div>'
                 + '<button type="button" class="linkbtn asset-del">보관함에서 지우기</button>';
-            card.querySelector('b').textContent = asset.file.name;
+            card.querySelector('b').textContent = asset.name;
+            card.querySelector('img').addEventListener('error', () => card.classList.add('broken'));
             assetList.appendChild(card);
         });
         assetCount.textContent = '이 계약에 쓸 이미지 · ' + assets.size + '장';
@@ -393,12 +413,31 @@
         const dev = cell.dataset.dev;
         const input = row.querySelector('input[type=file][name$="' + (dev === 'pc' ? 'pcImage' : 'mobileImage') + '"]');
         const transfer = new DataTransfer();
-        transfer.items.add(asset.file);
+        if (asset.file) transfer.items.add(asset.file);
         input.files = transfer.files;
+        const pathInput = row.querySelector('input[type=hidden][name$="' + (dev === 'pc' ? 'pcImagePath' : 'mobileImagePath') + '"]');
+        if (asset.path) pathInput.value = asset.path;
+        const clearInput = row.querySelector('input[type=checkbox][name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]');
+        if (clearInput) clearInput.checked = false;
+        cell.dataset.assetId = asset.id;
 
         cell.querySelector('img, .thumb.ph').outerHTML =
             '<img class="thumb" src="' + asset.url + '" alt="소재">';
         markFit(cell, asset);
+    }
+
+    function markExistingUsage(asset) {
+        rows.querySelectorAll('tr').forEach(row => {
+            ['pc', 'mobile'].forEach(dev => {
+                const suffix = dev === 'pc' ? 'pcImagePath' : 'mobileImagePath';
+                const pathInput = row.querySelector('input[type=hidden][name$="' + suffix + '"]');
+                const cell = row.querySelector('.fname.drop[data-dev="' + dev + '"]');
+                if (pathInput?.value === asset.path && cell) {
+                    cell.dataset.assetId = asset.id;
+                    markFit(cell, asset);
+                }
+            });
+        });
     }
 
     /** 슬롯 규격과 비율이 맞는지 알려준다. 막지는 않는다 */
@@ -443,10 +482,19 @@
         attach(cell, assets.get(picked));
     });
 
+    // 소재함 밖에서 파일을 직접 고르면, 전에 붙였던 소재함 항목과의 연결은 끊긴다.
+    rows.addEventListener('change', (event) => {
+        if (!event.target.matches('input[type=file]')) return;
+        const row = event.target.closest('tr');
+        const dev = event.target.name.endsWith('pcImage') ? 'pc' : 'mobile';
+        row?.querySelector('.fname.drop[data-dev="' + dev + '"]')?.removeAttribute('data-asset-id');
+    });
+
     // 안 붙은 소재는 저장돼도 아무 데도 안 간다. 한 번은 알려준다
     let warned = false;
     document.getElementById('campaign-form').addEventListener('submit', (event) => {
-        const used = [...rows.querySelectorAll('input[type=file]')].filter(i => i.files.length).length;
+        const used = new Set([...rows.querySelectorAll('.fname.drop[data-asset-id]')]
+            .map(cell => cell.dataset.assetId)).size;
         const left = assets.size - used;
         if (warned || left <= 0) return;
         event.preventDefault();
@@ -461,6 +509,7 @@
     syncAllInherit(rows);
     document.getElementById('add-banner').addEventListener('click', () => syncAllInherit(rows));
     renderAssets();
+    assets.forEach(markExistingUsage);
 </script>
 </body>
 </html>

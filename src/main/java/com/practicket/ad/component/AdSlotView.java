@@ -1,6 +1,6 @@
 package com.practicket.ad.component;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.practicket.ad.application.AdNetworkExposureService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -25,16 +25,17 @@ public class AdSlotView {
 
     private final AdSlotSnapshotStore adSlotSnapshotStore;
     private final AdNetworkSettings adNetworkSettings;
-    private final boolean networkEnabled;
+    private final AdNetworkExposureService adNetworkExposureService;
 
     private final Map<String, AdSlotRender> rendered = new HashMap<>();
     private AdSlotSnapshot snapshot;
+    private Map<String, Boolean> networkExposure;
 
     public AdSlotView(AdSlotSnapshotStore adSlotSnapshotStore, AdNetworkSettings adNetworkSettings,
-                      @Value("${spring.profiles.active:local}") String activeProfile) {
+                      AdNetworkExposureService adNetworkExposureService) {
         this.adSlotSnapshotStore = adSlotSnapshotStore;
         this.adNetworkSettings = adNetworkSettings;
-        this.networkEnabled = "prod".equals(activeProfile);
+        this.adNetworkExposureService = adNetworkExposureService;
     }
 
     public AdSlotRender render(String slotCode) {
@@ -75,7 +76,10 @@ public class AdSlotView {
         if (unit == null) {
             return AdFace.none();
         }
-        return AdFace.fill(networkEnabled, unit,
+        if (networkExposure == null) {
+            networkExposure = adNetworkExposureService.currentExposure();
+        }
+        return AdFace.fill(networkExposure.getOrDefault(unit.network(), false), unit,
                 adNetworkSettings.accountOf(unit.network()),
                 adNetworkSettings.templateOf(unit.network()));
     }

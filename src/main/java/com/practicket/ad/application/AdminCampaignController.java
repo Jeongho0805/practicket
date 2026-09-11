@@ -110,16 +110,6 @@ public class AdminCampaignController {
         }
     }
 
-    @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            adminCampaignService.delete(id);
-        } catch (AdException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/admin-hoya/ad/campaigns";
-    }
-
     @PostMapping("/{campaignId}/banners/{bannerId}/toggle")
     public String toggleBanner(@PathVariable Long campaignId, @PathVariable Long bannerId,
                                RedirectAttributes redirectAttributes) {
