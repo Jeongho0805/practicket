@@ -841,10 +841,38 @@ function renderHistogram(plot, dist, myMs) {
         + '<stop offset="0" stop-color="#8f7fd0" stop-opacity=".55"/><stop offset="1" stop-color="#8f7fd0" stop-opacity=".05"/>'
         + '</linearGradient></defs>'
         + `<path d="${area}" fill="url(#chFill)"/>${cutLines}<path d="${line}" class="ch-line"/></svg>`
-        + `<div class="ch-overlay">${me}</div></div>`
+        + `<div class="ch-overlay">${me}<div class="ch-cursor" hidden><span class="ch-cur-label"></span><span class="ch-cur-line"></span></div></div></div>`
         + `<div class="ch-axis">${axisHtml(startMs, endMs)}</div>`;
 
     renderTierBands(plot.querySelector('.ch-bands'), dist, startMs, endMs);
+    bindChartCursor(plot.querySelector('.ch-area'), dist, startMs, endMs);
+}
+
+/* 커서 자리의 초·사람 수·상위 %. 마우스는 올리기만, 폰은 끌기로 같은 동작이다. */
+function bindChartCursor(area, dist, startMs, endMs) {
+    const cursor = area.querySelector('.ch-cursor');
+    const label = cursor.querySelector('.ch-cur-label');
+    const bins = dist.bins;
+    const widthMs = dist.bin_width_ms;
+
+    const move = clientX => {
+        const rect = area.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+        const ms = startMs + ratio * (endMs - startMs);
+        const at = Math.min(bins.length - 1, Math.floor((ms - startMs) / widthMs));
+        const pct = percentileOf(dist, ms);
+        label.textContent = `${(ms / 1000).toFixed(1)}s · ${withComma(bins[at])}명 · 상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%`;
+        cursor.style.left = (ratio * 100).toFixed(2) + '%';
+        cursor.classList.toggle('flip', ratio > 0.75);
+        cursor.hidden = false;
+    };
+    const hide = () => { cursor.hidden = true; };
+
+    area.addEventListener('mousemove', e => move(e.clientX));
+    area.addEventListener('mouseleave', hide);
+    area.addEventListener('touchstart', e => move(e.touches[0].clientX), { passive: true });
+    area.addEventListener('touchmove', e => move(e.touches[0].clientX), { passive: true });
+    area.addEventListener('touchend', hide);
 }
 
 /* 등급 구간 가운데에 배지. 폭이 40px 도 안 되는 구간은 배지가 겹치니 건너뛴다. */
