@@ -132,8 +132,8 @@ public class PracticeService {
     }
 
     /**
-     * 등급·상위 %·내 순위는 여기서 내지 않는다. 전체 기간 분포 한 벌만 있으면 화면이 계산할 수 있고,
-     * 같은 값을 그래프도 쓰므로 두 화면이 어긋날 자리를 없앤다.
+     * 등급·상위 %·내 순위는 여기서 내지 않는다. 등급은 전체 기간 분포의 컷으로, 상위 %·순위는
+     * 전체 기간 {@link #getMyRank} 로 화면이 낸다. 그래프도 같은 두 값을 읽는다.
      */
     @Transactional(readOnly = true)
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {

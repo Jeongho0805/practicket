@@ -398,6 +398,7 @@ function bindTierPop(el, info) {
     el.dataset.tier = info.index;
     el.dataset.type = info.type;
     el.dataset.mine = info.mine ? '1' : '';
+    el.dataset.group = info.group ? '1' : '';
     if (info.ms != null) el.dataset.ms = info.ms;
     if (el.dataset.popBound) return;
     el.dataset.popBound = '1';
@@ -427,13 +428,13 @@ async function toggleTierPop(anchor) {
     const index = Number(anchor.dataset.tier);
     const mine = anchor.dataset.mine === '1';
     const ms = anchor.dataset.ms ? Number(anchor.dataset.ms) : null;
-    tierPop.innerHTML = tierPopHtml(dist, index, mine, ms);
+    tierPop.innerHTML = tierPopHtml(dist, index, mine, ms, anchor.dataset.group === '1');
     tierPop.anchorEl = anchor;
     tierPop.hidden = false;
     placeTierPop(anchor);
 }
 
-function tierPopHtml(dist, index, mine, ms) {
+function tierPopHtml(dist, index, mine, ms, group) {
     const cuts = dist.tier_cut_ms;
     const pcts = dist.tier_percentiles;
     const cutText = i => i < cuts.length ? (cuts[i] / 1000).toFixed(2) + 's 이내' : '그보다 느림';
@@ -453,7 +454,8 @@ function tierPopHtml(dist, index, mine, ms) {
         next = `<div class="ts-next">${next}</div>`;
     }
 
-    return `<div class="ts-head"><span class="tier tier--${TIER_KEYS[index]}">${TIER_NAMES[index]}</span>`
+    const headName = group ? `${TIER_NAMES[index]} 이상` : TIER_NAMES[index];
+    return `<div class="ts-head"><span class="tier tier--${TIER_KEYS[index]}">${headName}</span>`
         + `<span class="ts-lab">${mine ? '내 등급' : '이 기록의 등급'}</span>`
         + `<span class="ts-crit">${pctText(index)} · ${cutText(index)}</span></div>`
         + next + rows;
@@ -608,7 +610,7 @@ async function loadMyRecords(reset) {
     }
 }
 
-/* 등급·상위·순위는 전체 기간 분포에서 나온다. 연습하기 탭 그래프와 같은 값을 읽는다. */
+/* 등급은 전체 기간 분포의 컷으로, 상위 %·순위는 전체 기간 등수 API 로 낸다. 그래프와 같은 값을 읽는다. */
 async function renderMyStats(data) {
     const tierEl = document.getElementById('myTier');
     const pctEl = document.getElementById('myPercentile');
@@ -616,7 +618,7 @@ async function renderMyStats(data) {
     const bestEl = document.getElementById('myBestRecord');
 
     const bestMs = data && data.total_count ? data.best_ms : null;
-    myBestCache[myState.type] = bestMs;
+    delete myRankCache[myState.type];
     closeTierPop();
 
     if (bestMs == null) {
@@ -631,8 +633,8 @@ async function renderMyStats(data) {
 
     bestEl.textContent = (bestMs / 1000).toFixed(3) + 's';
 
-    const dist = await fetchDistribution(myState.type);
-    if (!dist || !dist.tier_cut_ms.length) {
+    const [dist, my] = await Promise.all([fetchDistribution(myState.type), fetchMyRank(myState.type)]);
+    if (!dist || !dist.tier_cut_ms.length || !my) {
         tierEl.textContent = '-';
         pctEl.textContent = '-';
         rankEl.textContent = '-';
@@ -640,13 +642,12 @@ async function renderMyStats(data) {
     }
 
     const index = tierIndexOf(dist.tier_cut_ms, bestMs);
-    const pct = percentileOf(dist, bestMs);
 
     tierEl.className = `tier tier--${TIER_KEYS[index]}`;
     tierEl.textContent = TIER_NAMES[index];
     tierEl.disabled = false;
-    pctEl.textContent = (pct < 1 ? pct.toFixed(1) : Math.round(pct)) + '%';
-    rankEl.textContent = withComma(Math.max(1, Math.round(dist.total_users * pct / 100))) + '위';
+    pctEl.textContent = fmtPct(my.rank / my.total_users * 100) + '%';
+    rankEl.textContent = withComma(my.rank) + '위';
     bindTierPop(tierEl, { type: myState.type, index, ms: bestMs, mine: true });
 }
 
@@ -713,7 +714,7 @@ const TIER_KEYS = ['sss', 'ss', 's', 'a', 'b', 'c', 'd', 'e', 'f'];
 
 let chartType = RANKING_TYPE;
 const distCache = {};
-const myBestCache = {};
+const myRankCache = {};
 
 async function fetchDistribution(type) {
     if (!(type in distCache)) {
@@ -727,17 +728,18 @@ async function fetchDistribution(type) {
     return distCache[type];
 }
 
-async function fetchMyBestMs(type) {
-    if (!(type in myBestCache)) {
+/* 전체 기간 등수. 기록이 없으면 null 이다. */
+async function fetchMyRank(type) {
+    if (!(type in myRankCache)) {
         try {
-            const res = await authFetch(`/api/practice/my-stats?type=${type}`);
+            const res = await authFetch(`/api/practice/my-rank?type=${type}&period=ALL_TIME`);
             const data = await res.json();
-            myBestCache[type] = data.total_count ? data.best_ms : null;
+            myRankCache[type] = data.rank == null ? null : data;
         } catch (e) {
-            myBestCache[type] = null;
+            myRankCache[type] = null;
         }
     }
-    return myBestCache[type];
+    return myRankCache[type];
 }
 
 /* 컷은 상위 p% 커트라인이다. 그 안에 들면 그 등급이고, 어느 컷에도 못 들면 마지막 등급이다. */
@@ -748,18 +750,7 @@ function tierIndexOf(cuts, ms) {
     return cuts.length;
 }
 
-/* 컷 사이를 직선으로 이어 대략의 백분위를 낸다. 화면에 쓸 정도면 충분하다. */
-function percentileOf(dist, ms) {
-    const cuts = dist.tier_cut_ms;
-    const pcts = dist.tier_percentiles;
-    const i = tierIndexOf(cuts, ms);
-    const loPct = i === 0 ? 0 : pcts[i - 1];
-    const hiPct = i < pcts.length ? pcts[i] : 100;
-    const loMs = i === 0 ? cuts[0] * 0.6 : cuts[i - 1];
-    const hiMs = i < cuts.length ? cuts[i] : cuts[cuts.length - 1] * 1.5;
-    const ratio = Math.min(1, Math.max(0, (ms - loMs) / (hiMs - loMs)));
-    return Math.max(0.1, loPct + (hiPct - loPct) * ratio);
-}
+const fmtPct = pct => pct < 1 ? pct.toFixed(1) : String(Math.round(pct));
 
 const toSec = ms => (ms / 1000).toFixed(2);
 const withComma = n => n.toLocaleString('en-US');
@@ -769,7 +760,8 @@ async function drawChart(type) {
     const hero = document.getElementById('chartHero');
     if (!plot) return;
 
-    const [dist, myMs] = await Promise.all([fetchDistribution(type), fetchMyBestMs(type)]);
+    const [dist, my] = await Promise.all([fetchDistribution(type), fetchMyRank(type)]);
+    const myMs = my ? my.best_ms : null;
     // 종목을 빠르게 바꾸면 늦게 온 응답이 지금 화면을 덮는다
     if (type !== chartType) return;
 
@@ -789,10 +781,9 @@ async function drawChart(type) {
         return;
     }
 
-    const pct = percentileOf(dist, myMs);
     const tier = tierIndexOf(dist.tier_cut_ms, myMs);
     hero.className = 'ch-hero';
-    hero.innerHTML = `<b>상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%</b>`
+    hero.innerHTML = `<b>상위 ${fmtPct(my.rank / my.total_users * 100)}%</b>`
         + `<span class="tier tier--${TIER_KEYS[tier]}">${TIER_NAMES[tier]}</span>`;
     bindTierPop(hero.querySelector('.tier'), { type, index: tier, ms: myMs, mine: true });
 }
@@ -841,30 +832,41 @@ function renderHistogram(plot, dist, myMs) {
         + '<stop offset="0" stop-color="#8f7fd0" stop-opacity=".55"/><stop offset="1" stop-color="#8f7fd0" stop-opacity=".05"/>'
         + '</linearGradient></defs>'
         + `<path d="${area}" fill="url(#chFill)"/>${cutLines}<path d="${line}" class="ch-line"/></svg>`
-        + `<div class="ch-overlay">${me}<div class="ch-cursor" hidden><span class="ch-cur-label"></span><span class="ch-cur-line"></span></div></div></div>`
+        + `<div class="ch-overlay">${me}<div class="ch-cursor" hidden><span class="ch-cur-label"></span><i class="ch-cur-dot"></i><span class="ch-cur-line"></span></div></div></div>`
         + `<div class="ch-axis">${axisHtml(startMs, endMs)}</div>`;
 
     renderTierBands(plot.querySelector('.ch-bands'), dist, startMs, endMs);
     bindChartCursor(plot.querySelector('.ch-area'), dist, startMs, endMs);
 }
 
-/* 커서 자리의 초·사람 수·상위 %. 마우스는 올리기만, 폰은 끌기로 같은 동작이다. */
+/* 커서 자리의 등급·초·사람 수·상위 %. 상위 % 는 그 자리까지 칸 인원을 더한 값이다.
+   마우스는 올리기만, 폰은 끌기로 같은 동작이다. */
 function bindChartCursor(area, dist, startMs, endMs) {
     const cursor = area.querySelector('.ch-cursor');
     const label = cursor.querySelector('.ch-cur-label');
+    const dot = cursor.querySelector('.ch-cur-dot');
     const bins = dist.bins;
     const widthMs = dist.bin_width_ms;
+    const max = Math.max(...bins);
+    const sec = ms => String(Number((ms / 1000).toFixed(2)));
+    const before = [0];
+    bins.forEach(c => before.push(before[before.length - 1] + c));
 
     const move = clientX => {
         const rect = area.getBoundingClientRect();
         const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
         const ms = startMs + ratio * (endMs - startMs);
         const at = Math.min(bins.length - 1, Math.floor((ms - startMs) / widthMs));
-        const pct = percentileOf(dist, ms);
-        label.textContent = `${(ms / 1000).toFixed(1)}s · ${withComma(bins[at])}명 · 상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}%`;
+        const lo = startMs + at * widthMs;
+        const faster = before[at] + bins[at] * Math.min(1, (ms - lo) / widthMs);
+        const pct = Math.max(0.1, faster / dist.total_users * 100);
+        const tier = tierIndexOf(dist.tier_cut_ms, ms);
+        label.innerHTML = `<span class="tier tier-xs tier--${TIER_KEYS[tier]}">${TIER_NAMES[tier]}</span>`
+            + `<em>${sec(lo)}~${sec(lo + widthMs)}초</em>${withComma(bins[at])}명 · 상위 ${fmtPct(pct)}%`;
+        dot.style.top = (CURVE_H - bins[at] / max * (CURVE_H - 2)).toFixed(1) + '%';
         cursor.style.left = (ratio * 100).toFixed(2) + '%';
-        cursor.classList.toggle('flip', ratio > 0.75);
         cursor.hidden = false;
+        cursor.classList.toggle('flip', ratio * rect.width + 6 + label.offsetWidth > rect.width);
     };
     const hide = () => { cursor.hidden = true; };
 
@@ -875,20 +877,45 @@ function bindChartCursor(area, dist, startMs, endMs) {
     area.addEventListener('touchend', hide);
 }
 
-/* 등급 구간 가운데에 배지. 폭이 40px 도 안 되는 구간은 배지가 겹치니 건너뛴다. */
+/* 등급 구간 가운데에 배지. 폭이 40px 도 안 되는 구간은 배지가 겹치니 건너뛰되,
+   S 이상이 그렇게 빠지면 S+ 하나로 묶어 A 왼쪽 경계에 세운다. */
 function renderTierBands(host, dist, startMs, endMs) {
     const edges = [startMs, ...dist.tier_cut_ms, endMs];
     const pxPerMs = host.clientWidth / (endMs - startMs);
+    let sPlus = false;
     for (let i = 0; i < TIER_NAMES.length; i++) {
         const lo = Math.max(startMs, edges[i]);
         const hi = Math.min(endMs, edges[i + 1]);
-        if ((hi - lo) * pxPerMs < 40) continue;
+        if ((hi - lo) * pxPerMs < 40) {
+            if (i <= 2) sPlus = true;
+            continue;
+        }
         const badge = document.createElement('span');
         badge.className = `tier tier-sm tier--${TIER_KEYS[i]}`;
         badge.textContent = TIER_NAMES[i];
         badge.style.left = ((lo + hi) / 2 - startMs) / (endMs - startMs) * 100 + '%';
         bindTierPop(badge, { type: chartType, index: i, ms: null, mine: false });
         host.appendChild(badge);
+    }
+    if (!sPlus) return;
+
+    // S 구간은 늘 좁아 S+ 가 왼쪽으로 삐져나온다. 카드 여백까지만 허용하고 뒤 배지들을 그만큼 민다
+    const badge = document.createElement('span');
+    badge.className = 'tier tier-sm tier--s ch-splus';
+    badge.textContent = 'S+';
+    bindTierPop(badge, { type: chartType, index: 2, ms: null, mine: false, group: true });
+    host.appendChild(badge);
+    const card = host.closest('.chart-card');
+    const gutter = card ? parseFloat(getComputedStyle(card).paddingLeft) - 2 : 0;
+    const w = badge.offsetWidth;
+    const left = Math.max(-gutter, (edges[3] - startMs) * pxPerMs - 4 - w);
+    badge.style.left = left + 'px';
+    let edge = left + w + 4;
+    for (const b of host.querySelectorAll('.tier:not(.ch-splus)')) {
+        const half = b.offsetWidth / 2;
+        if (b.offsetLeft - half >= edge) break;
+        b.style.left = (edge + half) + 'px';
+        edge += b.offsetWidth + 4;
     }
 }
 
