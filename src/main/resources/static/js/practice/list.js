@@ -1,11 +1,11 @@
 import { authFetch, showAlert } from '/js/common.js';
 
-// 연습을 끝내고 넘어오면 주소에 예매처가 실려 온다. 모르는 값이면 기본 종목을 연다.
+// 연습을 끝내고 넘어오면 주소에 예매처가 실려 온다. 그 종목의 랭킹 탭을 열고, 모르는 값이면 기본 종목의 연습하기를 연다.
 const AGENCIES = ['I_TICKET_OLD', 'N_TICKET', 'M_TICKET'];
 const asked = new URLSearchParams(location.search).get('agency');
 const RANKING_TYPE = AGENCIES.includes(asked) ? asked : 'I_TICKET_OLD';   // 기본 노출 종목
 
-// ── 전체 랭킹 상태 ──
+// ── 랭킹 상태 ──
 const rankingState = {
     type: RANKING_TYPE,
     period: 'DAILY',
@@ -87,7 +87,7 @@ function mobileNumberDigitsClass(value) {
 }
 
 /* PRACTICE_MID는 목록 탭에서만 보이는 단일 슬롯이다.
-   연습하기에서는 숨겨 보관하고 전체 랭킹·내 기록 첫 행으로 옮긴다.
+   연습하기에서는 숨겨 보관하고 랭킹·내 기록 첫 행으로 옮긴다.
    어느 목록이 언제 다시 그려지든 자리는 항상 지금 켜진 탭을 따라간다 — 늦게 끝난 요청이
    다른 탭으로 가져가면 보고 있는 화면에서 광고가 사라진다. */
 const PRACTICE_MID_TARGETS = {
@@ -175,7 +175,7 @@ function switchHubView(view) {
 }
 
 // ── 종목(연습 타입) 전환 ──
-// 전체 랭킹·내 기록 패널이 각자 agency-tabs 를 갖고 있어, 눌린 버튼이 속한 패널만 갱신한다.
+// 랭킹·내 기록 패널이 각자 agency-tabs 를 갖고 있어, 눌린 버튼이 속한 패널만 갱신한다.
 function selectAgency(btn) {
     const type = btn.dataset.agency;
     const tabs = btn.closest('.agency-tabs');
@@ -274,7 +274,7 @@ function rearmTail(key) {
     tail.io.observe(tail.el);
 }
 
-// ── 전체 랭킹 ──
+// ── 랭킹 ──
 async function loadRanking(reset) {
     if (!reset && (rankingState.loading || !rankingState.hasNext)) return;
     const seq = reset ? ++rankingState.seq : rankingState.seq;
@@ -978,3 +978,5 @@ document.addEventListener('DOMContentLoaded', () => {
     drawChart(chartType);
     window.addEventListener('resize', () => drawChart(chartType));
 });
+
+    if (AGENCIES.includes(asked)) switchHubView('ranking');
