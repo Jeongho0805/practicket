@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.admin.AdminNavAdvice;
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.client.domain.ClientRepository;
@@ -52,6 +53,8 @@ class AdminCampaignFormBindingTest {
     AdSlotRepository adSlotRepository;
     @MockBean
     ClientRepository clientRepository;
+    @MockBean
+    AdSlotSnapshotStore adSlotSnapshotStore;
 
     @Test
     @DisplayName("배너 여러 줄과 기기별 파일이 한 폼으로 들어온다")

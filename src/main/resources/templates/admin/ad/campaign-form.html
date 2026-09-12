@@ -100,6 +100,7 @@
                 <p class="note">
                     기간을 비우면 계약 기간을 따릅니다. 소재는 기기별로 따로 올립니다 —
                     한쪽만 올리면 반대 기기에서는 네트워크 광고가 대신 채웁니다.
+                    노출 중단·배너 삭제 모두 그 자리는 네트워크 광고로 돌아가고 쌓인 노출·클릭 기록은 남습니다.
                 </p>
 
                 <div class="bulkrows">
@@ -111,15 +112,16 @@
                             <th style="width:220px">모바일 소재</th>
                             <th style="width:220px">착지 주소</th>
                             <th style="width:210px">노출 기간</th>
-                            <th style="width:110px"></th>
+                            <th style="width:96px">노출</th>
+                            <th style="width:52px">삭제</th>
                         </tr>
                         </thead>
                         <tbody id="banner-rows">
-                        <tr th:each="banner, iter : ${form.banners}">
+                        <tr th:each="banner, iter : ${form.banners}" th:classappend="${banner.deleted} ? 'removed'">
                             <td>
                                 <input type="hidden" th:name="'banners[' + ${iter.index} + '].id'" th:value="${banner.id}">
-                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].deleted'" value="false"
-                                       class="deleted-flag">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].deleted'"
+                                       th:value="${banner.deleted}" class="deleted-flag">
                                 <select th:name="'banners[' + ${iter.index} + '].slotId'">
                                     <option th:each="slot : ${slots}"
                                             th:value="${slot.id}"
@@ -131,33 +133,43 @@
                             </td>
                             <td>
                                 <div class="fname drop" data-dev="pc">
-                                    <img class="thumb" th:if="${banner.pcImagePath != null}"
-                                         th:src="${banner.pcImagePath}" alt="데스크톱 소재">
-                                    <div class="thumb ph" th:if="${banner.pcImagePath == null}"><span>없음</span></div>
-                                    <span class="fit"></span>
+                                    <span class="thumbwrap">
+                                        <img class="thumb" th:if="${banner.pcImagePath != null}"
+                                             th:src="${banner.pcImagePath}" alt="데스크톱 소재">
+                                        <div class="thumb ph" th:if="${banner.pcImagePath == null}"><span>없음</span></div>
+                                        <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기"
+                                                th:hidden="${banner.pcImagePath == null}">&times;</button>
+                                    </span>
+                                    <span class="fmeta">
+                                        <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                                        <span class="fit"></span>
+                                    </span>
                                 </div>
                                 <input type="hidden" th:name="'banners[' + ${iter.index} + '].pcImagePath'"
                                        th:value="${banner.pcImagePath}">
-                                <input type="file" th:name="'banners[' + ${iter.index} + '].pcImage'" accept="image/*">
-                                <label class="checkrow" th:if="${banner.pcImagePath != null}">
-                                    <input type="checkbox" th:name="'banners[' + ${iter.index} + '].clearPcImage'" value="true">
-                                    소재 떼기
-                                </label>
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].clearPcImage'"
+                                       value="false" class="clear-flag">
+                                <input type="file" th:name="'banners[' + ${iter.index} + '].pcImage'" accept="image/*" hidden>
                             </td>
                             <td>
                                 <div class="fname drop" data-dev="mobile">
-                                    <img class="thumb" th:if="${banner.mobileImagePath != null}"
-                                         th:src="${banner.mobileImagePath}" alt="모바일 소재">
-                                    <div class="thumb ph" th:if="${banner.mobileImagePath == null}"><span>없음</span></div>
-                                    <span class="fit"></span>
+                                    <span class="thumbwrap">
+                                        <img class="thumb" th:if="${banner.mobileImagePath != null}"
+                                             th:src="${banner.mobileImagePath}" alt="모바일 소재">
+                                        <div class="thumb ph" th:if="${banner.mobileImagePath == null}"><span>없음</span></div>
+                                        <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기"
+                                                th:hidden="${banner.mobileImagePath == null}">&times;</button>
+                                    </span>
+                                    <span class="fmeta">
+                                        <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                                        <span class="fit"></span>
+                                    </span>
                                 </div>
                                 <input type="hidden" th:name="'banners[' + ${iter.index} + '].mobileImagePath'"
                                        th:value="${banner.mobileImagePath}">
-                                <input type="file" th:name="'banners[' + ${iter.index} + '].mobileImage'" accept="image/*">
-                                <label class="checkrow" th:if="${banner.mobileImagePath != null}">
-                                    <input type="checkbox" th:name="'banners[' + ${iter.index} + '].clearMobileImage'" value="true">
-                                    소재 떼기
-                                </label>
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].clearMobileImage'"
+                                       value="false" class="clear-flag">
+                                <input type="file" th:name="'banners[' + ${iter.index} + '].mobileImage'" accept="image/*" hidden>
                             </td>
                             <td>
                                 <div class="percell linkcell">
@@ -180,18 +192,22 @@
                                     <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
                                 </div>
                             </td>
-                            <td>
-                                <label class="checkrow">
-                                    <input type="hidden" th:name="'_banners[' + ${iter.index} + '].enabled'" value="on">
-                                    <input type="checkbox" th:name="'banners[' + ${iter.index} + '].enabled'"
-                                           value="true" th:checked="${banner.enabled}">
-                                    노출
-                                </label>
-                                <button type="button" class="linkbtn remove-banner">이 슬롯 빼기</button>
+                            <td class="rowctl">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].enabled'"
+                                       th:value="${banner.enabled}" class="enabled-flag">
+                                <button type="button" class="btn ghost sm expose-toggle"
+                                        th:text="${banner.enabled} ? '노출 중단' : '노출 재개'">노출 중단</button>
+                            </td>
+                            <td class="rowctl">
+                                <button type="button" class="row-x remove-banner" title="배너 삭제" aria-label="배너 삭제">&times;</button>
                             </td>
                         </tr>
                         </tbody>
                     </table>
+                </div>
+                <div id="removed-bar" class="removed-bar" hidden>
+                    삭제 예정 <b id="removed-count">0</b>개 · 저장하면 노출이 끝나고 기록은 남습니다
+                    <button type="button" class="linkbtn" id="removed-undo">되돌리기</button>
                 </div>
             </div>
 
@@ -216,14 +232,30 @@
             </select>
         </td>
         <td>
-            <div class="fname drop" data-dev="pc"><div class="thumb ph"><span>없음</span></div><span class="fit"></span></div>
+            <div class="fname drop" data-dev="pc">
+                <span class="thumbwrap"><div class="thumb ph"><span>없음</span></div>
+                    <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기" hidden>&times;</button></span>
+                <span class="fmeta">
+                    <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                    <span class="fit"></span>
+                </span>
+            </div>
             <input type="hidden" name="banners[__i__].pcImagePath" value="">
-            <input type="file" name="banners[__i__].pcImage" accept="image/*">
+            <input type="hidden" name="banners[__i__].clearPcImage" value="false" class="clear-flag">
+            <input type="file" name="banners[__i__].pcImage" accept="image/*" hidden>
         </td>
         <td>
-            <div class="fname drop" data-dev="mobile"><div class="thumb ph"><span>없음</span></div><span class="fit"></span></div>
+            <div class="fname drop" data-dev="mobile">
+                <span class="thumbwrap"><div class="thumb ph"><span>없음</span></div>
+                    <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기" hidden>&times;</button></span>
+                <span class="fmeta">
+                    <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                    <span class="fit"></span>
+                </span>
+            </div>
             <input type="hidden" name="banners[__i__].mobileImagePath" value="">
-            <input type="file" name="banners[__i__].mobileImage" accept="image/*">
+            <input type="hidden" name="banners[__i__].clearMobileImage" value="false" class="clear-flag">
+            <input type="file" name="banners[__i__].mobileImage" accept="image/*" hidden>
         </td>
         <td>
             <div class="percell linkcell">
@@ -243,13 +275,12 @@
                 <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
             </div>
         </td>
-        <td>
-            <label class="checkrow">
-                <input type="hidden" name="_banners[__i__].enabled" value="on">
-                <input type="checkbox" name="banners[__i__].enabled" value="true" checked>
-                노출
-            </label>
-            <button type="button" class="linkbtn remove-banner">이 슬롯 빼기</button>
+        <td class="rowctl">
+            <input type="hidden" name="banners[__i__].enabled" value="true" class="enabled-flag">
+            <button type="button" class="btn ghost sm expose-toggle">노출 중단</button>
+        </td>
+        <td class="rowctl">
+            <button type="button" class="row-x remove-banner" title="배너 삭제" aria-label="배너 삭제">&times;</button>
         </td>
     </tr>
 </template>
@@ -266,14 +297,71 @@
         const html = template.innerHTML.replaceAll('__i__', nextIndex++);
         const holder = document.createElement('tbody');
         holder.innerHTML = html;
-        rows.appendChild(holder.firstElementChild);
+        const row = holder.firstElementChild;
+        rows.appendChild(row);
+        syncAllInherit(row);
+        paintExpose(row);
     });
+
+    const removedBar = document.getElementById('removed-bar');
+    const removedCount = document.getElementById('removed-count');
+
+    function syncRemovedBar() {
+        const removed = rows.querySelectorAll('tr.removed').length;
+        removedCount.textContent = removed;
+        removedBar.hidden = removed === 0;
+    }
 
     rows.addEventListener('click', (event) => {
         if (!event.target.classList.contains('remove-banner')) return;
         const row = event.target.closest('tr');
+        // 아직 저장 안 된 줄은 흔적 없이 지운다. 저장된 배너는 deleted=true 로 보내고 되돌릴 수 있게 남긴다
+        if (!row.querySelector('input[name$=".id"]').value) {
+            row.remove();
+            return;
+        }
         row.querySelector('.deleted-flag').value = 'true';
-        row.style.display = 'none';
+        row.classList.add('removed');
+        syncRemovedBar();
+    });
+
+    document.getElementById('removed-undo').addEventListener('click', () => {
+        rows.querySelectorAll('tr.removed').forEach(row => {
+            row.querySelector('.deleted-flag').value = 'false';
+            row.classList.remove('removed');
+        });
+        syncRemovedBar();
+    });
+
+    // 노출 중단은 광고만 멈춘다. 행은 남고 기록도 남는다
+    function paintExpose(row) {
+        const on = row.querySelector('.enabled-flag').value === 'true';
+        row.querySelector('.expose-toggle').textContent = on ? '노출 중단' : '노출 재개';
+        row.classList.toggle('paused', !on);
+    }
+
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('expose-toggle')) return;
+        const row = event.target.closest('tr');
+        const flag = row.querySelector('.enabled-flag');
+        flag.value = flag.value === 'true' ? 'false' : 'true';
+        paintExpose(row);
+    });
+
+    // 썸네일의 X. 그 기기 그림만 뗀다 — 저장하면 그 기기에서는 네트워크 광고가 대신 나간다
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('thumb-x')) return;
+        const cell = event.target.closest('.fname.drop');
+        const row = cell.closest('tr');
+        const dev = cell.dataset.dev;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'true';
+        row.querySelector('input[type=hidden][name$="' + (dev === 'pc' ? 'pcImagePath' : 'mobileImagePath') + '"]').value = '';
+        row.querySelector('input[type=file][name$="' + (dev === 'pc' ? 'pcImage' : 'mobileImage') + '"]').value = '';
+        cell.removeAttribute('data-asset-id');
+        cell.querySelector('img, .thumb.ph').outerHTML = '<div class="thumb ph"><span>없음</span></div>';
+        event.target.hidden = true;
+        const fit = cell.querySelector('.fit');
+        if (fit) { fit.textContent = ''; fit.className = 'fit'; }
     });
 
     // ── 기간·링크 상속 전환 ──
@@ -417,12 +505,12 @@
         input.files = transfer.files;
         const pathInput = row.querySelector('input[type=hidden][name$="' + (dev === 'pc' ? 'pcImagePath' : 'mobileImagePath') + '"]');
         if (asset.path) pathInput.value = asset.path;
-        const clearInput = row.querySelector('input[type=checkbox][name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]');
-        if (clearInput) clearInput.checked = false;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'false';
         cell.dataset.assetId = asset.id;
 
         cell.querySelector('img, .thumb.ph').outerHTML =
             '<img class="thumb" src="' + asset.url + '" alt="소재">';
+        cell.querySelector('.thumb-x').hidden = false;
         markFit(cell, asset);
     }
 
@@ -478,8 +566,14 @@
     // 고른 소재가 있으면 칸을 눌러서도 붙는다 — 끌기가 어려운 화면을 위해 남긴다
     rows.addEventListener('click', (event) => {
         const cell = event.target.closest('.fname.drop');
-        if (!cell || !picked) return;
+        if (!cell || !picked || event.target.closest('button')) return;
         attach(cell, assets.get(picked));
+    });
+
+    rows.addEventListener('click', (event) => {
+        const btn = event.target.closest('.pick-file');
+        if (!btn) return;
+        btn.closest('td').querySelector('input[type=file]').click();
     });
 
     // 소재함 밖에서 파일을 직접 고르면, 전에 붙였던 소재함 항목과의 연결은 끊긴다.
@@ -487,7 +581,29 @@
         if (!event.target.matches('input[type=file]')) return;
         const row = event.target.closest('tr');
         const dev = event.target.name.endsWith('pcImage') ? 'pc' : 'mobile';
-        row?.querySelector('.fname.drop[data-dev="' + dev + '"]')?.removeAttribute('data-asset-id');
+        const cell = row?.querySelector('.fname.drop[data-dev="' + dev + '"]');
+        if (!cell) return;
+        cell.removeAttribute('data-asset-id');
+        const file = event.target.files[0];
+        if (!file) return;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'false';
+        const url = URL.createObjectURL(file);
+        cell.querySelector('img, .thumb.ph').outerHTML = '<img class="thumb" src="' + url + '" alt="소재">';
+        cell.querySelector('.thumb-x').hidden = false;
+        const image = new Image();
+        image.onload = () => markFit(cell, { width: image.naturalWidth, height: image.naturalHeight });
+        image.src = url;
+    });
+
+    // 슬롯을 바꾸면 붙어 있는 그림을 새 규격으로 다시 판정한다
+    rows.addEventListener('change', (event) => {
+        if (!event.target.matches('select')) return;
+        event.target.closest('tr').querySelectorAll('.fname.drop').forEach(cell => {
+            const image = cell.querySelector('img.thumb');
+            if (!image) return;
+            const judge = () => markFit(cell, { width: image.naturalWidth, height: image.naturalHeight });
+            image.complete ? judge() : image.addEventListener('load', judge, { once: true });
+        });
     });
 
     // 안 붙은 소재는 저장돼도 아무 데도 안 간다. 한 번은 알려준다
@@ -507,7 +623,8 @@
     });
 
     syncAllInherit(rows);
-    document.getElementById('add-banner').addEventListener('click', () => syncAllInherit(rows));
+    rows.querySelectorAll('tr').forEach(paintExpose);
+    syncRemovedBar();
     renderAssets();
     assets.forEach(markExistingUsage);
 </script>

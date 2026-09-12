@@ -50,6 +50,19 @@ public class Banner {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /** 캠페인에서 빼도 행은 남긴다. 노출·클릭 이력이 이 행을 가리키기 때문이다 */
+    private LocalDateTime deletedAt;
+
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public void enable() {
         this.enabled = true;
     }

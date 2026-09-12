@@ -42,6 +42,7 @@ import java.util.stream.Stream;
  *
  * 배너를 캠페인과 떼어 놓지 않는 이유는 저장 단위가 계약이기 때문이다. 슬롯을 셋 판 계약이면
  * 배너 셋이 한 화면에서 같이 만들어지고 수정된다. 캠페인은 계약·성과 이력이라 삭제하지 않는다.
+ * 배너도 같은 이유로 행을 지우지 않고 deletedAt 만 찍는다 — 합계는 남고 화면과 노출에서만 빠진다.
  */
 @Service
 @RequiredArgsConstructor
@@ -71,7 +72,7 @@ public class AdminCampaignService {
                 .filter(banner -> banner.getCampaignId() != null)
                 .collect(Collectors.groupingBy(Banner::getCampaignId));
 
-        return adCampaignRepository.findAllByOrderByStartAtDesc().stream()
+        return adCampaignRepository.findAllByDeletedAtIsNullOrderByStartAtDesc().stream()
                 .map(campaign -> toRow(campaign, advertisers, slots, totals,
                         bannersByCampaign.getOrDefault(campaign.getId(), List.of()), today))
                 .sorted(Comparator.comparingInt((CampaignRow row) -> row.getStatus().getOrder())
@@ -92,7 +93,9 @@ public class AdminCampaignService {
 
     @Transactional(readOnly = true)
     public Optional<CampaignDetail> findDetail(Long id) {
-        return adCampaignRepository.findById(id).map(this::toDetail);
+        return adCampaignRepository.findById(id)
+                .filter(campaign -> !campaign.isDeleted())
+                .map(this::toDetail);
     }
 
     /** 새 캠페인 폼. 슬롯 하나짜리 거래도 배너 한 줄로 시작한다 */
@@ -110,7 +113,9 @@ public class AdminCampaignService {
 
     @Transactional(readOnly = true)
     public Optional<CampaignForm> findForm(Long id) {
-        return adCampaignRepository.findById(id).map(campaign -> {
+        return adCampaignRepository.findById(id)
+                .filter(campaign -> !campaign.isDeleted())
+                .map(campaign -> {
             CampaignForm form = new CampaignForm();
             form.setId(campaign.getId());
             form.setAdvertiserId(campaign.getAdvertiserId());
@@ -121,6 +126,7 @@ public class AdminCampaignService {
             form.setLinkUrl(campaign.getLinkUrl());
             form.setMemo(campaign.getMemo());
             form.setBanners(bannerRepository.findByCampaignIdWithSlot(campaign.getId()).stream()
+                    .filter(banner -> !banner.isDeleted())
                     .sorted(Comparator.comparing(Banner::getId))
                     .map(this::toBannerForm)
                     .collect(Collectors.toCollection(ArrayList::new)));
@@ -141,6 +147,16 @@ public class AdminCampaignService {
 
         saveBanners(campaign, form.getBanners());
         return campaign.getId();
+    }
+
+    /** 캠페인을 지우면 배너도 같이 삭제 표시한다. 노출은 멈추고 쌓인 기록과 리포트는 남는다 */
+    @Transactional
+    public void delete(Long id) {
+        AdCampaign campaign = adCampaignRepository.findById(id)
+                .filter(found -> !found.isDeleted())
+                .orElseThrow(() -> new AdException("존재하지 않는 캠페인입니다."));
+        campaign.delete();
+        bannerRepository.findByCampaignId(id).forEach(Banner::delete);
     }
 
     @Transactional
@@ -199,6 +215,7 @@ public class AdminCampaignService {
 
     private AdCampaign updateCampaign(CampaignForm form) {
         AdCampaign campaign = adCampaignRepository.findById(form.getId())
+                .filter(found -> !found.isDeleted())
                 .orElseThrow(() -> new AdException("존재하지 않는 캠페인입니다."));
         campaign.update(form.getAdvertiserId(), form.getName().trim(), form.getStartAt(), form.getEndAt(),
                 form.getAmount() == null ? 0L : form.getAmount(),
@@ -207,7 +224,7 @@ public class AdminCampaignService {
     }
 
     /**
-     * 폼에서 사라진 배너는 지운다. 화면이 계약 전체를 통째로 보내므로, 목록에 없다는 것이 곧 삭제다.
+     * 폼에서 사라진 배너는 삭제 표시한다. 화면이 계약 전체를 통째로 보내므로, 목록에 없다는 것이 곧 삭제다.
      */
     private void saveBanners(AdCampaign campaign, List<BannerForm> forms) {
         Map<Long, Banner> existing = bannerRepository.findByCampaignId(campaign.getId()).stream()
@@ -253,10 +270,11 @@ public class AdminCampaignService {
                     .enabled(form.isEnabled())
                     .reportToken(banner.getReportToken())
                     .createdAt(banner.getCreatedAt())
+                    .deletedAt(banner.getDeletedAt())
                     .build());
         }
 
-        bannerRepository.deleteAll(existing.values());
+        existing.values().forEach(Banner::delete);
     }
 
     /** 새 파일이 오면 갈아 끼우고, 떼기를 눌렀으면 비우고, 아니면 쓰던 것을 그대로 둔다. */
@@ -277,10 +295,9 @@ public class AdminCampaignService {
 
     private CampaignRow toRow(AdCampaign campaign, Map<Long, Advertiser> advertisers, Map<Long, AdSlot> slots,
                               Map<Long, AdminAdStatService.Totals> totals, List<Banner> banners, LocalDate today) {
-        AdminAdStatService.Totals sum = banners.stream()
-                .map(banner -> totals.getOrDefault(banner.getId(), AdminAdStatService.Totals.empty()))
-                .reduce(AdminAdStatService.Totals.empty(), AdminAdStatService.Totals::plus);
+        AdminAdStatService.Totals sum = sumOf(banners, totals);
 
+        List<Banner> live = banners.stream().filter(banner -> !banner.isDeleted()).toList();
         return new CampaignRow(
                 campaign.getId(),
                 campaign.getName(),
@@ -289,11 +306,11 @@ public class AdminCampaignService {
                 campaign.getEndAt(),
                 campaign.getAmount(),
                 CampaignStatus.of(campaign, today),
-                banners.size(),
-                banners.stream()
+                live.size(),
+                live.stream()
                         .map(banner -> slotName(slots, banner))
                         .collect(Collectors.joining(" · ")),
-                banners.stream().filter(this::hasOwnPeriod).count(),
+                live.stream().filter(this::hasOwnPeriod).count(),
                 sum.getImpressions(), sum.getClicks(), sum.getCtr(),
                 ChronoUnit.DAYS.between(today, campaign.getEndAt()));
     }
@@ -303,9 +320,11 @@ public class AdminCampaignService {
         Map<Long, AdminAdStatService.Totals> totals = adminAdStatService.totalsByBanner();
         Map<Long, AdSlot> slots = slotsById();
 
-        List<Banner> banners = bannerRepository.findByCampaignIdWithSlot(campaign.getId()).stream()
+        List<Banner> all = bannerRepository.findByCampaignIdWithSlot(campaign.getId()).stream()
                 .sorted(Comparator.comparing(Banner::getId))
                 .toList();
+        List<Banner> banners = all.stream().filter(banner -> !banner.isDeleted()).toList();
+        List<Banner> deleted = all.stream().filter(Banner::isDeleted).toList();
 
         Map<Long, List<String>> overlaps = findOverlaps(campaign, banners);
 
@@ -313,9 +332,9 @@ public class AdminCampaignService {
                 .map(banner -> toBannerRow(campaign, banner, slots, totals, overlaps, today))
                 .toList();
 
-        AdminAdStatService.Totals sum = rows.stream()
-                .map(row -> new AdminAdStatService.Totals(row.getImpressions(), row.getClicks()))
-                .reduce(AdminAdStatService.Totals.empty(), AdminAdStatService.Totals::plus);
+        // 합계는 삭제된 배너까지 더한다. 광고주 리포트와 같은 숫자여야 한다
+        AdminAdStatService.Totals sum = sumOf(all, totals);
+        AdminAdStatService.Totals deletedSum = sumOf(deleted, totals);
 
         return new CampaignDetail(
                 campaign,
@@ -323,6 +342,7 @@ public class AdminCampaignService {
                 CampaignStatus.of(campaign, today),
                 rows,
                 sum.getImpressions(), sum.getClicks(), sum.getCtr(),
+                deleted.size(), deletedSum.getImpressions(), deletedSum.getClicks(),
                 ChronoUnit.DAYS.between(today, campaign.getEndAt()),
                 todayPercent(campaign, today));
     }
@@ -363,7 +383,7 @@ public class AdminCampaignService {
     private Map<Long, List<String>> findOverlaps(AdCampaign campaign, List<Banner> mine) {
         Map<Long, AdCampaign> campaigns = campaignsById();
         List<Banner> others = bannerRepository.findAllWithSlotOrderByCreatedAtDesc().stream()
-                .filter(banner -> Boolean.TRUE.equals(banner.getEnabled()))
+                .filter(banner -> Boolean.TRUE.equals(banner.getEnabled()) && !banner.isDeleted())
                 .filter(banner -> !Objects.equals(banner.getCampaignId(), campaign.getId()))
                 .toList();
 
@@ -395,6 +415,12 @@ public class AdminCampaignService {
             }
         }
         return found;
+    }
+
+    private AdminAdStatService.Totals sumOf(List<Banner> banners, Map<Long, AdminAdStatService.Totals> totals) {
+        return banners.stream()
+                .map(banner -> totals.getOrDefault(banner.getId(), AdminAdStatService.Totals.empty()))
+                .reduce(AdminAdStatService.Totals.empty(), AdminAdStatService.Totals::plus);
     }
 
     /** 계약 기간 중 오늘이 어디쯤인지. 기간 밖이면 표시하지 않는다 */
@@ -534,6 +560,9 @@ public class AdminCampaignService {
         private final long impressions;
         private final long clicks;
         private final double ctr;
+        private final int deletedBannerCount;
+        private final long deletedImpressions;
+        private final long deletedClicks;
         private final long daysLeft;
         private final Double todayPercent;
 

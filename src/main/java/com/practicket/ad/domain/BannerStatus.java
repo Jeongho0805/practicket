@@ -11,7 +11,8 @@ public enum BannerStatus {
     LIVE("live", "노출중"),
     WAIT("wait", "예약"),
     DONE("done", "종료"),
-    OFF("off", "중지");
+    OFF("off", "중지"),
+    DELETED("deleted", "삭제");
 
     private final String key;
     private final String label;
@@ -22,6 +23,9 @@ public enum BannerStatus {
     }
 
     public static BannerStatus of(Banner banner, AdCampaign campaign, LocalDate today) {
+        if (banner.isDeleted()) {
+            return DELETED;
+        }
         if (!Boolean.TRUE.equals(banner.getEnabled())) {
             return OFF;
         }

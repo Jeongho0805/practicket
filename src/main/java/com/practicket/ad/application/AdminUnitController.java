@@ -92,6 +92,7 @@ public class AdminUnitController {
                        @RequestParam(required = false) Integer height,
                        RedirectAttributes redirectAttributes) {
         try {
+            validate(id, network, unitId, width, height);
             if (id == null) {
                 adUnitRepository.save(AdUnit.builder()
                         .network(network).unitId(unitId).name(name)
@@ -122,6 +123,27 @@ public class AdminUnitController {
         adUnitRepository.deleteById(id);
         adSlotSnapshotStore.refresh();
         return "redirect:/admin-hoya/ad/units";
+    }
+
+    /** 유니크 제약에 걸리기 전에 여기서 막는다. DB 까지 가면 500 화면이 뜬다 */
+    private void validate(Long id, String network, String unitId, Integer width, Integer height) {
+        if (!networks().contains(network)) {
+            throw new AdException("네트워크를 골라주세요.");
+        }
+        if (unitId == null || unitId.isBlank()) {
+            throw new AdException("단위 ID 를 입력해주세요.");
+        }
+        adUnitRepository.findByNetworkAndUnitId(network, unitId)
+                .filter(found -> !found.getId().equals(id))
+                .ifPresent(found -> {
+                    throw new AdException("같은 단위 ID " + unitId + " 가 이미 등록돼 있습니다.");
+                });
+        if ((width == null) != (height == null)) {
+            throw new AdException("규격은 가로·세로를 함께 넣거나 둘 다 비워주세요.");
+        }
+        if (AdNetworkSettings.ADFIT.equals(network) && width == null) {
+            throw new AdException("애드핏 단위는 규격이 필요합니다.");
+        }
     }
 
     private AdUnit update(Long id, String network, String unitId, String name, Integer width, Integer height) {

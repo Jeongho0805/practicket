@@ -44,6 +44,7 @@ public class AdminAdvertiserService {
         LocalDate today = LocalDate.now();
         Map<Long, AdminAdStatService.Totals> totals = adminAdStatService.totalsByBanner();
         Map<Long, List<AdCampaign>> campaignsByAdvertiser = adCampaignRepository.findAll().stream()
+                .filter(campaign -> !campaign.isDeleted())
                 .collect(Collectors.groupingBy(AdCampaign::getAdvertiserId));
         Map<Long, List<Banner>> bannersByCampaign = bannerRepository.findAll().stream()
                 .filter(banner -> banner.getCampaignId() != null)
@@ -69,11 +70,12 @@ public class AdminAdvertiserService {
                     .collect(Collectors.groupingBy(Banner::getCampaignId));
 
             List<CampaignHistory> history = adCampaignRepository
-                    .findByAdvertiserIdOrderByStartAtDesc(advertiser.getId()).stream()
+                    .findByAdvertiserIdAndDeletedAtIsNullOrderByStartAtDesc(advertiser.getId()).stream()
                     .map(campaign -> {
                         AdminAdStatService.Totals sum = sumOf(
                                 bannersByCampaign.getOrDefault(campaign.getId(), List.of()), totals);
-                        List<Banner> mine = bannersByCampaign.getOrDefault(campaign.getId(), List.of());
+                        List<Banner> mine = bannersByCampaign.getOrDefault(campaign.getId(), List.of()).stream()
+                                .filter(banner -> !banner.isDeleted()).toList();
                         return new CampaignHistory(campaign, CampaignStatus.of(campaign, today),
                                 mine.size(), slotNamesOf(mine, slots),
                                 sum.getImpressions(), sum.getClicks(), sum.getCtr());

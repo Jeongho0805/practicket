@@ -26,7 +26,7 @@ public interface BannerRepository extends JpaRepository<Banner, Long> {
      * 렌더 스냅샷용. 기간 판정은 계약 기간까지 봐야 해서 SQL 로 못 자른다(계약이 연관이 아니라 컬럼이다).
      * 켜진 배너 전부를 한 번에 가져와 애플리케이션이 거른다.
      */
-    @Query("SELECT b FROM Banner b JOIN FETCH b.slot WHERE b.enabled = true")
+    @Query("SELECT b FROM Banner b JOIN FETCH b.slot WHERE b.enabled = true AND b.deletedAt IS NULL")
     List<Banner> findAllEnabledWithSlot();
 
     List<Banner> findByCampaignId(Long campaignId);

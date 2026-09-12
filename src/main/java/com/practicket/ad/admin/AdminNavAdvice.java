@@ -43,7 +43,7 @@ public class AdminNavAdvice {
 
     @ModelAttribute("navCampaignCount")
     public long navCampaignCount() {
-        return adCampaignRepository.count();
+        return adCampaignRepository.countByDeletedAtIsNull();
     }
 
     @ModelAttribute("navSlotCount")

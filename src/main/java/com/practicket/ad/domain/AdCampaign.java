@@ -49,6 +49,18 @@ public class AdCampaign {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime deletedAt;
+
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public void update(Long advertiserId, String name, LocalDate startAt, LocalDate endAt,
                        Long amount, String linkUrl, String memo) {
         this.advertiserId = advertiserId;

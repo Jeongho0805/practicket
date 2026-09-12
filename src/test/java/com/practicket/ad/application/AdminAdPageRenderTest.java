@@ -1,6 +1,7 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.admin.AdminNavAdvice;
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.application.AdminAdStatService.ChartBar;
 import com.practicket.ad.application.AdminAdStatService.Dashboard;
 import com.practicket.ad.application.AdminAdStatService.Period;
@@ -13,6 +14,7 @@ import com.practicket.ad.domain.Advertiser;
 import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.ad.domain.BannerStatus;
 import com.practicket.ad.domain.CampaignStatus;
+import com.practicket.ad.exception.AdException;
 import com.practicket.client.domain.ClientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,10 +36,14 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -93,6 +99,8 @@ class AdminAdPageRenderTest {
     /** WebConfig 가 요구한다 */
     @MockBean
     ClientRepository clientRepository;
+    @MockBean
+    AdSlotSnapshotStore adSlotSnapshotStore;
 
     @BeforeEach
     void setUp() {
@@ -157,8 +165,36 @@ class AdminAdPageRenderTest {
                 .andExpect(view().name("admin/ad/campaign-detail"))
                 .andExpect(content().string(containsString("기간 비교")))
                 .andExpect(content().string(containsString("/ad/report/campaign/TOKEN")))
-                .andExpect(content().string(not(containsString("/campaigns/1/delete"))))
+                .andExpect(content().string(containsString("/campaigns/1/delete")))
+                .andExpect(content().string(not(containsString(">복사<"))))
                 .andExpect(content().string(containsString("creative-load-error")));
+    }
+
+    @Test
+    @DisplayName("저장이 검증에 걸리면 되돌리지 않고 받은 폼을 그대로 다시 그린다")
+    void campaignSaveErrorKeepsInput() throws Exception {
+        given(adminCampaignService.save(any())).willThrow(new AdException("배너마다 슬롯을 골라주세요."));
+
+        mockMvc.perform(multipart("/admin-hoya/ad/campaigns")
+                        .param("name", "다시 그릴 캠페인")
+                        .param("advertiserId", "1")
+                        .param("startAt", "2026-09-15").param("endAt", "2026-10-14")
+                        .param("banners[0].enabled", "true").param("banners[0].deleted", "false"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/campaign-form"))
+                .andExpect(content().string(containsString("배너마다 슬롯을 골라주세요.")))
+                .andExpect(content().string(containsString("올렸던 파일은 다시 골라주세요")))
+                .andExpect(content().string(containsString("value=\"다시 그릴 캠페인\"")));
+    }
+
+    @Test
+    @DisplayName("캠페인 삭제는 목록으로 보내고 스냅샷을 새로 만든다")
+    void campaignDeleteRedirectsToList() throws Exception {
+        mockMvc.perform(post("/admin-hoya/ad/campaigns/1/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin-hoya/ad/campaigns"));
+        verify(adminCampaignService).delete(1L);
+        verify(adSlotSnapshotStore).refresh();
     }
 
     @Test
@@ -270,7 +306,38 @@ class AdminAdPageRenderTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("슬롯보다 큼")))
                 .andExpect(content().string(containsString("저장은 되지만 광고가 잘려 나갑니다")))
+                .andExpect(content().string(containsString("class=\"toobig\"")))
                 .andExpect(content().string(not(containsString("disabled"))));
+    }
+
+    @Test
+    @DisplayName("같은 단위 ID 를 다시 등록하면 500 대신 폼 오류로 돌려보낸다")
+    void duplicateUnitIsRejectedBeforeDb() throws Exception {
+        given(adUnitRepository.findByNetworkAndUnitId("ADSENSE", "9697904962")).willReturn(Optional.of(unit()));
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADSENSE").param("unitId", "9697904962"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin-hoya/ad/units/new"))
+                .andExpect(flash().attribute("error", containsString("이미 등록돼 있습니다")));
+        verify(adUnitRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("애드핏 단위는 규격 없이 저장할 수 없다")
+    void adfitUnitRequiresSize() throws Exception {
+        given(adUnitRepository.findByNetworkAndUnitId(any(), any())).willReturn(Optional.empty());
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADFIT").param("unitId", "DAN-NEW"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("규격이 필요합니다")));
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADFIT").param("unitId", "DAN-NEW").param("width", "320"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("함께 넣거나")));
+        verify(adUnitRepository, never()).save(any());
     }
 
     @Test
@@ -389,7 +456,7 @@ class AdminAdPageRenderTest {
 
     private AdminCampaignService.CampaignDetail campaignDetail() {
         return new AdminCampaignService.CampaignDetail(campaign(), advertiser(), CampaignStatus.LIVE,
-                List.of(bannerRow()), 1200L, 15L, 1.25, 25L, 16.0);
+                List.of(bannerRow()), 1200L, 15L, 1.25, 0, 0L, 0L, 25L, 16.0);
     }
 
     private AdminCampaignService.CampaignForm blankForm() {

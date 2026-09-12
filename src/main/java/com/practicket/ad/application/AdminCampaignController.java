@@ -98,19 +98,30 @@ public class AdminCampaignController {
                 .orElse("redirect:/admin-hoya/ad/campaigns");
     }
 
+    /** 검증에 걸리면 되돌리지 않고 받은 폼을 그대로 다시 그린다. 파일만 다시 골라야 한다 */
     @PostMapping
-    public String save(@ModelAttribute AdminCampaignService.CampaignForm form,
-                       RedirectAttributes redirectAttributes) {
+    public String save(@ModelAttribute("form") AdminCampaignService.CampaignForm form, Model model) {
         try {
             Long id = adminCampaignService.save(form);
             adSlotSnapshotStore.refresh();
             return "redirect:/admin-hoya/ad/campaigns/" + id;
         } catch (AdException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return form.getId() == null
-                    ? "redirect:/admin-hoya/ad/campaigns/new"
-                    : "redirect:/admin-hoya/ad/campaigns/" + form.getId() + "/edit";
+            model.addAttribute("error", e.getMessage() + " 올렸던 파일은 다시 골라주세요.");
+            addFormOptions(model);
+            return "admin/ad/campaign-form";
         }
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            adminCampaignService.delete(id);
+            adSlotSnapshotStore.refresh();
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin-hoya/ad/campaigns/" + id;
+        }
+        return "redirect:/admin-hoya/ad/campaigns";
     }
 
     @PostMapping("/{campaignId}/banners/{bannerId}/toggle")

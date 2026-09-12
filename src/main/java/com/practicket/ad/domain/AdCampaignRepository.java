@@ -9,9 +9,11 @@ public interface AdCampaignRepository extends JpaRepository<AdCampaign, Long> {
 
     Optional<AdCampaign> findByReportToken(String reportToken);
 
-    List<AdCampaign> findByAdvertiserIdOrderByStartAtDesc(Long advertiserId);
+    List<AdCampaign> findByAdvertiserIdAndDeletedAtIsNullOrderByStartAtDesc(Long advertiserId);
 
-    List<AdCampaign> findAllByOrderByStartAtDesc();
+    List<AdCampaign> findAllByDeletedAtIsNullOrderByStartAtDesc();
+
+    long countByDeletedAtIsNull();
 
     long countByAdvertiserId(Long advertiserId);
 }
