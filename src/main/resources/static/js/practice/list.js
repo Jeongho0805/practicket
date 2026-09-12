@@ -85,36 +85,60 @@ function mobileNumberDigitsClass(value) {
 }
 
 /* PRACTICE_MID는 목록 탭에서만 보이는 단일 슬롯이다.
-   연습하기에서는 숨겨 보관하고 전체 랭킹·내 기록 첫 행으로 옮긴다. */
+   연습하기에서는 숨겨 보관하고 전체 랭킹·내 기록 첫 행으로 옮긴다.
+   어느 목록이 언제 다시 그려지든 자리는 항상 지금 켜진 탭을 따라간다 — 늦게 끝난 요청이
+   다른 탭으로 가져가면 보고 있는 화면에서 광고가 사라진다. */
+const PRACTICE_MID_TARGETS = {
+    ranking: { tbodyId: 'rankingTableBody', rowSelector: '.rank-row-clickable' },
+    myrecord: { tbodyId: 'myRecordTableBody', rowSelector: '.record-row' },
+};
+
 function notifyVisiblePracticeMid() {
     window.fillVisibleAdSlots?.();
     window.reportVisibleAdBanners?.();
 }
 
+/* 슬롯은 광고 행 안에 있어 행을 지우면 문서에서 떨어져 나간다. 지우기 전에 잡아 둔 참조로만 옮긴다 */
+let practiceMidHost = null;
+
 function restorePracticeMidHome() {
     const home = document.getElementById('practiceMidHome');
-    const host = document.getElementById('practiceMidHost');
-    if (home && host) home.appendChild(host);
+    if (home && practiceMidHost) home.appendChild(practiceMidHost);
 }
 
-function placePracticeMidInfeed(tbodyId, rowSelector) {
-    const host = document.getElementById('practiceMidHost');
+/* tbody 를 통째로 비우기 전에 그 안에 있는 슬롯만 홈으로 꺼낸다. 다른 탭에 있으면 건드리지 않는다 */
+function parkPracticeMid(tbodyId) {
     const tbody = document.getElementById(tbodyId);
-    if (!host || !tbody) return;
+    if (practiceMidHost && tbody && tbody.contains(practiceMidHost)) restorePracticeMidHome();
+}
+
+function activeHubView() {
+    return document.querySelector('.hub-tab.active')?.dataset.view;
+}
+
+function syncPracticeMidInfeed() {
+    practiceMidHost ??= document.getElementById('practiceMidHost');
+    if (!practiceMidHost) return;
+    document.querySelectorAll('tr.practice-mid-row').forEach(row => row.remove());
+    const target = PRACTICE_MID_TARGETS[activeHubView()];
+    const tbody = target && document.getElementById(target.tbodyId);
+    if (!tbody) {
+        restorePracticeMidHome();
+        return;
+    }
 
     // 광고는 1위/최신 기록 바로 위에 둔다. 빈 목록도 안내 행 위에 남긴다.
-    document.querySelectorAll('tr.practice-mid-row').forEach(row => row.remove());
-
     const tr = document.createElement('tr');
     tr.className = 'practice-mid-row';
     const td = document.createElement('td');
     td.colSpan = 4;
-    td.appendChild(host);
+    td.appendChild(practiceMidHost);
     tr.appendChild(td);
 
-    const firstItem = tbody.querySelector(rowSelector) || tbody.querySelector('tr');
+    const firstItem = tbody.querySelector(target.rowSelector) || tbody.querySelector('tr');
     if (firstItem) tbody.insertBefore(tr, firstItem);
     else tbody.appendChild(tr);
+    notifyVisiblePracticeMid();
 }
 
 function switchHubView(view) {
@@ -124,8 +148,7 @@ function switchHubView(view) {
     document.getElementById('view-practice').classList.toggle('active', practice);
     document.getElementById('view-rank').classList.toggle('active', !practice);
     if (practice) {
-        restorePracticeMidHome();
-        notifyVisiblePracticeMid();
+        syncPracticeMidInfeed();
         return;
     }
 
@@ -139,8 +162,7 @@ function switchHubView(view) {
             rankingLoaded = true;
             loadRanking(true);
         } else {
-            placePracticeMidInfeed('rankingTableBody', '.rank-row-clickable');
-            notifyVisiblePracticeMid();
+            syncPracticeMidInfeed();
         }
         // 숨어 있는 동안에는 끝 감지 줄이 안 울린다. 열릴 때 다시 건다
         rearmTail('rank');
@@ -201,9 +223,6 @@ async function loadMyRank() {
         myRank.classList.add(mobileNumberDigitsClass(my.rank));
         row.querySelector('.mr-nick').textContent = my.nickname || '나';
         applyTierBadge(row.querySelector('.mr-tier'), dist, my.best_ms, rankingState.type, true);
-        const pct = my.rank / my.total_users * 100;
-        row.querySelector('.mr-pct').textContent =
-            `상위 ${pct < 1 ? pct.toFixed(1) : Math.round(pct)}% · ${withComma(my.total_users)}명`;
         row.querySelector('.mr-time').innerHTML =
             (my.best_ms / 1000).toFixed(3) + 's<span class="badge-arrow">&#9660;</span>';
         row.querySelector('.rank-split').replaceWith(createSplitBar(my));
@@ -257,8 +276,7 @@ async function loadRanking(reset) {
     if (!reset && !rankingState.hasNext) return;
 
     if (reset) {
-        // tbody를 통째로 비우기 전에 인피드 슬롯을 안전한 홈으로 꺼낸다.
-        restorePracticeMidHome();
+        parkPracticeMid('rankingTableBody');
         rankingState.cursor = null;
         rankingState.hasNext = false;
         rankingState.rankOffset = 0;
@@ -299,10 +317,7 @@ async function loadRanking(reset) {
         rankingState.hasNext = data.has_next;
         rankingState.cursor = data.has_next ? data.next_cursor : null;
         document.getElementById('rankingSentinel').hidden = !data.has_next;
-        placePracticeMidInfeed('rankingTableBody', '.rank-row-clickable');
-        if (document.getElementById('panel-ranking').classList.contains('active')) {
-            notifyVisiblePracticeMid();
-        }
+        syncPracticeMidInfeed();
         rearmTail('rank');
 
     } catch (e) {
@@ -555,8 +570,7 @@ async function loadMyRecords(reset) {
     if (!reset && !myState.hasNext) return;
 
     if (reset) {
-        // 목록 재조회는 tbody를 갈아끼우므로, 살아 있는 슬롯을 먼저 보관한다.
-        restorePracticeMidHome();
+        parkPracticeMid('myRecordTableBody');
         myState.cursorId = null;
         myState.hasNext = false;
         myState.recordOffset = 0;
@@ -594,10 +608,7 @@ async function loadMyRecords(reset) {
         myState.hasNext = data.has_next;
         myState.cursorId = data.has_next ? data.next_cursor : null;
         document.getElementById('myRecordSentinel').hidden = !data.has_next;
-        placePracticeMidInfeed('myRecordTableBody', '.record-row');
-        if (document.getElementById('panel-myrecord').classList.contains('active')) {
-            notifyVisiblePracticeMid();
-        }
+        syncPracticeMidInfeed();
         rearmTail('myrecord');
 
     } catch (e) {
