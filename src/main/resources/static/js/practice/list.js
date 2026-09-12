@@ -12,7 +12,9 @@ const rankingState = {
     cursor: null,
     hasNext: false,
     loading: false,
-    rankOffset: 0
+    rankOffset: 0,
+    /* 종목·기간을 바꿀 때마다 오른다. 늦게 온 옛 응답이 새 화면을 덮지 않게 번호가 다르면 버린다 */
+    seq: 0
 };
 
 // ── 내 기록 상태 ──
@@ -202,12 +204,14 @@ async function loadMyRank() {
     const row = document.getElementById('myRankRow');
     const detail = document.getElementById('myRankDetail');
     if (!wrap || !row) return;
+    const seq = rankingState.seq;
 
     try {
         const [res, dist] = await Promise.all([
             authFetch(`/api/practice/my-rank?type=${rankingState.type}&period=${rankingState.period}`),
             fetchDistribution(rankingState.type),
         ]);
+        if (seq !== rankingState.seq) return;
         if (!res.ok) throw new Error('API error');
         const my = await res.json();
 
@@ -272,8 +276,8 @@ function rearmTail(key) {
 
 // ── 전체 랭킹 ──
 async function loadRanking(reset) {
-    if (rankingState.loading) return;
-    if (!reset && !rankingState.hasNext) return;
+    if (!reset && (rankingState.loading || !rankingState.hasNext)) return;
+    const seq = reset ? ++rankingState.seq : rankingState.seq;
 
     if (reset) {
         parkPracticeMid('rankingTableBody');
@@ -295,6 +299,7 @@ async function loadRanking(reset) {
 
     try {
         const [res, dist] = await Promise.all([fetch(url), fetchDistribution(rankingState.type)]);
+        if (seq !== rankingState.seq) return;
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
 
@@ -321,12 +326,12 @@ async function loadRanking(reset) {
         rearmTail('rank');
 
     } catch (e) {
-        if (reset) {
+        if (reset && seq === rankingState.seq) {
             document.getElementById('rankingTableBody').innerHTML =
                 '<tr class="rank-msg"><td colspan="4">불러오기에 실패했습니다.</td></tr>';
         }
     } finally {
-        rankingState.loading = false;
+        if (seq === rankingState.seq) rankingState.loading = false;
     }
 }
 
@@ -402,7 +407,9 @@ function applyTierBadge(el, dist, ms, type, mine = false) {
         return;
     }
     const index = tierIndexOf(dist.tier_cut_ms, ms);
-    el.className = `tier tier-sm tier--${TIER_KEYS[index]}`;
+    // 등급 색만 갈아 끼운다. mr-tier 같은 자리 표시 클래스를 지우면 다음 갱신에서 요소를 못 찾는다
+    [...el.classList].filter(c => c.startsWith('tier--')).forEach(c => el.classList.remove(c));
+    el.classList.add('tier', 'tier-sm', `tier--${TIER_KEYS[index]}`);
     el.textContent = TIER_NAMES[index];
     el.hidden = false;
     bindTierPop(el, { type, index, ms, mine });
