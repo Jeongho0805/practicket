@@ -1626,6 +1626,7 @@ button.tier:disabled {
 #tierPop {
     position: fixed;
     z-index: 60;
+    box-sizing: border-box;
     width: 300px;
     background: #fff;
     border-radius: 14px;

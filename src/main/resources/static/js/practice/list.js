@@ -151,6 +151,8 @@ function switchHubView(view) {
     document.getElementById('view-rank').classList.toggle('active', !practice);
     if (practice) {
         syncPracticeMidInfeed();
+        // 랭킹 탭으로 바로 열렸으면 그래프가 숨겨진 채(폭 0) 그려져 등급 배지가 다 빠진다
+        drawChart(chartType);
         return;
     }
 
@@ -977,6 +979,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     drawChart(chartType);
     window.addEventListener('resize', () => drawChart(chartType));
-});
 
     if (AGENCIES.includes(asked)) switchHubView('ranking');
+});
