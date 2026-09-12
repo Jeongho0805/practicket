@@ -889,18 +889,17 @@ function bindChartCursor(area, dist, startMs, endMs) {
 }
 
 /* 등급 구간 가운데에 배지. 폭이 40px 도 안 되는 구간은 배지가 겹치니 건너뛰되,
-   S 이상이 그렇게 빠지면 S+ 하나로 묶어 A 왼쪽 경계에 세운다. */
+   S 이상 셋 중 하나라도 그렇게 빠지면 셋을 S+ 하나로 묶어 A 왼쪽 경계에 세운다.
+   하나만 빼면 SSS 와 S+ 가 나란히 서서 사람이 적은 종목에서 겹쳐 보인다. */
 function renderTierBands(host, dist, startMs, endMs) {
     const edges = [startMs, ...dist.tier_cut_ms, endMs];
     const pxPerMs = host.clientWidth / (endMs - startMs);
-    let sPlus = false;
+    const widthPx = i => (Math.min(endMs, edges[i + 1]) - Math.max(startMs, edges[i])) * pxPerMs;
+    const sPlus = [0, 1, 2].some(i => widthPx(i) < 40);
     for (let i = 0; i < TIER_NAMES.length; i++) {
         const lo = Math.max(startMs, edges[i]);
         const hi = Math.min(endMs, edges[i + 1]);
-        if ((hi - lo) * pxPerMs < 40) {
-            if (i <= 2) sPlus = true;
-            continue;
-        }
+        if (widthPx(i) < 40 || (sPlus && i <= 2)) continue;
         const badge = document.createElement('span');
         badge.className = `tier tier-sm tier--${TIER_KEYS[i]}`;
         badge.textContent = TIER_NAMES[i];
