@@ -1,7 +1,8 @@
 package com.practicket.ad.application;
 
-import com.practicket.ad.component.AdvertiserReportToken;
-import com.practicket.ad.domain.*;
+import com.practicket.ad.domain.BannerStatDailyRepository;
+import com.practicket.ad.domain.BannerStatSum;
+import com.practicket.ad.domain.DailyStatSum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -11,19 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 어드민 화면이 쓰는 조회 전용 집계. banner_stat_daily는 배너×날짜 롤업이라
- * 화면에 필요한 합산/추이는 여기서 만들어 뷰 모델로 넘긴다.
+ * 노출·클릭 집계. banner_stat_daily는 배너×날짜 롤업이라 화면에 필요한 합산·추이를 여기서 만든다.
+ * 캠페인·광고주·자리 같은 판매 구조는 알지 못한다 — 그쪽은 {@link AdminCampaignService} 가 갖고,
+ * 배너 id 별 합계만 받아 간다.
  *
  * 주의: 노출·클릭은 Redis에 쌓였다가 {@code AdStatFlushScheduler}가 매시 정각에 flush한다.
  * 따라서 오늘 수치는 최대 1시간 늦다 — 화면에도 그 사실을 표기한다.
@@ -38,115 +36,20 @@ public class AdminAdStatService {
     public static final int MAX_WINDOW_DAYS = 365;
     /** 이 일수를 넘으면 막대를 주 단위로 접는다(하루 막대가 실오라기처럼 얇아지는 것 방지). */
     private static final int WEEKLY_ROLLUP_THRESHOLD = 60;
-    private static final int TOP_CAMPAIGNS = 5;
     /** 화면의 기간 프리셋 버튼. 이 값으로 들어온 요청만 버튼이 선택된 상태로 표시된다. */
     public static final int[] PRESETS = {7, 14, 30, 90};
 
-    private final BannerRepository bannerRepository;
-    private final AdSlotRepository adSlotRepository;
     private final BannerStatDailyRepository bannerStatDailyRepository;
-    private final AdvertiserReportToken advertiserReportToken;
 
-    /** 배너 목록 화면 — 배너 + 전 기간 누적 성과 + 상태. */
+    /** 배너 id → 전 기간 누적. 캠페인·광고주 합산은 이 값을 더해서 만든다. */
     @Transactional(readOnly = true)
-    public List<BannerRow> getBannerRows() {
-        LocalDate today = LocalDate.now();
-        Map<Long, BannerStatSum> totals = indexByBannerId(bannerStatDailyRepository.sumGroupByBanner());
-
-        return bannerRepository.findAllWithSlotOrderByCreatedAtDesc().stream()
-                .map(banner -> toRow(banner, totals.get(banner.getId()), today))
-                .toList();
-    }
-
-    /**
-     * 광고주 목록 — 배너의 advertiserName이 같은 것끼리 묶는다.
-     * 별도 advertiser 테이블을 두지 않은 선택이라 이름이 곧 식별자다(등록 폼의 자동완성으로 오타를 줄인다).
-     */
-    @Transactional(readOnly = true)
-    public List<AdvertiserRow> getAdvertiserRows() {
-        Map<String, List<BannerRow>> grouped = new LinkedHashMap<>();
-        for (BannerRow row : getBannerRows()) {
-            grouped.computeIfAbsent(displayName(row.getBanner().getAdvertiserName()), k -> new ArrayList<>()).add(row);
-        }
-        return grouped.entrySet().stream()
-                .map(entry -> toAdvertiserRow(entry.getKey(), entry.getValue()))
-                .sorted(Comparator.comparingLong(AdvertiserRow::getImpressions).reversed())
-                .toList();
+    public Map<Long, Totals> totalsByBanner() {
+        return indexByBannerId(bannerStatDailyRepository.sumGroupByBanner());
     }
 
     @Transactional(readOnly = true)
-    public Optional<AdvertiserRow> findAdvertiser(String name) {
-        return getAdvertiserRows().stream()
-                .filter(row -> row.getName().equals(name))
-                .findFirst();
-    }
-
-    /**
-     * 배너 등록/수정 폼에서 "이 슬롯에 이미 배너가 있다"고 알려주기 위한 자료.
-     * 같은 슬롯에 기간이 겹치는 배너가 둘 이상이면 {@code AdRenderService}가 분 단위로 로테이션하므로
-     * 각자의 노출이 나뉜다 — 단독 노출로 판 자리라면 사고다. 막지는 않고 경고만 한다.
-     *
-     * 노출이 꺼진 배너는 어차피 렌더되지 않으니 제외한다. 날짜는 JS에서 그대로 비교하도록 ISO 문자열로 넘긴다.
-     */
-    @Transactional(readOnly = true)
-    public List<SlotOccupancy> getSlotOccupancies() {
-        return bannerRepository.findAllWithSlotOrderByCreatedAtDesc().stream()
-                .filter(banner -> Boolean.TRUE.equals(banner.getEnabled()))
-                .filter(banner -> banner.getStartAt() != null && banner.getEndAt() != null)
-                .map(banner -> new SlotOccupancy(
-                        banner.getId(),
-                        banner.getSlot().getId(),
-                        displayName(banner.getAdvertiserName()),
-                        banner.getStartAt().toString(),
-                        banner.getEndAt().toString()))
-                .toList();
-    }
-
-    /** 배너 등록 폼의 광고주명 자동완성 목록. 이름 표기가 갈라지는 걸 막는 유일한 장치다. */
-    @Transactional(readOnly = true)
-    public List<String> getAdvertiserNames() {
-        return bannerRepository.findAll().stream()
-                .map(Banner::getAdvertiserName)
-                .filter(name -> name != null && !name.isBlank())
-                .map(String::trim)
-                .distinct()
-                .sorted()
-                .toList();
-    }
-
-    private AdvertiserRow toAdvertiserRow(String name, List<BannerRow> banners) {
-        long impressions = banners.stream().mapToLong(BannerRow::getImpressions).sum();
-        long clicks = banners.stream().mapToLong(BannerRow::getClicks).sum();
-        return new AdvertiserRow(
-                name,
-                banners.size(),
-                banners.stream().filter(b -> b.getStatus() == BannerStatus.LIVE).count(),
-                impressions, clicks, ctrOf(impressions, clicks),
-                banners.stream().map(b -> b.getBanner().getStartAt())
-                        .filter(Objects::nonNull).min(LocalDate::compareTo).orElse(null),
-                banners.stream().map(b -> b.getBanner().getEndAt())
-                        .filter(Objects::nonNull).max(LocalDate::compareTo).orElse(null),
-                banners.stream()
-                        .sorted(Comparator.comparing(
-                                (BannerRow b) -> b.getBanner().getStartAt(),
-                                Comparator.nullsLast(Comparator.reverseOrder())))
-                        .toList(),
-                "/ad/report/advertiser/" + advertiserReportToken.issue(name));
-    }
-
-    private String displayName(String advertiserName) {
-        return (advertiserName == null || advertiserName.isBlank()) ? "(광고주명 없음)" : advertiserName.trim();
-    }
-
-    /** 슬롯 목록 화면 — 슬롯 + 지금 그 슬롯에 실제로 걸려 있는 배너 수. */
-    @Transactional(readOnly = true)
-    public List<SlotRow> getSlotRows() {
-        LocalDate today = LocalDate.now();
-        Map<Long, Long> liveCounts = countLiveBannersBySlot(today);
-
-        return adSlotRepository.findAll().stream()
-                .map(slot -> new SlotRow(slot, liveCounts.getOrDefault(slot.getId(), 0L)))
-                .toList();
+    public Map<Long, Totals> totalsByBannerBetween(LocalDate from, LocalDate to) {
+        return indexByBannerId(bannerStatDailyRepository.sumGroupByBannerBetween(from, to));
     }
 
     /**
@@ -212,7 +115,6 @@ public class AdminAdStatService {
         long prevClicks = previous.stream().mapToLong(s -> nullSafe(s.getClicks())).sum();
 
         List<ChartBar> chart = toChartBars(daily);
-        LocalDate today = LocalDate.now();
 
         return new Dashboard(
                 from, to, days,
@@ -221,42 +123,7 @@ public class AdminAdStatService {
                 deltaPercent(clicks, prevClicks),
                 prevImpressions == 0L ? null : ctrOf(impressions, clicks) - ctrOf(prevImpressions, prevClicks),
                 prevFrom, prevTo,
-                chart, chart.size() != daily.size(),
-                topCampaigns(from, to),
-                bannerSummary(today),
-                slotSummary(today));
-    }
-
-    private List<BannerRow> topCampaigns(LocalDate from, LocalDate to) {
-        Map<Long, BannerStatSum> periodTotals =
-                indexByBannerId(bannerStatDailyRepository.sumGroupByBannerBetween(from, to));
-
-        return bannerRepository.findAllWithSlotOrderByCreatedAtDesc().stream()
-                .map(banner -> toRow(banner, periodTotals.get(banner.getId()), to))
-                .sorted(Comparator.comparingLong(BannerRow::getImpressions).reversed())
-                .limit(TOP_CAMPAIGNS)
-                .toList();
-    }
-
-    private BannerSummary bannerSummary(LocalDate today) {
-        List<Banner> banners = bannerRepository.findAll();
-        long live = banners.stream().filter(b -> BannerStatus.of(b, today) == BannerStatus.LIVE).count();
-        return new BannerSummary(banners.size(), live);
-    }
-
-    private SlotSummary slotSummary(LocalDate today) {
-        Map<Long, Long> liveCounts = countLiveBannersBySlot(today);
-        List<AdSlot> enabled = adSlotRepository.findAll().stream()
-                .filter(slot -> Boolean.TRUE.equals(slot.getEnabled()))
-                .toList();
-        long sold = enabled.stream().filter(slot -> liveCounts.getOrDefault(slot.getId(), 0L) > 0L).count();
-        return new SlotSummary(enabled.size(), sold);
-    }
-
-    private Map<Long, Long> countLiveBannersBySlot(LocalDate today) {
-        return bannerRepository.findAllWithSlotOrderByCreatedAtDesc().stream()
-                .filter(banner -> BannerStatus.of(banner, today) == BannerStatus.LIVE)
-                .collect(Collectors.groupingBy(banner -> banner.getSlot().getId(), Collectors.counting()));
+                chart, chart.size() != daily.size());
     }
 
     /** 데이터가 없는 날도 0으로 채워야 차트 간격이 실제 날짜와 맞는다. */
@@ -314,22 +181,15 @@ public class AdminAdStatService {
         return (int) Math.max(2L, Math.round(value * 100.0 / max));
     }
 
-    private BannerRow toRow(Banner banner, BannerStatSum sum, LocalDate today) {
-        long impressions = sum != null ? nullSafe(sum.getImpressions()) : 0L;
-        long clicks = sum != null ? nullSafe(sum.getClicks()) : 0L;
-        return new BannerRow(banner, impressions, clicks, ctrOf(impressions, clicks),
-                BannerStatus.of(banner, today));
-    }
-
-    private Map<Long, BannerStatSum> indexByBannerId(List<BannerStatSum> sums) {
-        Map<Long, BannerStatSum> map = new HashMap<>();
+    private Map<Long, Totals> indexByBannerId(List<BannerStatSum> sums) {
+        Map<Long, Totals> map = new HashMap<>();
         for (BannerStatSum sum : sums) {
-            map.put(sum.getBannerId(), sum);
+            map.put(sum.getBannerId(), new Totals(nullSafe(sum.getImpressions()), nullSafe(sum.getClicks())));
         }
         return map;
     }
 
-    private double ctrOf(long impressions, long clicks) {
+    public static double ctrOf(long impressions, long clicks) {
         return impressions == 0L ? 0.0 : clicks * 100.0 / impressions;
     }
 
@@ -347,15 +207,20 @@ public class AdminAdStatService {
 
     @Getter
     @AllArgsConstructor
-    public static class BannerRow {
-        private final Banner banner;
+    public static class Totals {
         private final long impressions;
         private final long clicks;
-        private final double ctr;
-        private final BannerStatus status;
 
-        public String getReportPath() {
-            return banner.getReportToken() == null ? null : "/ad/report/" + banner.getReportToken();
+        public static Totals empty() {
+            return new Totals(0L, 0L);
+        }
+
+        public Totals plus(Totals other) {
+            return new Totals(impressions + other.impressions, clicks + other.clicks);
+        }
+
+        public double getCtr() {
+            return ctrOf(impressions, clicks);
         }
     }
 
@@ -364,45 +229,6 @@ public class AdminAdStatService {
 
         public int days() {
             return (int) (ChronoUnit.DAYS.between(from, to) + 1);
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class SlotOccupancy {
-        private final Long bannerId;
-        private final Long slotId;
-        private final String advertiserName;
-        private final String startAt;
-        private final String endAt;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class AdvertiserRow {
-        private final String name;
-        private final int campaigns;
-        private final long liveCampaigns;
-        private final long impressions;
-        private final long clicks;
-        private final double ctr;
-        private final LocalDate firstStart;
-        private final LocalDate lastEnd;
-        /** 최근 시작 순. 상세 화면이 그대로 쓴다. */
-        private final List<BannerRow> banners;
-        /** 광고주에게 통째로 건네는 통합 리포트 주소. 이름을 서명해 만든 값이라 저장하지 않는다. */
-        private final String reportPath;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class SlotRow {
-        private final AdSlot slot;
-        private final long liveBannerCount;
-
-        /** 슬롯 카드의 채움 게이지. 한 슬롯에 여러 배너가 걸릴 수 있어 상한을 100%로 자른다. */
-        public int getFillPercent() {
-            return (int) Math.min(100L, liveBannerCount * 100L);
         }
     }
 
@@ -431,20 +257,6 @@ public class AdminAdStatService {
 
     @Getter
     @AllArgsConstructor
-    public static class BannerSummary {
-        private final int total;
-        private final long live;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class SlotSummary {
-        private final int enabled;
-        private final long sold;
-    }
-
-    @Getter
-    @AllArgsConstructor
     public static class Dashboard {
         private final LocalDate from;
         private final LocalDate to;
@@ -460,9 +272,6 @@ public class AdminAdStatService {
         private final List<ChartBar> chart;
         /** 막대를 주 단위로 접었는지. 차트 제목을 바꾸는 데 쓴다. */
         private final boolean weekly;
-        private final List<BannerRow> topCampaigns;
-        private final BannerSummary banners;
-        private final SlotSummary slots;
 
         public boolean isEmpty() {
             return impressions == 0L && clicks == 0L;

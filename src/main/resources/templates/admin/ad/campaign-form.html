@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('캠페인 등록')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('campaign')}"></aside>
+
+    <main class="main">
+        <div class="crumb"><a href="/admin-hoya/ad/campaigns">캠페인</a> · <span th:text="${form.id == null} ? '등록' : '수정'">등록</span></div>
+
+        <div class="topbar">
+            <div>
+                <h1 th:text="${form.id == null} ? '새 캠페인' : ${form.name}">새 캠페인</h1>
+                <p>계약 한 건과 그 아래 슬롯별 배너를 한 화면에서 만듭니다.</p>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <form id="campaign-form" method="post" action="/admin-hoya/ad/campaigns" enctype="multipart/form-data">
+            <input type="hidden" name="id" th:value="${form.id}">
+
+            <div class="card formcard wide">
+                <header><h2>계약</h2></header>
+
+                <div class="two">
+                    <div class="f">
+                        <label for="advertiserId">광고주</label>
+                        <select id="advertiserId" name="advertiserId" required>
+                            <option value="" th:if="${#lists.isEmpty(advertisers)}">등록된 광고주가 없습니다</option>
+                            <option th:each="advertiser : ${advertisers}"
+                                    th:value="${advertiser.id}"
+                                    th:selected="${advertiser.id == form.advertiserId}"
+                                    th:text="${advertiser.name}">광고주</option>
+                        </select>
+                        <span class="hint">
+                            없으면 <a href="/admin-hoya/ad/advertisers/new">광고주를 먼저 등록</a>해주세요.
+                        </span>
+                    </div>
+                    <div class="f">
+                        <label for="name">캠페인 이름</label>
+                        <input type="text" id="name" name="name" th:value="${form.name}"
+                               placeholder="8월 티켓오픈 프로모션" required>
+                    </div>
+                </div>
+
+                <div class="two">
+                    <div class="f">
+                        <label for="startAt">계약 기간</label>
+                        <div class="dates">
+                            <input type="date" id="startAt" name="startAt" th:value="${form.startAt}" required>
+                            <span class="sep">~</span>
+                            <input type="date" name="endAt" th:value="${form.endAt}" required>
+                        </div>
+                    </div>
+                    <div class="f">
+                        <label for="amount">계약 금액 (원)</label>
+                        <input type="number" id="amount" name="amount" th:value="${form.amount}" min="0" step="10000">
+                    </div>
+                </div>
+
+                <div class="f">
+                    <label for="linkUrl">기본 착지 주소</label>
+                    <input type="url" id="linkUrl" name="linkUrl" th:value="${form.linkUrl}"
+                           placeholder="https://example.com/event">
+                    <span class="hint">배너가 링크를 비우면 이 주소로 보냅니다.</span>
+                </div>
+
+                <div class="f">
+                    <label for="memo">메모</label>
+                    <textarea id="memo" name="memo" rows="3" th:text="${form.memo}"></textarea>
+                </div>
+            </div>
+
+            <div class="card formcard wide" id="assetbox">
+                <header>
+                    <h2>소재<small id="asset-count">이 계약에 쓸 이미지 · 0장</small></h2>
+                    <label class="btn ghost sm addasset">
+                        + 소재 올리기
+                        <input type="file" id="asset-input" accept="image/*" multiple hidden>
+                    </label>
+                </header>
+                <div class="pad">
+                    <div id="existing-assets" hidden>
+                        <span th:each="path : ${form.existingImagePaths}" th:attr="data-path=${path}"></span>
+                    </div>
+                    <div class="assets" id="asset-list"></div>
+                    <p class="hint" id="asset-empty">
+                        이미지를 여기로 끌어다 놓거나 <b>+ 소재 올리기</b> 를 누르세요.
+                        올린 뒤 아래 표의 소재 칸으로 끌어다 붙입니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card formcard wide">
+                <header>
+                    <h2>슬롯별 배너</h2>
+                    <button type="button" class="btn ghost sm" id="add-banner">+ 슬롯 추가</button>
+                </header>
+                <p class="note">
+                    기간을 비우면 계약 기간을 따릅니다. 소재는 기기별로 따로 올립니다 —
+                    한쪽만 올리면 반대 기기에서는 네트워크 광고가 대신 채웁니다.
+                    노출 중단·배너 삭제 모두 그 자리는 네트워크 광고로 돌아가고 쌓인 노출·클릭 기록은 남습니다.
+                </p>
+
+                <div class="bulkrows">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th style="width:200px">슬롯</th>
+                            <th style="width:220px">데스크톱 소재</th>
+                            <th style="width:220px">모바일 소재</th>
+                            <th style="width:220px">착지 주소</th>
+                            <th style="width:210px">노출 기간</th>
+                            <th style="width:96px">노출</th>
+                            <th style="width:52px">삭제</th>
+                        </tr>
+                        </thead>
+                        <tbody id="banner-rows">
+                        <tr th:each="banner, iter : ${form.banners}" th:classappend="${banner.deleted} ? 'removed'">
+                            <td>
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].id'" th:value="${banner.id}">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].deleted'"
+                                       th:value="${banner.deleted}" class="deleted-flag">
+                                <select th:name="'banners[' + ${iter.index} + '].slotId'">
+                                    <option th:each="slot : ${slots}"
+                                            th:value="${slot.id}"
+                                            th:selected="${slot.id == banner.slotId}"
+                                            th:attr="data-pcw=${slot.pcWidth},data-pch=${slot.pcHeight},
+                                                     data-mow=${slot.mobileWidth},data-moh=${slot.mobileHeight}"
+                                            th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
+                                </select>
+                            </td>
+                            <td>
+                                <div class="fname drop" data-dev="pc">
+                                    <span class="thumbwrap">
+                                        <img class="thumb" th:if="${banner.pcImagePath != null}"
+                                             th:src="${banner.pcImagePath}" alt="데스크톱 소재">
+                                        <div class="thumb ph" th:if="${banner.pcImagePath == null}"><span>없음</span></div>
+                                        <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기"
+                                                th:hidden="${banner.pcImagePath == null}">&times;</button>
+                                    </span>
+                                    <span class="fmeta">
+                                        <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                                        <span class="fit"></span>
+                                    </span>
+                                </div>
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].pcImagePath'"
+                                       th:value="${banner.pcImagePath}">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].clearPcImage'"
+                                       value="false" class="clear-flag">
+                                <input type="file" th:name="'banners[' + ${iter.index} + '].pcImage'" accept="image/*" hidden>
+                            </td>
+                            <td>
+                                <div class="fname drop" data-dev="mobile">
+                                    <span class="thumbwrap">
+                                        <img class="thumb" th:if="${banner.mobileImagePath != null}"
+                                             th:src="${banner.mobileImagePath}" alt="모바일 소재">
+                                        <div class="thumb ph" th:if="${banner.mobileImagePath == null}"><span>없음</span></div>
+                                        <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기"
+                                                th:hidden="${banner.mobileImagePath == null}">&times;</button>
+                                    </span>
+                                    <span class="fmeta">
+                                        <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                                        <span class="fit"></span>
+                                    </span>
+                                </div>
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].mobileImagePath'"
+                                       th:value="${banner.mobileImagePath}">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].clearMobileImage'"
+                                       value="false" class="clear-flag">
+                                <input type="file" th:name="'banners[' + ${iter.index} + '].mobileImage'" accept="image/*" hidden>
+                            </td>
+                            <td>
+                                <div class="percell linkcell">
+                                    <span class="tag inherit inherit-chip"><i></i>계약 링크 따름</span>
+                                    <input type="url" th:name="'banners[' + ${iter.index} + '].linkUrl'"
+                                           th:value="${banner.linkUrl}" placeholder="이 배너 전용 주소">
+                                    <button type="button" class="linkbtn link-toggle">링크 직접 지정</button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="percell period">
+                                    <span class="tag inherit inherit-chip"><i></i>계약 기간 따름</span>
+                                    <div class="dates2">
+                                        <input type="date" th:name="'banners[' + ${iter.index} + '].startAt'"
+                                               th:value="${banner.startAt}">
+                                        <span class="sep">~</span>
+                                        <input type="date" th:name="'banners[' + ${iter.index} + '].endAt'"
+                                               th:value="${banner.endAt}">
+                                    </div>
+                                    <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
+                                </div>
+                            </td>
+                            <td class="rowctl">
+                                <input type="hidden" th:name="'banners[' + ${iter.index} + '].enabled'"
+                                       th:value="${banner.enabled}" class="enabled-flag">
+                                <button type="button" class="btn ghost sm expose-toggle"
+                                        th:text="${banner.enabled} ? '노출 중단' : '노출 재개'">노출 중단</button>
+                            </td>
+                            <td class="rowctl">
+                                <button type="button" class="row-x remove-banner" title="배너 삭제" aria-label="배너 삭제">&times;</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="removed-bar" class="removed-bar" hidden>
+                    삭제 예정 <b id="removed-count">0</b>개 · 저장하면 노출이 끝나고 기록은 남습니다
+                    <button type="button" class="linkbtn" id="removed-undo">되돌리기</button>
+                </div>
+            </div>
+
+            <div class="formactions">
+                <a class="btn ghost" href="/admin-hoya/ad/campaigns">취소</a>
+                <button type="submit" class="btn">저장</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<template id="banner-row-template">
+    <tr>
+        <td>
+            <input type="hidden" name="banners[__i__].id" value="">
+            <input type="hidden" name="banners[__i__].deleted" value="false" class="deleted-flag">
+            <select name="banners[__i__].slotId">
+                <option th:each="slot : ${slots}" th:value="${slot.id}"
+                        th:attr="data-pcw=${slot.pcWidth},data-pch=${slot.pcHeight},
+                                 data-mow=${slot.mobileWidth},data-moh=${slot.mobileHeight}"
+                        th:text="${slot.name} + ' · ' + ${slot.code}">슬롯</option>
+            </select>
+        </td>
+        <td>
+            <div class="fname drop" data-dev="pc">
+                <span class="thumbwrap"><div class="thumb ph"><span>없음</span></div>
+                    <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기" hidden>&times;</button></span>
+                <span class="fmeta">
+                    <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                    <span class="fit"></span>
+                </span>
+            </div>
+            <input type="hidden" name="banners[__i__].pcImagePath" value="">
+            <input type="hidden" name="banners[__i__].clearPcImage" value="false" class="clear-flag">
+            <input type="file" name="banners[__i__].pcImage" accept="image/*" hidden>
+        </td>
+        <td>
+            <div class="fname drop" data-dev="mobile">
+                <span class="thumbwrap"><div class="thumb ph"><span>없음</span></div>
+                    <button type="button" class="thumb-x" title="소재 떼기" aria-label="소재 떼기" hidden>&times;</button></span>
+                <span class="fmeta">
+                    <button type="button" class="linkbtn pick-file">파일 올리기</button>
+                    <span class="fit"></span>
+                </span>
+            </div>
+            <input type="hidden" name="banners[__i__].mobileImagePath" value="">
+            <input type="hidden" name="banners[__i__].clearMobileImage" value="false" class="clear-flag">
+            <input type="file" name="banners[__i__].mobileImage" accept="image/*" hidden>
+        </td>
+        <td>
+            <div class="percell linkcell">
+                <span class="tag inherit inherit-chip"><i></i>계약 링크 따름</span>
+                <input type="url" name="banners[__i__].linkUrl" placeholder="이 배너 전용 주소">
+                <button type="button" class="linkbtn link-toggle">링크 직접 지정</button>
+            </div>
+        </td>
+        <td>
+            <div class="percell period">
+                <span class="tag inherit inherit-chip"><i></i>계약 기간 따름</span>
+                <div class="dates2">
+                    <input type="date" name="banners[__i__].startAt">
+                    <span class="sep">~</span>
+                    <input type="date" name="banners[__i__].endAt">
+                </div>
+                <button type="button" class="linkbtn period-toggle">기간 직접 지정</button>
+            </div>
+        </td>
+        <td class="rowctl">
+            <input type="hidden" name="banners[__i__].enabled" value="true" class="enabled-flag">
+            <button type="button" class="btn ghost sm expose-toggle">노출 중단</button>
+        </td>
+        <td class="rowctl">
+            <button type="button" class="row-x remove-banner" title="배너 삭제" aria-label="배너 삭제">&times;</button>
+        </td>
+    </tr>
+</template>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    // 인덱스가 비어도 서버가 리스트를 채우므로 재정렬하지 않는다. 지운 줄은 감춘 뒤 deleted=true 로 보낸다.
+    const rows = document.getElementById('banner-rows');
+    const template = document.getElementById('banner-row-template');
+    let nextIndex = rows.querySelectorAll('tr').length;
+
+    document.getElementById('add-banner').addEventListener('click', () => {
+        const html = template.innerHTML.replaceAll('__i__', nextIndex++);
+        const holder = document.createElement('tbody');
+        holder.innerHTML = html;
+        const row = holder.firstElementChild;
+        rows.appendChild(row);
+        syncAllInherit(row);
+        paintExpose(row);
+    });
+
+    const removedBar = document.getElementById('removed-bar');
+    const removedCount = document.getElementById('removed-count');
+
+    function syncRemovedBar() {
+        const removed = rows.querySelectorAll('tr.removed').length;
+        removedCount.textContent = removed;
+        removedBar.hidden = removed === 0;
+    }
+
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('remove-banner')) return;
+        const row = event.target.closest('tr');
+        // 아직 저장 안 된 줄은 흔적 없이 지운다. 저장된 배너는 deleted=true 로 보내고 되돌릴 수 있게 남긴다
+        if (!row.querySelector('input[name$=".id"]').value) {
+            row.remove();
+            return;
+        }
+        row.querySelector('.deleted-flag').value = 'true';
+        row.classList.add('removed');
+        syncRemovedBar();
+    });
+
+    document.getElementById('removed-undo').addEventListener('click', () => {
+        rows.querySelectorAll('tr.removed').forEach(row => {
+            row.querySelector('.deleted-flag').value = 'false';
+            row.classList.remove('removed');
+        });
+        syncRemovedBar();
+    });
+
+    // 노출 중단은 광고만 멈춘다. 행은 남고 기록도 남는다
+    function paintExpose(row) {
+        const on = row.querySelector('.enabled-flag').value === 'true';
+        row.querySelector('.expose-toggle').textContent = on ? '노출 중단' : '노출 재개';
+        row.classList.toggle('paused', !on);
+    }
+
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('expose-toggle')) return;
+        const row = event.target.closest('tr');
+        const flag = row.querySelector('.enabled-flag');
+        flag.value = flag.value === 'true' ? 'false' : 'true';
+        paintExpose(row);
+    });
+
+    // 썸네일의 X. 그 기기 그림만 뗀다 — 저장하면 그 기기에서는 네트워크 광고가 대신 나간다
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('thumb-x')) return;
+        const cell = event.target.closest('.fname.drop');
+        const row = cell.closest('tr');
+        const dev = cell.dataset.dev;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'true';
+        row.querySelector('input[type=hidden][name$="' + (dev === 'pc' ? 'pcImagePath' : 'mobileImagePath') + '"]').value = '';
+        row.querySelector('input[type=file][name$="' + (dev === 'pc' ? 'pcImage' : 'mobileImage') + '"]').value = '';
+        cell.removeAttribute('data-asset-id');
+        cell.querySelector('img, .thumb.ph').outerHTML = '<div class="thumb ph"><span>없음</span></div>';
+        event.target.hidden = true;
+        const fit = cell.querySelector('.fit');
+        if (fit) { fit.textContent = ''; fit.className = 'fit'; }
+    });
+
+    // ── 기간·링크 상속 전환 ──
+    // 값이 비어 있으면 계약을 따른다는 규칙은 서버와 같다. 화면은 그 상태를 눈에 보이게만 한다.
+    function label(cell) {
+        const period = cell.classList.contains('period');
+        cell.querySelector('.linkbtn').textContent = cell.classList.contains('own')
+            ? (period ? '계약 기간 따르기' : '계약 링크 따르기')
+            : (period ? '기간 직접 지정' : '링크 직접 지정');
+    }
+
+    // 처음 그릴 때만 값으로 상태를 정한다. 그 뒤로는 버튼이 상태를 갖는다
+    function syncAllInherit(scope) {
+        scope.querySelectorAll('.period, .linkcell').forEach(cell => {
+            cell.classList.toggle('own', [...cell.querySelectorAll('input')].some(i => i.value));
+            label(cell);
+        });
+    }
+
+    rows.addEventListener('click', (event) => {
+        if (!event.target.classList.contains('period-toggle')
+            && !event.target.classList.contains('link-toggle')) return;
+        const cell = event.target.closest('.percell');
+        if (cell.classList.contains('own')) {
+            cell.querySelectorAll('input').forEach(i => { i.value = ''; });
+            cell.classList.remove('own');
+        } else {
+            cell.classList.add('own');
+            cell.querySelector('input').focus();
+        }
+        label(cell);
+    });
+
+    // ── 소재함 ──
+    // 서버는 지금처럼 행마다 파일을 받는다. 소재함은 그 파일을 고르는 방법을 바꿀 뿐이다.
+    const assetList = document.getElementById('asset-list');
+    const assetInput = document.getElementById('asset-input');
+    const assetBox = document.getElementById('assetbox');
+    const assetCount = document.getElementById('asset-count');
+    const assetEmpty = document.getElementById('asset-empty');
+    const assets = new Map();
+    let assetSeq = 0;
+    let picked = null;
+
+    document.querySelectorAll('#existing-assets [data-path]').forEach(node => {
+        const path = node.dataset.path;
+        const id = 'a' + (++assetSeq);
+        const name = decodeURIComponent(path.substring(path.lastIndexOf('/') + 1));
+        const asset = { id, file: null, path, url: path, name, width: 0, height: 0 };
+        const image = new Image();
+        image.onload = () => {
+            asset.width = image.naturalWidth;
+            asset.height = image.naturalHeight;
+            renderAssets();
+            markExistingUsage(asset);
+        };
+        image.src = path;
+        assets.set(id, asset);
+    });
+
+    function addAssets(files) {
+        [...files].filter(f => f.type.startsWith('image/')).forEach(file => {
+            const id = 'a' + (++assetSeq);
+            const url = URL.createObjectURL(file);
+            const image = new Image();
+            image.onload = () => {
+                assets.get(id).width = image.naturalWidth;
+                assets.get(id).height = image.naturalHeight;
+                renderAssets();
+            };
+            image.src = url;
+            assets.set(id, { id, file, path: null, url, name: file.name, width: 0, height: 0 });
+        });
+        renderAssets();
+    }
+
+    function renderAssets() {
+        assetList.innerHTML = '';
+        assets.forEach(asset => {
+            const card = document.createElement('div');
+            card.className = 'asset' + (picked === asset.id ? ' picked' : '');
+            card.draggable = true;
+            card.dataset.id = asset.id;
+            const size = asset.width ? asset.width + ' x ' + asset.height : '읽는 중';
+            card.innerHTML = '<img src="' + asset.url + '" alt="">'
+                + '<div class="am"><b></b><span>' + size + '</span></div>'
+                + '<button type="button" class="linkbtn asset-del">보관함에서 지우기</button>';
+            card.querySelector('b').textContent = asset.name;
+            card.querySelector('img').addEventListener('error', () => card.classList.add('broken'));
+            assetList.appendChild(card);
+        });
+        assetCount.textContent = '이 계약에 쓸 이미지 · ' + assets.size + '장';
+        assetEmpty.hidden = assets.size > 0;
+    }
+
+    assetInput.addEventListener('change', () => { addAssets(assetInput.files); assetInput.value = ''; });
+
+    assetList.addEventListener('click', (event) => {
+        const card = event.target.closest('.asset');
+        if (!card) return;
+        if (event.target.classList.contains('asset-del')) {
+            const asset = assets.get(card.dataset.id);
+            URL.revokeObjectURL(asset.url);
+            assets.delete(card.dataset.id);
+            if (picked === card.dataset.id) picked = null;
+            renderAssets();
+            return;
+        }
+        picked = picked === card.dataset.id ? null : card.dataset.id;
+        document.body.classList.toggle('picking', picked !== null);
+        renderAssets();
+    });
+
+    assetList.addEventListener('dragstart', (event) => {
+        const card = event.target.closest('.asset');
+        if (!card) return;
+        event.dataTransfer.setData('text/plain', card.dataset.id);
+        event.dataTransfer.effectAllowed = 'copy';
+        document.body.classList.add('dragging-asset');
+    });
+    assetList.addEventListener('dragend', () => document.body.classList.remove('dragging-asset'));
+
+    [assetBox].forEach(box => {
+        box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('over'); });
+        box.addEventListener('dragleave', () => box.classList.remove('over'));
+        box.addEventListener('drop', e => {
+            if (!e.dataTransfer.files.length) return;
+            e.preventDefault();
+            box.classList.remove('over');
+            addAssets(e.dataTransfer.files);
+        });
+    });
+
+    /** 파일 입력칸에 File 을 직접 심는다. 서버 쪽은 손대지 않아도 된다 */
+    function attach(cell, asset) {
+        const row = cell.closest('tr');
+        const dev = cell.dataset.dev;
+        const input = row.querySelector('input[type=file][name$="' + (dev === 'pc' ? 'pcImage' : 'mobileImage') + '"]');
+        const transfer = new DataTransfer();
+        if (asset.file) transfer.items.add(asset.file);
+        input.files = transfer.files;
+        const pathInput = row.querySelector('input[type=hidden][name$="' + (dev === 'pc' ? 'pcImagePath' : 'mobileImagePath') + '"]');
+        if (asset.path) pathInput.value = asset.path;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'false';
+        cell.dataset.assetId = asset.id;
+
+        cell.querySelector('img, .thumb.ph').outerHTML =
+            '<img class="thumb" src="' + asset.url + '" alt="소재">';
+        cell.querySelector('.thumb-x').hidden = false;
+        markFit(cell, asset);
+    }
+
+    function markExistingUsage(asset) {
+        rows.querySelectorAll('tr').forEach(row => {
+            ['pc', 'mobile'].forEach(dev => {
+                const suffix = dev === 'pc' ? 'pcImagePath' : 'mobileImagePath';
+                const pathInput = row.querySelector('input[type=hidden][name$="' + suffix + '"]');
+                const cell = row.querySelector('.fname.drop[data-dev="' + dev + '"]');
+                if (pathInput?.value === asset.path && cell) {
+                    cell.dataset.assetId = asset.id;
+                    markFit(cell, asset);
+                }
+            });
+        });
+    }
+
+    /** 슬롯 규격과 비율이 맞는지 알려준다. 막지는 않는다 */
+    function markFit(cell, asset) {
+        const row = cell.closest('tr');
+        const option = row.querySelector('select').selectedOptions[0];
+        const dev = cell.dataset.dev;
+        const w = Number(option.dataset[dev === 'pc' ? 'pcw' : 'mow']);
+        const h = Number(option.dataset[dev === 'pc' ? 'pch' : 'moh']);
+        const fit = cell.querySelector('.fit');
+        if (!fit) return;
+        if (!w || !h || !asset.width) { fit.textContent = ''; return; }
+        const same = Math.abs((asset.width / asset.height) - (w / h)) < 0.02;
+        fit.textContent = same ? '비율 맞음' : '비율 다름 · 슬롯 ' + w + 'x' + h;
+        fit.className = 'fit' + (same ? ' ok' : ' bad');
+    }
+
+    rows.addEventListener('dragover', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        cell.classList.add('over');
+    });
+    rows.addEventListener('dragleave', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (cell) cell.classList.remove('over');
+    });
+    rows.addEventListener('drop', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell) return;
+        event.preventDefault();
+        cell.classList.remove('over');
+        const asset = assets.get(event.dataTransfer.getData('text/plain'));
+        if (asset) attach(cell, asset);
+    });
+
+    // 고른 소재가 있으면 칸을 눌러서도 붙는다 — 끌기가 어려운 화면을 위해 남긴다
+    rows.addEventListener('click', (event) => {
+        const cell = event.target.closest('.fname.drop');
+        if (!cell || !picked || event.target.closest('button')) return;
+        attach(cell, assets.get(picked));
+    });
+
+    rows.addEventListener('click', (event) => {
+        const btn = event.target.closest('.pick-file');
+        if (!btn) return;
+        btn.closest('td').querySelector('input[type=file]').click();
+    });
+
+    // 소재함 밖에서 파일을 직접 고르면, 전에 붙였던 소재함 항목과의 연결은 끊긴다.
+    rows.addEventListener('change', (event) => {
+        if (!event.target.matches('input[type=file]')) return;
+        const row = event.target.closest('tr');
+        const dev = event.target.name.endsWith('pcImage') ? 'pc' : 'mobile';
+        const cell = row?.querySelector('.fname.drop[data-dev="' + dev + '"]');
+        if (!cell) return;
+        cell.removeAttribute('data-asset-id');
+        const file = event.target.files[0];
+        if (!file) return;
+        row.querySelector('input.clear-flag[name$="' + (dev === 'pc' ? 'clearPcImage' : 'clearMobileImage') + '"]').value = 'false';
+        const url = URL.createObjectURL(file);
+        cell.querySelector('img, .thumb.ph').outerHTML = '<img class="thumb" src="' + url + '" alt="소재">';
+        cell.querySelector('.thumb-x').hidden = false;
+        const image = new Image();
+        image.onload = () => markFit(cell, { width: image.naturalWidth, height: image.naturalHeight });
+        image.src = url;
+    });
+
+    // 슬롯을 바꾸면 붙어 있는 그림을 새 규격으로 다시 판정한다
+    rows.addEventListener('change', (event) => {
+        if (!event.target.matches('select')) return;
+        event.target.closest('tr').querySelectorAll('.fname.drop').forEach(cell => {
+            const image = cell.querySelector('img.thumb');
+            if (!image) return;
+            const judge = () => markFit(cell, { width: image.naturalWidth, height: image.naturalHeight });
+            image.complete ? judge() : image.addEventListener('load', judge, { once: true });
+        });
+    });
+
+    // 안 붙은 소재는 저장돼도 아무 데도 안 간다. 한 번은 알려준다
+    let warned = false;
+    document.getElementById('campaign-form').addEventListener('submit', (event) => {
+        const used = new Set([...rows.querySelectorAll('.fname.drop[data-asset-id]')]
+            .map(cell => cell.dataset.assetId)).size;
+        const left = assets.size - used;
+        if (warned || left <= 0) return;
+        event.preventDefault();
+        warned = true;
+        const box = document.createElement('div');
+        box.className = 'warnbox';
+        box.textContent = '안 붙은 소재 ' + left + '장은 저장되지 않습니다. 그대로 저장하려면 다시 누르세요.';
+        document.getElementById('campaign-form').prepend(box);
+        box.scrollIntoView({ block: 'center' });
+    });
+
+    syncAllInherit(rows);
+    rows.querySelectorAll('tr').forEach(paintExpose);
+    syncRemovedBar();
+    renderAssets();
+    assets.forEach(markExistingUsage);
+</script>
+</body>
+</html>

@@ -1,9 +1,6 @@
 /* ============================================================
    n-ticket 대기열 + 좌석 선택 — 인트로에서 넘어온 반응속도로 시작한다.
 
-   순번을 정하는 상수는 i-ticket-new 와 같은 값을 쓴다. 대기 시간이 랭킹의 일부라
-   연습 종류마다 다르면 기록을 나란히 비교할 수 없기 때문이다.
-
    진행률과 단계 판정은 실물 tickets.interpark.com/waiting 의 로직 그대로다.
        barPercent = (firstRank - rank) / firstRank * 100
        isAlmost   = barPercent > 90     → 포인트색이 빨강으로 바뀐다
@@ -15,21 +12,19 @@
    좌석 화면의 동작은 실물 onestop/seat 에 직접 들어가 하나씩 눌러보고 맞췄다.
    자세한 실측값은 docs/nol-ticketing-ui.md 참고.
    ============================================================ */
-import { authFetch, showAlert } from '/js/common.js';
+import { authFetch, showAlert, showConfirm } from '/js/common.js';
 import {
     bestRecordKey, renderSplitBar, readBestRecord, saveBestRecord,
     renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
 } from '/js/practice/result-split.js';
 import * as run from '/js/practice/run-state.js';
+import { QUEUE, initialRank } from '/js/practice/queue-model.js';
 
 const INTRO_URL = '/practice/n-ticket/intro';
 const BEST_RECORD_KEY = bestRecordKey('n-ticket');
 
-const QUEUE = { MIN: 5000, MAX: 200000, DEQ: 20000, MAX_REACTION: 3000 };
 const ALMOST_PERCENT = 90;
 const AWAITERS_BEHIND = 15320;
-const LOADING_MS = 800;
-const TICK_MS = 200;
 
 const SEAT_LIMIT_MS = 10 * 60 * 1000;
 const MAX_PICK = 4;
@@ -66,8 +61,7 @@ function phase(state) {
 }
 
 function startQueue() {
-    const step = Math.min(Math.floor(Math.min(reaction, QUEUE.MAX_REACTION) / 100), 30);
-    const firstRank = Math.round(QUEUE.MIN + (step / 30) * (QUEUE.MAX - QUEUE.MIN));
+    const firstRank = initialRank(reaction);
     T.firstRank = firstRank;
 
     const rootEl = $('waitRoot');
@@ -98,7 +92,9 @@ function startQueue() {
 
         totalEl.textContent = (rank + AWAITERS_BEHIND).toLocaleString('ko-KR') + '명';
 
-        const rate = Math.min(100, Math.round(barPercent * 0.96));
+        /* 실물이 말하는 예매율은 팔린 티켓의 비율이지 내 순번이 아니다.
+           좌석은 카운트다운이 끝난 순간부터 팔리므로 대기 중에도 값이 있다. */
+        const rate = Math.floor(soldFraction(soldElapsed()) * 100);
         rateEl.textContent = rate + '%';
         rateEl.dataset.rate = rate;
 
@@ -115,7 +111,7 @@ function startQueue() {
     };
 
     render();
-    const timer = setInterval(render, TICK_MS);
+    const timer = setInterval(render, QUEUE.TICK_MS);
 }
 
 /* ═══════════ 좌석 도면 ═══════════ */
@@ -291,7 +287,9 @@ const SEAT = { spacing: 3, radius: 1 };
    실측이 아니라 목업(docs/mockups/n-ticket/seat-decay.html)으로 체감을 맞춘 값이다. */
 /* random 은 자리를 안 가리고 사는 비율이다. 이게 없으면 앞 구역이 통째로 비워진 뒤에야
    뒤 구역이 팔려서, 뒤쪽에 빈자리가 흩어져 있는 실제 예매창과 달라진다. */
-const SELL = { totalMs: 40000, k: 4, jitter: 400, random: .20 };
+/* k 를 6 에서 3 으로 낮췄다. 6 이면 좌석 화면에 닿기도 전에 98% 가 팔려 고르는 동안에는
+   초당 몇 석밖에 안 빠진다 — 눈앞에서 자리가 사라지는 긴장이 없었다. 매진 시각은 그대로다. */
+const SELL = { totalMs: 30000, k: 3, jitter: 400, random: .20 };
 
 /* 무대에서 가까운 자리부터 팔린다. 흔들림을 안 섞으면 동심원으로 퍼져 부자연스럽다 */
 const STAGE_AT = { x: 370.5, y: 74 };
@@ -388,9 +386,11 @@ function buildSellOrder() {
         .map(s => s.i);
 }
 
+/* 비율만 따로 뽑아 둔다. 대기열은 도면이 만들어지기 전이라 좌석 수를 못 쓴다 */
+const soldFraction = ms => ms >= SELL.totalMs ? 1 : 1 - Math.pow(1 - ms / SELL.totalMs, SELL.k);
+
 function soldAt(ms) {
-    if (ms >= SELL.totalMs) return seats.length;
-    return Math.floor(seats.length * (1 - Math.pow(1 - ms / SELL.totalMs, SELL.k)));
+    return Math.floor(seats.length * soldFraction(ms));
 }
 
 /* 파는 것과 그리는 것을 나눈다. 여기서는 팔린 목록만 늘리고 화면은 건드리지 않는다.
@@ -413,9 +413,9 @@ function closeSeat(i) {
     dot.setAttribute('stroke', SOLD_FILL);
 }
 
-/* 실물은 좌석 상태를 주기적으로 받아오지 않는다(2026-08-17 측정: 가만히 35초 동안 요청 0건).
-   확대·이동으로 보이는 블록이 바뀔 때만 다시 받아오므로, 가만히 있으면 화면이 낡은 채로 남는다.
-   낡은 화면을 누르면 그때 서버가 거절해 바로잡힌다 — 그 몫이 onPointerUp 의 선점 검사다. */
+/* 실물은 가만히 있어도 4초마다 좌석 상태를 다시 받아온다(2026-09-06 측정: 30초에 80건).
+   우리는 그보다 촘촘한 0.5초로 칠한다 — 실물의 4초는 트래픽을 아끼려는 간격이고,
+   자리가 눈앞에서 사라지는 것이 이 연습에서 재현해야 할 긴장이기 때문이다. */
 function syncSeats() {
     while (syncedIdx < soldList.length) closeSeat(soldList[syncedIdx++]);
 }
@@ -586,14 +586,48 @@ let drag = null;
 /* 포인터를 캡처하면 그 뒤의 이벤트는 target 이 전부 뷰포트로 바뀐다.
    무엇을 눌렀는지는 누른 순간에만 알 수 있으므로 여기서 기억해 둔다.
    확대 버튼·미니맵도 뷰포트 안에 있어서, 그 위에서는 캡처하지 않아야 클릭이 살아남는다. */
+/* 실물 모바일에는 확대·축소 버튼이 없다(zoomWrap 이 display:none). 손가락 두 개가 유일한 확대 수단이라
+   뷰포트에 touch-action:none 을 걸어 둔 이상 우리가 직접 합성해야 한다.
+   손가락 사이 거리의 비율을 배율에 곱하고, 두 손가락 가운데에 있던 도면 좌표를 그 자리에 붙들어 둔다. */
+const pointers = new Map();
+let pinch = null;
+
+const pinchSpan = () => {
+    const [a, b] = [...pointers.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+};
+
+function startPinch() {
+    drag = null;
+    const { d, cx, cy } = pinchSpan();
+    const [mx, my] = toMap(cx, cy);
+    pinch = { d0: d, z0: view.z, mx, my };
+}
+
 function onPointerDown(e) {
     if (e.button !== 0) return;
     if (e.target.closest('button, .nt-minimap, .nt-grade-layer')) return;
-    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false, target: e.target };
+
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     $('planViewport').setPointerCapture(e.pointerId);
+
+    if (pointers.size >= 2) { startPinch(); return; }
+    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false, target: e.target };
 }
 
 function onPointerMove(e) {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pinch && pointers.size >= 2) {
+        const steps = ZOOM.steps;
+        const { d, cx, cy } = pinchSpan();
+        const z = clamp(pinch.z0 * (d / pinch.d0), view.fit, steps[steps.length - 1]);
+        const r = $('planViewport').getBoundingClientRect();
+        flashMiniMap();
+        setView(z, cx - r.left - pinch.mx * z, cy - r.top - pinch.my * z);
+        return;
+    }
+
     if (!drag) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) > 4) {
@@ -605,6 +639,15 @@ function onPointerMove(e) {
 }
 
 function onPointerUp(e) {
+    pointers.delete(e.pointerId);
+
+    /* 손가락 하나를 떼도 남은 하나로 좌석을 고르면 안 된다. 다 뗄 때까지 핀치로 본다 */
+    if (pinch) {
+        if (pointers.size === 0) pinch = null;
+        drag = null;
+        return;
+    }
+
     if (!drag) return;
     const { moved, target } = drag;
     drag = null;
@@ -629,18 +672,25 @@ function onMiniJump(e) {
 
 const picked = [];
 
-const seatName = s => `${s.block}구역 ${s.row}열 ${s.col}번`;
+/* 플로어 블록은 F1·F2… 이고 링 블록은 101 부터다. 실물이 층부터 읽어주므로 앞에 붙인다 */
+const floorName = b => String(b).startsWith('F') ? '플로어' : `${Math.floor(Number(b) / 100)}층`;
+const seatName = s => `${floorName(s.block)} ${s.block}구역 ${s.row}열 ${s.col}번`;
 
 function renderPicked() {
     $('pickedList').innerHTML = picked.map(i => {
         const s = seats[i], g = GRADE[s.grade];
-        return `<li><i>${g.name}</i><b>${seatName(s)}</b><span>${won(g.price)}</span></li>`;
+        return `<li data-i="${i}"><i>${g.name}</i><b>${seatName(s)}</b><span>${won(g.price)}</span>`
+            + `<button type="button" class="nt-picked-del" aria-label="선택 해제">✕</button></li>`;
     }).join('');
 
     $('pickedEmpty').hidden = picked.length > 0;
     $('pickedNum').textContent = picked.length || '';
     $('clearBtn').hidden = picked.length === 0;
     $('doneBtn').disabled = picked.length === 0;
+
+    /* 모바일은 고른 좌석이 있을 때만 시트가 선다. 다 지우면 접힌 상태로 되돌린다 */
+    document.querySelector('.nt-seat-body').classList.toggle('has-picked', picked.length > 0);
+    if (!picked.length) document.querySelector('.nt-side').classList.remove('is-open');
 }
 
 function toggleSeat(dot) {
@@ -669,6 +719,14 @@ function toggleSeat(dot) {
     renderPicked();
 }
 
+function removePicked(i) {
+    const at = picked.indexOf(i);
+    if (at < 0) return;
+    picked.splice(at, 1);
+    document.querySelector(`.nt-seat-dot[data-i="${i}"]`)?.classList.remove('is-picked');
+    renderPicked();
+}
+
 function clearPicked() {
     picked.slice().forEach(i => {
         document.querySelector(`.nt-seat-dot[data-i="${i}"]`)?.classList.remove('is-picked');
@@ -691,6 +749,32 @@ function showHint(msg, ms = 2000) {
 
 let seatTimer = null;
 
+/* 실물은 남은 시간이 바뀔 때 그 자리 숫자만 아래에서 굴러 올라온다.
+   자릿수가 달라지는 순간(10:00→9:59)엔 굴릴 짝이 없으니 통째로 다시 그린다 */
+let timerText = '';
+
+function paintSeatTimer(text) {
+    const el = $('seatTimer');
+
+    if (text.length !== timerText.length) {
+        el.innerHTML = [...text].map(ch => /\d/.test(ch)
+            ? `<span class="nt-digit"><i>${ch}</i></span>`
+            : `<span class="nt-colon">${ch}</span>`).join('');
+        timerText = text;
+        return;
+    }
+
+    [...text].forEach((ch, n) => {
+        if (ch === timerText[n]) return;
+        const cell = el.children[n];
+        cell.replaceChildren(Object.assign(document.createElement('i'), { textContent: ch }));
+        cell.classList.remove('is-roll');
+        void cell.offsetWidth;
+        cell.classList.add('is-roll');
+    });
+    timerText = text;
+}
+
 function startSeatTimer() {
     const el = $('seatTimer');
     const box = el.parentElement;
@@ -698,6 +782,7 @@ function startSeatTimer() {
 
     const tick = () => {
         sellUpTo(soldAt(soldElapsed()));
+        syncSeats();
         if (isSoldOut()) {
             clearInterval(seatTimer);
             showSoldOut();
@@ -706,7 +791,7 @@ function startSeatTimer() {
 
         const left = Math.max(0, until - now());
         const sec = Math.ceil(left / 1000);
-        el.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+        paintSeatTimer(`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`);
         box.classList.toggle('is-urgent', sec <= 60);
 
         if (left > 0) return;
@@ -785,7 +870,6 @@ function submitCaptcha() {
     $('capModal').hidden = true;
     $('capDim').hidden = true;
     run.captchaClosed();
-    showHint('원하는 좌석을 직접 선택해주세요.', 2600);
 }
 
 /* ═══════════ 화면 전환 ═══════════ */
@@ -832,9 +916,14 @@ function showSoldOut() {
     $('pkt-soldout-overlay').classList.add('visible');
 }
 
+let submittingResult = false;
+
 /* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function finish() {
     if (!picked.length) return;
+    if (submittingResult) return;
+    submittingResult = true;
+
     clearInterval(seatTimer);
 
     const captchaMs = run.captchaMs();
@@ -922,7 +1011,7 @@ const viewport = $('planViewport');
 viewport.addEventListener('pointerdown', onPointerDown);
 viewport.addEventListener('pointermove', onPointerMove);
 viewport.addEventListener('pointerup', onPointerUp);
-viewport.addEventListener('pointercancel', () => { drag = null });
+viewport.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); drag = null; if (!pointers.size) pinch = null; });
 viewport.addEventListener('wheel', onWheel, { passive: false });
 
 $('zoomIn').addEventListener('click', () => zoomByButton(1));
@@ -931,10 +1020,32 @@ $('zoomFit').addEventListener('click', () => resetView());
 $('miniMap').addEventListener('click', onMiniJump);
 $('doneBtn').addEventListener('click', finish);
 $('clearBtn').addEventListener('click', clearPicked);
+$('sheetArrow').addEventListener('click', () => {
+    document.querySelector('.nt-side').classList.toggle('is-open');
+});
+$('pickedList').addEventListener('click', e => {
+    const li = e.target.closest('.nt-picked-del')?.closest('li');
+    if (li) removePicked(Number(li.dataset.i));
+});
 
 $('gradeChip').addEventListener('click', () => {
     const layer = $('gradeLayer');
     layer.hidden = !layer.hidden;
+});
+
+$('timerHelp').addEventListener('click', e => {
+    e.stopPropagation();
+    $('timerTip').hidden = !$('timerTip').hidden;
+});
+
+document.addEventListener('click', e => {
+    if (!$('timerTip').hidden && !e.target.closest('.nt-help-tip')) $('timerTip').hidden = true;
+});
+
+/* 실물도 여기서 확인창을 띄운다 — 문구는 2026-09-06 실측 그대로 (취소·확인 두 버튼) */
+$('closeBtn').addEventListener('click', async () => {
+    const ok = await showConfirm({ title: '예매를 종료할까요?', msg: '상품예매가 완료되지 않았어요.' });
+    if (ok) window.location.replace(INTRO_URL);
 });
 
 $('capReload').addEventListener('click', newCaptcha);
@@ -960,5 +1071,5 @@ if (reaction) {
         // 도면을 같은 프레임에서 만들면 대기열 첫 화면이 늦게 뜬다
         setTimeout(buildPlan, 0);
         loadCaptchaPool();
-    }, LOADING_MS);
+    }, QUEUE.LOADING_MS);
 }

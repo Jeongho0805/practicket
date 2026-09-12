@@ -1,18 +1,20 @@
 package com.practicket.ad.application;
 
 import com.practicket.ad.admin.AdminNavAdvice;
-import com.practicket.ad.application.AdminAdStatService.AdvertiserRow;
-import com.practicket.ad.application.AdminAdStatService.BannerRow;
-import com.practicket.ad.application.AdminAdStatService.BannerSummary;
+import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.application.AdminAdStatService.ChartBar;
 import com.practicket.ad.application.AdminAdStatService.Dashboard;
 import com.practicket.ad.application.AdminAdStatService.Period;
-import com.practicket.ad.application.AdminAdStatService.SlotRow;
-import com.practicket.ad.application.AdminAdStatService.SlotSummary;
+import com.practicket.ad.domain.AdCampaign;
 import com.practicket.ad.domain.AdSlot;
 import com.practicket.ad.domain.AdSlotRepository;
-import com.practicket.ad.domain.Banner;
+import com.practicket.ad.domain.AdUnit;
+import com.practicket.ad.domain.AdUnitRepository;
+import com.practicket.ad.domain.Advertiser;
+import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.ad.domain.BannerStatus;
+import com.practicket.ad.domain.CampaignStatus;
+import com.practicket.ad.exception.AdException;
 import com.practicket.client.domain.ClientRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,18 +23,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -49,174 +60,429 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(
         controllers = {
                 AdminDashboardController.class,
-                AdminBannerController.class,
+                AdminCampaignController.class,
+                AdminAdvertiserController.class,
                 AdminSlotController.class,
-                AdminAdvertiserController.class
+                AdminUnitController.class
         },
         excludeFilters = @ComponentScan.Filter(
-                type = org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE,
+                type = FilterType.ASSIGNABLE_TYPE,
                 classes = AdminNavAdvice.class))
 @ActiveProfiles("test")
 // 애플리케이션에 @EnableJpaAuditing이 걸려 있어 MVC 슬라이스에서도 JPA 매핑 컨텍스트를 요구한다.
-// 엔티티를 스캔하지 않는 슬라이스이므로 목으로 채운다.
 @MockBean(JpaMetamodelMappingContext.class)
 class AdminAdPageRenderTest {
 
-    private static final LocalDate TODAY = LocalDate.of(2026, 7, 26);
+    private static final LocalDate TODAY = LocalDate.of(2026, 9, 6);
     private static final String ADVERTISER = "웰빙카페지압안마원";
+    private static final String CAMPAIGN = "9월 티켓오픈 프로모션";
 
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
     AdminAdStatService adminAdStatService;
-
     @MockBean
-    AdminBannerService adminBannerService;
-
+    AdminCampaignService adminCampaignService;
+    @MockBean
+    AdminAdvertiserService adminAdvertiserService;
+    @MockBean
+    AdminSlotService adminSlotService;
+    @MockBean
+    AdNetworkExposureService adNetworkExposureService;
+    @MockBean
+    AdvertiserRepository advertiserRepository;
     @MockBean
     AdSlotRepository adSlotRepository;
-
+    @MockBean
+    AdUnitRepository adUnitRepository;
+    /** WebConfig 가 요구한다 */
     @MockBean
     ClientRepository clientRepository;
+    @MockBean
+    AdSlotSnapshotStore adSlotSnapshotStore;
 
     @BeforeEach
     void setUp() {
         given(adminAdStatService.normalizePeriod(any(), any(), any(), any()))
                 .willReturn(new Period(TODAY.minusDays(13), TODAY, 14));
         given(adminAdStatService.getDashboard(any(), any())).willReturn(dashboard());
-        given(adminAdStatService.getBannerRows()).willReturn(List.of(bannerRow()));
-        given(adminAdStatService.getSlotRows()).willReturn(List.of(new SlotRow(slot(), 1L)));
-        given(adminAdStatService.getAdvertiserRows()).willReturn(List.of(advertiserRow()));
-        given(adminAdStatService.getAdvertiserNames()).willReturn(List.of(ADVERTISER));
-        given(adminAdStatService.getSlotOccupancies()).willReturn(List.of());
+        given(adminCampaignService.getCampaignRows()).willReturn(List.of(campaignRow()));
+        given(adminCampaignService.findDetail(1L)).willReturn(Optional.of(campaignDetail()));
+        given(adminCampaignService.blankForm()).willReturn(blankForm());
+        given(adminCampaignService.findForm(1L)).willReturn(Optional.of(blankForm()));
+        given(adminAdvertiserService.getRows()).willReturn(List.of(advertiserRow()));
+        given(adminAdvertiserService.findDetail(1L)).willReturn(Optional.of(advertiserDetail()));
+        given(adminSlotService.getGroups()).willReturn(List.of(slotGroup()));
+        given(adminSlotService.findForm(1L)).willReturn(Optional.of(new AdminSlotService.SlotForm()));
+        given(advertiserRepository.findAllByOrderByNameAsc()).willReturn(List.of(advertiser()));
         given(adSlotRepository.findAll()).willReturn(List.of(slot()));
+        given(adUnitRepository.findAllByOrderByNetworkAscNameAsc()).willReturn(List.of(unit()));
+        given(adNetworkExposureService.rows()).willReturn(List.of(
+                new AdNetworkExposureService.ExposureRow("COUPANG", "쿠팡 파트너스", true, true),
+                new AdNetworkExposureService.ExposureRow("ADSENSE", "구글 애드센스", false, true),
+                new AdNetworkExposureService.ExposureRow("ADFIT", "카카오 애드핏", false, true)));
     }
 
     @Test
-    @DisplayName("대시보드가 렌더된다.")
+    @DisplayName("대시보드가 렌더된다 — 계약 금액과 캠페인 표까지")
     void dashboardRenders() throws Exception {
         mockMvc.perform(get("/admin-hoya/ad"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/ad/dashboard"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("대시보드")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("일별 노출 추이")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("성과 상위 캠페인")));
+                .andExpect(content().string(containsString("진행중 계약 금액")))
+                .andExpect(content().string(containsString("일별 노출 추이")))
+                .andExpect(content().string(containsString(CAMPAIGN)));
     }
 
     @Test
-    @DisplayName("배너 목록이 렌더된다 — 성과 컬럼과 리포트 링크 버튼까지.")
-    void bannerListRenders() throws Exception {
-        mockMvc.perform(get("/admin-hoya/ad/banners"))
+    @DisplayName("광고단위가 빈 슬롯이 있으면 대시보드가 경고한다")
+    void dashboardWarnsUnitGap() throws Exception {
+        given(adminSlotService.getGroups()).willReturn(List.of(
+                new AdminSlotService.SlotGroup("전 페이지 공통", "GLOBAL", List.of(
+                        new AdminSlotService.SlotRow(slot(), 0L, "300x600", null, null, null, true, false)))));
+
+        mockMvc.perform(get("/admin-hoya/ad"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/ad/banner-list"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString(ADVERTISER)))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("링크 복사")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("노출중")));
+                .andExpect(content().string(containsString("광고단위가 비어 있는 슬롯이 있습니다")));
     }
 
     @Test
-    @DisplayName("배너 등록 폼이 렌더된다 — 광고주명 자동완성 목록 포함.")
-    void bannerFormRenders() throws Exception {
-        mockMvc.perform(get("/admin-hoya/ad/banners/new"))
+    @DisplayName("캠페인 목록이 렌더된다")
+    void campaignListRenders() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/campaigns"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/ad/banner-form"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("advertiser-names")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("overlap-warning")));
+                .andExpect(view().name("admin/ad/campaign-list"))
+                .andExpect(content().string(containsString(CAMPAIGN)))
+                .andExpect(content().string(containsString(ADVERTISER)));
     }
 
     @Test
-    @DisplayName("슬롯 목록이 렌더된다.")
-    void slotListRenders() throws Exception {
-        mockMvc.perform(get("/admin-hoya/ad/slots"))
+    @DisplayName("캠페인 상세가 렌더된다 — 기간 타임라인과 리포트 링크까지")
+    void campaignDetailRenders() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/campaigns/1"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/ad/slot-list"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("PC_LEFT")));
+                .andExpect(view().name("admin/ad/campaign-detail"))
+                .andExpect(content().string(containsString("기간 비교")))
+                .andExpect(content().string(containsString("/ad/report/campaign/TOKEN")))
+                .andExpect(content().string(containsString("/campaigns/1/delete")))
+                .andExpect(content().string(not(containsString(">복사<"))))
+                .andExpect(content().string(containsString("creative-load-error")));
     }
 
     @Test
-    @DisplayName("광고주 목록이 렌더된다 — 통합 링크 버튼까지.")
-    void advertiserListRenders() throws Exception {
-        mockMvc.perform(get("/admin-hoya/ad/advertisers"))
+    @DisplayName("저장이 검증에 걸리면 되돌리지 않고 받은 폼을 그대로 다시 그린다")
+    void campaignSaveErrorKeepsInput() throws Exception {
+        given(adminCampaignService.save(any())).willThrow(new AdException("배너마다 슬롯을 골라주세요."));
+
+        mockMvc.perform(multipart("/admin-hoya/ad/campaigns")
+                        .param("name", "다시 그릴 캠페인")
+                        .param("advertiserId", "1")
+                        .param("startAt", "2026-09-15").param("endAt", "2026-10-14")
+                        .param("banners[0].enabled", "true").param("banners[0].deleted", "false"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/ad/advertiser-list"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString(ADVERTISER)))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("통합 링크")));
+                .andExpect(view().name("admin/ad/campaign-form"))
+                .andExpect(content().string(containsString("배너마다 슬롯을 골라주세요.")))
+                .andExpect(content().string(containsString("올렸던 파일은 다시 골라주세요")))
+                .andExpect(content().string(containsString("value=\"다시 그릴 캠페인\"")));
     }
 
     @Test
-    @DisplayName("광고주 상세가 렌더된다 — 캠페인 이력과 통합 리포트 주소까지.")
-    void advertiserDetailRenders() throws Exception {
-        given(adminAdStatService.findAdvertiser(ADVERTISER))
-                .willReturn(java.util.Optional.of(advertiserRow()));
+    @DisplayName("캠페인 삭제는 목록으로 보내고 스냅샷을 새로 만든다")
+    void campaignDeleteRedirectsToList() throws Exception {
+        mockMvc.perform(post("/admin-hoya/ad/campaigns/1/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin-hoya/ad/campaigns"));
+        verify(adminCampaignService).delete(1L);
+        verify(adSlotSnapshotStore).refresh();
+    }
 
-        mockMvc.perform(get("/admin-hoya/ad/advertisers").param("name", ADVERTISER))
+    @Test
+    @DisplayName("캠페인 등록 폼이 렌더된다 — 슬롯 줄 템플릿까지")
+    void campaignFormRenders() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/campaigns/new"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/ad/advertiser-detail"))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("캠페인 이력")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("/ad/report/advertiser/tok")));
+                .andExpect(view().name("admin/ad/campaign-form"))
+                .andExpect(content().string(containsString("banner-row-template")))
+                .andExpect(content().string(containsString("슬롯별 배너")));
     }
 
     @Test
-    @DisplayName("없는 광고주를 보려 하면 목록으로 돌려보낸다.")
-    void unknownAdvertiserRedirects() throws Exception {
-        given(adminAdStatService.findAdvertiser("없는광고주")).willReturn(java.util.Optional.empty());
+    @DisplayName("캠페인 수정 폼은 기존 소재를 소재함에 다시 올린다")
+    void campaignEditFormIncludesExistingAssets() throws Exception {
+        AdminCampaignService.CampaignForm form = blankForm();
+        form.setId(1L);
+        form.getBanners().get(0).setPcImagePath("/ad-images/existing.png");
+        given(adminCampaignService.findForm(1L)).willReturn(Optional.of(form));
 
-        mockMvc.perform(get("/admin-hoya/ad/advertisers").param("name", "없는광고주"))
+        mockMvc.perform(get("/admin-hoya/ad/campaigns/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-path=\"/ad-images/existing.png\"")));
+    }
+
+    @Test
+    @DisplayName("없는 캠페인을 보려 하면 목록으로 돌려보낸다")
+    void unknownCampaignRedirects() throws Exception {
+        given(adminCampaignService.findDetail(99L)).willReturn(Optional.empty());
+
+        mockMvc.perform(get("/admin-hoya/ad/campaigns/99"))
                 .andExpect(status().is3xxRedirection());
     }
 
     @Test
-    @DisplayName("빈 상태에서도 렌더된다 — 배너가 하나도 없는 첫 운영 시점.")
-    void rendersWhenEmpty() throws Exception {
-        given(adminAdStatService.getBannerRows()).willReturn(List.of());
-        given(adminAdStatService.getAdvertiserRows()).willReturn(List.of());
-        given(adminAdStatService.getSlotRows()).willReturn(List.of());
-        given(adminAdStatService.getDashboard(any(), any())).willReturn(emptyDashboard());
+    @DisplayName("광고주 목록·상세·폼이 렌더된다")
+    void advertiserScreensRender() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/advertisers"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/advertiser-list"))
+                .andExpect(content().string(containsString(ADVERTISER)));
 
-        mockMvc.perform(get("/admin-hoya/ad")).andExpect(status().isOk());
-        mockMvc.perform(get("/admin-hoya/ad/banners")).andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("등록된 배너가 없습니다")));
-        mockMvc.perform(get("/admin-hoya/ad/slots")).andExpect(status().isOk());
-        mockMvc.perform(get("/admin-hoya/ad/advertisers")).andExpect(status().isOk());
+        mockMvc.perform(get("/admin-hoya/ad/advertisers/1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/advertiser-detail"))
+                .andExpect(content().string(containsString("캠페인 이력")));
+
+        mockMvc.perform(get("/admin-hoya/ad/advertisers/new"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/advertiser-form"));
     }
 
     @Test
-    @DisplayName("구간이 길어 주 단위로 접힌 차트도 렌더된다.")
+    @DisplayName("슬롯 목록·수정 폼이 렌더된다")
+    void slotScreensRender() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/slots"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/slot-list"))
+                .andExpect(content().string(containsString("PC_LEFT")));
+
+        mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/slot-form"));
+    }
+
+    @Test
+    void inlineSlotChoicesContainOnlyCurrentNetwork() throws Exception {
+        AdSlot slot = slot();
+        slot.changeFillNetwork("ADSENSE");
+        given(adminSlotService.getGroups()).willReturn(List.of(new AdminSlotService.SlotGroup(
+                "전 페이지 공통", "GLOBAL", List.of(new AdminSlotService.SlotRow(
+                slot, 0, "300x600", null, unit(), null, false, false)))));
+        given(adminSlotService.allUnits()).willReturn(List.of(unit(), adfitUnit()));
+
+        mockMvc.perform(get("/admin-hoya/ad/slots"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"pcAdUnitId\"")))
+                .andExpect(content().string(containsString("form=\"slot-units-1\"")))
+                .andExpect(content().string(containsString("9697904962")))
+                .andExpect(content().string(not(containsString(adfitUnit().getUnitId()))))
+                .andExpect(content().string(not(containsString("/slots/1/edit"))));
+    }
+
+    @Test
+    void inlineSlotPostBindsBothDevicesAndNetwork() throws Exception {
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/units")
+                        .param("fillNetwork", "ADSENSE")
+                        .param("pcAdUnitId", "1").param("mobileAdUnitId", ""))
+                .andExpect(status().is3xxRedirection());
+        verify(adminSlotService).changeUnits(1L, "ADSENSE", 1L, null);
+    }
+
+    @Test
+    @DisplayName("슬롯보다 큰 광고단위는 잠그지 않고 이유만 표시한다")
+    void slotFormMarksOversizeUnit() throws Exception {
+        AdminSlotService.SlotForm form = new AdminSlotService.SlotForm();
+        form.setMobileWidth(320);
+        form.setMobileHeight(100);
+        form.setMobileAdUnitId(2L);
+
+        given(adminSlotService.findForm(1L)).willReturn(Optional.of(form));
+        given(adminSlotService.unitOptions(form)).willReturn(List.of(
+                new AdminSlotService.UnitOption(unit(), false, false),
+                new AdminSlotService.UnitOption(adfitUnit(), false, true)));
+        given(adminSlotService.oversizeWarning(form))
+                .willReturn("모바일 광고단위가 슬롯보다 큽니다. 저장은 되지만 광고가 잘려 나갑니다.");
+
+        mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("슬롯보다 큼")))
+                .andExpect(content().string(containsString("저장은 되지만 광고가 잘려 나갑니다")))
+                .andExpect(content().string(containsString("class=\"toobig\"")))
+                .andExpect(content().string(not(containsString("disabled"))));
+    }
+
+    @Test
+    @DisplayName("같은 단위 ID 를 다시 등록하면 500 대신 폼 오류로 돌려보낸다")
+    void duplicateUnitIsRejectedBeforeDb() throws Exception {
+        given(adUnitRepository.findByNetworkAndUnitId("ADSENSE", "9697904962")).willReturn(Optional.of(unit()));
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADSENSE").param("unitId", "9697904962"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin-hoya/ad/units/new"))
+                .andExpect(flash().attribute("error", containsString("이미 등록돼 있습니다")));
+        verify(adUnitRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("애드핏 단위는 규격 없이 저장할 수 없다")
+    void adfitUnitRequiresSize() throws Exception {
+        given(adUnitRepository.findByNetworkAndUnitId(any(), any())).willReturn(Optional.empty());
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADFIT").param("unitId", "DAN-NEW"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("규격이 필요합니다")));
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "ADFIT").param("unitId", "DAN-NEW").param("width", "320"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("함께 넣거나")));
+        verify(adUnitRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("규격이 빈 기기는 항목이 아니라 한 줄 안내로 알린다")
+    void slotFormExplainsMissingSize() throws Exception {
+        AdminSlotService.SlotForm form = new AdminSlotService.SlotForm();
+        form.setMobileWidth(320);
+        form.setMobileHeight(100);
+
+        given(adminSlotService.findForm(1L)).willReturn(Optional.of(form));
+        given(adminSlotService.unitOptions(form))
+                .willReturn(List.of(new AdminSlotService.UnitOption(unit(), false, false)));
+
+        mockMvc.perform(get("/admin-hoya/ad/slots/1/edit"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("규격이 비어 있어 데스크톱에서는")))
+                .andExpect(content().string(not(containsString("규격이 비어 있어 모바일에서는"))));
+    }
+
+    @Test
+    @DisplayName("광고 설정 목록·폼이 렌더된다")
+    void unitScreensRender() throws Exception {
+        mockMvc.perform(get("/admin-hoya/ad/units"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/unit-list"))
+                .andExpect(content().string(containsString("9697904962")))
+                .andExpect(content().string(containsString("쿠팡 파트너스")))
+                .andExpect(content().string(containsString("스테이지에서 실제 네트워크 광고")));
+
+        mockMvc.perform(get("/admin-hoya/ad/units/new"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/ad/unit-form"));
+    }
+
+    @Test
+    @DisplayName("빈 상태에서도 렌더된다 — 아무것도 팔지 않은 첫 운영 시점")
+    void rendersWhenEmpty() throws Exception {
+        given(adminCampaignService.getCampaignRows()).willReturn(List.of());
+        given(adminAdvertiserService.getRows()).willReturn(List.of());
+        given(adminSlotService.getGroups()).willReturn(List.of());
+        given(adminAdvertiserService.findDetail(1L)).willReturn(Optional.of(
+                new AdminAdvertiserService.AdvertiserDetail(advertiser(), List.of(), 0L, 0L, 0L)));
+
+        mockMvc.perform(get("/admin-hoya/ad")).andExpect(status().isOk());
+        mockMvc.perform(get("/admin-hoya/ad/campaigns")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("조건에 맞는 캠페인이 없습니다")));
+        mockMvc.perform(get("/admin-hoya/ad/advertisers")).andExpect(status().isOk())
+                .andExpect(content().string(containsString("등록된 광고주가 없습니다")));
+        mockMvc.perform(get("/admin-hoya/ad/advertisers/1")).andExpect(status().isOk());
+        mockMvc.perform(get("/admin-hoya/ad/slots")).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("구간이 길어 주 단위로 접힌 차트도 렌더된다")
     void rendersWeeklyRolledUpChart() throws Exception {
         given(adminAdStatService.getDashboard(any(), any())).willReturn(weeklyDashboard());
 
         mockMvc.perform(get("/admin-hoya/ad").param("days", "90"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("주별 노출 추이")));
+                .andExpect(content().string(containsString("주별 노출 추이")));
     }
 
     // ── 픽스처 ──
 
     private AdSlot slot() {
         return AdSlot.builder()
-                .id(1L).code("PC_LEFT").name("PC 좌측").recommendedSize("300x600")
+                .id(1L).code("PC_LEFT").name("데스크톱 좌측")
+                .pcWidth(300).pcHeight(600).format("디스플레이")
+                .groupName("전 페이지 공통").groupPath("GLOBAL")
+                .sortOrder(1).fillNetwork("COUPANG")
                 .enabled(true).createdAt(TODAY.atStartOfDay())
                 .build();
     }
 
-    private Banner banner() {
-        return Banner.builder()
-                .id(11L).slot(slot()).imagePath("/ad-images/sample.png")
-                .linkUrl("https://example.com").advertiserName(ADVERTISER)
-                .startAt(TODAY.minusDays(3)).endAt(TODAY.plusDays(3)).enabled(true)
-                .reportToken("report-token-1").createdAt(TODAY.atStartOfDay())
+    private AdUnit unit() {
+        return AdUnit.builder()
+                .id(1L).network("ADSENSE").unitId("9697904962").name("애드센스 기본")
+                .createdAt(TODAY.atStartOfDay())
                 .build();
     }
 
-    private BannerRow bannerRow() {
-        return new BannerRow(banner(), 1200L, 15L, 1.25, BannerStatus.LIVE);
+    private AdUnit adfitUnit() {
+        return AdUnit.builder()
+                .id(2L).network("ADFIT").unitId("DAN-BicR0BE99mzbLjlm").name("PC 세로형")
+                .width(160).height(600).createdAt(TODAY.atStartOfDay())
+                .build();
     }
 
-    private AdvertiserRow advertiserRow() {
-        return new AdvertiserRow(ADVERTISER, 1, 1L, 1200L, 15L, 1.25,
-                TODAY.minusDays(3), TODAY.plusDays(3), List.of(bannerRow()),
-                "/ad/report/advertiser/tok123");
+    private Advertiser advertiser() {
+        return Advertiser.builder()
+                .id(1L).name(ADVERTISER).manager("김담당").createdAt(TODAY.atStartOfDay())
+                .build();
+    }
+
+    private AdCampaign campaign() {
+        return AdCampaign.builder()
+                .id(1L).advertiserId(1L).name(CAMPAIGN)
+                .startAt(TODAY.minusDays(5)).endAt(TODAY.plusDays(25))
+                .amount(1_500_000L).reportToken("TOKEN").memo("메모")
+                .createdAt(TODAY.atStartOfDay())
+                .build();
+    }
+
+    private AdminCampaignService.CampaignRow campaignRow() {
+        return new AdminCampaignService.CampaignRow(1L, CAMPAIGN, ADVERTISER,
+                TODAY.minusDays(5), TODAY.plusDays(25), 1_500_000L, CampaignStatus.LIVE,
+                2, "데스크톱 좌측 · 모바일 상단", 1L, 1200L, 15L, 1.25, 25L);
+    }
+
+    private AdminCampaignService.BannerRow bannerRow() {
+        return new AdminCampaignService.BannerRow(11L, "PC_LEFT", "데스크톱 좌측",
+                "/ad-images/pc.png", null, "300x600", null,
+                TODAY.minusDays(5), TODAY.plusDays(25), false, 31L, true, BannerStatus.LIVE,
+                1200L, 15L, 1.25, 0.0, 100.0, List.of("겹치는 캠페인"));
+    }
+
+    private AdminCampaignService.CampaignDetail campaignDetail() {
+        return new AdminCampaignService.CampaignDetail(campaign(), advertiser(), CampaignStatus.LIVE,
+                List.of(bannerRow()), 1200L, 15L, 1.25, 0, 0L, 0L, 25L, 16.0);
+    }
+
+    private AdminCampaignService.CampaignForm blankForm() {
+        AdminCampaignService.CampaignForm form = new AdminCampaignService.CampaignForm();
+        form.setStartAt(TODAY);
+        form.setEndAt(TODAY.plusDays(30));
+        form.setAmount(0L);
+        form.setAdvertiserId(1L);
+        form.getBanners().add(new AdminCampaignService.BannerForm());
+        return form;
+    }
+
+    private AdminAdvertiserService.AdvertiserRow advertiserRow() {
+        return new AdminAdvertiserService.AdvertiserRow(advertiser(), 2, 1L, 2_400_000L,
+                1200L, 15L, 1.25, TODAY.minusDays(30), TODAY.plusDays(25));
+    }
+
+    private AdminAdvertiserService.AdvertiserDetail advertiserDetail() {
+        return new AdminAdvertiserService.AdvertiserDetail(advertiser(),
+                List.of(new AdminAdvertiserService.CampaignHistory(campaign(), CampaignStatus.LIVE, 2, "데스크톱 좌측", 1200L, 15L, 1.25)),
+                1_500_000L, 1200L, 15L);
+    }
+
+    private AdminSlotService.SlotGroup slotGroup() {
+        return new AdminSlotService.SlotGroup("전 페이지 공통", "GLOBAL", List.of(
+                new AdminSlotService.SlotRow(slot(), 1L, "300x600", null, unit(), null, false, false)));
     }
 
     private Dashboard dashboard() {
@@ -227,24 +493,7 @@ class AdminAdPageRenderTest {
                 TODAY.minusDays(27), TODAY.minusDays(14),
                 List.of(new ChartBar(TODAY.minusDays(1), TODAY.minusDays(1), 500L, 6L, 60),
                         new ChartBar(TODAY, TODAY, 700L, 9L, 100)),
-                false,
-                List.of(bannerRow()),
-                new BannerSummary(3, 1L),
-                new SlotSummary(3, 1L));
-    }
-
-    /** 증감이 null인 경우(직전 기간 데이터 없음) — 템플릿의 null 분기를 태운다. */
-    private Dashboard emptyDashboard() {
-        return new Dashboard(
-                TODAY.minusDays(13), TODAY, 14,
-                0L, 0L, 0.0,
-                null, null, null,
-                TODAY.minusDays(27), TODAY.minusDays(14),
-                List.of(new ChartBar(TODAY, TODAY, 0L, 0L, 0)),
-                false,
-                List.of(),
-                new BannerSummary(0, 0L),
-                new SlotSummary(3, 0L));
+                false);
     }
 
     private Dashboard weeklyDashboard() {
@@ -255,9 +504,6 @@ class AdminAdPageRenderTest {
                 TODAY.minusDays(179), TODAY.minusDays(90),
                 List.of(new ChartBar(TODAY.minusDays(13), TODAY.minusDays(7), 4000L, 50L, 80),
                         new ChartBar(TODAY.minusDays(6), TODAY, 5000L, 70L, 100)),
-                true,
-                List.of(bannerRow()),
-                new BannerSummary(3, 1L),
-                new SlotSummary(3, 1L));
+                true);
     }
 }

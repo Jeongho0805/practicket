@@ -192,27 +192,9 @@
 .ranking-top-bar {
     background: #fff;
     border-bottom: 1px solid #ece8f3;
-    padding: 0 22px;
+    padding: 8px 22px;
     display: flex;
     align-items: center;
-}
-
-.view-mode-tab {
-    padding: 12px 18px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #a49dba;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    transition: color 0.2s, border-color 0.2s;
-}
-
-.view-mode-tab.active {
-    color: #514897;
-    border-bottom-color: #514897;
 }
 
 .filter-bar {
@@ -555,15 +537,16 @@
 }
 
 .rank-name-wrap {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
-    max-width: 100%;
+    gap: 7px;
+    min-width: 0;
 }
 
-.rank-medal {
-    font-size: 15px;
-    line-height: 1;
+.rank-nick {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* 목록 끝을 알리는 줄. 화면에 들어오면 다음 페이지를 부른다(list.js).
@@ -618,35 +601,6 @@
     font-size: 14px;
     color: #9a93b0;
     font-weight: 600;
-}
-
-.stat-sub {
-    display: none;
-}
-
-.improve-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: center;
-}
-
-.improve-sec {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 18px;
-    font-weight: 700;
-    color: #514897;
-}
-
-.improve-pct {
-    display: inline-block;
-    background: #f1eef9;
-    color: #514897;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-family: 'Roboto Mono', monospace;
 }
 
 /* ----- 내 기록: 테이블 ----- */
@@ -907,12 +861,7 @@
     }
 
     .ranking-top-bar {
-        padding: 0 12px;
-    }
-
-    .view-mode-tab {
-        padding: 10px 13px;
-        font-size: 13px;
+        padding: 6px 12px;
     }
 
     .filter-bar {
@@ -938,6 +887,16 @@
         flex-shrink: 0;
     }
 
+    .period-tabs {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .period-tab {
+        flex: 1;
+        padding: 5px 0;
+    }
+
     /* 좁은 화면에서 4열 표는 닉네임이 잘린다. 행마다 격자를 다시 짜 카드처럼 쓴다. */
     .ranking-table-header {
         display: none;
@@ -956,7 +915,7 @@
 
     .ranking-table-body tr {
         display: grid;
-        grid-template-columns: 22px 1fr auto;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -996,7 +955,7 @@
     }
 
     .my-rank-row {
-        grid-template-columns: 22px 1fr auto;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
         grid-template-areas:
             "rank name time"
             "rank split time";
@@ -1006,8 +965,28 @@
     }
 
     .my-rank-row .mr-rank { grid-area: rank; }
-    .my-rank-row .mr-name { grid-area: name; padding-left: 0; }
+    .my-rank-row .mr-name { grid-area: name; padding-left: 0; flex-wrap: wrap; row-gap: 2px; }
     .my-rank-row .mr-time { grid-area: time; }
+
+    /* 번호는 자릿수와 무관하게 고정 칸 가운데에 둔다. 가운데 열은 남은 폭만 쓰므로
+       4000·10000도 닉네임·그래프·기록 배지를 밀거나 가로 스크롤을 만들지 않는다. */
+    .ranking-table-body .rank-num,
+    .my-rank-row .mr-rank,
+    .my-record-table-body .attempt-num {
+        display: block;
+        min-width: 0;
+        text-align: center;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .ranking-table-body .rank-num { color: #4a4458; }
+    .ranking-table-body .rank-1 .rank-num { color: #c9962e; }
+    .ranking-table-body .rank-2 .rank-num { color: #a9a2c0; }
+    .ranking-table-body .rank-3 .rank-num { color: #b0743c; }
+
+    .mobile-num-digits-4 { letter-spacing: -0.35px; }
+    .mobile-num-digits-5plus { letter-spacing: -0.65px; }
 
     .my-rank-row .rank-split {
         grid-area: split;
@@ -1031,6 +1010,11 @@
         gap: 2px;
     }
 
+    /* 모바일에서는 표 머리를 숨기므로 지표와 기록 목록 사이의 구분선을 직접 그린다. */
+    .my-stats-grid {
+        border-bottom: 1px solid #ece8f3;
+    }
+
     .stat-label {
         font-size: 10px;
         letter-spacing: 0;
@@ -1038,17 +1022,6 @@
 
     .stat-value {
         font-size: 15px;
-    }
-
-    .improve-sec {
-        font-size: 13px;
-    }
-
-    .improve-pct {
-        display: inline-block;
-        white-space: nowrap;
-        font-size: 10px;
-        padding: 2px 6px;
     }
 
     .date-text {
@@ -1141,7 +1114,7 @@
 
     .my-record-table-body tr {
         display: grid;
-        grid-template-columns: 30px 1fr auto;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
         grid-template-areas:
             "num date time"
             "num split time";
@@ -1203,5 +1176,663 @@
         margin-bottom: 0;
         border-radius: 9px 9px 0 0;
         background: #f8f5fd;
+    }
+}
+
+/* ══ 상단 뷰 탭 ══
+   연습하기·전체 랭킹·내 기록을 한 줄로 편다. 탭 줄이 두 겹이면 그만큼 목록이 짧아진다. */
+.hub-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #efecf7;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.hub-tab {
+    flex: 1;
+    border: 0;
+    cursor: pointer;
+    padding: 10px 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #6f6a86;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    transition: background .16s, color .16s, box-shadow .16s;
+}
+
+.hub-tab.active {
+    background: #fff;
+    color: #6633cc;
+    box-shadow: 0 1px 4px rgba(102, 51, 204, .16);
+}
+
+.hub-view {
+    display: none;
+}
+
+.hub-view.active {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 14px;
+}
+
+/* ══ 기록 분포 ══ */
+.chart-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 15px 17px 13px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .06), 0 1px 3px rgba(0, 0, 0, .04);
+    font-family: 'Pretendard', sans-serif;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 10px;
+}
+
+.ch-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.ch-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b4266;
+    white-space: nowrap;
+}
+
+.ch-chips {
+    display: flex;
+    gap: 5px;
+}
+
+.ch-chip {
+    border: 1px solid #e6e0f2;
+    background: #fff;
+    color: #8b83a6;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.ch-chip.on {
+    background: #6633cc;
+    border-color: #6633cc;
+    color: #fff;
+}
+
+.ch-hero {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0edf7;
+}
+
+.ch-hero b {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 26px;
+    font-weight: 700;
+    color: #6633cc;
+    letter-spacing: -1px;
+    line-height: 1;
+}
+
+.ch-hero span {
+    font-size: 11.5px;
+    color: #9a93b0;
+    font-weight: 500;
+}
+
+/* 기록이 없을 때 머리글은 숫자가 아니라 문장이다. mono 26px 은 한글에 안 맞는다. */
+.ch-hero.text {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+.ch-hero.text b {
+    font-family: 'Pretendard', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #322a4d;
+    letter-spacing: -0.4px;
+    line-height: 1.35;
+}
+
+.ch-plot {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 위 32px 은 등급 배지와 내 깃발 라벨 자리다. 곡선은 그 아래에서만 그린다. */
+.ch-area {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    padding-top: 32px;
+}
+
+.ch-bands {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 20px;
+}
+
+.ch-bands .tier {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+}
+
+.ch-bands .ch-splus {
+    transform: none;
+}
+
+.ch-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.ch-svg .ch-line {
+    fill: none;
+    stroke: #8f7fd0;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+}
+
+.ch-svg .ch-cut {
+    stroke: #e4dff0;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+}
+
+.ch-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 32px;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.ch-me {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+/* 커서 라벨은 내 깃발(진보라 바탕)과 색을 바꿔 둘이 겹쳐도 구분된다. */
+.ch-cursor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ch-cursor[hidden] {
+    display: none;
+}
+
+.ch-cur-line {
+    flex: 1;
+    width: 1px;
+    background: #c9bff0;
+}
+
+.ch-cur-dot {
+    position: absolute;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #8f7fd0;
+    transform: translate(-50%, -50%);
+}
+
+.ch-cur-label {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff;
+    color: #514897;
+    border: 1px solid #ddd6ee;
+    box-shadow: 0 2px 8px rgba(50, 40, 90, .12);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px 2px 4px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.ch-cur-label em {
+    font-style: normal;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 600;
+    color: #9a93b0;
+}
+
+.ch-cursor.flip .ch-cur-label {
+    left: auto;
+    right: 6px;
+}
+
+.ch-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #6633cc;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #6633cc;
+}
+
+.ch-axis {
+    position: relative;
+    height: 15px;
+    flex-shrink: 0;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    color: #b0a8c6;
+    padding-top: 4px;
+    border-top: 1px solid #f0edf7;
+    margin-top: 5px;
+}
+
+/* 눈금은 구간 경계에 맞춰 절대 위치로 찍는다. 균등 분할하면 막대와 어긋난다. */
+.ch-axis span {
+    position: absolute;
+    top: 4px;
+    transform: translateX(-50%);
+}
+
+.mf-label {
+    background: #322a4d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.mf-stem {
+    flex: 1;
+    width: 2px;
+    background: #322a4d;
+}
+
+/* ══ 등급 배지 ══
+   흰 하이라이트가 가운데를 지나는 유리 광택. 색은 보석 이름을 따르고 D 아래는 빛을 뺀다.
+   SSS 는 무색 다이아라 파랑을 빼고 프리즘 테로만 구분한다 — S(사파이어)와 겹치지 않게. */
+.tier {
+    display: inline-block;
+    box-sizing: border-box;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 2px 11px;
+    border: 1px solid var(--tier-border, transparent);
+    border-radius: 999px;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
+    background: linear-gradient(135deg, var(--tier-edge) 0%, #fff 38%, var(--tier-mid) 68%, var(--tier-edge) 100%);
+    color: var(--tier-text);
+    box-shadow: 0 0 6px var(--tier-glow);
+}
+
+.tier.tier--sss {
+    --tier-text: #2b2f3a;
+    --tier-glow: rgba(170, 150, 255, .85);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(135deg, #fff, #fbfbff 45%, #fff) padding-box,
+        linear-gradient(135deg, #ff7fcb, #5fd4ff, #a98bff, #6cf5c8, #ffd166, #ff7fcb) border-box;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .9), 0 0 9px var(--tier-glow), 0 0 18px rgba(120, 190, 255, .45);
+}
+
+/* 프리즘 빛줄기가 4초마다 한 번 지나간다. 배지 자체는 가만히 있어 목록이 흔들리지 않는다. */
+.tier.tier--sss::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, .95) 45%, rgba(190, 220, 255, .9) 50%, rgba(255, 200, 240, .9) 55%, transparent 70%);
+    transform: translateX(-100%);
+    animation: tier-sss-shine 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes tier-sss-shine {
+    0%, 55% { transform: translateX(-100%); }
+    85%, 100% { transform: translateX(100%); }
+}
+
+.tier.tier--ss { --tier-edge: #ffe1ea; --tier-mid: #ffc2d4; --tier-text: #b0123f; --tier-border: #ffb3c8; --tier-glow: rgba(255, 120, 160, .5); }
+.tier.tier--s  { --tier-edge: #e0e9ff; --tier-mid: #c3d2ff; --tier-text: #1f47b8; --tier-border: #b3c6ff; --tier-glow: rgba(100, 140, 255, .5); }
+.tier.tier--a  { --tier-edge: #dcf8ec; --tier-mid: #b9efd7; --tier-text: #0b7a4f; --tier-border: #a6e7c9; --tier-glow: rgba(60, 200, 140, .45); }
+.tier.tier--b  { --tier-edge: #ece3ff; --tier-mid: #d9c8ff; --tier-text: #5b2fb8; --tier-border: #cdb8ff; --tier-glow: rgba(150, 110, 255, .4); }
+.tier.tier--c  { --tier-edge: #fff1d6; --tier-mid: #ffe1a8; --tier-text: #a2620a; --tier-border: #ffd98f; --tier-glow: rgba(255, 190, 80, .4); }
+.tier.tier--d  { --tier-edge: #e3e6ec; --tier-mid: #cfd4dc; --tier-text: #3b4452; --tier-border: #c5cbd4; --tier-glow: transparent; }
+.tier.tier--e  { --tier-edge: #f3f4f6; --tier-mid: #e6e8ec; --tier-text: #6b7280; --tier-border: #dcdfe4; --tier-glow: transparent; }
+.tier.tier--f  { --tier-edge: #f6f7f8; --tier-mid: #eef0f2; --tier-text: #9ca3af; --tier-border: #e5e7eb; --tier-glow: transparent; }
+
+/* 목록 줄 안의 작은 배지. 폭을 고정해 닉네임 시작점이 줄마다 맞는다. */
+.tier.tier-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 19px;
+    padding: 0;
+    font-size: 10px;
+    letter-spacing: .8px;
+    flex-shrink: 0;
+    box-shadow: 0 0 4px var(--tier-glow);
+}
+
+.tier.tier-sm.tier--sss {
+    border: 1.5px solid transparent;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, .9), 0 0 6px var(--tier-glow), 0 0 12px rgba(120, 190, 255, .45);
+}
+
+.tier.tier-xs {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 15px;
+    padding: 0;
+    font-size: 9px;
+    letter-spacing: .6px;
+    box-shadow: none;
+}
+
+.tier.tier-sm[hidden] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hub-tabs { padding: 3px; border-radius: 10px; }
+    .hub-tab { padding: 8px 0; font-size: 13px; }
+    .hub-view.active { gap: 8px; }
+
+    /* 짧은 폰에서도 한 화면에 들어와야 한다. 광고·카드 뒤 남는 높이를 차트가 받고,
+       막대 영역만은 54px 이상 남긴다. */
+    .chart-card {
+        padding: 8px 13px 7px;
+        border-radius: 14px;
+        gap: 4px;
+        flex: 1;
+        min-height: 0;
+    }
+    .ch-plot { flex: 1 0 54px; min-height: 54px; }
+    .ch-title { font-size: 12.5px; }
+    .ch-hero b { font-size: 20px; }
+    .ch-hero.text b { font-size: 17px; }
+
+    .tier { font-size: 12px; padding: 1px 8px; letter-spacing: .8px; }
+    .tier.tier-sm { width: 34px; height: 18px; padding: 0; font-size: 9px; letter-spacing: .6px; }
+}
+
+/* ══ 내 기록 통계 4칸 ══ */
+.tier-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+button.tier {
+    cursor: pointer;
+}
+
+button.tier:disabled {
+    cursor: default;
+}
+
+/* 등급 팝오버. 배지 아래 붙는 카드 하나를 화면 전체가 같이 쓴다. 목록이 스크롤 칸 안이라
+   화면 좌표(fixed)로 띄워야 칸에 안 잘린다. 꼬리표 위치는 --ax 로 받는다. */
+#tierPop {
+    position: fixed;
+    z-index: 60;
+    box-sizing: border-box;
+    width: 300px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 12px 10px;
+    box-shadow: 0 12px 34px rgba(50, 40, 90, .18), 0 0 0 1px #ece8f3;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 12px;
+}
+
+#tierPop[hidden] {
+    display: none;
+}
+
+#tierPop::before {
+    content: '';
+    position: absolute;
+    left: var(--ax);
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    transform: rotate(45deg);
+    box-shadow: -1px -1px 0 #ece8f3;
+}
+
+#tierPop.above::before {
+    top: auto;
+    bottom: -6px;
+    box-shadow: 1px 1px 0 #ece8f3;
+}
+
+.ts-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 4px 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f0edf7;
+    font-weight: 700;
+    color: #3a3350;
+}
+
+.ts-head .tier {
+    font-size: 11px;
+    padding: 1px 0;
+    width: 46px;
+    text-align: center;
+    letter-spacing: .6px;
+}
+
+.ts-lab {
+    color: #9a93b0;
+    font-weight: 600;
+}
+
+.ts-crit {
+    margin-left: auto;
+    font-family: 'Roboto Mono', monospace;
+    color: #514897;
+    white-space: nowrap;
+}
+
+.ts-next {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #5b5375;
+    background: #f5f2fc;
+    border-radius: 9px;
+    padding: 8px 10px;
+}
+
+.ts-next b {
+    color: #6633cc;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.ts-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.ts-row--me {
+    background: #f1eef9;
+    box-shadow: inset 0 0 0 1px #ddd2f4;
+}
+
+.ts-row .tier {
+    font-size: 10px;
+    padding: 1px 0;
+    width: 46px;
+    text-align: center;
+    letter-spacing: .6px;
+}
+
+.ts-pct {
+    color: #9a93b0;
+    font-weight: 600;
+}
+
+.ts-cut {
+    font-family: 'Roboto Mono', monospace;
+    font-weight: 700;
+    color: #5b5375;
+}
+
+/* ══ 기록 표 날짜 ══ */
+.rec-day {
+    font-weight: 600;
+    display: inline-block;
+    min-width: 42px;
+}
+
+.rec-time {
+    margin-left: 7px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.86em;
+    color: #b0a8c6;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .rec-day { min-width: 36px; }
+    .rec-time { margin-left: 5px; }
+}
+
+/* ----- 실전연습 중간 광고 ----- */
+
+/* 전역 자리 규칙(default.css 의 .ad-slot.pc-banner 등)은 사이드바 300x600 비율이라 여기서 덮는다.
+   이 슬롯은 전체 랭킹·내 기록의 첫 목록 행으로 옮겨 다니며, 목록 행처럼 순위 칸에 AD 표시를 두고
+   그 옆에 행 높이(52px)짜리 소재 한 장이 들어간다. */
+.practice-mid-home {
+    display: none;
+}
+
+#practiceMidHost {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.practice-mid-ad {
+    flex: 0 0 13%;
+    text-align: center;
+}
+
+.practice-mid-ad i {
+    display: inline-block;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 500;
+    color: #9a94b0;
+    border: 1px solid #e3def0;
+    border-radius: 4px;
+    padding: 1px 5px;
+    background: #fff;
+}
+
+#ad-slot-PRACTICE_MID {
+    width: min(100%, 560px);
+    height: auto;
+    aspect-ratio: 560 / 52;
+    max-height: none;
+    margin: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+tr.practice-mid-row > td {
+    padding: 9px 15px 9px 0;
+    background: #fbfaff;
+}
+
+.ranking-table tr.practice-mid-row:hover td,
+.my-record-table tr.practice-mid-row:hover td {
+    background: #fbfaff;
+}
+
+@media (max-width: 768px) {
+    .practice-mid-ad {
+        flex-basis: 44px;
+    }
+
+    #ad-slot-PRACTICE_MID {
+        width: min(100%, 320px);
+        aspect-ratio: 320 / 52;
+    }
+
+    .ranking-table-body tr.practice-mid-row,
+    .my-record-table-body tr.practice-mid-row {
+        display: block;
+        margin: 0 0 5px;
+        padding: 7px 10px 7px 0;
+        background: #fff;
+        border-radius: 9px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .ranking-table-body tr.practice-mid-row > td,
+    .my-record-table-body tr.practice-mid-row > td {
+        display: block;
+        padding: 0 !important;
+        background: transparent;
     }
 }

@@ -1,7 +1,9 @@
 package com.practicket.common.exception;
 
 import io.sentry.Sentry;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
+import org.springframework.web.util.DisconnectedClientHelper;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
@@ -24,12 +28,11 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handle(Exception e) {
-        Sentry.captureException(e);
-        log.error("서버 에러 발생={} / 메시지={}", e.getClass().getName(), e.getMessage());
-        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
-        ErrorResponse response = ErrorResponse.of(errorCode);
-        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    public ResponseEntity<ErrorResponse> handle(Exception e, HttpServletResponse response) {
+        if (isUnwritable(e, response)) {
+            return null;
+        }
+        return internalServerError(e);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
@@ -66,6 +69,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
     }
 
-    @ExceptionHandler(AsyncRequestNotUsableException.class)
-    public void handle(AsyncRequestNotUsableException e) {}
+    /**
+     * 타임아웃은 끊긴 연결이 아니라 서버가 시간을 다 쓴 것이다. SSE 는 만료가 정상이라 삼키고,
+     * 다른 비동기 응답은 스프링 기본값인 503 을 지킨다.
+     */
+    @ExceptionHandler(AsyncRequestTimeoutException.class)
+    public ResponseEntity<ErrorResponse> handle(AsyncRequestTimeoutException e,
+                                                HttpServletResponse response) {
+        if (isServerSentEvent(response)) {
+            return null;
+        }
+        ErrorCode errorCode = ErrorCode.SERVICE_UNAVAILABLE;
+        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
+    }
+
+    /**
+     * 응답이 이미 나간 뒤라 무엇을 써도 스트림만 깨진다. 커밋 전이라면 아직 500 을 줄 수 있으므로
+     * 삼키지 않는다 — 외부 통신이 끊긴 것도 같은 판정에 걸리기 때문이다.
+     */
+    private boolean isUnwritable(Exception e, HttpServletResponse response) {
+        if (e instanceof AsyncRequestNotUsableException) {
+            return true;
+        }
+        return DisconnectedClientHelper.isClientDisconnectedException(e) && response.isCommitted();
+    }
+
+    private boolean isServerSentEvent(HttpServletResponse response) {
+        String contentType = response.getContentType();
+        return contentType != null && contentType.startsWith(MediaType.TEXT_EVENT_STREAM_VALUE);
+    }
+
+    private ResponseEntity<ErrorResponse> internalServerError(Exception e) {
+        Sentry.captureException(e);
+        log.error("서버 에러 발생", e);
+        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
+    }
 }

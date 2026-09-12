@@ -25,7 +25,7 @@ public class PracticeSessionValidator {
 
     private static final int MIN_ELAPSED_MS = 3_000;
     private static final int TIMING_TOLERANCE_MS = 2_000;
-    private static final int COUNTDOWN_MS = 5_000;
+    private static final int COUNTDOWN_MS = 6_000;
 
     private final PracticeSessionRepository sessionRepository;
 

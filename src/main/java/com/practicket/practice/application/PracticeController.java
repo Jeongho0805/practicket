@@ -6,6 +6,7 @@ import com.practicket.practice.domain.PeriodType;
 import com.practicket.practice.domain.PracticeType;
 import com.practicket.practice.dto.PracticeCheckpointRequest;
 import com.practicket.practice.dto.PracticeCompleteResponse;
+import com.practicket.practice.dto.PracticeDistributionResponse;
 import com.practicket.practice.dto.PracticeMyRecordsResponse;
 import com.practicket.practice.dto.PracticeMyRankResponse;
 import com.practicket.practice.dto.PracticeMyStatsResponse;
@@ -24,6 +25,15 @@ import org.springframework.web.bind.annotation.*;
 public class PracticeController {
 
     private final PracticeService practiceService;
+    private final PracticeDistributionService practiceDistributionService;
+
+    /** 로그인 없이도 보는 그래프라 인증을 걸지 않는다 */
+    @GetMapping("/distribution")
+    public ResponseEntity<PracticeDistributionResponse> getDistribution(
+            @RequestParam @NotNull PracticeType type
+    ) {
+        return ResponseEntity.ok(practiceDistributionService.get(type));
+    }
 
     @PostMapping("/start")
     public ResponseEntity<PracticeStartResponse> start(

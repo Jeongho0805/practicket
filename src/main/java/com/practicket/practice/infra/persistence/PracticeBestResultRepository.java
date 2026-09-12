@@ -12,7 +12,7 @@ public interface PracticeBestResultRepository
         extends JpaRepository<PracticeBestResult, Long>, PracticeBestResultRepositoryCustom {
 
     /**
-     * 세 기간의 자리를 잡는다. 이미 있으면 아무것도 하지 않는다 — 값 판단은 뒤따르는
+     * 네 기간의 자리를 잡는다. 이미 있으면 아무것도 하지 않는다 — 값 판단은 뒤따르는
      * {@code updateBucketsIfFaster} 가 한다.
      * <p>
      * "찾아보고 없으면 넣기" 로 하면 같은 사람이 동시에 두 기록을 끝냈을 때 둘 다 넣으려다
@@ -24,11 +24,13 @@ public interface PracticeBestResultRepository
                 (type, period_type, period_start, client_key, nickname, result_id,
                  total_duration_ms, reaction_time_ms, queue_wait_ms, captcha_ms, seat_selection_ms, updated_at)
             VALUES
-                (:type, 'DAILY',   :dailyStart,   :clientKey, :nickname, :resultId,
+                (:type, 'DAILY',    :dailyStart,   :clientKey, :nickname, :resultId,
                  :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW()),
-                (:type, 'WEEKLY',  :weeklyStart,  :clientKey, :nickname, :resultId,
+                (:type, 'WEEKLY',   :weeklyStart,  :clientKey, :nickname, :resultId,
                  :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW()),
-                (:type, 'MONTHLY', :monthlyStart, :clientKey, :nickname, :resultId,
+                (:type, 'MONTHLY',  :monthlyStart, :clientKey, :nickname, :resultId,
+                 :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW()),
+                (:type, 'ALL_TIME', :allTimeStart, :clientKey, :nickname, :resultId,
                  :totalDurationMs, :reactionTimeMs, :queueWaitMs, :captchaMs, :seatSelectionMs, NOW())
             ON DUPLICATE KEY UPDATE id = id
             """, nativeQuery = true)
@@ -36,6 +38,7 @@ public interface PracticeBestResultRepository
                                @Param("dailyStart") LocalDate dailyStart,
                                @Param("weeklyStart") LocalDate weeklyStart,
                                @Param("monthlyStart") LocalDate monthlyStart,
+                               @Param("allTimeStart") LocalDate allTimeStart,
                                @Param("clientKey") String clientKey,
                                @Param("nickname") String nickname,
                                @Param("resultId") Long resultId,
@@ -59,15 +62,17 @@ public interface PracticeBestResultRepository
                    updated_at = NOW()
              WHERE client_key = :clientKey
                AND type = :type
-               AND ((period_type = 'DAILY'   AND period_start = :dailyStart)
-                 OR (period_type = 'WEEKLY'  AND period_start = :weeklyStart)
-                 OR (period_type = 'MONTHLY' AND period_start = :monthlyStart))
+               AND ((period_type = 'DAILY'    AND period_start = :dailyStart)
+                 OR (period_type = 'WEEKLY'   AND period_start = :weeklyStart)
+                 OR (period_type = 'MONTHLY'  AND period_start = :monthlyStart)
+                 OR (period_type = 'ALL_TIME' AND period_start = :allTimeStart))
                AND total_duration_ms > :totalDurationMs
             """, nativeQuery = true)
     void updateBucketsIfFaster(@Param("type") String type,
                                @Param("dailyStart") LocalDate dailyStart,
                                @Param("weeklyStart") LocalDate weeklyStart,
                                @Param("monthlyStart") LocalDate monthlyStart,
+                               @Param("allTimeStart") LocalDate allTimeStart,
                                @Param("clientKey") String clientKey,
                                @Param("nickname") String nickname,
                                @Param("resultId") Long resultId,

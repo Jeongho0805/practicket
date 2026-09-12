@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('광고주 등록')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('advertiser')}"></aside>
+
+    <main class="main">
+        <div class="crumb"><a href="/admin-hoya/ad/advertisers">광고주</a> · <span th:text="${form.id == null} ? '등록' : '수정'">등록</span></div>
+
+        <div class="topbar">
+            <div>
+                <h1 th:text="${form.id == null} ? '광고주 등록' : '광고주 수정'">광고주 등록</h1>
+                <p>이름만 있으면 등록됩니다. 나머지는 계약할 때 채워도 됩니다.</p>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <form method="post" action="/admin-hoya/ad/advertisers">
+            <input type="hidden" name="id" th:value="${form.id}">
+
+            <div class="card formcard">
+                <div class="two">
+                    <div class="f">
+                        <label for="name">광고주 이름</label>
+                        <input type="text" id="name" name="name" th:value="${form.name}" required>
+                        <span class="hint">화면과 리포트에 나오는 이름입니다. 중복될 수 없습니다.</span>
+                    </div>
+                    <div class="f">
+                        <label for="company">사업자명</label>
+                        <input type="text" id="company" name="company" th:value="${form.company}">
+                    </div>
+                </div>
+
+                <div class="two">
+                    <div class="f">
+                        <label for="manager">담당자</label>
+                        <input type="text" id="manager" name="manager" th:value="${form.manager}">
+                    </div>
+                    <div class="f">
+                        <label for="phone">연락처</label>
+                        <input type="text" id="phone" name="phone" th:value="${form.phone}">
+                    </div>
+                </div>
+
+                <div class="two">
+                    <div class="f">
+                        <label for="email">이메일</label>
+                        <input type="email" id="email" name="email" th:value="${form.email}">
+                    </div>
+                    <div class="f">
+                        <label for="bizNo">사업자번호</label>
+                        <input type="text" id="bizNo" name="bizNo" th:value="${form.bizNo}">
+                    </div>
+                </div>
+
+                <div class="f">
+                    <label for="memo">메모</label>
+                    <textarea id="memo" name="memo" rows="4" th:text="${form.memo}"></textarea>
+                </div>
+            </div>
+
+            <div class="formactions">
+                <a class="btn ghost" href="/admin-hoya/ad/advertisers">취소</a>
+                <button type="submit" class="btn">저장</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+</body>
+</html>

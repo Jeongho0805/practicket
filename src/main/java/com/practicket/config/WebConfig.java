@@ -27,6 +27,9 @@ public class WebConfig  {
     @Value("${app.ad.image-dir:/data/practicket/ad-images}")
     private String adImageDir;
 
+    @Value("${app.blog.image-dir:/data/practicket/blog-images}")
+    private String blogImageDir;
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
@@ -62,6 +65,11 @@ public class WebConfig  {
                 // 업로드된 배너 이미지 서빙 (BannerImageStorage 저장 경로 → /ad-images/**)
                 registry.addResourceHandler("/ad-images/**")
                         .addResourceLocations("file:" + adImageDir + "/");
+
+                // 블로그 썸네일·본문 이미지 서빙. 기존 15건 이미지도 static 이 아니라
+                // 이쪽에 있다 — 어드민 업로드분과 저장 위치를 나누지 않기 위해서다
+                registry.addResourceHandler("/blog-images/**")
+                        .addResourceLocations("file:" + blogImageDir + "/");
             }
         };
     }

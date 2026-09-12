@@ -32,9 +32,10 @@
 <body>
     <div th:replace="~{fragments/header::header}"></div>
     <div id="content-section">
-        <div th:replace="~{fragments/ad-section::ad-section}"></div>
+        <div th:replace="~{fragments/ad-slot::slot('MOBILE_TOP')}"></div>
+        <div th:replace="~{fragments/ad-slot::slot('PC_LEFT')}"></div>
         <div layout:fragment="content"></div>
-        <div th:replace="~{fragments/adsence-section::adsence-section}"></div>
+        <div th:replace="~{fragments/ad-slot::slot('PC_RIGHT')}"></div>
     </div>
 
     <th:block th:replace="~{fragments/alert :: alert}"></th:block>
@@ -73,6 +74,7 @@
     <script type="module" src="/js/common.js"></script>
     <script type="module" src="/js/header.js"></script>
     <script type="module" src="/js/chatting.js"></script>
+    <script type="module" src="/js/ad-fill.js"></script>
     <script type="module" src="/js/ad-metrics.js"></script>
     <th:block layout:fragment="scripts"></th:block>
 </body>

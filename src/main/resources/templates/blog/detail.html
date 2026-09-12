@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="robots" content="index, follow">
+    <meta name="description" th:attr="content=${post.subtitle}">
+    <title th:text="|${post.title} - 프랙티켓|"></title>
+    <link rel="canonical" th:attr="href=|https://practicket.com/blog/${post.id}|">
+    <!-- 레이아웃 기본 OG 를 끄고 글 자신의 값을 내보낸다 (customOg 를 컨트롤러가 넘긴다) -->
+    <meta property="og:title" th:attr="content=${post.title}">
+    <meta property="og:description" th:attr="content=${post.subtitle}">
+    <meta property="og:image" th:attr="content=|${host}/image/og-card.png|">
+    <meta property="og:url" th:attr="content=|${host}/blog/${post.id}|">
+    <link rel="stylesheet" href="/css/blog-content.css">
+</head>
+<body>
+    <div layout:fragment="content" id="main-section">
+        <header>
+            <a id="blog-back" href="/blog">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                블로그 목록
+            </a>
+            <h1 id="blog-title" th:text="${post.title}"></h1>
+            <h2 id="blog-sub-title" th:text="${post.subtitle}"></h2>
+            <div id="blog-meta">
+                <span>
+                    <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                    <span th:text="${post.dateLabel}"></span>
+                </span>
+                <span th:if="${post.hasViews}">
+                    <svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span th:text="|조회 ${post.viewLabel}|"></span>
+                </span>
+            </div>
+        </header>
+
+        <!-- 본문은 어드민이 쓴 HTML 이라 태그를 살려 그린다 -->
+        <article th:utext="${post.content}"></article>
+
+        <div id="blog-next" th:if="${!post.next.isEmpty()}">
+            <h4>다음 읽을 글</h4>
+            <div class="blog-next-list">
+                <a class="blog-next-item" th:each="next : ${post.next}" th:href="@{'/blog/' + ${next.id}}">
+                    <img th:src="${next.thumbnailImagePath}" th:alt="${next.title}">
+                    <span th:text="${next.title}"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

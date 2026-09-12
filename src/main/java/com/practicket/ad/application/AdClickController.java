@@ -2,6 +2,10 @@ package com.practicket.ad.application;
 
 import com.practicket.ad.component.AdClickCounter;
 import com.practicket.ad.component.AdTrafficFilter;
+import com.practicket.ad.domain.AdCampaign;
+import com.practicket.ad.domain.AdCampaignRepository;
+import com.practicket.ad.domain.Advertiser;
+import com.practicket.ad.domain.AdvertiserRepository;
 import com.practicket.ad.domain.Banner;
 import com.practicket.ad.domain.BannerRepository;
 import com.practicket.common.exception.ErrorCode;
@@ -27,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 public class AdClickController {
 
     private final BannerRepository bannerRepository;
+    private final AdCampaignRepository adCampaignRepository;
+    private final AdvertiserRepository advertiserRepository;
     private final AdClickCounter adClickCounter;
     private final AdTrafficFilter adTrafficFilter;
 
@@ -40,26 +46,46 @@ public class AdClickController {
             adClickCounter.record(bannerId, resolveClientIp(request));
         }
 
-        String redirectUrl = withUtm(banner);
+        AdCampaign campaign = banner.getCampaignId() == null ? null
+                : adCampaignRepository.findById(banner.getCampaignId()).orElse(null);
+
+        String redirectUrl = withUtm(banner, campaign);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, redirectUrl)
                 .build();
     }
 
-    private String withUtm(Banner banner) {
-        String campaign = (banner.getAdvertiserName() != null && !banner.getAdvertiserName().isBlank())
-                ? banner.getAdvertiserName()
-                : String.valueOf(banner.getId());
-
-        String utmParams = "utm_source=practicket&utm_medium=banner&utm_campaign="
-                + URLEncoder.encode(campaign, StandardCharsets.UTF_8);
-
-        String linkUrl = banner.getLinkUrl();
-        if (linkUrl == null || linkUrl.isBlank()) {
+    /** 배너가 링크와 이름을 비우면 계약을 따른다. 계약도 없으면 이관 전 데이터라 배너 값만 남는다. */
+    private String withUtm(Banner banner, AdCampaign campaign) {
+        String linkUrl = firstNotBlank(banner.getLinkUrl(), campaign == null ? null : campaign.getLinkUrl());
+        if (linkUrl == null) {
             return "/";
         }
+
+        String utmParams = "utm_source=practicket&utm_medium=banner&utm_campaign="
+                + URLEncoder.encode(campaignName(banner, campaign), StandardCharsets.UTF_8);
         String separator = linkUrl.contains("?") ? "&" : "?";
         return linkUrl + separator + utmParams;
+    }
+
+    private String campaignName(Banner banner, AdCampaign campaign) {
+        if (campaign != null) {
+            String advertiserName = advertiserRepository.findById(campaign.getAdvertiserId())
+                    .map(Advertiser::getName).orElse(null);
+            String name = firstNotBlank(advertiserName, campaign.getName());
+            if (name != null) {
+                return name;
+            }
+        }
+        String legacy = firstNotBlank(banner.getAdvertiserName(), null);
+        return legacy != null ? legacy : String.valueOf(banner.getId());
+    }
+
+    private String firstNotBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        return (second != null && !second.isBlank()) ? second : null;
     }
 
     private String resolveClientIp(HttpServletRequest request) {

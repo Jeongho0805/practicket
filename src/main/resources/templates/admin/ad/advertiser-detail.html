@@ -1,111 +1,106 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{admin/fragments/admin-shell :: head(${advertiser.name})}"></head>
+<head th:replace="~{admin/fragments/admin-shell :: head('광고주 상세')}"></head>
 <body>
 <div class="app">
     <aside th:replace="~{admin/fragments/admin-shell :: sidebar('advertiser')}"></aside>
 
     <main class="main">
+        <div class="crumb"><a href="/admin-hoya/ad/advertisers">광고주</a> · 상세</div>
+
         <div class="topbar">
             <div>
-                <h1 th:text="${advertiser.name}">광고주</h1>
-                <p>
-                    캠페인 <b th:text="${advertiser.campaigns}">0</b>개
-                    <span th:if="${advertiser.firstStart != null}"
-                          th:text="' · ' + ${#temporals.format(advertiser.firstStart, 'yyyy.MM.dd')} + ' ~ '
-                                   + ${#temporals.format(advertiser.lastEnd, 'yyyy.MM.dd')}"> · 기간</span>
-                </p>
+                <h1 th:text="${detail.advertiser.name}">광고주</h1>
+                <p th:text="'캠페인 ' + ${#lists.size(detail.campaigns)} + '건 · 누적 '
+                            + ${#numbers.formatInteger(detail.amount, 1, 'COMMA')} + '원'">캠페인</p>
             </div>
             <div class="tools">
-                <button type="button" class="btn copy-report" th:attr="data-report=${advertiser.reportPath}">
-                    통합 리포트 링크 복사
-                </button>
-                <a class="btn ghost" href="/admin-hoya/ad/advertisers">목록으로</a>
+                <a class="btn ghost sm" th:href="@{/admin-hoya/ad/advertisers/{id}/edit(id=${detail.advertiser.id})}">수정</a>
+                <form method="post" th:action="@{/admin-hoya/ad/advertisers/{id}/delete(id=${detail.advertiser.id})}">
+                    <button type="submit" class="btn danger sm" data-confirm-text="정말 삭제?"
+                            onclick="return armConfirm(this)">삭제</button>
+                </form>
             </div>
         </div>
 
-        <p class="note" style="margin:-8px 0 16px">
-            통합 리포트는 이 광고주의 <b>모든 캠페인을 합쳐</b> 보여줍니다 —
-            <span class="mono" th:text="${advertiser.reportPath}">/ad/report/advertiser/…</span>
-            · 로그인 없이 열리며, 광고주명을 바꾸면 주소도 바뀝니다.
-        </p>
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
 
-        <div class="kpis">
+        <div class="three">
             <div class="kpi">
                 <div class="l">누적 노출</div>
-                <div class="v" th:text="${#numbers.formatInteger(advertiser.impressions, 1, 'COMMA')}">0</div>
-                <div class="d flat">전 기간 합산</div>
+                <div class="v" th:text="${#numbers.formatInteger(detail.impressions, 1, 'COMMA')}">0</div>
             </div>
             <div class="kpi">
                 <div class="l">누적 클릭</div>
-                <div class="v" th:text="${#numbers.formatInteger(advertiser.clicks, 1, 'COMMA')}">0</div>
-                <div class="d flat">전 기간 합산</div>
+                <div class="v" th:text="${#numbers.formatInteger(detail.clicks, 1, 'COMMA')}">0</div>
             </div>
             <div class="kpi">
                 <div class="l">평균 CTR</div>
-                <div class="v" th:text="${#numbers.formatDecimal(advertiser.ctr, 1, 2, 'POINT')} + '%'">0.00%</div>
-                <div class="d flat">누적 기준</div>
+                <div class="v" th:text="${#numbers.formatDecimal(detail.ctr, 1, 2, 'POINT')} + '%'">0.00%</div>
             </div>
-            <div class="kpi">
-                <div class="l">현재 노출중</div>
-                <div class="v" th:text="${advertiser.liveCampaigns} + '개'">0개</div>
-                <div class="d flat" th:text="'전체 ' + ${advertiser.campaigns} + '개 중'">전체 0개 중</div>
+        </div>
+
+        <div class="card">
+            <header><h2>거래처 정보</h2></header>
+            <div class="facts">
+                <div><dt>상호</dt><dd th:text="${detail.advertiser.company != null ? detail.advertiser.company : '-'}">-</dd></div>
+                <div><dt>표시 이름</dt><dd th:text="${detail.advertiser.name}">-</dd></div>
+                <div><dt>담당자</dt><dd th:text="${detail.advertiser.manager != null ? detail.advertiser.manager : '-'}">-</dd></div>
+                <div><dt>연락처</dt><dd th:text="${detail.advertiser.phone != null ? detail.advertiser.phone : '-'}">-</dd></div>
+                <div><dt>이메일</dt><dd th:text="${detail.advertiser.email != null ? detail.advertiser.email : '-'}">-</dd></div>
+                <div><dt>사업자등록번호</dt><dd th:text="${detail.advertiser.bizNo != null ? detail.advertiser.bizNo : '-'}">-</dd></div>
+            </div>
+            <div class="factmemo" th:if="${detail.advertiser.memo != null}">
+                <dt>단가 · 계약 메모</dt>
+                <p th:text="${detail.advertiser.memo}">메모</p>
             </div>
         </div>
 
         <div class="card">
             <header>
                 <h2>캠페인 이력<small>최근 시작순</small></h2>
-                <span class="note">종료된 캠페인도 집계에 남습니다 — 배너를 삭제하면 그 성과는 사라집니다</span>
+                <a class="btn ghost sm" href="/admin-hoya/ad/campaigns/new">+ 새 캠페인</a>
             </header>
-            <div class="tablewrap">
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(detail.campaigns)}">
                 <table>
                     <thead>
                     <tr>
-                        <th>소재</th>
+                        <th>캠페인</th>
+                        <th>계약 기간</th>
+                        <th class="r">계약 금액</th>
                         <th>슬롯</th>
-                        <th>게재 기간</th>
                         <th class="r">노출</th>
-                        <th class="r">클릭</th>
                         <th class="r">CTR</th>
                         <th>상태</th>
-                        <th class="r">관리</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="row : ${advertiser.banners}">
+                    <tr th:each="row : ${detail.campaigns}" class="rowlink"
+                        th:onclick="|location.href='/admin-hoya/ad/campaigns/${row.campaign.id}'|">
+                        <td><b th:text="${row.campaign.name}">캠페인</b></td>
+                        <td th:text="${#temporals.format(row.campaign.startAt, 'yyyy.MM.dd')} + ' ~ '
+                                     + ${#temporals.format(row.campaign.endAt, 'yyyy.MM.dd')}">기간</td>
+                        <td class="r money" th:text="${#numbers.formatInteger(row.campaign.amount, 1, 'COMMA')} + '원'">0원</td>
                         <td>
-                            <div class="cellname">
-                                <img class="thumb" th:src="${row.banner.imagePath}" alt="배너 이미지"/>
-                                <div><b th:text="'#' + ${row.banner.id}">#1</b></div>
-                            </div>
-                        </td>
-                        <td>
-                            <span th:text="${row.banner.slot.name}">슬롯</span><br>
-                            <span class="mono" th:text="${row.banner.slot.code}">CODE</span>
-                        </td>
-                        <td>
-                            <span th:text="${#temporals.format(row.banner.startAt, 'yyyy.MM.dd')}">2026.01.01</span><br>
-                            <span class="note" th:text="'~ ' + ${#temporals.format(row.banner.endAt, 'yyyy.MM.dd')}">~ 2026.12.31</span>
+                            <b th:text="${row.bannerCount} + '개'">0개</b>
+                            <div class="note" th:if="${not #strings.isEmpty(row.slotNames)}"
+                                 th:text="${row.slotNames}">슬롯</div>
                         </td>
                         <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
-                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
                         <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
                         <td>
                             <span class="pill" th:classappend="${row.status.key}">
                                 <i></i><span th:text="${row.status.label}">상태</span>
                             </span>
                         </td>
-                        <td class="r">
-                            <div class="rowact">
-                                <button type="button" class="btn ghost sm copy-report" th:if="${row.reportPath != null}"
-                                        th:attr="data-report=${row.reportPath}">링크 복사</button>
-                                <a class="btn ghost sm" th:href="@{'/admin-hoya/ad/banners/' + ${row.banner.id} + '/edit'}">수정</a>
-                            </div>
-                        </td>
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(detail.campaigns)}">
+                아직 계약이 없습니다. <a href="/admin-hoya/ad/campaigns/new">첫 캠페인을 등록</a>해보세요.
             </div>
         </div>
     </main>
@@ -113,9 +108,6 @@
 
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
-<script>
-    document.querySelectorAll('.copy-report').forEach(button =>
-        button.addEventListener('click', () => copyReportLink(button, button.dataset.report)));
-</script>
+<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
 </body>
 </html>

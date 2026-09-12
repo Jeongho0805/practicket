@@ -131,25 +131,21 @@ public class PracticeService {
                 .orElseGet(() -> new PracticeMyRankResponse(null, null, null, null, null, null, null, totalUsers));
     }
 
+    /**
+     * 등급·상위 %·내 순위는 여기서 내지 않는다. 등급은 전체 기간 분포의 컷으로, 상위 %·순위는
+     * 전체 기간 {@link #getMyRank} 로 화면이 낸다. 그래프도 같은 두 값을 읽는다.
+     */
+    @Transactional(readOnly = true)
     public PracticeMyStatsResponse getMyStats(ClientInfo clientInfo, PracticeType type) {
         String clientKey = clientInfo.getToken();
 
         long totalCount = resultRepository.countByClientKeyAndType(clientKey, type);
         if (totalCount == 0) {
-            return new PracticeMyStatsResponse(null, null, null, 0);
+            return new PracticeMyStatsResponse(null, 0);
         }
 
-        Integer bestMs = resultRepository.findBestMs(clientKey, type).orElse(null);
-        Integer firstMs = resultRepository.findTopByClientKeyAndTypeOrderByIdAsc(clientKey, type)
-                .map(PracticeResult::getTotalDurationMs)
-                .orElse(null);
-
-        Long monthlyRank = bestResultRepository.findMyBest(type, PeriodType.MONTHLY, clientKey)
-                .map(best -> bestResultRepository
-                        .countFasterThan(type, PeriodType.MONTHLY, best.getTotalDurationMs()) + 1)
-                .orElse(null);
-
-        return new PracticeMyStatsResponse(monthlyRank, bestMs, firstMs, (int) totalCount);
+        return new PracticeMyStatsResponse(
+                resultRepository.findBestMs(clientKey, type).orElse(null), (int) totalCount);
     }
 
     @Transactional(readOnly = true)
@@ -190,15 +186,16 @@ public class PracticeService {
         LocalDate daily = PeriodType.DAILY.bucketStart(day);
         LocalDate weekly = PeriodType.WEEKLY.bucketStart(day);
         LocalDate monthly = PeriodType.MONTHLY.bucketStart(day);
+        LocalDate allTime = PeriodType.ALL_TIME.bucketStart(day);
 
         bestResultRepository.insertBucketsIfAbsent(
-                result.getType().name(), daily, weekly, monthly,
+                result.getType().name(), daily, weekly, monthly, allTime,
                 result.getClientKey(), result.getNickname(), result.getId(),
                 result.getTotalDurationMs(), result.getReactionTimeMs(),
                 result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());
 
         bestResultRepository.updateBucketsIfFaster(
-                result.getType().name(), daily, weekly, monthly,
+                result.getType().name(), daily, weekly, monthly, allTime,
                 result.getClientKey(), result.getNickname(), result.getId(),
                 result.getTotalDurationMs(), result.getReactionTimeMs(),
                 result.getQueueWaitMs(), result.getCaptchaMs(), result.getSeatSelectionMs());

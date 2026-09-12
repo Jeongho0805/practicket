@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('캠페인 상세')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('campaign')}"></aside>
+
+    <main class="main">
+        <div class="crumb"><a href="/admin-hoya/ad/campaigns">캠페인</a> · 상세</div>
+
+        <div class="topbar">
+            <div>
+                <h1 th:text="${detail.campaign.name}">캠페인</h1>
+                <p>
+                    <span th:text="${detail.advertiser != null ? detail.advertiser.name : '(삭제된 광고주)'}">광고주</span>
+                    ·
+                    <span th:text="${#temporals.format(detail.campaign.startAt, 'yyyy.MM.dd')} + ' ~ '
+                                   + ${#temporals.format(detail.campaign.endAt, 'yyyy.MM.dd')}">기간</span>
+                </p>
+            </div>
+            <div class="tools">
+                <button type="button" class="btn ghost sm copy-report"
+                        th:attr="data-report=${detail.reportPath}">리포트 링크</button>
+                <a class="btn ghost sm" th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">수정</a>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <div class="warnbox" th:if="${not #lists.isEmpty(detail.missingCreatives)}">
+            <b>소재가 없는 배너가 있습니다. 그 슬롯은 아무것도 안 나갑니다.</b>
+            <ul>
+                <li th:each="row : ${detail.missingCreatives}" th:text="${row.slotName}">슬롯</li>
+            </ul>
+        </div>
+
+        <div class="warnbox" th:if="${not #lists.isEmpty(detail.overlapping)}">
+            <b>같은 기간 같은 슬롯을 쓰는 다른 캠페인이 있습니다. 노출이 나뉩니다.</b>
+            <ul>
+                <li th:each="row : ${detail.overlapping}">
+                    <span th:text="${row.slotName}">슬롯</span> —
+                    <span th:text="${#strings.listJoin(row.overlappingCampaigns, ', ')}">캠페인</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="kpis">
+            <div class="kpi">
+                <div class="l">계약 금액</div>
+                <div class="v money" th:text="${#numbers.formatInteger(detail.campaign.amount, 1, 'COMMA')} + '원'">0원</div>
+                <div class="d flat">
+                    <span class="pill" th:classappend="${detail.status.key}">
+                        <i></i><span th:text="${detail.status.label}">상태</span>
+                    </span>
+                </div>
+            </div>
+            <div class="kpi">
+                <div class="l">누적 노출</div>
+                <div class="v" th:text="${#numbers.formatInteger(detail.impressions, 1, 'COMMA')}">0</div>
+                <div class="d flat" th:text="'배너 ' + ${#lists.size(detail.banners)} + '개 합산'
+                                             + (${detail.deletedBannerCount} > 0 ? ' · 삭제 ' + ${detail.deletedBannerCount} + '개 포함' : '')">배너 합산</div>
+            </div>
+            <div class="kpi">
+                <div class="l">누적 클릭</div>
+                <div class="v" th:text="${#numbers.formatInteger(detail.clicks, 1, 'COMMA')}">0</div>
+                <div class="d flat" th:text="'CTR ' + ${#numbers.formatDecimal(detail.ctr, 1, 2, 'POINT')} + '%'">CTR</div>
+            </div>
+            <div class="kpi">
+                <div class="l">남은 기간</div>
+                <div class="v" th:text="${detail.daysLeft >= 0 ? detail.daysLeft + '일' : '종료'}">0일</div>
+                <div class="d flat" th:text="${#temporals.format(detail.campaign.endAt, 'yyyy.MM.dd')} + ' 종료'">종료일</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <header>
+                <h2>슬롯별 배너<small th:text="${#lists.size(detail.banners)} + '개'">0개</small></h2>
+                <span class="note">기간을 비운 배너는 계약 기간을 그대로 따릅니다</span>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(detail.banners)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>슬롯</th>
+                        <th>소재</th>
+                        <th>노출 기간</th>
+                        <th class="r">노출</th>
+                        <th class="r">클릭</th>
+                        <th class="r">CTR</th>
+                        <th>상태</th>
+                        <th class="r"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${detail.banners}">
+                        <td>
+                            <b th:text="${row.slotName}">슬롯</b>
+                            <div class="slotcode mono" th:text="${row.slotCode}">CODE</div>
+                        </td>
+                        <td>
+                            <div class="creative-list">
+                                <div class="creative-item" th:if="${row.pcImagePath != null}">
+                                    <span class="note">데스크톱</span>
+                                    <img class="thumb creative-thumb" th:src="${row.pcImagePath}" alt="데스크톱 소재"/>
+                                    <span class="tag miss creative-load-error" hidden><i></i>불러오기 실패</span>
+                                </div>
+                                <div class="creative-item" th:if="${row.mobileImagePath != null}">
+                                    <span class="note">모바일</span>
+                                    <img class="thumb creative-thumb" th:src="${row.mobileImagePath}" alt="모바일 소재"/>
+                                    <span class="tag miss creative-load-error" hidden><i></i>불러오기 실패</span>
+                                </div>
+                                <span class="tag miss" th:if="${row.missingCreative}"><i></i>소재 없음</span>
+                            </div>
+                            <div class="spechint">
+                                <span th:if="${row.pcSize != null}" th:text="'데스크톱 ' + ${row.pcSize}">데스크톱</span>
+                                <span th:if="${row.mobileSize != null}" th:text="' · 모바일 ' + ${row.mobileSize}">모바일</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:text="${#temporals.format(row.startAt, 'yyyy.MM.dd')} + ' ~ '
+                                           + ${#temporals.format(row.endAt, 'yyyy.MM.dd')}">기간</span><br>
+                            <span class="tag" th:classappend="${row.ownPeriod} ? 'own' : 'inherit'">
+                                <i></i><span th:text="${row.days} + '일 · ' + (${row.ownPeriod} ? '직접 지정' : '계약 기간 따름')">기간</span>
+                            </span>
+                        </td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</td>
+                        <td class="r" th:text="${#numbers.formatInteger(row.clicks, 1, 'COMMA')}">0</td>
+                        <td class="r"><b th:text="${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">0.00%</b></td>
+                        <td>
+                            <span class="pill" th:classappend="${row.status.key}">
+                                <i></i><span th:text="${row.status.label}">상태</span>
+                            </span>
+                        </td>
+                        <td class="r">
+                            <form method="post"
+                                  th:action="@{/admin-hoya/ad/campaigns/{cid}/banners/{bid}/toggle(cid=${detail.campaign.id},bid=${row.id})}">
+                                <button type="submit" class="btn ghost sm"
+                                        th:text="${row.enabled} ? '노출 중단' : '노출 재개'">노출 중단</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="note" th:if="${detail.deletedBannerCount > 0}"
+               th:text="'삭제된 배너 ' + ${detail.deletedBannerCount} + '개 · 노출 '
+                        + ${#numbers.formatInteger(detail.deletedImpressions, 1, 'COMMA')} + ' · 클릭 '
+                        + ${#numbers.formatInteger(detail.deletedClicks, 1, 'COMMA')} + ' — 위 합계와 광고주 리포트에 그대로 들어 있습니다'">삭제된 배너</p>
+
+            <div class="empty" th:if="${#lists.isEmpty(detail.banners)}">
+                이 캠페인에 배너가 없습니다.
+                <a th:href="@{/admin-hoya/ad/campaigns/{id}/edit(id=${detail.campaign.id})}">슬롯을 추가</a>해주세요.
+            </div>
+
+            <div class="pad" th:if="${not #lists.isEmpty(detail.banners)}">
+                <div class="sectitle">기간 비교 <small>계약 기간을 가로축으로 둔 배너별 노출 구간</small></div>
+                <div class="tl">
+                    <div class="tlrow" th:each="row : ${detail.banners}">
+                        <div class="tlname">
+                            <b th:text="${row.slotName}">슬롯</b>
+                            <span class="mono" th:text="${row.slotCode}">CODE</span>
+                        </div>
+                        <div class="tltrack">
+                            <span class="tltoday" th:if="${detail.todayPercent != null}"
+                                  th:style="'left:' + ${detail.todayPercent} + '%'"></span>
+                            <span class="tlbar"
+                                  th:classappend="${!row.enabled} ? 'off' : (${row.ownPeriod} ? '' : 'inherit')"
+                                  th:style="'left:' + ${row.leftPercent} + '%; width:' + ${row.widthPercent} + '%'"></span>
+                        </div>
+                        <div class="tlmeta">
+                            <span th:text="${#temporals.format(row.startAt, 'yyyy.MM.dd')} + ' ~ '
+                                           + ${#temporals.format(row.endAt, 'yyyy.MM.dd')}">기간</span>
+                            <span class="tag" th:classappend="${row.ownPeriod} ? 'own' : 'inherit'">
+                                <i></i><span th:text="${row.days} + '일 · ' + (${row.ownPeriod} ? '직접 지정' : '계약 기간 따름')">기간</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="tlhead">
+                        <span></span>
+                        <span class="tlaxis">
+                            <span th:text="${#temporals.format(detail.campaign.startAt, 'yyyy.MM.dd')}">시작</span>
+                            <span th:text="${#temporals.format(detail.campaign.endAt, 'yyyy.MM.dd')}">종료</span>
+                        </span>
+                        <span></span>
+                    </div>
+                </div>
+                <div class="tllegend">
+                    <span><i style="background:#ddd6f3"></i>계약 기간 따름</span>
+                    <span><i style="background:linear-gradient(90deg,#8470b3,#514897)"></i>직접 지정</span>
+                    <span th:if="${detail.todayPercent != null}"><i style="background:#c0392b;width:2px;height:12px"></i>오늘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <header><h2>계약 정보</h2></header>
+            <div class="facts">
+                <div><dt>광고주</dt><dd th:text="${detail.advertiser != null ? detail.advertiser.name : '-'}">-</dd></div>
+                <div><dt>담당자</dt><dd th:text="${detail.advertiser != null and detail.advertiser.manager != null ? detail.advertiser.manager : '-'}">-</dd></div>
+                <div><dt>기본 링크</dt>
+                    <dd th:text="${detail.campaign.linkUrl != null ? detail.campaign.linkUrl : '(배너별 링크 사용)'}">-</dd></div>
+                <div><dt>리포트 주소</dt>
+                    <dd class="linkbox"><span class="mono" th:text="${detail.reportPath}">/ad/report/campaign/...</span></dd>
+                </div>
+            </div>
+            <div class="factmemo" th:if="${detail.campaign.memo != null}">
+                <dt>메모</dt>
+                <p th:text="${detail.campaign.memo}">메모</p>
+            </div>
+        </div>
+
+        <form class="dangerzone" method="post"
+              th:action="@{/admin-hoya/ad/campaigns/{id}/delete(id=${detail.campaign.id})}">
+            <p>캠페인을 지우면 배너 노출이 멈추고 목록에서 빠집니다. 쌓인 노출·클릭 기록과 리포트 주소는 남습니다.</p>
+            <button type="submit" class="btn danger sm" data-confirm-text="정말 삭제?"
+                    onclick="return armConfirm(this)">캠페인 삭제</button>
+        </form>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    document.querySelectorAll('.copy-report').forEach(button =>
+        button.addEventListener('click', () => copyReportLink(button, button.dataset.report)));
+    document.querySelectorAll('.creative-thumb').forEach(image => {
+        const showLoadError = () => {
+            image.hidden = true;
+            image.parentElement.querySelector('.creative-load-error').hidden = false;
+        };
+        image.addEventListener('error', showLoadError);
+        if (image.complete && image.naturalWidth === 0) showLoadError();
+    });
+</script>
+</body>
+</html>

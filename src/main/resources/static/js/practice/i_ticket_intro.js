@@ -1,5 +1,6 @@
 import { authFetch, showAlert } from '/js/common.js';
 import * as run from '/js/practice/run-state.js';
+import { startCountdown } from '/js/practice/countdown.js';
 
 /* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
    앞으로가기 한 번에 끝난 판이 되살아난다. */
@@ -68,7 +69,7 @@ async function startPractice() {
 
     const isMobile = window.innerWidth <= 768;
     const bookingActions = document.querySelector('.booking-actions');
-    let seconds = 5;
+    const COUNTDOWN_SEC = 6;
 
     function formatTime(s) {
         const m = Math.floor(s / 60).toString().padStart(2, '0');
@@ -79,45 +80,30 @@ async function startPractice() {
     if (isMobile) {
         const bookingBtn = document.querySelector('.mobile-btn-booking');
         bookingBtn.disabled = true;
-        bookingBtn.textContent = `남은시간 ${formatTime(seconds)}`;
         bookingBtn.style.background = '#ccc';
         bookingBtn.style.cursor = 'not-allowed';
 
-        const interval = setInterval(() => {
-            seconds--;
-            if (seconds <= 0) {
-                clearInterval(interval);
-                run.markOpened();
-                bookingBtn.disabled = false;
-                bookingBtn.textContent = '예매하기';
-                bookingBtn.style.background = '';
-                bookingBtn.style.cursor = '';
-            } else {
-                bookingBtn.textContent = `남은시간 ${formatTime(seconds)}`;
-            }
-        }, 1000);
+        startCountdown(COUNTDOWN_SEC, (sec) => {
+            bookingBtn.textContent = `남은시간 ${formatTime(sec)}`;
+        }, () => {
+            run.markOpened();
+            bookingBtn.disabled = false;
+            bookingBtn.textContent = '예매하기';
+            bookingBtn.style.background = '';
+            bookingBtn.style.cursor = '';
+        });
     } else {
         countdownUi.style.display = 'block';
         bookingUi.style.display = 'none';
 
-        function updateTimer() {
-            timerDisplay.innerText = formatTime(seconds);
-        }
-
-        updateTimer();
-
-        const interval = setInterval(() => {
-            seconds--;
-            updateTimer();
-
-            if (seconds <= 0) {
-                clearInterval(interval);
-                run.markOpened();
-                countdownUi.style.display = 'none';
-                bookingUi.style.display = 'block';
-                bookingActions.style.display = 'block';
-            }
-        }, 1000);
+        startCountdown(COUNTDOWN_SEC, (sec) => {
+            timerDisplay.innerText = formatTime(sec);
+        }, () => {
+            run.markOpened();
+            countdownUi.style.display = 'none';
+            bookingUi.style.display = 'block';
+            bookingActions.style.display = 'block';
+        });
     }
 }
 

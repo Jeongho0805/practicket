@@ -15,8 +15,15 @@
 <body layout:fragment="content">
     <div class="practice-hub-container">
 
-        <!-- 1. 연습 선택 영역 -->
-        <section>
+        <div class="hub-tabs" role="tablist">
+            <button type="button" class="hub-tab active" data-view="practice">연습하기</button>
+            <button type="button" class="hub-tab" data-view="ranking">랭킹</button>
+            <button type="button" class="hub-tab" data-view="myrecord">내 기록</button>
+        </div>
+
+        <!-- ── 연습하기 ── -->
+        <div id="view-practice" class="hub-view active">
+
             <div class="practice-grid">
                 <a href="/practice/i-ticket/intro" class="practice-card active card-i" onclick="goToITicket(event)">
                     <div class="card-stub"></div>
@@ -71,182 +78,202 @@
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- 2. 랭킹 보드 -->
-        <section class="ranking-section">
-            <div class="ranking-board">
-
-                <!-- 뷰 모드 탭 -->
-                <div class="ranking-top-bar">
-                    <button class="view-mode-tab active" onclick="switchMainTab('ranking', this)">전체 랭킹</button>
-                    <button class="view-mode-tab" onclick="switchMainTab('myrecord', this)">내 기록</button>
-                    <div class="period-tabs">
-                        <button class="period-tab active" onclick="selectPeriod(this)">일간</button>
-                        <button class="period-tab" onclick="selectPeriod(this)">주간</button>
-                        <button class="period-tab" onclick="selectPeriod(this)">월간</button>
-                    </div>
+            <!-- 목록 탭에서만 사용하는 단일 슬롯의 숨겨진 보관 위치. -->
+            <div id="practiceMidHome" class="practice-mid-home" hidden>
+                <div id="practiceMidHost">
+                    <span class="practice-mid-ad" aria-hidden="true"><i>AD</i></span>
+                    <div th:replace="~{fragments/ad-slot::slot('PRACTICE_MID')}"></div>
                 </div>
-
-                <!-- ── 전체 랭킹 패널 ── -->
-                <div id="panel-ranking" class="panel active">
-                    <div class="filter-bar">
-                        <div class="agency-tabs">
-                            <button class="agency-tab active" data-agency="I_TICKET_OLD" onclick="selectAgency(this)">I-Ticket</button>
-                            <button class="agency-tab" data-agency="N_TICKET" onclick="selectAgency(this)">N-Ticket</button>
-                            <button class="agency-tab" data-agency="M_TICKET" onclick="selectAgency(this)">M-Ticket</button>
-                            <button class="agency-tab disabled" disabled>Y-Ticket</button>
-                        </div>
-                    </div>
-
-                    <div class="split-legend">
-                        <span class="lg-item"><i class="lg-dot lg1"></i>반응</span>
-                        <span class="lg-item"><i class="lg-dot lg2"></i>대기열</span>
-                        <span class="lg-item"><i class="lg-dot lg3"></i>보안문자</span>
-                        <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
-                    </div>
-
-                    <div class="ranking-table-header">
-                        <table class="ranking-table">
-                            <colgroup>
-                                <col style="width: 13%;">
-                                <col style="width: 40%;">
-                                <col style="width: 25%;">
-                                <col style="width: 22%;">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>순위</th>
-                                    <th style="text-align: left; padding-left: 30px;">닉네임</th>
-                                    <th>구간 비중</th>
-                                    <th>최고 기록</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-
-                    <div class="ranking-table-body">
-                        <table class="ranking-table">
-                            <colgroup>
-                                <col style="width: 13%;">
-                                <col style="width: 40%;">
-                                <col style="width: 25%;">
-                                <col style="width: 22%;">
-                            </colgroup>
-                            <tbody id="rankingTableBody">
-                                <tr>
-                                    <td colspan="4"
-                                        style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div id="rankingSentinel" class="list-sentinel" hidden>불러오는 중</div>
-                    </div>
-
-                    <div id="myRankWrap" class="my-rank-wrap" style="display: none;">
-                        <div id="myRankRow" class="my-rank-row">
-                            <span class="mr-rank">-</span>
-                            <span class="mr-name">
-                                <span class="mr-nick"></span>
-                                <span class="mr-badge">ME</span>
-                            </span>
-                            <span class="rank-split"></span>
-                            <span class="time-badge mr-time">-<span class="badge-arrow">&#9660;</span></span>
-                        </div>
-                        <div id="myRankDetail" class="my-rank-detail hidden"></div>
-                    </div>
-                </div>
-
-                <!-- ── 내 기록 패널 ── -->
-                <div id="panel-myrecord" class="panel">
-
-                    <div class="filter-bar">
-                        <div class="agency-tabs">
-                            <button class="agency-tab active" data-agency="I_TICKET_OLD" onclick="selectAgency(this)">I-Ticket</button>
-                            <button class="agency-tab" data-agency="N_TICKET" onclick="selectAgency(this)">N-Ticket</button>
-                            <button class="agency-tab" data-agency="M_TICKET" onclick="selectAgency(this)">M-Ticket</button>
-                            <button class="agency-tab disabled" disabled>Y-Ticket</button>
-                        </div>
-                    </div>
-
-                    <div class="split-legend">
-                        <span class="lg-item"><i class="lg-dot lg1"></i>반응</span>
-                        <span class="lg-item"><i class="lg-dot lg2"></i>대기열</span>
-                        <span class="lg-item"><i class="lg-dot lg3"></i>보안문자</span>
-                        <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
-                    </div>
-
-                    <div class="my-stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">이번 달 순위</div>
-                            <div id="myRankValue" class="stat-value highlight">-</div>
-                            <div id="myRankSub" class="stat-sub">월간 기준</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">최고 기록</div>
-                            <div id="myBestRecord" class="stat-value highlight">-</div>
-                            <div class="stat-sub">전체 기록 중 최고</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">총 시도</div>
-                            <div id="myTotalCount" class="stat-value">-</div>
-                            <div class="stat-sub">I-Ticket</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">개선도</div>
-                            <div class="improve-wrap" style="padding-top: 4px;">
-                                <span id="myImproveSec" class="improve-sec">-</span>
-                                <span id="myImprovePct" class="improve-pct" style="display:none;">-</span>
-                            </div>
-                            <div class="stat-sub">첫 기록 대비</div>
-                        </div>
-                    </div>
-
-                    <div class="my-record-table-header">
-                        <table class="record-table">
-                            <colgroup>
-                                <col style="width: 11%;">
-                                <col style="width: 36%;">
-                                <col style="width: 25%;">
-                                <col style="width: 28%;">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>시도</th>
-                                    <th style="text-align: left; padding-left: 20px;">날짜 / 시간</th>
-                                    <th>구간 비중</th>
-                                    <th>기록</th>
-                                </tr>
-                            </thead>
-                        </table>
-                    </div>
-
-                    <div class="my-record-table-body">
-                        <table class="record-table">
-                            <colgroup>
-                                <col style="width: 11%;">
-                                <col style="width: 36%;">
-                                <col style="width: 25%;">
-                                <col style="width: 28%;">
-                            </colgroup>
-                            <tbody id="myRecordTableBody">
-                                <tr>
-                                    <td colspan="4"
-                                        style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
-                                        기록을 불러오는 중...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div id="myRecordSentinel" class="list-sentinel" hidden>불러오는 중</div>
-                    </div>
-                </div>
-
             </div>
-        </section>
 
+            <div class="chart-card">
+                <div class="ch-head">
+                    <div class="ch-title">내 등급</div>
+                    <div class="ch-chips">
+                        <button type="button" class="ch-chip on" data-agency="I_TICKET_OLD">I-Ticket</button>
+                        <button type="button" class="ch-chip" data-agency="N_TICKET">N-Ticket</button>
+                        <button type="button" class="ch-chip" data-agency="M_TICKET">M-Ticket</button>
+                    </div>
+                </div>
+                <div id="chartHero" class="ch-hero"></div>
+                <div id="chartPlot" class="ch-plot"></div>
+            </div>
+
+        </div>
+
+        <!-- ── 랭킹 · 내 기록 ── -->
+        <div id="view-rank" class="hub-view">
+            <section class="ranking-section">
+                <div class="ranking-board">
+
+                    <div class="ranking-top-bar">
+                        <div class="period-tabs">
+                            <button class="period-tab active" onclick="selectPeriod(this)">일간</button>
+                            <button class="period-tab" onclick="selectPeriod(this)">주간</button>
+                            <button class="period-tab" onclick="selectPeriod(this)">월간</button>
+                            <button class="period-tab" onclick="selectPeriod(this)">전체</button>
+                        </div>
+                    </div>
+
+                    <!-- ── 랭킹 패널 ── -->
+                    <div id="panel-ranking" class="panel active">
+                        <div class="filter-bar">
+                            <div class="agency-tabs">
+                                <button class="agency-tab active" data-agency="I_TICKET_OLD" onclick="selectAgency(this)">I-Ticket</button>
+                                <button class="agency-tab" data-agency="N_TICKET" onclick="selectAgency(this)">N-Ticket</button>
+                                <button class="agency-tab" data-agency="M_TICKET" onclick="selectAgency(this)">M-Ticket</button>
+                                <button class="agency-tab disabled" disabled>Y-Ticket</button>
+                            </div>
+                        </div>
+
+                        <div class="split-legend">
+                            <span class="lg-item"><i class="lg-dot lg1"></i>반응</span>
+                            <span class="lg-item"><i class="lg-dot lg2"></i>대기열</span>
+                            <span class="lg-item"><i class="lg-dot lg3"></i>보안문자</span>
+                            <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
+                        </div>
+
+                        <div class="ranking-table-header">
+                            <table class="ranking-table">
+                                <colgroup>
+                                    <col style="width: 13%;">
+                                    <col style="width: 40%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 22%;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>순위</th>
+                                        <th style="text-align: left; padding-left: 30px;">닉네임</th>
+                                        <th>구간 비중</th>
+                                        <th>최고 기록</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="ranking-table-body">
+                            <table class="ranking-table">
+                                <colgroup>
+                                    <col style="width: 13%;">
+                                    <col style="width: 40%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 22%;">
+                                </colgroup>
+                                <tbody id="rankingTableBody">
+                                    <tr>
+                                        <td colspan="4"
+                                            style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
+                                            불러오는 중...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div id="rankingSentinel" class="list-sentinel" hidden>불러오는 중</div>
+                        </div>
+
+                        <div id="myRankWrap" class="my-rank-wrap" style="display: none;">
+                            <div id="myRankRow" class="my-rank-row">
+                                <span class="mr-rank">-</span>
+                                <span class="mr-name">
+                                    <span class="tier tier-sm mr-tier" hidden></span>
+                                    <span class="mr-nick"></span>
+                                    <span class="mr-badge">ME</span>
+                                </span>
+                                <span class="rank-split"></span>
+                                <span class="time-badge mr-time">-<span class="badge-arrow">&#9660;</span></span>
+                            </div>
+                            <div id="myRankDetail" class="my-rank-detail hidden"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── 내 기록 패널 ── -->
+                    <div id="panel-myrecord" class="panel">
+
+                        <div class="filter-bar">
+                            <div class="agency-tabs">
+                                <button class="agency-tab active" data-agency="I_TICKET_OLD" onclick="selectAgency(this)">I-Ticket</button>
+                                <button class="agency-tab" data-agency="N_TICKET" onclick="selectAgency(this)">N-Ticket</button>
+                                <button class="agency-tab" data-agency="M_TICKET" onclick="selectAgency(this)">M-Ticket</button>
+                                <button class="agency-tab disabled" disabled>Y-Ticket</button>
+                            </div>
+                        </div>
+
+                        <div class="split-legend">
+                            <span class="lg-item"><i class="lg-dot lg1"></i>반응</span>
+                            <span class="lg-item"><i class="lg-dot lg2"></i>대기열</span>
+                            <span class="lg-item"><i class="lg-dot lg3"></i>보안문자</span>
+                            <span class="lg-item"><i class="lg-dot lg4"></i>좌석 선택</span>
+                        </div>
+
+                        <div class="my-stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">내 등급</div>
+                                <div class="tier-line">
+                                    <button type="button" id="myTier" class="tier tier--f" disabled>-</button>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">상위</div>
+                                <div id="myPercentile" class="stat-value highlight">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">내 순위</div>
+                                <div id="myOverallRank" class="stat-value highlight">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">최고 기록</div>
+                                <div id="myBestRecord" class="stat-value highlight">-</div>
+                            </div>
+                        </div>
+
+                        <div class="my-record-table-header">
+                            <table class="record-table">
+                                <colgroup>
+                                    <col style="width: 11%;">
+                                    <col style="width: 36%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 28%;">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th>시도</th>
+                                        <th style="text-align: left; padding-left: 20px;">날짜 / 시간</th>
+                                        <th>구간 비중</th>
+                                        <th>기록</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="my-record-table-body">
+                            <table class="record-table">
+                                <colgroup>
+                                    <col style="width: 11%;">
+                                    <col style="width: 36%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 28%;">
+                                </colgroup>
+                                <tbody id="myRecordTableBody">
+                                    <tr>
+                                        <td colspan="4"
+                                            style="text-align:center; padding: 40px; color: #94a3b8; font-size: 14px;">
+                                            기록을 불러오는 중...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div id="myRecordSentinel" class="list-sentinel" hidden>불러오는 중</div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <div id="tierPop" hidden></div>
     </div>
 
     <script type="module" src="/js/practice/list.js"></script>

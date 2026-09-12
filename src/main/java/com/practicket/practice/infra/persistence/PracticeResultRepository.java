@@ -20,8 +20,6 @@ public interface PracticeResultRepository extends JpaRepository<PracticeResult, 
 
     long countByClientKeyAndType(String clientKey, PracticeType type);
 
-    Optional<PracticeResult> findTopByClientKeyAndTypeOrderByIdAsc(String clientKey, PracticeType type);
-
     // 완료 모달 퍼센타일 용 — 기록 전체 기준
     @Query("SELECT COUNT(pr) FROM PracticeResult pr " +
            "WHERE pr.type = :type AND pr.startedAt >= :start AND pr.startedAt < :end " +

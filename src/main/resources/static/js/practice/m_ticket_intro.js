@@ -1,28 +1,19 @@
 import { authFetch, showAlert } from '/js/common.js';
 import * as run from '/js/practice/run-state.js';
+import { startCountdown } from '/js/practice/countdown.js';
+import { QUEUE, initialRank as rankFor } from '/js/practice/queue-model.js';
 
 /* 인트로가 뜨면 이전 판을 접는다. 뒤로가기로 돌아와도 진행 상태가 남아 있으면
    앞으로가기 한 번에 끝난 판이 되살아난다. */
 run.clearRun();
 
-const COUNTDOWN_SECONDS = 5;
-
-/*
-  대기열 상수는 i_ticket_new.js 와 같은 값을 쓴다.
-  종목이 달라도 같은 공식이어야 랭킹을 나란히 놓고 볼 수 있다.
-  반응이 느릴수록 초기 순번이 커지고, 초당 DEQ 만큼 줄어 최대 10초 안에 통과한다.
-*/
-const QUEUE = { MIN: 5000, MAX: 200000, DEQ: 20000, MAX_REACTION: 3000, TICK_MS: 200 };
+const COUNTDOWN_SECONDS = 6;
 
 /* 오픈 안내 문구. 데스크톱과 모바일이 형식이 다른 것도 실물 그대로다. */
 const OPEN_NOTICE = {
     pc: '2026.02.08(일) 오후 18:00 티켓오픈!',
     mo: '2월 8일 18:00 티켓오픈!',
 };
-
-/* 대기열 화면이 뜨고 순번이 돌기 시작할 때까지의 로딩. i-ticket·n-ticket 과 같은 값이다.
-   실물 멜론은 넷퍼넬에 진입을 물어보는 왕복이 여기 들어간다. */
-const LOADING_MS = 800;
 
 const SCHEDULE = [
     { date: '2026년 02월 08일 일요일', times: ['18시 00분'] },
@@ -129,25 +120,13 @@ function unlock() {
 }
 
 function runCountdown() {
-    let seconds = COUNTDOWN_SECONDS;
+    $('mo-book').classList.add('pre-open');
 
-    const paint = () => {
-        const left = `(남은시간 ${formatCounter(seconds)})`;
+    startCountdown(COUNTDOWN_SECONDS, (sec) => {
+        const left = `(남은시간 ${formatCounter(sec)})`;
         $('open-txt').textContent = `${OPEN_NOTICE.pc} ${left}`;
         $('mo-book').textContent = `${OPEN_NOTICE.mo} ${left}`;
-    };
-
-    $('mo-book').classList.add('pre-open');
-    paint();
-
-    const timer = setInterval(() => {
-        seconds -= 1;
-        paint();
-        if (seconds > 0) return;
-
-        clearInterval(timer);
-        unlock();
-    }, 1000);
+    }, unlock);
 }
 
 async function startPractice() {
@@ -179,8 +158,7 @@ function badgeFor(count) {
 }
 
 function startQueue() {
-    const step = Math.min(Math.floor(Math.min(reactionMs, QUEUE.MAX_REACTION) / 100), 30);
-    const initialRank = Math.round(QUEUE.MIN + (step / 30) * (QUEUE.MAX - QUEUE.MIN));
+    const initialRank = rankFor(reactionMs);
     run.setInitialRank(initialRank);
 
     // 실물의 "뒤에 N명" 자리. 우리는 서버 대기열이 없으므로 초기 순번에서 파생시킨다.
@@ -194,7 +172,7 @@ function startQueue() {
     $('q-count').textContent = '-';
     $('q-left').textContent = '계산 중';
 
-    setTimeout(() => runQueueTicker(initialRank), LOADING_MS);
+    setTimeout(() => runQueueTicker(initialRank), QUEUE.LOADING_MS);
 }
 
 function runQueueTicker(initialRank) {

@@ -23,10 +23,9 @@ public final class SitemapExclusion {
             Map.entry("/community/edit/{id}", "입력 폼"),
             Map.entry("/community/mine", "개인화 화면"),
             Map.entry("/community/{id}", "sitemap-community.xml 이 조건을 통과한 글만 따로 싣는다"),
-            Map.entry("/blog/{id}", "sitemap.xml 이 템플릿을 훑어 직접 싣는다"),
+            Map.entry("/blog/{id}", "sitemap.xml 이 공개된 글만 골라 직접 싣는다"),
             Map.entry("/ad/click/{bannerId}", "클릭 집계 후 광고주 주소로 넘기는 리다이렉트"),
-            Map.entry("/ad/report/{token}", "토큰을 아는 사람만 여는 광고 리포트"),
-            Map.entry("/ad/report/advertiser/{token}", "토큰을 아는 사람만 여는 광고주 리포트")
+            Map.entry("/ad/report/campaign/{token}", "토큰을 아는 사람만 여는 계약 리포트")
     );
 
     private SitemapExclusion() {

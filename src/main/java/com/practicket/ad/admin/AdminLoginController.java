@@ -23,6 +23,11 @@ public class AdminLoginController {
 
     private final AdminAuthService adminAuthService;
 
+    @GetMapping({"/admin-hoya", "/admin-hoya/"})
+    public String home() {
+        return "redirect:/admin-hoya/ad";
+    }
+
     @GetMapping("/admin-hoya/login")
     public String loginPage() {
         return "admin/login";

@@ -4,18 +4,11 @@ import {
     renderCompleteHint, renderBestTag, renderFailHint, bindShareButton, showUnsavedNotice
 } from '/js/practice/result-split.js';
 import * as run from '/js/practice/run-state.js';
+import { QUEUE, initialRank as rankFor } from '/js/practice/queue-model.js';
 
 // ════════════════════════════════════════
 // Queue System
 // ════════════════════════════════════════
-
-const QueueConfig = {
-    MIN_QUEUE: 5_000,
-    MAX_QUEUE: 200_000,
-    MAX_REACTION_MS: 3_000,        // 3초 이상은 최대 대기로 처리
-    FIXED_DEQUEUE_PER_SEC: 20_000, // MAX_QUEUE / 10초 → 항상 10초 이내 통과
-    LOADING_MS: 800
-};
 
 const QueueManager = {
     intervalId: null,
@@ -33,14 +26,11 @@ const QueueManager = {
 
         this.createQueueDOM();
 
-        const step = Math.min(Math.floor(run.reactionMs() / 100), 30); // 0.1초 단위, 최대 30단계
-        this.initialQueue = Math.round(
-            QueueConfig.MIN_QUEUE + (step / 30) * (QueueConfig.MAX_QUEUE - QueueConfig.MIN_QUEUE)
-        );
+        this.initialQueue = rankFor(run.reactionMs());
         run.setInitialRank(this.initialQueue);
 
         this.renderPhase('LOADING');
-        setTimeout(() => this.startQueue(), QueueConfig.LOADING_MS);
+        setTimeout(() => this.startQueue(), QUEUE.LOADING_MS);
     },
 
     createQueueDOM() {
@@ -125,13 +115,13 @@ const QueueManager = {
 
         this.renderPhase('QUEUE');
         this.updateLoop();
-        this.intervalId = setInterval(() => this.updateLoop(), 200);
+        this.intervalId = setInterval(() => this.updateLoop(), QUEUE.TICK_MS);
     },
 
     updateLoop() {
         const elapsedSec = (Date.now() - this.startedAtMs) / 1000;
         let currentQueue = Math.max(0, Math.floor(
-            this.initialQueue - (elapsedSec * QueueConfig.FIXED_DEQUEUE_PER_SEC)
+            this.initialQueue - (elapsedSec * QUEUE.DEQ)
         ));
 
         this.renderQueue(currentQueue);
@@ -150,7 +140,7 @@ const QueueManager = {
         const percent = total > 0 ? Math.min(100, Math.max(0, ((total - num) / total) * 100)) : 100;
         this.dom.progress.style.width = percent + '%';
 
-        const secondsLeft = Math.ceil(num / QueueConfig.FIXED_DEQUEUE_PER_SEC);
+        const secondsLeft = Math.ceil(num / QUEUE.DEQ);
         this.dom.timeLeft.innerText = secondsLeft + '초';
 
         if (num <= 5000 && num > 0) {
@@ -746,9 +736,10 @@ class SeatManager {
         this.soldOutAlertShown = false;
         this.zones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
-        this.totalSellOutDurationMs = 60000;
-        this.rushDurationMs = 20000;
-        this.rushSoldRatio = 0.95;
+        /* 판매 곡선은 n·m 과 같은 값을 쓴다. 종목마다 다르면 같은 시각에 들어가도
+           남은 자리가 달라 난이도가 갈린다. */
+        this.totalSellOutDurationMs = 30000;
+        this.sellK = 3;
 
         this.storageKeys = {
             zoneRanks: 'iq.seat.zoneRanks_v7'
@@ -897,18 +888,8 @@ class SeatManager {
         const elapsed = Math.max(0, nowMs - this.decayStartAtMs);
         if (elapsed >= this.totalSellOutDurationMs) return this.totalSeats;
 
-        if (elapsed <= this.rushDurationMs) {
-            const t = elapsed / this.rushDurationMs;
-            const eased = 1 - Math.pow(1 - t, 3);
-            return Math.floor(this.totalSeats * this.rushSoldRatio * eased);
-        }
-
-        const remainingWindow = this.totalSellOutDurationMs - this.rushDurationMs;
-        const postElapsed = elapsed - this.rushDurationMs;
-        const t = Math.min(1, postElapsed / remainingWindow);
-        const easedSlow = Math.pow(t, 1.9);
-        const progress = this.rushSoldRatio + (1 - this.rushSoldRatio) * easedSlow;
-        return Math.floor(this.totalSeats * progress);
+        const t = elapsed / this.totalSellOutDurationMs;
+        return Math.floor(this.totalSeats * (1 - Math.pow(1 - t, this.sellK)));
     }
 
     refreshSnapshot(nowMs = Date.now()) {
@@ -1633,8 +1614,13 @@ function showToast(msg) {
     }, 2000);
 }
 
+let submittingResult = false;
+
 /* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function completePractice() {
+    if (submittingResult) return;
+    submittingResult = true;
+
     const sessionId = run.sessionId();
     const captchaMs = run.captchaMs();
 

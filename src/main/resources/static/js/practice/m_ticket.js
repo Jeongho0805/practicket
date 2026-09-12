@@ -248,7 +248,7 @@ const ROWS = 16, COLS = 22, ZONE_SEATS = ROWS * COLS;
 /* 좌석은 카운트다운이 끝난 순간부터 팔린다 — 예매를 늦게 눌러도 자리는 이미 줄어 있다.
    값과 곡선은 n-ticket 과 같다. 오픈 직후가 가장 빠르고 갈수록 느려진다.
    실물 멜론은 폴링하지 않으므로 그 결과는 새로고침을 눌러야 보인다. */
-const SELL = { totalMs: 40000, k: 4 };
+const SELL = { totalMs: 30000, k: 3 };
 
 const sellStartAt = run.openedAt() || Date.now();
 
@@ -591,8 +591,13 @@ $('cap-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('cap-
 
 /* ══════════ 완료 ══════════ */
 
+let submittingResult = false;
+
 /* 총 시간과 좌석 구간은 서버가 낸다. 여기서 보내는 총 시간은 대조용이다. */
 async function finish() {
+    if (submittingResult) return;
+    submittingResult = true;
+
     const captchaMs = run.captchaMs();
     const sent = {
         total_duration_ms: Math.max(0, Date.now() - run.openedAt()),

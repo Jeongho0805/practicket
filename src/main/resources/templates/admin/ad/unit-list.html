@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('광고 설정')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('unit')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>광고 설정</h1>
+                <p>네트워크가 발급한 광고단위입니다. 슬롯이 팔리지 않았을 때 이 중 하나가 들어갑니다.</p>
+            </div>
+            <div class="tools">
+                <a class="btn" href="/admin-hoya/ad/units/new">+ 광고단위 추가</a>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <div class="card">
+            <header>
+                <div class="grouphead">
+                    <h2>광고단위<small th:text="${#lists.size(units)} + '개'">0개</small></h2>
+                </div>
+                <span class="note">계정 값(쿠팡 trackingCode · 애드센스 client)은 서버 설정에 있습니다</span>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(units)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>네트워크</th>
+                        <th>단위 ID</th>
+                        <th>이름</th>
+                        <th>규격</th>
+                        <th class="r"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="unit : ${units}">
+                        <td>
+                            <b th:text="${networkLabels[unit.network] != null ? networkLabels[unit.network] : unit.network}">네트워크</b>
+                            <div class="note" th:text="${unit.network}">CODE</div>
+                        </td>
+                        <td><span class="mono" th:text="${unit.unitId}">unit</span></td>
+                        <td th:text="${unit.name != null ? unit.name : '-'}">-</td>
+                        <td>
+                            <span class="tag resp" th:if="${unit.responsive}"><i></i>반응형</span>
+                            <span class="mono" th:unless="${unit.responsive}"
+                                  th:text="${unit.width} + 'x' + ${unit.height}">300x250</span>
+                        </td>
+                        <td class="r">
+                            <div class="rowact">
+                                <a class="btn ghost sm" th:href="@{/admin-hoya/ad/units/{id}/edit(id=${unit.id})}">수정</a>
+                                <form method="post" th:action="@{/admin-hoya/ad/units/{id}/delete(id=${unit.id})}">
+                                    <button type="submit" class="btn danger sm" data-confirm-text="정말 삭제?"
+                                            onclick="return armConfirm(this)">삭제</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(units)}">
+                등록된 광고단위가 없습니다.
+                <a href="/admin-hoya/ad/units/new">첫 광고단위를 추가</a>해보세요.
+            </div>
+        </div>
+
+        <div class="card">
+            <header><h2>스테이지 네트워크 광고 노출</h2></header>
+            <div class="pad">
+                <div class="exposure-list">
+                    <div class="exposure-row" th:each="row : ${exposureRows}">
+                        <div>
+                            <b th:text="${row.label}">네트워크</b>
+                            <span class="note" th:text="${row.network}">NETWORK</span>
+                        </div>
+                        <form method="post"
+                              th:action="@{/admin-hoya/ad/units/exposure/{network}/toggle(network=${row.network})}">
+                            <button type="submit" class="sw" th:classappend="${row.enabled} ? 'on'"
+                                    th:disabled="${!row.editable}"
+                                    th:attr="aria-label=${row.label} + ' 스테이지 노출 전환',aria-pressed=${row.enabled}"></button>
+                        </form>
+                    </div>
+                </div>
+                <p class="hint" th:if="${!#lists.isEmpty(exposureRows) and exposureRows[0].editable}">
+                    스테이지에서 실제 네트워크 광고를 확인할 때만 켭니다. 로컬에서도 같은 동작을 검증할 수 있으며,
+                    설정은 현재 환경에만 적용됩니다. 판매된 배너에는 영향을 주지 않습니다.
+                </p>
+                <p class="hint" th:unless="${!#lists.isEmpty(exposureRows) and exposureRows[0].editable}">
+                    이 환경에서는 상태만 표시합니다. 운영에서는 항상 노출하며, 전환은 로컬·스테이지에서 가능합니다.
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/admin-shell :: head('캠페인')}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{admin/fragments/admin-shell :: sidebar('campaign')}"></aside>
+
+    <main class="main">
+        <div class="topbar">
+            <div>
+                <h1>캠페인</h1>
+                <p>계약 한 건이 캠페인 하나입니다. 슬롯별 배너는 캠페인 아래에 달립니다.</p>
+            </div>
+            <div class="tools">
+                <a class="btn" href="/admin-hoya/ad/campaigns/new">+ 새 캠페인</a>
+            </div>
+        </div>
+
+        <div class="warnbox" th:if="${error != null}" th:text="${error}">오류</div>
+
+        <div class="card">
+            <header>
+                <div class="seg">
+                    <a th:href="@{/admin-hoya/ad/campaigns(status='all',q=${q})}"
+                       th:classappend="${status == 'all'} ? 'on'"
+                       th:text="'전체 ' + ${counts['all']}">전체 0</a>
+                    <a th:href="@{/admin-hoya/ad/campaigns(status='live',q=${q})}"
+                       th:classappend="${status == 'live'} ? 'on'"
+                       th:text="'진행 ' + ${counts['live']}">진행 0</a>
+                    <a th:href="@{/admin-hoya/ad/campaigns(status='wait',q=${q})}"
+                       th:classappend="${status == 'wait'} ? 'on'"
+                       th:text="'예정 ' + ${counts['wait']}">예정 0</a>
+                    <a th:href="@{/admin-hoya/ad/campaigns(status='done',q=${q})}"
+                       th:classappend="${status == 'done'} ? 'on'"
+                       th:text="'종료 ' + ${counts['done']}">종료 0</a>
+                </div>
+                <div class="tools">
+                    <form class="search" method="get" action="/admin-hoya/ad/campaigns">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <input type="hidden" name="status" th:value="${status}">
+                        <input type="text" name="q" th:value="${q}" placeholder="캠페인·광고주 검색" autocomplete="off">
+                    </form>
+                </div>
+            </header>
+
+            <div class="tablewrap" th:if="${not #lists.isEmpty(rows)}">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>캠페인</th>
+                        <th>광고주</th>
+                        <th>계약 기간</th>
+                        <th class="r">계약 금액</th>
+                        <th>배너</th>
+                        <th class="r">성과</th>
+                        <th>상태</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${rows}" class="rowlink"
+                        th:onclick="|location.href='/admin-hoya/ad/campaigns/${row.id}'|">
+                        <td><b th:text="${row.name}">캠페인</b></td>
+                        <td th:text="${row.advertiserName}">광고주</td>
+                        <td>
+                            <span th:text="${#temporals.format(row.startAt, 'yyyy.MM.dd')}">2026.08.01</span><br>
+                            <span class="note" th:text="'~ ' + ${#temporals.format(row.endAt, 'yyyy.MM.dd')}">~ 2026.08.31</span>
+                            <br th:if="${row.endingSoon}">
+                            <span class="pill soon" th:if="${row.endingSoon}" style="margin-top:4px">
+                                <i></i><span th:text="'D-' + ${row.daysLeft}">D-3</span>
+                            </span>
+                        </td>
+                        <td class="r money" th:text="${#numbers.formatInteger(row.amount, 1, 'COMMA')} + '원'">0원</td>
+                        <td>
+                            <b th:text="${row.bannerCount} + '개'">0개</b><br>
+                            <span class="note" th:text="${row.slotNames}">슬롯</span>
+                            <br th:if="${row.ownPeriodCount > 0}">
+                            <span class="tag own" th:if="${row.ownPeriodCount > 0}" style="margin-top:4px">
+                                <i></i><span th:text="'기간 따로 ' + ${row.ownPeriodCount} + '개'">기간 따로</span>
+                            </span>
+                        </td>
+                        <td class="r">
+                            <span th:text="${#numbers.formatInteger(row.impressions, 1, 'COMMA')}">0</span><br>
+                            <span class="note" th:text="'CTR ' + ${#numbers.formatDecimal(row.ctr, 1, 2, 'POINT')} + '%'">CTR 0.00%</span>
+                        </td>
+                        <td>
+                            <span class="pill" th:classappend="${row.status.key}">
+                                <i></i><span th:text="${row.status.label}">상태</span>
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty" th:if="${#lists.isEmpty(rows)}">
+                조건에 맞는 캠페인이 없습니다.
+                <a href="/admin-hoya/ad/campaigns/new">새 캠페인을 등록</a>해보세요.
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
+<script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+</body>
+</html>

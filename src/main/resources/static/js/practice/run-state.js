@@ -83,12 +83,14 @@ export function captchaMs() {
     return num(K.captchaMs);
 }
 
-/** 대기열을 통과한 순간 서버에 알린다. 응답은 쓰지 않으므로 기다리지 않는다. */
+/** 대기열을 통과한 순간 서버에 알린다. 응답은 쓰지 않으므로 기다리지 않는다.
+    keepalive 는 곧바로 페이지를 떠나는 m-ticket 때문이다 — 없으면 웹킷이 요청을 버린다. */
 export function sendCheckpoint(authFetch) {
     const id = sessionId();
     if (!id) return;
     authFetch('/api/practice/checkpoint', {
         method: 'POST',
+        keepalive: true,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: id }),
     }).catch(() => { /* 실패하면 complete 가 거부되고 미저장 안내가 뜬다 */ });

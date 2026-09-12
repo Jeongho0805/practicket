@@ -11,6 +11,8 @@ public class ClientInfoExtractor {
 
     private static final String DEVICE_KEY = "User-Agent";
     private static final String SOURCE_URL_KEY = "Referer";
+    /** client.device / client.referer 컬럼 폭. 헤더 길이는 보내는 쪽이 정한다. */
+    private static final int MAX_HEADER_LENGTH = 255;
 
     public ClientRequestInfo extractClientInfo(HttpServletRequest request) {
         String ip = this.extractClientIp(request);
@@ -37,10 +39,14 @@ public class ClientInfoExtractor {
         if (userAgent == null) {
             userAgent = "Unknown Device";
         }
-        return userAgent;
+        return truncate(userAgent);
     }
 
     private String extractClientReferer(HttpServletRequest request) {
-        return Optional.ofNullable(request.getHeader(SOURCE_URL_KEY)).orElse("Unknown");
+        return truncate(Optional.ofNullable(request.getHeader(SOURCE_URL_KEY)).orElse("Unknown"));
+    }
+
+    private String truncate(String value) {
+        return value.length() > MAX_HEADER_LENGTH ? value.substring(0, MAX_HEADER_LENGTH) : value;
     }
 }

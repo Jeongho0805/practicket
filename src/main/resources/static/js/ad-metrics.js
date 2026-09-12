@@ -28,6 +28,8 @@ function report(bannerId) {
 function reportVisibleBanners() {
     document.querySelectorAll('img[data-banner-id]').forEach((img) => {
         if (!isVisible(img)) return;
+        // 한쪽 기기 그림만 있는 배너는 반대 기기에서 투명 픽셀로 떨어진다. 그건 노출이 아니다.
+        if (img.currentSrc.startsWith('data:')) return;
         // 광고 차단기가 이미지 요청을 막으면 화면엔 안 보이므로 노출로 세지 않는다.
         if (img.naturalWidth > 0) {
             report(img.dataset.bannerId);
@@ -45,3 +47,6 @@ if (document.readyState === 'complete') {
 } else {
     window.addEventListener('load', reportVisibleBanners);
 }
+
+// 탭 뒤에 숨어 있던 배너는 load 때 안 보여서 집계에서 빠진다. 드러낸 쪽이 직접 알려야 한다.
+window.reportVisibleAdBanners = reportVisibleBanners;

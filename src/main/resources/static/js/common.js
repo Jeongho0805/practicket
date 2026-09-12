@@ -145,31 +145,41 @@ function saveTokenToIndexedDB(token) {
 }
 
 export function showAlert({ title, msg }) {
+    return openAlert({ title, msg, cancel: false });
+}
+
+/* 되돌릴 수 없는 동작 앞에 쓴다. 취소를 고르거나 바깥을 누르면 false 다 */
+export function showConfirm({ title, msg }) {
+    return openAlert({ title, msg, cancel: true });
+}
+
+function openAlert({ title, msg, cancel }) {
     return new Promise(resolve => {
         const overlay    = document.getElementById('pkt-alert-overlay');
         const titleEl    = document.getElementById('pkt-alert-title');
         const msgEl      = document.getElementById('pkt-alert-msg');
         const confirmBtn = document.getElementById('pkt-alert-confirm');
+        const cancelBtn  = document.getElementById('pkt-alert-cancel');
 
         titleEl.textContent = title;
         msgEl.textContent   = msg;
+        if (cancelBtn) cancelBtn.hidden = !cancel;
         overlay.classList.add('show');
 
-        function close() {
+        function close(ok) {
             overlay.classList.remove('show');
             document.removeEventListener('keydown', onKeydown);
-            resolve();
+            resolve(ok);
         }
 
         function onKeydown(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                close();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); close(true); }
+            if (e.key === 'Escape' && cancel) { e.preventDefault(); close(false); }
         }
 
-        confirmBtn.onclick = close;
-        overlay.onclick    = (e) => { if (e.target === overlay) close(); };
+        confirmBtn.onclick = () => close(true);
+        if (cancelBtn) cancelBtn.onclick = () => close(false);
+        overlay.onclick    = (e) => { if (e.target === overlay) close(!cancel); };
         document.addEventListener('keydown', onKeydown);
     });
 }

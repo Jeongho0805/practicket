@@ -74,6 +74,11 @@
     transition: all 0.15s;
     letter-spacing: -0.2px;
 }
+#pkt-alert-cancel {
+    background: #f1f2f5;
+    color: #4a4f5b;
+}
+#pkt-alert-cancel[hidden] { display: none; }
 #pkt-alert-confirm {
     background: linear-gradient(135deg, #8470b3 0%, #6b196b 100%);
     color: #fff;
