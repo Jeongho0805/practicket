@@ -1,6 +1,9 @@
 /* 프랙티켓 어드민 공용 스타일 — 사이드바 셸 + 카드/테이블/폼 컴포넌트.
    admin/ad/* 템플릿은 layout/default를 decorate하지 않는 standalone이라 이 파일 하나만 참조한다. */
 
+/* display 를 정한 클래스가 hidden 속성을 이기지 못하게 한다 */
+[hidden] { display: none !important; }
+
 :root {
     --brand: #514897;
     --brand-2: #6b5b9a;
@@ -470,7 +473,6 @@ body.picking .bulkrows .fname.drop { border-color: #b9a6ea; cursor: pointer; }
     border: 1px solid var(--line); background: #fff; color: var(--muted); cursor: pointer;
     border-radius: 50%; line-height: 1; font-size: 13px; display: inline-grid; place-items: center; padding: 0;
 }
-.thumb-x[hidden], .removed-bar[hidden] { display: none; }
 .thumb-x { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; }
 .thumb-x:hover, .row-x:hover { color: var(--danger); border-color: #f0d5d1; background: #fdf1ef; }
 .row-x { width: 26px; height: 26px; font-size: 15px; }
