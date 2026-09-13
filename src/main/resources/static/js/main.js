@@ -137,10 +137,14 @@ async function checkServerTime() {
     );
 }
 
-window.addEventListener("pageshow", async (event) => {
-    if (event.persisted) {
-        window.location.reload();
-    }
+/* 뒤로가기(BFCache)로 돌아오면 대기 모달이 떠 있는 채로 살아난다.
+   새로고침으로 지우면 페이지뷰와 광고 요청이 한 번 더 나가므로 제자리에서 되돌린다.
+   시계는 멈췄던 타이머가 이어 돌며 스스로 맞는다. */
+window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    document.getElementById("modal-section").style.display = "none";
+    document.getElementById("waiting-number").innerText = "";
+    document.getElementById("progress-bar").style.width = "0%";
 });
 
 addEventList();
