@@ -62,7 +62,7 @@ function setWaitingOrderSse(name) {
             // 예매 권한 토큰을 localStorage에 저장
             localStorage.setItem('reservationToken', data.reservation_token);
             // 토큰을 쿼리 파라미터로 전달하여 서버에서 검증
-            window.location.replace(`${HOST}/reservation?token=${encodeURIComponent(data.reservation_token)}`);
+            window.location.href = `${HOST}/reservation?token=${encodeURIComponent(data.reservation_token)}`;
             return;
         }
         console.log(event);
