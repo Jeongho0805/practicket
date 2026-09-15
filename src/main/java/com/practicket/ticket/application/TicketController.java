@@ -4,6 +4,7 @@ import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.ticket.dto.response.ServerTimeResponseDto;
 import com.practicket.ticket.dto.response.TicketRankResponseDto;
+import com.practicket.ticket.dto.request.ReservationTokenRevokeDto;
 import com.practicket.ticket.dto.request.TicketRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,12 @@ public class TicketController {
     @PostMapping("/ticket")
     public ResponseEntity<Void> createTicket(@Auth ClientInfo clientInfo, @Valid @RequestBody TicketRequestDto dto) {
         ticketService.createTicket(clientInfo, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/ticket/token/revoke")
+    public ResponseEntity<Void> revokeReservationToken(@Valid @RequestBody ReservationTokenRevokeDto dto) {
+        ticketQueueService.revokeReservationToken(dto.getReservationToken());
         return ResponseEntity.ok().build();
     }
 

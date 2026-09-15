@@ -162,4 +162,16 @@ public class TicketQueueService {
             return false;
         }
     }
+
+    /** 예매 없이 예매 화면을 떠난 사람의 권한을 거둔다. 만료·위조 토큰은 지울 것이 없어 그냥 넘긴다. */
+    public void revokeReservationToken(String jwt) {
+        if (jwt == null || jwt.isBlank()) {
+            return;
+        }
+        try {
+            String jti = tokenManager.parseAndValidate(jwt).getId();
+            tokenRepository.remove(jti);
+        } catch (Exception ignored) {
+        }
+    }
 }
