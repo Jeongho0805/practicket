@@ -137,16 +137,33 @@ async function checkServerTime() {
     );
 }
 
+/* 예매 토큰을 든 채 이 화면에 있다는 것은 예매 없이 예매 화면을 떠났다는 뜻이다.
+   권한을 버린 것으로 보고 서버에서 지운다. 앞으로가기나 주소 재입력으로 예매 화면에 다시 못 들어간다.
+   예매 화면 안에서의 새로고침은 여기를 거치지 않으므로 권한이 유지된다. */
+function revokeLeftoverReservationToken() {
+    const token = localStorage.getItem("reservationToken");
+    if (!token) return;
+    localStorage.removeItem("reservationToken");
+    fetch(`${HOST}/api/ticket/token/revoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservation_token: token }),
+        keepalive: true,
+    }).catch(() => {});
+}
+
 /* 뒤로가기(BFCache)로 돌아오면 대기 모달이 떠 있는 채로 살아난다.
    새로고침으로 지우면 페이지뷰와 광고 요청이 한 번 더 나가므로 제자리에서 되돌린다.
    시계는 멈췄던 타이머가 이어 돌며 스스로 맞는다. */
 window.addEventListener("pageshow", (event) => {
     if (!event.persisted) return;
+    revokeLeftoverReservationToken();
     document.getElementById("modal-section").style.display = "none";
     document.getElementById("waiting-number").innerText = "";
     document.getElementById("progress-bar").style.width = "0%";
 });
 
+revokeLeftoverReservationToken();
 addEventList();
 displayTime();
 
