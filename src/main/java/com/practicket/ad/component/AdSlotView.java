@@ -1,6 +1,5 @@
 package com.practicket.ad.component;
 
-import com.practicket.ad.application.AdNetworkExposureService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -25,18 +24,13 @@ public class AdSlotView {
 
     private final AdSlotSnapshotStore adSlotSnapshotStore;
     private final AdNetworkSettings adNetworkSettings;
-    private final AdNetworkExposureService adNetworkExposureService;
 
     private final Map<String, AdSlotRender> rendered = new HashMap<>();
     private AdSlotSnapshot snapshot;
-    private Map<String, Boolean> networkExposure;
-    private Map<String, AdNetworkExposureService.Limit> networkLimits;
 
-    public AdSlotView(AdSlotSnapshotStore adSlotSnapshotStore, AdNetworkSettings adNetworkSettings,
-                      AdNetworkExposureService adNetworkExposureService) {
+    public AdSlotView(AdSlotSnapshotStore adSlotSnapshotStore, AdNetworkSettings adNetworkSettings) {
         this.adSlotSnapshotStore = adSlotSnapshotStore;
         this.adNetworkSettings = adNetworkSettings;
-        this.adNetworkExposureService = adNetworkExposureService;
     }
 
     public AdSlotRender render(String slotCode) {
@@ -57,9 +51,11 @@ public class AdSlotView {
         return new AdSlotRender(
                 slot.code(),
                 face(slot.hasPcSize(), banner != null && banner.hasPcImage(),
-                        banner, banner == null ? null : banner.pcImagePath(), slot.pcUnit(), slot.pcFallbackUnit()),
+                        banner, banner == null ? null : banner.pcImagePath(),
+                        slot.pcUnit(), slot.pcFallbackUnit(), slot.refillGapMinutes()),
                 face(slot.hasMobileSize(), banner != null && banner.hasMobileImage(),
-                        banner, banner == null ? null : banner.mobileImagePath(), slot.mobileUnit(), slot.mobileFallbackUnit()));
+                        banner, banner == null ? null : banner.mobileImagePath(),
+                        slot.mobileUnit(), slot.mobileFallbackUnit(), slot.refillGapMinutes()));
     }
 
     /**
@@ -68,7 +64,7 @@ public class AdSlotView {
      */
     private AdFace face(boolean served, boolean hasImage,
                         AdSlotSnapshot.Banner banner, String imagePath,
-                        AdSlotSnapshot.Unit unit, AdSlotSnapshot.Unit fallbackUnit) {
+                        AdSlotSnapshot.Unit unit, AdSlotSnapshot.Unit fallbackUnit, Integer refillGapMinutes) {
         if (!served) {
             return AdFace.none();
         }
@@ -78,26 +74,15 @@ public class AdSlotView {
         if (unit == null) {
             return AdFace.empty();
         }
-        AdNetworkExposureService.Limit limit = limitOf(unit.network());
         AdFace fallback = fallbackUnit == null ? null : fill(fallbackUnit, null, null);
-        return fill(unit, limit.refillGapMinutes(), fallback);
+        return fill(unit, refillGapMinutes, fallback);
     }
 
     private AdFace fill(AdSlotSnapshot.Unit unit, Integer refillGapMinutes, AdFace fallback) {
-        if (networkExposure == null) {
-            networkExposure = adNetworkExposureService.currentExposure();
-        }
-        return AdFace.fill(networkExposure.getOrDefault(unit.network(), false), unit,
+        return AdFace.fill(snapshot.isExposed(unit.network()), unit,
                 adNetworkSettings.accountOf(unit.network()),
                 adNetworkSettings.templateOf(unit.network()),
                 refillGapMinutes, fallback);
-    }
-
-    private AdNetworkExposureService.Limit limitOf(String network) {
-        if (networkLimits == null) {
-            networkLimits = adNetworkExposureService.currentLimits();
-        }
-        return networkLimits.getOrDefault(network, AdNetworkExposureService.Limit.NONE);
     }
 
     private AdSlotSnapshot.Banner pick(List<AdSlotSnapshot.Banner> candidates) {

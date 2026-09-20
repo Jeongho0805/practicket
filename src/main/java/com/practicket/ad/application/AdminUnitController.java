@@ -61,6 +61,7 @@ public class AdminUnitController {
     public String toggleExposure(@PathVariable String network, RedirectAttributes redirectAttributes) {
         try {
             adNetworkExposureService.toggleStage(network);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

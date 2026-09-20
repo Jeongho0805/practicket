@@ -28,6 +28,22 @@ class AdSlotSnapshotJsonTest {
     }
 
     @Test
+    @DisplayName("노출 여부와 재요청 간격도 JSON 을 오간다")
+    void roundTripsExposureAndGap() throws Exception {
+        AdSlotSnapshot snapshot = new AdSlotSnapshot(List.of(new AdSlotSnapshot.Slot(
+                "PC_LEFT", 300, 600, null, null, "DISPLAY", "ADSENSE",
+                new AdSlotSnapshot.Unit("ADSENSE", "9697904962", null, null), null, null, null, 3, List.of())),
+                java.util.Map.of("ADSENSE", true, "COUPANG", false));
+
+        AdSlotSnapshot read = objectMapper.readValue(objectMapper.writeValueAsString(snapshot), AdSlotSnapshot.class);
+
+        assertThat(read.slots().get(0).refillGapMinutes()).isEqualTo(3);
+        assertThat(read.isExposed("ADSENSE")).isTrue();
+        assertThat(read.isExposed("COUPANG")).isFalse();
+        assertThat(read.isExposed("MOBSENSE")).isFalse();
+    }
+
+    @Test
     @DisplayName("extra 가 없던 옛 캐시 JSON 도 그대로 읽힌다")
     void readsLegacyUnitWithoutExtra() throws Exception {
         String legacy = "{\"slots\":[{\"code\":\"PC_LEFT\",\"pcWidth\":300,\"pcHeight\":600,"
@@ -39,5 +55,7 @@ class AdSlotSnapshotJsonTest {
 
         assertThat(read.slots().get(0).pcUnit().unitId()).isEqualTo("DAN-side");
         assertThat(read.slots().get(0).pcUnit().extra()).isNull();
+        assertThat(read.slots().get(0).refillGapMinutes()).isNull();
+        assertThat(read.isExposed("ADFIT")).isFalse();
     }
 }
