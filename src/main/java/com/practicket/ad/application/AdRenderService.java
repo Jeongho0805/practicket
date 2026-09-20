@@ -39,12 +39,14 @@ public class AdRenderService {
     private final AdCampaignRepository adCampaignRepository;
     private final AdvertiserRepository advertiserRepository;
     private final AdUnitResolver adUnitResolver;
+    private final AdNetworkExposureService adNetworkExposureService;
 
     @Transactional(readOnly = true)
     public AdSlotSnapshot build() {
         LocalDate today = LocalDate.now();
 
         List<AdUnit> units = adUnitRepository.findAll();
+        Map<String, AdNetworkExposureService.Limit> limits = adNetworkExposureService.currentLimits();
 
         List<Banner> banners = bannerRepository.findAllEnabledWithSlot();
         Map<Long, AdCampaign> campaigns = adCampaignRepository.findAllById(
@@ -60,13 +62,23 @@ public class AdRenderService {
 
         List<AdSlotSnapshot.Slot> slots = adSlotRepository.findAll().stream()
                 .map(slot -> toSlot(slot, bannersBySlot.getOrDefault(slot.getId(), List.of()),
-                        units, campaigns, advertisers))
+                        units, fallbackNetworkOf(slot, limits), campaigns, advertisers))
                 .toList();
 
         return new AdSlotSnapshot(slots);
     }
 
+    private String fallbackNetworkOf(AdSlot slot, Map<String, AdNetworkExposureService.Limit> limits) {
+        if (slot.getFillNetwork() == null) {
+            return null;
+        }
+        AdNetworkExposureService.Limit limit = limits.get(slot.getFillNetwork());
+        return limit != null && limit.hasGap() ? limit.fallbackNetwork() : null;
+    }
+
+    /** 대타 단위는 사람이 고른 단위를 무시하고 규격만으로 고른다. 고른 단위는 첫째 네트워크 것이라서다 */
     private AdSlotSnapshot.Slot toSlot(AdSlot slot, List<Banner> slotBanners, List<AdUnit> units,
+                                       String fallbackNetwork,
                                        Map<Long, AdCampaign> campaigns, Map<Long, Advertiser> advertisers) {
         return new AdSlotSnapshot.Slot(
                 slot.getCode(),
@@ -76,6 +88,10 @@ public class AdRenderService {
                 slot.getFillNetwork(),
                 adUnitResolver.resolve(slot, true, units).map(this::toUnit).orElse(null),
                 adUnitResolver.resolve(slot, false, units).map(this::toUnit).orElse(null),
+                adUnitResolver.resolve(fallbackNetwork, null, slot.getPcWidth(), slot.getPcHeight(), units)
+                        .map(this::toUnit).orElse(null),
+                adUnitResolver.resolve(fallbackNetwork, null, slot.getMobileWidth(), slot.getMobileHeight(), units)
+                        .map(this::toUnit).orElse(null),
                 slotBanners.stream()
                         .map(banner -> toBanner(banner, campaigns, advertisers))
                         .toList());

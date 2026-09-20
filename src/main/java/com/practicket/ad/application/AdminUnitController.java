@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 광고 설정 — 네트워크가 발급한 광고단위를 등록해 둔다. 슬롯이 팔리지 않았을 때 이 중 하나가 들어간다.
@@ -60,6 +62,40 @@ public class AdminUnitController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin-hoya/ad/units";
+    }
+
+    /** 세 네트워크 값을 한 폼으로 받는다. 이름은 gap-{네트워크} / fallback-{네트워크} */
+    @PostMapping("/limits")
+    public String saveLimits(@RequestParam Map<String, String> params, RedirectAttributes redirectAttributes) {
+        Map<String, AdNetworkExposureService.Limit> limits = new LinkedHashMap<>();
+        try {
+            for (String network : networks()) {
+                limits.put(network, new AdNetworkExposureService.Limit(
+                        parseMinutes(params.get("gap-" + network)),
+                        blankToNull(params.get("fallback-" + network))));
+            }
+            adNetworkExposureService.updateLimits(limits);
+            adSlotSnapshotStore.refresh();
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin-hoya/ad/units";
+    }
+
+    private Integer parseMinutes(String raw) {
+        String value = blankToNull(raw);
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new AdException("재요청 간격은 분 단위 숫자여야 합니다.");
+        }
+    }
+
+    private String blankToNull(String raw) {
+        return raw == null || raw.isBlank() ? null : raw.trim();
     }
 
     @GetMapping("/new")

@@ -13,6 +13,10 @@ public record AdSlotSnapshot(List<Slot> slots) {
         return slots.stream().filter(slot -> slot.code().equals(code)).findFirst();
     }
 
+    /**
+     * fallback 단위는 첫째 네트워크가 재요청 간격 안일 때 같은 자리에 대신 넣을 것.
+     * 어느 쪽을 쓸지는 브라우저가 정하므로 둘 다 담아 내려보낸다.
+     */
     public record Slot(
             String code,
             Integer pcWidth,
@@ -23,6 +27,8 @@ public record AdSlotSnapshot(List<Slot> slots) {
             String fillNetwork,
             Unit pcUnit,
             Unit mobileUnit,
+            Unit pcFallbackUnit,
+            Unit mobileFallbackUnit,
             List<Banner> banners) {
 
         public boolean hasPcSize() {

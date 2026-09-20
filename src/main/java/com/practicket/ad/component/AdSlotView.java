@@ -30,6 +30,7 @@ public class AdSlotView {
     private final Map<String, AdSlotRender> rendered = new HashMap<>();
     private AdSlotSnapshot snapshot;
     private Map<String, Boolean> networkExposure;
+    private Map<String, AdNetworkExposureService.Limit> networkLimits;
 
     public AdSlotView(AdSlotSnapshotStore adSlotSnapshotStore, AdNetworkSettings adNetworkSettings,
                       AdNetworkExposureService adNetworkExposureService) {
@@ -56,9 +57,9 @@ public class AdSlotView {
         return new AdSlotRender(
                 slot.code(),
                 face(slot.hasPcSize(), banner != null && banner.hasPcImage(),
-                        banner, banner == null ? null : banner.pcImagePath(), slot.pcUnit()),
+                        banner, banner == null ? null : banner.pcImagePath(), slot.pcUnit(), slot.pcFallbackUnit()),
                 face(slot.hasMobileSize(), banner != null && banner.hasMobileImage(),
-                        banner, banner == null ? null : banner.mobileImagePath(), slot.mobileUnit()));
+                        banner, banner == null ? null : banner.mobileImagePath(), slot.mobileUnit(), slot.mobileFallbackUnit()));
     }
 
     /**
@@ -66,7 +67,8 @@ public class AdSlotView {
      * 없으면 네트워크가 채우고, 채울 네트워크마저 없으면 자리만 비워 둔다.
      */
     private AdFace face(boolean served, boolean hasImage,
-                        AdSlotSnapshot.Banner banner, String imagePath, AdSlotSnapshot.Unit unit) {
+                        AdSlotSnapshot.Banner banner, String imagePath,
+                        AdSlotSnapshot.Unit unit, AdSlotSnapshot.Unit fallbackUnit) {
         if (!served) {
             return AdFace.none();
         }
@@ -76,12 +78,26 @@ public class AdSlotView {
         if (unit == null) {
             return AdFace.empty();
         }
+        AdNetworkExposureService.Limit limit = limitOf(unit.network());
+        AdFace fallback = fallbackUnit == null ? null : fill(fallbackUnit, null, null);
+        return fill(unit, limit.refillGapMinutes(), fallback);
+    }
+
+    private AdFace fill(AdSlotSnapshot.Unit unit, Integer refillGapMinutes, AdFace fallback) {
         if (networkExposure == null) {
             networkExposure = adNetworkExposureService.currentExposure();
         }
         return AdFace.fill(networkExposure.getOrDefault(unit.network(), false), unit,
                 adNetworkSettings.accountOf(unit.network()),
-                adNetworkSettings.templateOf(unit.network()));
+                adNetworkSettings.templateOf(unit.network()),
+                refillGapMinutes, fallback);
+    }
+
+    private AdNetworkExposureService.Limit limitOf(String network) {
+        if (networkLimits == null) {
+            networkLimits = adNetworkExposureService.currentLimits();
+        }
+        return networkLimits.getOrDefault(network, AdNetworkExposureService.Limit.NONE);
     }
 
     private AdSlotSnapshot.Banner pick(List<AdSlotSnapshot.Banner> candidates) {
