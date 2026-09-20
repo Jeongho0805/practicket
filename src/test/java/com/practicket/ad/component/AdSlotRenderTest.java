@@ -142,6 +142,26 @@ class AdSlotRenderTest {
     }
 
     @Test
+    @DisplayName("모비센스는 규격과 추가 설정이 나가고 스크립트는 안 나간다")
+    void mobsenseEmitsSizeAndExtraWithoutScript() throws Exception {
+        String extra = "{\"frameCode\":\"90\",\"responsive\":\"Y\"}";
+        given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
+                AdFace.fill(true, new AdSlotSnapshot.Unit("MOBSENSE", "1070053", 300, 600, extra), null, null),
+                AdFace.none()));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-network=\"MOBSENSE\"")))
+                .andExpect(content().string(containsString("data-unit=\"1070053\"")))
+                .andExpect(content().string(containsString("data-size=\"300x600\"")))
+                .andExpect(content().string(containsString("data-extra=\"{&quot;frameCode&quot;:&quot;90&quot;")))
+                .andExpect(content().string(containsString("pc-fill pc-net-MOBSENSE")))
+                .andExpect(content().string(not(containsString("data-account"))))
+                .andExpect(content().string(not(containsString("HawkEyes"))))
+                .andExpect(content().string(not(containsString("img.mobon.net"))));
+    }
+
+    @Test
     @DisplayName("애드핏은 계정 값이 없고 규격이 대신 나간다")
     void adfitEmitsSizeWithoutAccount() throws Exception {
         given(adSlotView.render("PC_LEFT")).willReturn(new AdSlotRender("PC_LEFT",

@@ -19,6 +19,7 @@ public class AdNetworkSettings {
     public static final String ADSENSE = "ADSENSE";
     public static final String COUPANG = "COUPANG";
     public static final String ADFIT = "ADFIT";
+    public static final String MOBSENSE = "MOBSENSE";
 
     private final String adsenseClient;
     private final String coupangTrackingCode;
@@ -40,6 +41,7 @@ public class AdNetworkSettings {
         labels.put(COUPANG, "쿠팡 파트너스");
         labels.put(ADSENSE, "구글 애드센스");
         labels.put(ADFIT, "카카오 애드핏");
+        labels.put(MOBSENSE, "모비센스");
         return Collections.unmodifiableMap(labels);
     }
 

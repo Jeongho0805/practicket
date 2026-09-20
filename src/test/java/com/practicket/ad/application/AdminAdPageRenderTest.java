@@ -344,6 +344,32 @@ class AdminAdPageRenderTest {
     }
 
     @Test
+    @DisplayName("모비센스 단위는 규격과 JSON 추가 설정이 모두 있어야 저장된다")
+    void mobsenseUnitRequiresSizeAndJsonExtra() throws Exception {
+        given(adUnitRepository.findByNetworkAndUnitId(any(), any())).willReturn(Optional.empty());
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "MOBSENSE").param("unitId", "1070053")
+                        .param("extra", "{\"frameCode\":\"90\"}"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("규격이 필요합니다")));
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "MOBSENSE").param("unitId", "1070053")
+                        .param("width", "300").param("height", "600").param("extra", "frameCode=90"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", containsString("JSON 객체")));
+        verify(adUnitRepository, never()).save(any());
+
+        mockMvc.perform(post("/admin-hoya/ad/units")
+                        .param("network", "MOBSENSE").param("unitId", "1070053")
+                        .param("width", "300").param("height", "600").param("extra", "{\"frameCode\":\"90\"}"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin-hoya/ad/units"));
+        verify(adUnitRepository).save(any());
+    }
+
+    @Test
     @DisplayName("규격이 빈 기기는 항목이 아니라 한 줄 안내로 알린다")
     void slotFormExplainsMissingSize() throws Exception {
         AdminSlotService.SlotForm form = new AdminSlotService.SlotForm();
@@ -361,18 +387,20 @@ class AdminAdPageRenderTest {
     }
 
     @Test
-    @DisplayName("재요청 간격 저장은 세 네트워크 값을 한 번에 받고 스냅샷을 다시 만든다")
+    @DisplayName("재요청 간격 저장은 모든 네트워크 값을 한 번에 받고 스냅샷을 다시 만든다")
     void limitsSaveUpdatesAllNetworks() throws Exception {
         mockMvc.perform(post("/admin-hoya/ad/units/limits")
-                        .param("gap-ADSENSE", "5").param("fallback-ADSENSE", "ADFIT")
+                        .param("gap-ADSENSE", "5").param("fallback-ADSENSE", "MOBSENSE")
                         .param("gap-COUPANG", "").param("fallback-COUPANG", "")
-                        .param("gap-ADFIT", "").param("fallback-ADFIT", ""))
+                        .param("gap-ADFIT", "").param("fallback-ADFIT", "")
+                        .param("gap-MOBSENSE", "").param("fallback-MOBSENSE", ""))
                 .andExpect(redirectedUrl("/admin-hoya/ad/units"));
 
         verify(adNetworkExposureService).updateLimits(java.util.Map.of(
                 "COUPANG", AdNetworkExposureService.Limit.NONE,
-                "ADSENSE", new AdNetworkExposureService.Limit(5, "ADFIT"),
-                "ADFIT", AdNetworkExposureService.Limit.NONE));
+                "ADSENSE", new AdNetworkExposureService.Limit(5, "MOBSENSE"),
+                "ADFIT", AdNetworkExposureService.Limit.NONE,
+                "MOBSENSE", AdNetworkExposureService.Limit.NONE));
         verify(adSlotSnapshotStore).refresh();
     }
 

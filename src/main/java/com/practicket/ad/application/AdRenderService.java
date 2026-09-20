@@ -134,6 +134,7 @@ public class AdRenderService {
     }
 
     private AdSlotSnapshot.Unit toUnit(AdUnit unit) {
-        return new AdSlotSnapshot.Unit(unit.getNetwork(), unit.getUnitId(), unit.getWidth(), unit.getHeight());
+        return new AdSlotSnapshot.Unit(unit.getNetwork(), unit.getUnitId(),
+                unit.getWidth(), unit.getHeight(), unit.getExtra());
     }
 }

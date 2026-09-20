@@ -40,7 +40,11 @@ public record AdSlotSnapshot(List<Slot> slots) {
         }
     }
 
-    public record Unit(String network, String unitId, Integer width, Integer height) {
+    public record Unit(String network, String unitId, Integer width, Integer height, String extra) {
+
+        public Unit(String network, String unitId, Integer width, Integer height) {
+            this(network, unitId, width, height, null);
+        }
     }
 
     public record Banner(Long id, String advertiserName, String pcImagePath, String mobileImagePath) {

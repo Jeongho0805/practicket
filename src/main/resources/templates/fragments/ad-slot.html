@@ -51,16 +51,18 @@
              th:with="fb=${s.pc.hasFallback() ? s.pc.fallback : null}"
              th:attr="data-network=${s.pc.network}, data-unit=${s.pc.unitId},
                       data-account=${s.pc.account}, data-template=${s.pc.template}, data-size=${s.pc.size},
-                      data-gap-minutes=${s.pc.refillGapMinutes},
+                      data-extra=${s.pc.extra}, data-gap-minutes=${s.pc.refillGapMinutes},
                       data-fb-network=${fb?.network}, data-fb-unit=${fb?.unitId},
-                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size}"></div>
+                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size},
+                      data-fb-extra=${fb?.extra}"></div>
 
         <div th:if="${s.mobile.fill and s.mobile.fillEnabled}" class="ad-fill ad-face ad-face-mobile"
              th:with="fb=${s.mobile.hasFallback() ? s.mobile.fallback : null}"
              th:attr="data-network=${s.mobile.network}, data-unit=${s.mobile.unitId},
                       data-account=${s.mobile.account}, data-template=${s.mobile.template}, data-size=${s.mobile.size},
-                      data-gap-minutes=${s.mobile.refillGapMinutes},
+                      data-extra=${s.mobile.extra}, data-gap-minutes=${s.mobile.refillGapMinutes},
                       data-fb-network=${fb?.network}, data-fb-unit=${fb?.unitId},
-                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size}"></div>
+                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size},
+                      data-fb-extra=${fb?.extra}"></div>
     </th:block>
 </div>

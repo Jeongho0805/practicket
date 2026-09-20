@@ -26,7 +26,8 @@ import java.util.List;
 public class AdminSlotController {
 
     private static final List<String> NETWORKS = List.of(
-            AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT);
+            AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT,
+            AdNetworkSettings.MOBSENSE);
 
     private final AdminSlotService adminSlotService;
     private final AdSlotSnapshotStore adSlotSnapshotStore;

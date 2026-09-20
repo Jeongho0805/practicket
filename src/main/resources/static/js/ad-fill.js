@@ -15,6 +15,10 @@
 const COUPANG_SCRIPT = 'https://ads-partners.coupang.com/g.js';
 const ADSENSE_SCRIPT = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
 const ADFIT_SCRIPT = 'https://t1.kakaocdn.net/kas/static/ba.min.js';
+const MOBSENSE_SCRIPT = 'https://img.mobon.net/js/common/HawkEyesMaker.js';
+
+/** 계정 값 없이 단위 ID 하나로 요청하는 네트워크. 규격도 코드에 숫자로 박아야 한다 */
+const FIXED_SIZE_NETWORKS = ['ADFIT', 'MOBSENSE'];
 
 const loaded = new Map();
 
@@ -99,6 +103,35 @@ function fillAdfit(el) {
     return Promise.resolve();
 }
 
+/**
+ * 모비센스는 문서의 script 태그를 뒤에서부터 훑어 자기 지면 번호가 적힌 태그 바로 뒤에 iframe 을 붙인다.
+ * 그래서 자리 안에 `new HawkEyes(...)` 인라인 script 를 만들어 넣는다. 공용 스크립트는 한 번만 받는다.
+ * frameCode·settings 는 지면마다 달라 어드민에 JSON 으로 적어 둔 것(data-extra)을 그대로 합친다.
+ */
+function fillMobsense(el) {
+    const [width, height] = (el.dataset.size || '').split('x');
+    let extra = {};
+    try {
+        extra = JSON.parse(el.dataset.extra || '{}');
+    } catch (e) {
+        // 어드민이 저장 때 JSON 을 검사하므로 여기 올 일은 드물다. 기본값만으로 간다.
+    }
+    const options = Object.assign({
+        type: 'banner',
+        responsive: 'N',
+        platform: el.classList.contains('ad-face-mobile') ? 'M' : 'W',
+        scriptCode: el.dataset.unit,
+        width,
+        height,
+    }, extra);
+
+    return loadScript(MOBSENSE_SCRIPT).then(() => {
+        const script = document.createElement('script');
+        script.text = `new HawkEyes(${JSON.stringify(options)});`;
+        el.appendChild(script);
+    });
+}
+
 const GAP_KEY_PREFIX = 'adfill:gap:';
 const gapDecisions = new Map();
 
@@ -138,6 +171,7 @@ function useFallback(el) {
     if (d.fbAccount) d.account = d.fbAccount; else delete d.account;
     if (d.fbTemplate) d.template = d.fbTemplate; else delete d.template;
     if (d.fbSize) d.size = d.fbSize; else delete d.size;
+    if (d.fbExtra) d.extra = d.fbExtra; else delete d.extra;
 }
 
 function fill(el) {
@@ -155,16 +189,16 @@ function fill(el) {
     }
     const countAfterFill = gapMinutes > 0 && !gated ? el.dataset.network : null;
 
-    // 애드핏은 계정 값이 따로 없다. 광고단위 ID 하나가 계정 노릇까지 한다.
-    if (el.dataset.network !== 'ADFIT' && !el.dataset.account) return;
-    // 애드핏은 코드에 크기를 박아야 하므로 규격을 모르면 요청 자체가 성립하지 않는다.
-    if (el.dataset.network === 'ADFIT' && !el.dataset.size) return;
+    const fixedSize = FIXED_SIZE_NETWORKS.includes(el.dataset.network);
+    if (!fixedSize && !el.dataset.account) return;
+    if (fixedSize && !el.dataset.size) return;
     el.dataset.filled = '1';
 
     const filler = el.dataset.network === 'ADSENSE' ? fillAdsense
         : el.dataset.network === 'COUPANG' ? fillCoupang
             : el.dataset.network === 'ADFIT' ? fillAdfit
-                : null;
+                : el.dataset.network === 'MOBSENSE' ? fillMobsense
+                    : null;
     if (!filler) return;
 
     filler(el).then(() => {
