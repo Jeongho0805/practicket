@@ -8,6 +8,7 @@ run.clearRun();
 
 let selectedDate = 6;
 let selectedTimeSlot = true;
+let stopCountdown = null;
 
 function changeMonth(direction) {
     console.log('Change month:', direction);
@@ -83,7 +84,7 @@ async function startPractice() {
         bookingBtn.style.background = '#ccc';
         bookingBtn.style.cursor = 'not-allowed';
 
-        startCountdown(COUNTDOWN_SEC, (sec) => {
+        stopCountdown = startCountdown(COUNTDOWN_SEC, (sec) => {
             bookingBtn.textContent = `남은시간 ${formatTime(sec)}`;
         }, () => {
             run.markOpened();
@@ -96,7 +97,7 @@ async function startPractice() {
         countdownUi.style.display = 'block';
         bookingUi.style.display = 'none';
 
-        startCountdown(COUNTDOWN_SEC, (sec) => {
+        stopCountdown = startCountdown(COUNTDOWN_SEC, (sec) => {
             timerDisplay.innerText = formatTime(sec);
         }, () => {
             run.markOpened();
@@ -113,11 +114,30 @@ window.selectTime = selectTime;
 window.startBooking = startBooking;
 window.startPractice = startPractice;
 
-// 뒤로가기(BFCache)로 돌아왔을 때 초기 상태로 강제 새로고침
-window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-        window.location.reload();
+/* 뒤로가기(BFCache)로 돌아오면 카운트다운이 끝난 화면이 그대로 살아난다.
+   새로고침으로 지우면 페이지뷰와 광고 요청이 한 번 더 나가므로 제자리에서 되돌린다. */
+function resetIntro() {
+    if (stopCountdown) {
+        stopCountdown();
+        stopCountdown = null;
     }
+    run.clearRun();
+
+    document.getElementById('start-modal').style.display = '';
+    document.getElementById('countdown-ui').style.display = '';
+    document.getElementById('booking-ui').style.display = 'none';
+    document.getElementById('timer-display').innerText = '00:05';
+    document.querySelector('.booking-actions').style.display = '';
+
+    const bookingBtn = document.querySelector('.mobile-btn-booking');
+    bookingBtn.disabled = false;
+    bookingBtn.textContent = '예매하기';
+    bookingBtn.style.background = '';
+    bookingBtn.style.cursor = '';
+}
+
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) resetIntro();
 });
 
 // 페이지 진입 시점에 닉네임 검증

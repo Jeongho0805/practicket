@@ -22,7 +22,20 @@ public class AdNetworkExposure {
     @Column(nullable = false)
     private boolean stageEnabled;
 
+    private Integer refillGapMinutes;
+
+    private String fallbackNetwork;
+
+    public AdNetworkExposure(String network, boolean stageEnabled) {
+        this(network, stageEnabled, null, null);
+    }
+
     public void toggle() {
         stageEnabled = !stageEnabled;
+    }
+
+    public void updateLimit(Integer refillGapMinutes, String fallbackNetwork) {
+        this.refillGapMinutes = refillGapMinutes;
+        this.fallbackNetwork = fallbackNetwork;
     }
 }

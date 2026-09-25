@@ -39,12 +39,14 @@ public class AdRenderService {
     private final AdCampaignRepository adCampaignRepository;
     private final AdvertiserRepository advertiserRepository;
     private final AdUnitResolver adUnitResolver;
+    private final AdNetworkExposureService adNetworkExposureService;
 
     @Transactional(readOnly = true)
     public AdSlotSnapshot build() {
         LocalDate today = LocalDate.now();
 
         List<AdUnit> units = adUnitRepository.findAll();
+        Map<String, AdNetworkExposureService.Limit> limits = adNetworkExposureService.currentLimits();
 
         List<Banner> banners = bannerRepository.findAllEnabledWithSlot();
         Map<Long, AdCampaign> campaigns = adCampaignRepository.findAllById(
@@ -60,14 +62,24 @@ public class AdRenderService {
 
         List<AdSlotSnapshot.Slot> slots = adSlotRepository.findAll().stream()
                 .map(slot -> toSlot(slot, bannersBySlot.getOrDefault(slot.getId(), List.of()),
-                        units, campaigns, advertisers))
+                        units, limitOf(slot, limits), campaigns, advertisers))
                 .toList();
 
-        return new AdSlotSnapshot(slots);
+        return new AdSlotSnapshot(slots, adNetworkExposureService.currentExposure());
     }
 
+    private AdNetworkExposureService.Limit limitOf(AdSlot slot, Map<String, AdNetworkExposureService.Limit> limits) {
+        if (slot.getFillNetwork() == null) {
+            return AdNetworkExposureService.Limit.NONE;
+        }
+        return limits.getOrDefault(slot.getFillNetwork(), AdNetworkExposureService.Limit.NONE);
+    }
+
+    /** 대타 단위는 사람이 고른 단위를 무시하고 규격만으로 고른다. 고른 단위는 첫째 네트워크 것이라서다 */
     private AdSlotSnapshot.Slot toSlot(AdSlot slot, List<Banner> slotBanners, List<AdUnit> units,
+                                       AdNetworkExposureService.Limit limit,
                                        Map<Long, AdCampaign> campaigns, Map<Long, Advertiser> advertisers) {
+        String fallbackNetwork = limit.hasGap() ? limit.fallbackNetwork() : null;
         return new AdSlotSnapshot.Slot(
                 slot.getCode(),
                 slot.getPcWidth(), slot.getPcHeight(),
@@ -76,6 +88,11 @@ public class AdRenderService {
                 slot.getFillNetwork(),
                 adUnitResolver.resolve(slot, true, units).map(this::toUnit).orElse(null),
                 adUnitResolver.resolve(slot, false, units).map(this::toUnit).orElse(null),
+                adUnitResolver.resolve(fallbackNetwork, null, slot.getPcWidth(), slot.getPcHeight(), units)
+                        .map(this::toUnit).orElse(null),
+                adUnitResolver.resolve(fallbackNetwork, null, slot.getMobileWidth(), slot.getMobileHeight(), units)
+                        .map(this::toUnit).orElse(null),
+                limit.refillGapMinutes(),
                 slotBanners.stream()
                         .map(banner -> toBanner(banner, campaigns, advertisers))
                         .toList());
@@ -118,6 +135,7 @@ public class AdRenderService {
     }
 
     private AdSlotSnapshot.Unit toUnit(AdUnit unit) {
-        return new AdSlotSnapshot.Unit(unit.getNetwork(), unit.getUnitId(), unit.getWidth(), unit.getHeight());
+        return new AdSlotSnapshot.Unit(unit.getNetwork(), unit.getUnitId(),
+                unit.getWidth(), unit.getHeight(), unit.getExtra());
     }
 }

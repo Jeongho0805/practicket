@@ -69,6 +69,13 @@
         max-height: none;
     }
 
+    .ad-slot.pc-net-MOBSENSE {
+        width: 300px;
+        height: 600px;
+        aspect-ratio: auto;
+        max-height: none;
+    }
+
     /* 데스크톱 규격이 없는 자리는 이 폭에서 아예 나가지 않는다 */
     .ad-slot.pc-none {
         display: none;
@@ -110,7 +117,8 @@
     }
 
     /* 데스크톱과 같은 이유로 크기를 고정한다. 320px 은 가장 좁은 기기에도 들어간다. */
-    .ad-slot.mo-net-ADFIT {
+    .ad-slot.mo-net-ADFIT,
+    .ad-slot.mo-net-MOBSENSE {
         width: 320px;
         height: 100px;
         aspect-ratio: auto;

@@ -97,6 +97,37 @@ class AdSlotRenderTest {
     }
 
     @Test
+    @DisplayName("재요청 간격이 있는 네트워크는 간격과 대타 자리 정보를 함께 내려보낸다")
+    void fillEmitsRefillGapAndFallback() throws Exception {
+        AdFace fallback = AdFace.fill(true, new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600), null, null);
+        given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
+                AdFace.fill(true, unit("ADSENSE", "9697904962"), "ca-pub-1", null, 5, fallback),
+                AdFace.none()));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-network=\"ADSENSE\"")))
+                .andExpect(content().string(containsString("data-gap-minutes=\"5\"")))
+                .andExpect(content().string(containsString("data-fb-network=\"ADFIT\"")))
+                .andExpect(content().string(containsString("data-fb-unit=\"DAN-side\"")))
+                .andExpect(content().string(containsString("data-fb-size=\"160x600\"")))
+                .andExpect(content().string(not(containsString("data-fb-account"))));
+    }
+
+    @Test
+    @DisplayName("간격이 없으면 간격·대타 속성은 아예 안 나간다")
+    void fillWithoutGapEmitsNoFallbackAttributes() throws Exception {
+        given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
+                AdFace.fill(true, unit("ADSENSE", "9697904962"), "ca-pub-1", null),
+                AdFace.none()));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString("data-gap-minutes"))))
+                .andExpect(content().string(not(containsString("data-fb-"))));
+    }
+
+    @Test
     @DisplayName("쿠팡도 마찬가지다 — 스크립트가 아니라 자리만 나간다")
     void coupangEmitsNoNetworkCode() throws Exception {
         given(adSlotView.render("PC_LEFT")).willReturn(new AdSlotRender("PC_LEFT",
@@ -108,6 +139,26 @@ class AdSlotRenderTest {
                 .andExpect(content().string(containsString("data-network=\"COUPANG\"")))
                 .andExpect(content().string(not(containsString("ads-partners.coupang.com"))))
                 .andExpect(content().string(not(containsString("PartnersCoupang"))));
+    }
+
+    @Test
+    @DisplayName("모비센스는 규격과 추가 설정이 나가고 스크립트는 안 나간다")
+    void mobsenseEmitsSizeAndExtraWithoutScript() throws Exception {
+        String extra = "{\"frameCode\":\"90\",\"responsive\":\"Y\"}";
+        given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
+                AdFace.fill(true, new AdSlotSnapshot.Unit("MOBSENSE", "1070053", 300, 600, extra), null, null),
+                AdFace.none()));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-network=\"MOBSENSE\"")))
+                .andExpect(content().string(containsString("data-unit=\"1070053\"")))
+                .andExpect(content().string(containsString("data-size=\"300x600\"")))
+                .andExpect(content().string(containsString("data-extra=\"{&quot;frameCode&quot;:&quot;90&quot;")))
+                .andExpect(content().string(containsString("pc-fill pc-net-MOBSENSE")))
+                .andExpect(content().string(not(containsString("data-account"))))
+                .andExpect(content().string(not(containsString("HawkEyes"))))
+                .andExpect(content().string(not(containsString("img.mobon.net"))));
     }
 
     @Test

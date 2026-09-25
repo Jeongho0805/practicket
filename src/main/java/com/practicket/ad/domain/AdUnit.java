@@ -32,16 +32,20 @@ public class AdUnit {
 
     private String name;
 
+    /** 네트워크 전용 값(JSON). 모비센스 frameCode·settings 처럼 단위마다 달라 코드에 박히는 것 */
+    private String extra;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public void update(String network, String unitId, Integer width, Integer height, String name) {
+    public void update(String network, String unitId, Integer width, Integer height, String name, String extra) {
         this.network = network;
         this.unitId = unitId;
         this.width = width;
         this.height = height;
         this.name = name;
+        this.extra = extra;
     }
 
     /** 규격을 안 가리는 반응형 단위. 애드센스·쿠팡이 여기 해당한다. */

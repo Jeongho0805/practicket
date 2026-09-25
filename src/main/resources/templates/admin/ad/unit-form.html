@@ -11,7 +11,7 @@
         <div class="topbar">
             <div>
                 <h1 th:text="${unit == null} ? '광고단위 추가' : '광고단위 수정'">광고단위 추가</h1>
-                <p>쿠팡·애드센스는 반응형으로 표시하고, 애드핏은 발급받은 규격을 선택합니다.</p>
+                <p>쿠팡·애드센스는 반응형으로 표시하고, 애드핏·모비센스는 발급받은 규격을 선택합니다.</p>
             </div>
         </div>
 
@@ -44,9 +44,24 @@
                             <option value="250x250">250x250 · 정사각형</option>
                             <option value="160x600">160x600 · PC 세로형</option>
                         </select>
+                        <select id="mobsenseSize" hidden>
+                            <option value="">규격을 고르세요</option>
+                            <option value="300x600">300x600 · PC 세로형</option>
+                            <option value="160x600">160x600 · PC 좁은 세로형</option>
+                            <option value="728x90">728x90 · PC 가로형</option>
+                            <option value="300x250">300x250 · PC/모바일 겸용</option>
+                            <option value="320x100">320x100 · 모바일 띠</option>
+                            <option value="320x50">320x50 · 모바일 얇은 띠</option>
+                        </select>
                         <input type="hidden" id="width" name="width" th:value="${unit != null ? unit.width : null}">
                         <input type="hidden" id="height" name="height" th:value="${unit != null ? unit.height : null}">
-                        <span class="hint" id="sizeHint" hidden>카카오 애드핏에서 발급받은 광고단위의 규격을 선택하세요.</span>
+                        <span class="hint" id="sizeHint" hidden>네트워크에서 발급받은 광고단위의 규격을 선택하세요.</span>
+                    </div>
+                    <div class="f" id="extraField" hidden>
+                        <label for="extra">추가 설정 (JSON)</label>
+                        <input type="text" id="extra" name="extra" th:value="${unit != null ? unit.extra : null}"
+                               placeholder='{"frameCode":"90","responsive":"Y","settings":{"cntad":"1","cntsr":"2"}}'>
+                        <span class="hint">모비센스 스크립트의 <code>new HawkEyes({...})</code> 안에서 type·platform·scriptCode·width·height 를 뺀 나머지를 그대로 넣습니다.</span>
                     </div>
                 </div>
 
@@ -77,29 +92,36 @@
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
 <script>
-    // 애드핏은 카카오가 정한 일곱 규격 밖을 못 쓴다. 손으로 치면 오타가 나므로 골라서 채운다.
+    // 애드핏·모비센스는 정해진 규격 밖을 못 쓴다. 손으로 치면 오타가 나므로 네트워크별 목록에서 골라 채운다.
     (function () {
         const network = document.getElementById('network');
-        const size = document.getElementById('adfitSize');
+        const sizes = { ADFIT: document.getElementById('adfitSize'), MOBSENSE: document.getElementById('mobsenseSize') };
         const width = document.getElementById('width');
         const height = document.getElementById('height');
         const responsiveSize = document.getElementById('responsiveSize');
         const sizeHint = document.getElementById('sizeHint');
+        const extraField = document.getElementById('extraField');
+        const extra = document.getElementById('extra');
 
         const netHint = document.getElementById('netHint');
 
         function sync() {
-            const fixed = network.value === 'ADFIT';
-            size.hidden = !fixed;
-            size.required = fixed;
+            const size = sizes[network.value];
+            const fixed = !!size;
+            Object.values(sizes).forEach(select => {
+                select.hidden = select !== size;
+                select.required = select === size;
+            });
             responsiveSize.hidden = fixed;
             sizeHint.hidden = !fixed;
             width.disabled = !fixed;
             height.disabled = !fixed;
-            netHint.textContent = network.value === 'ADFIT'
+            extraField.hidden = network.value !== 'MOBSENSE';
+            extra.required = network.value === 'MOBSENSE';
+            netHint.textContent = fixed
                 ? '규격이 고정된 네트워크입니다 — 슬롯 안에 들어가는 단위만 걸립니다.'
                 : '규격을 안 가리는 네트워크입니다 — 등록한 단위가 모든 슬롯을 덮습니다.';
-            if (!size.hidden) {
+            if (size) {
                 const current = width.value && height.value ? width.value + 'x' + height.value : '';
                 if (current && !Array.from(size.options).some(option => option.value === current)) {
                     size.add(new Option(current + ' · 기존 등록 규격', current));
@@ -108,7 +130,7 @@
             }
         }
 
-        size.addEventListener('change', function () {
+        Object.values(sizes).forEach(size => size.addEventListener('change', function () {
             if (!size.value) {
                 width.value = '';
                 height.value = '';
@@ -117,7 +139,7 @@
             const [w, h] = size.value.split('x');
             width.value = w;
             height.value = h;
-        });
+        }));
         network.addEventListener('change', sync);
         sync();
     })();

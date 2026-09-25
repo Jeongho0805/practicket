@@ -1,0 +1,16 @@
+package com.practicket.ticket.dto.request;
+
+import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReservationTokenRevokeDto {
+    @NotEmpty(message = "예매 권한 토큰이 필요합니다.")
+    private String reservationToken;
+}

@@ -1,5 +1,7 @@
 package com.practicket.ad.application;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practicket.ad.component.AdNetworkSettings;
 import com.practicket.ad.component.AdSlotSnapshotStore;
 import com.practicket.ad.domain.AdSlotRepository;
@@ -20,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 광고 설정 — 네트워크가 발급한 광고단위를 등록해 둔다. 슬롯이 팔리지 않았을 때 이 중 하나가 들어간다.
@@ -37,6 +41,7 @@ public class AdminUnitController {
     private final AdSlotRepository adSlotRepository;
     private final AdNetworkExposureService adNetworkExposureService;
     private final AdSlotSnapshotStore adSlotSnapshotStore;
+    private final ObjectMapper objectMapper;
 
     @InitBinder
     void trimEmptyToNull(WebDataBinder binder) {
@@ -56,10 +61,45 @@ public class AdminUnitController {
     public String toggleExposure(@PathVariable String network, RedirectAttributes redirectAttributes) {
         try {
             adNetworkExposureService.toggleStage(network);
+            adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin-hoya/ad/units";
+    }
+
+    /** 세 네트워크 값을 한 폼으로 받는다. 이름은 gap-{네트워크} / fallback-{네트워크} */
+    @PostMapping("/limits")
+    public String saveLimits(@RequestParam Map<String, String> params, RedirectAttributes redirectAttributes) {
+        Map<String, AdNetworkExposureService.Limit> limits = new LinkedHashMap<>();
+        try {
+            for (String network : networks()) {
+                limits.put(network, new AdNetworkExposureService.Limit(
+                        parseMinutes(params.get("gap-" + network)),
+                        blankToNull(params.get("fallback-" + network))));
+            }
+            adNetworkExposureService.updateLimits(limits);
+            adSlotSnapshotStore.refresh();
+        } catch (AdException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin-hoya/ad/units";
+    }
+
+    private Integer parseMinutes(String raw) {
+        String value = blankToNull(raw);
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new AdException("재요청 간격은 분 단위 숫자여야 합니다.");
+        }
+    }
+
+    private String blankToNull(String raw) {
+        return raw == null || raw.isBlank() ? null : raw.trim();
     }
 
     @GetMapping("/new")
@@ -90,16 +130,18 @@ public class AdminUnitController {
                        @RequestParam(required = false) String name,
                        @RequestParam(required = false) Integer width,
                        @RequestParam(required = false) Integer height,
+                       @RequestParam(required = false) String extra,
                        RedirectAttributes redirectAttributes) {
         try {
-            validate(id, network, unitId, width, height);
+            String networkExtra = AdNetworkSettings.MOBSENSE.equals(network) ? extra : null;
+            validate(id, network, unitId, width, height, networkExtra);
             if (id == null) {
                 adUnitRepository.save(AdUnit.builder()
                         .network(network).unitId(unitId).name(name)
-                        .width(width).height(height)
+                        .width(width).height(height).extra(networkExtra)
                         .build());
             } else {
-                update(id, network, unitId, name, width, height);
+                update(id, network, unitId, name, width, height, networkExtra);
             }
             adSlotSnapshotStore.refresh();
         } catch (AdException e) {
@@ -126,7 +168,7 @@ public class AdminUnitController {
     }
 
     /** 유니크 제약에 걸리기 전에 여기서 막는다. DB 까지 가면 500 화면이 뜬다 */
-    private void validate(Long id, String network, String unitId, Integer width, Integer height) {
+    private void validate(Long id, String network, String unitId, Integer width, Integer height, String extra) {
         if (!networks().contains(network)) {
             throw new AdException("네트워크를 골라주세요.");
         }
@@ -141,19 +183,40 @@ public class AdminUnitController {
         if ((width == null) != (height == null)) {
             throw new AdException("규격은 가로·세로를 함께 넣거나 둘 다 비워주세요.");
         }
-        if (AdNetworkSettings.ADFIT.equals(network) && width == null) {
-            throw new AdException("애드핏 단위는 규격이 필요합니다.");
+        if (fixedSize(network) && width == null) {
+            throw new AdException("애드핏·모비센스 단위는 규격이 필요합니다.");
+        }
+        if (AdNetworkSettings.MOBSENSE.equals(network) && !isJsonObject(extra)) {
+            throw new AdException("모비센스 단위는 추가 설정을 JSON 객체 한 줄로 넣어야 합니다.");
         }
     }
 
-    private AdUnit update(Long id, String network, String unitId, String name, Integer width, Integer height) {
+    private boolean fixedSize(String network) {
+        return AdNetworkSettings.ADFIT.equals(network) || AdNetworkSettings.MOBSENSE.equals(network);
+    }
+
+    private boolean isJsonObject(String raw) {
+        if (raw == null) {
+            return false;
+        }
+        try {
+            JsonNode node = objectMapper.readTree(raw);
+            return node != null && node.isObject();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private AdUnit update(Long id, String network, String unitId, String name,
+                          Integer width, Integer height, String extra) {
         AdUnit unit = adUnitRepository.findById(id)
                 .orElseThrow(() -> new AdException("존재하지 않는 광고단위입니다."));
-        unit.update(network, unitId, width, height, name);
+        unit.update(network, unitId, width, height, name, extra);
         return unit;
     }
 
     private List<String> networks() {
-        return List.of(AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE, AdNetworkSettings.ADFIT);
+        return List.of(AdNetworkSettings.COUPANG, AdNetworkSettings.ADSENSE,
+                AdNetworkSettings.ADFIT, AdNetworkSettings.MOBSENSE);
     }
 }

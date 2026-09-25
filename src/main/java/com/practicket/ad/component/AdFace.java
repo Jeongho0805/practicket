@@ -12,9 +12,9 @@ import lombok.Getter;
 public class AdFace {
 
     private static final AdFace NONE = new AdFace(false, false, false, false,
-            null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, null);
     private static final AdFace EMPTY = new AdFace(false, false, false, true,
-            null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, null);
 
     private final boolean banner;
     private final boolean fill;
@@ -33,6 +33,13 @@ public class AdFace {
     private final String account;
     private final String template;
     private final String size;
+    /** 네트워크 전용 값(JSON). 모비센스만 있다 */
+    private final String extra;
+
+    /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 분. null 이면 제한 없음 */
+    private final Integer refillGapMinutes;
+    /** 간격 안일 때 같은 자리에 대신 넣을 것. 브라우저가 고르므로 첫째와 함께 내려간다 */
+    private final AdFace fallback;
 
     /** 이 기기 규격이 없는 자리. 화면에서 아예 빠진다 */
     public static AdFace none() {
@@ -45,13 +52,23 @@ public class AdFace {
 
     public static AdFace banner(Long bannerId, String advertiserName, String imagePath) {
         return new AdFace(true, false, false, false, bannerId, advertiserName, imagePath,
-                null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
     }
 
     public static AdFace fill(boolean enabled, AdSlotSnapshot.Unit unit,
                               String account, String template) {
+        return fill(enabled, unit, account, template, null, null);
+    }
+
+    public static AdFace fill(boolean enabled, AdSlotSnapshot.Unit unit, String account, String template,
+                              Integer refillGapMinutes, AdFace fallback) {
         return new AdFace(false, true, enabled, false, null, null, null,
-                unit.network(), unit.unitId(), account, template, sizeOf(unit));
+                unit.network(), unit.unitId(), account, template, sizeOf(unit), unit.extra(),
+                refillGapMinutes, fallback);
+    }
+
+    public boolean hasFallback() {
+        return fallback != null && fallback.isFill() && fallback.isFillEnabled();
     }
 
     /** 규격을 코드에 박아야 하는 네트워크(애드핏)만 값이 있다. 반응형이면 빈 값이다 */

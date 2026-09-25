@@ -70,29 +70,58 @@
             </div>
         </div>
 
-        <div class="card">
-            <header><h2>스테이지 네트워크 광고 노출</h2></header>
+        <div class="card" id="network-card">
+            <header><h2>네트워크 설정<small>노출 · 재요청 간격</small></h2></header>
             <div class="pad">
-                <div class="exposure-list">
-                    <div class="exposure-row" th:each="row : ${exposureRows}">
-                        <div>
-                            <b th:text="${row.label}">네트워크</b>
-                            <span class="note" th:text="${row.network}">NETWORK</span>
-                        </div>
-                        <form method="post"
-                              th:action="@{/admin-hoya/ad/units/exposure/{network}/toggle(network=${row.network})}">
+                <form method="post" action="/admin-hoya/ad/units/limits" id="limits-form">
+                    <div class="exposure-head">
+                        <span>네트워크</span><span>재요청 간격</span><span>제한 시 대신 채울 네트워크</span><span>스테이지</span>
+                    </div>
+                    <div class="exposure-list">
+                        <div class="exposure-row" th:each="row : ${exposureRows}">
+                            <div>
+                                <b th:text="${row.label}">네트워크</b>
+                                <span class="note" th:text="${row.network}">NETWORK</span>
+                            </div>
+                            <div class="v" th:classappend="${!row.limit.hasGap()} ? 'dim'">
+                                <th:block th:if="${row.limit.hasGap()}"><span th:text="${row.limit.refillGapMinutes}">5</span><small>분</small></th:block>
+                                <th:block th:unless="${row.limit.hasGap()}">없음</th:block>
+                            </div>
+                            <div class="e"><div class="unit" data-unit="분">
+                                <input type="number" min="1" th:name="'gap-' + ${row.network}"
+                                       th:value="${row.limit.refillGapMinutes}" placeholder="없음">
+                            </div></div>
+                            <div class="t" th:classappend="${row.fallbackLabel == null} ? 'dim'"
+                                 th:text="${row.fallbackLabel != null ? row.fallbackLabel : '없음'}">없음</div>
+                            <div class="e">
+                                <select th:name="'fallback-' + ${row.network}">
+                                    <option value="">없음 (자리 크기만 유지)</option>
+                                    <option th:each="network : ${networks}" th:if="${network != row.network}"
+                                            th:value="${network}" th:selected="${network == row.limit.fallbackNetwork}"
+                                            th:text="${networkLabels[network] != null ? networkLabels[network] : network}">네트워크</option>
+                                </select>
+                            </div>
                             <button type="submit" class="sw" th:classappend="${row.enabled} ? 'on'"
                                     th:disabled="${!row.editable}"
+                                    th:formaction="@{/admin-hoya/ad/units/exposure/{network}/toggle(network=${row.network})}"
                                     th:attr="aria-label=${row.label} + ' 스테이지 노출 전환',aria-pressed=${row.enabled}"></button>
-                        </form>
+                        </div>
                     </div>
-                </div>
+                    <div class="editbar">
+                        <button type="button" class="btn ghost sm read-only" id="limits-edit">제한 값 수정</button>
+                        <button type="button" class="btn ghost sm edit-only" id="limits-cancel">취소</button>
+                        <button type="submit" class="btn sm edit-only">저장</button>
+                    </div>
+                </form>
+                <p class="hint">
+                    재요청 간격: 같은 브라우저 탭에서 이 네트워크를 다시 부르기까지 비워 둘 시간입니다. 비우면 제한 없음.<br>
+                    대신 채울 네트워크: 간격 안에 다시 열린 자리에 대신 들어갈 네트워크입니다. 광고단위는 자리 규격에 맞춰 자동으로 고릅니다.
+                </p>
                 <p class="hint" th:if="${!#lists.isEmpty(exposureRows) and exposureRows[0].editable}">
-                    스테이지에서 실제 네트워크 광고를 확인할 때만 켭니다. 로컬에서도 같은 동작을 검증할 수 있으며,
-                    설정은 현재 환경에만 적용됩니다. 판매된 배너에는 영향을 주지 않습니다.
+                    스테이지 스위치는 실제 네트워크 광고를 확인할 때만 켭니다. 설정은 현재 환경에만 적용되며 판매된 배너에는 영향을 주지 않습니다.
                 </p>
                 <p class="hint" th:unless="${!#lists.isEmpty(exposureRows) and exposureRows[0].editable}">
-                    이 환경에서는 상태만 표시합니다. 운영에서는 항상 노출하며, 전환은 로컬·스테이지에서 가능합니다.
+                    스테이지 스위치는 상태만 표시합니다. 운영에서는 항상 노출하며, 전환은 로컬·스테이지에서 가능합니다.
                 </p>
             </div>
         </div>
@@ -102,5 +131,16 @@
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
 <script th:replace="~{admin/fragments/admin-shell :: confirmScript}"></script>
+<script>
+    (function () {
+        const card = document.getElementById('network-card');
+        const setEditing = (on) => card.classList.toggle('editing', on);
+        document.getElementById('limits-edit').addEventListener('click', () => setEditing(true));
+        document.getElementById('limits-cancel').addEventListener('click', () => {
+            document.getElementById('limits-form').reset();
+            setEditing(false);
+        });
+    })();
+</script>
 </body>
 </html>
