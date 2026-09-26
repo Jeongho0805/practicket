@@ -119,12 +119,9 @@ class AdminAdPageRenderTest {
         given(adSlotRepository.findAll()).willReturn(List.of(slot()));
         given(adUnitRepository.findAllByOrderByNetworkAscNameAsc()).willReturn(List.of(unit()));
         given(adNetworkExposureService.rows()).willReturn(List.of(
-                new AdNetworkExposureService.ExposureRow("COUPANG", "쿠팡 파트너스", true, true,
-                        AdNetworkExposureService.Limit.NONE),
-                new AdNetworkExposureService.ExposureRow("ADSENSE", "구글 애드센스", false, true,
-                        new AdNetworkExposureService.Limit(5, "ADFIT")),
-                new AdNetworkExposureService.ExposureRow("ADFIT", "카카오 애드핏", false, true,
-                        AdNetworkExposureService.Limit.NONE)));
+                new AdNetworkExposureService.ExposureRow("COUPANG", "쿠팡 파트너스", true, true, null),
+                new AdNetworkExposureService.ExposureRow("ADSENSE", "구글 애드센스", false, true, 5),
+                new AdNetworkExposureService.ExposureRow("ADFIT", "카카오 애드핏", false, true, null)));
     }
 
     @Test
@@ -143,7 +140,8 @@ class AdminAdPageRenderTest {
     void dashboardWarnsUnitGap() throws Exception {
         given(adminSlotService.getGroups()).willReturn(List.of(
                 new AdminSlotService.SlotGroup("전 페이지 공통", "GLOBAL", List.of(
-                        new AdminSlotService.SlotRow(slot(), 0L, "300x600", null, null, null, true, false)))));
+                        new AdminSlotService.SlotRow(slot(), 0L, "300x600", null, List.of(
+                                new AdminSlotService.StepRow(0, "COUPANG", null, null, null, null, true, false)))))));
 
         mockMvc.perform(get("/admin-hoya/ad"))
                 .andExpect(status().isOk())
@@ -264,30 +262,48 @@ class AdminAdPageRenderTest {
     }
 
     @Test
-    void inlineSlotChoicesContainOnlyCurrentNetwork() throws Exception {
+    @DisplayName("채움 순서의 단위 선택지는 그 단계 네트워크 것만 담고, 단계마다 간격을 보여준다")
+    void slotStepsShowOwnNetworkUnitsAndGap() throws Exception {
         AdSlot slot = slot();
         slot.changeFillNetwork("ADSENSE");
         given(adminSlotService.getGroups()).willReturn(List.of(new AdminSlotService.SlotGroup(
-                "전 페이지 공통", "GLOBAL", List.of(new AdminSlotService.SlotRow(
-                slot, 0, "300x600", null, unit(), null, false, false)))));
+                "전 페이지 공통", "GLOBAL", List.of(new AdminSlotService.SlotRow(slot, 0, "300x600", null, List.of(
+                new AdminSlotService.StepRow(0, "ADSENSE", null, null, unit(), null, false, false)))))));
         given(adminSlotService.allUnits()).willReturn(List.of(unit(), adfitUnit()));
+        given(adNetworkExposureService.currentRefillGaps()).willReturn(java.util.Map.of("ADSENSE", 5));
 
         mockMvc.perform(get("/admin-hoya/ad/slots"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("action=\"/admin-hoya/ad/slots/1/steps/0\"")))
                 .andExpect(content().string(containsString("name=\"pcAdUnitId\"")))
-                .andExpect(content().string(containsString("form=\"slot-units-1\"")))
-                .andExpect(content().string(containsString("9697904962")))
+                .andExpect(content().string(not(containsString("name=\"mobileAdUnitId\""))))
+                .andExpect(content().string(containsString("자동 · 9697904962")))
                 .andExpect(content().string(not(containsString(adfitUnit().getUnitId()))))
+                .andExpect(content().string(containsString("5분 간격")))
+                .andExpect(content().string(containsString("마지막 단계도 재요청 간격이 있어")))
                 .andExpect(content().string(not(containsString("/slots/1/edit"))));
     }
 
     @Test
-    void inlineSlotPostBindsBothDevicesAndNetwork() throws Exception {
-        mockMvc.perform(post("/admin-hoya/ad/slots/1/units")
-                        .param("fillNetwork", "ADSENSE")
+    void slotStepPostsBindToService() throws Exception {
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/steps/0")
+                        .param("network", "ADSENSE")
                         .param("pcAdUnitId", "1").param("mobileAdUnitId", ""))
-                .andExpect(status().is3xxRedirection());
-        verify(adminSlotService).changeUnits(1L, "ADSENSE", 1L, null);
+                .andExpect(redirectedUrl("/admin-hoya/ad/slots"));
+        verify(adminSlotService).changeStep(1L, 0, "ADSENSE", 1L, null);
+
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/steps"))
+                .andExpect(redirectedUrl("/admin-hoya/ad/slots"));
+        verify(adminSlotService).addStep(1L);
+
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/steps/2/move").param("to", "0"))
+                .andExpect(redirectedUrl("/admin-hoya/ad/slots"));
+        verify(adminSlotService).moveStep(1L, 2, 0);
+
+        mockMvc.perform(post("/admin-hoya/ad/slots/1/steps/1/delete"))
+                .andExpect(redirectedUrl("/admin-hoya/ad/slots"));
+        verify(adminSlotService).removeStep(1L, 1);
+        verify(adSlotSnapshotStore, org.mockito.Mockito.times(4)).refresh();
     }
 
     @Test
@@ -390,17 +406,18 @@ class AdminAdPageRenderTest {
     @DisplayName("재요청 간격 저장은 모든 네트워크 값을 한 번에 받고 스냅샷을 다시 만든다")
     void limitsSaveUpdatesAllNetworks() throws Exception {
         mockMvc.perform(post("/admin-hoya/ad/units/limits")
-                        .param("gap-ADSENSE", "5").param("fallback-ADSENSE", "MOBSENSE")
-                        .param("gap-COUPANG", "").param("fallback-COUPANG", "")
-                        .param("gap-ADFIT", "").param("fallback-ADFIT", "")
-                        .param("gap-MOBSENSE", "").param("fallback-MOBSENSE", ""))
+                        .param("gap-ADSENSE", "5")
+                        .param("gap-COUPANG", "")
+                        .param("gap-ADFIT", "")
+                        .param("gap-MOBSENSE", "1"))
                 .andExpect(redirectedUrl("/admin-hoya/ad/units"));
 
-        verify(adNetworkExposureService).updateLimits(java.util.Map.of(
-                "COUPANG", AdNetworkExposureService.Limit.NONE,
-                "ADSENSE", new AdNetworkExposureService.Limit(5, "MOBSENSE"),
-                "ADFIT", AdNetworkExposureService.Limit.NONE,
-                "MOBSENSE", AdNetworkExposureService.Limit.NONE));
+        java.util.Map<String, Integer> expected = new java.util.HashMap<>();
+        expected.put("COUPANG", null);
+        expected.put("ADSENSE", 5);
+        expected.put("ADFIT", null);
+        expected.put("MOBSENSE", 1);
+        verify(adNetworkExposureService).updateRefillGaps(expected);
         verify(adSlotSnapshotStore).refresh();
     }
 
@@ -412,7 +429,7 @@ class AdminAdPageRenderTest {
                 .andExpect(redirectedUrl("/admin-hoya/ad/units"))
                 .andExpect(flash().attributeExists("error"));
 
-        verify(adNetworkExposureService, never()).updateLimits(any());
+        verify(adNetworkExposureService, never()).updateRefillGaps(any());
     }
 
     @Test
@@ -544,7 +561,8 @@ class AdminAdPageRenderTest {
 
     private AdminSlotService.SlotGroup slotGroup() {
         return new AdminSlotService.SlotGroup("전 페이지 공통", "GLOBAL", List.of(
-                new AdminSlotService.SlotRow(slot(), 1L, "300x600", null, unit(), null, false, false)));
+                new AdminSlotService.SlotRow(slot(), 1L, "300x600", null, List.of(
+                        new AdminSlotService.StepRow(0, "COUPANG", null, null, unit(), null, false, false)))));
     }
 
     private Dashboard dashboard() {

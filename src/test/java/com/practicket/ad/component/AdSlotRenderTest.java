@@ -23,6 +23,8 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -97,25 +99,27 @@ class AdSlotRenderTest {
     }
 
     @Test
-    @DisplayName("재요청 간격이 있는 네트워크는 간격과 대타 자리 정보를 함께 내려보낸다")
-    void fillEmitsRefillGapAndFallback() throws Exception {
-        AdFace fallback = AdFace.fill(true, new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600), null, null);
+    @DisplayName("재요청 간격과 2단계부터의 채움 순서를 함께 내려보낸다")
+    void fillEmitsRefillGapAndFallbacks() throws Exception {
+        AdFace mobsense = AdFace.fill(true, new AdSlotSnapshot.Unit("MOBSENSE", "1070053", 300, 600,
+                "{\"frameCode\":\"90\"}"), null, null, 1, List.of());
+        AdFace adfit = AdFace.fill(true, new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600), null, null);
         given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
-                AdFace.fill(true, unit("ADSENSE", "9697904962"), "ca-pub-1", null, 5, fallback),
+                AdFace.fill(true, unit("ADSENSE", "9697904962"), "ca-pub-1", null, 5, List.of(mobsense, adfit)),
                 AdFace.none()));
 
         mockMvc.perform(get("/terms"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-network=\"ADSENSE\"")))
                 .andExpect(content().string(containsString("data-gap-minutes=\"5\"")))
-                .andExpect(content().string(containsString("data-fb-network=\"ADFIT\"")))
-                .andExpect(content().string(containsString("data-fb-unit=\"DAN-side\"")))
-                .andExpect(content().string(containsString("data-fb-size=\"160x600\"")))
-                .andExpect(content().string(not(containsString("data-fb-account"))));
+                .andExpect(content().string(containsString("data-fallbacks=\"[{&quot;network&quot;:&quot;MOBSENSE&quot;")))
+                .andExpect(content().string(containsString("&quot;gapMinutes&quot;:1}")))
+                .andExpect(content().string(containsString("&quot;network&quot;:&quot;ADFIT&quot;,&quot;unit&quot;:&quot;DAN-side&quot;")))
+                .andExpect(content().string(containsString("&quot;size&quot;:&quot;160x600&quot;")));
     }
 
     @Test
-    @DisplayName("간격이 없으면 간격·대타 속성은 아예 안 나간다")
+    @DisplayName("간격도 다음 단계도 없으면 그 속성은 아예 안 나간다")
     void fillWithoutGapEmitsNoFallbackAttributes() throws Exception {
         given(adSlotView.render("PC_RIGHT")).willReturn(new AdSlotRender("PC_RIGHT",
                 AdFace.fill(true, unit("ADSENSE", "9697904962"), "ca-pub-1", null),
@@ -124,7 +128,7 @@ class AdSlotRenderTest {
         mockMvc.perform(get("/terms"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString("data-gap-minutes"))))
-                .andExpect(content().string(not(containsString("data-fb-"))));
+                .andExpect(content().string(not(containsString("data-fallbacks"))));
     }
 
     @Test

@@ -5,6 +5,8 @@ import com.practicket.ad.component.AdUnitResolver;
 import com.practicket.ad.domain.AdCampaign;
 import com.practicket.ad.domain.AdCampaignRepository;
 import com.practicket.ad.domain.AdSlot;
+import com.practicket.ad.domain.AdSlotFillStep;
+import com.practicket.ad.domain.AdSlotFillStepRepository;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdUnit;
 import com.practicket.ad.domain.AdUnitRepository;
@@ -21,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
 public class AdRenderService {
 
     private final AdSlotRepository adSlotRepository;
+    private final AdSlotFillStepRepository adSlotFillStepRepository;
     private final AdUnitRepository adUnitRepository;
     private final BannerRepository bannerRepository;
     private final AdCampaignRepository adCampaignRepository;
@@ -46,7 +50,8 @@ public class AdRenderService {
         LocalDate today = LocalDate.now();
 
         List<AdUnit> units = adUnitRepository.findAll();
-        Map<String, AdNetworkExposureService.Limit> limits = adNetworkExposureService.currentLimits();
+        Map<Long, List<AdSlotFillStep>> stepsBySlot = adSlotFillStepRepository.findAllByOrderBySlotIdAscStepOrderAsc()
+                .stream().collect(Collectors.groupingBy(AdSlotFillStep::getSlotId));
 
         List<Banner> banners = bannerRepository.findAllEnabledWithSlot();
         Map<Long, AdCampaign> campaigns = adCampaignRepository.findAllById(
@@ -62,24 +67,17 @@ public class AdRenderService {
 
         List<AdSlotSnapshot.Slot> slots = adSlotRepository.findAll().stream()
                 .map(slot -> toSlot(slot, bannersBySlot.getOrDefault(slot.getId(), List.of()),
-                        units, limitOf(slot, limits), campaigns, advertisers))
+                        units, stepsBySlot.getOrDefault(slot.getId(), List.of()), campaigns, advertisers))
                 .toList();
 
-        return new AdSlotSnapshot(slots, adNetworkExposureService.currentExposure());
+        return new AdSlotSnapshot(slots, adNetworkExposureService.currentExposure(),
+                adNetworkExposureService.currentRefillGaps());
     }
 
-    private AdNetworkExposureService.Limit limitOf(AdSlot slot, Map<String, AdNetworkExposureService.Limit> limits) {
-        if (slot.getFillNetwork() == null) {
-            return AdNetworkExposureService.Limit.NONE;
-        }
-        return limits.getOrDefault(slot.getFillNetwork(), AdNetworkExposureService.Limit.NONE);
-    }
-
-    /** 대타 단위는 사람이 고른 단위를 무시하고 규격만으로 고른다. 고른 단위는 첫째 네트워크 것이라서다 */
     private AdSlotSnapshot.Slot toSlot(AdSlot slot, List<Banner> slotBanners, List<AdUnit> units,
-                                       AdNetworkExposureService.Limit limit,
+                                       List<AdSlotFillStep> steps,
                                        Map<Long, AdCampaign> campaigns, Map<Long, Advertiser> advertisers) {
-        String fallbackNetwork = limit.hasGap() ? limit.fallbackNetwork() : null;
+        boolean filled = slot.getFillNetwork() != null;
         return new AdSlotSnapshot.Slot(
                 slot.getCode(),
                 slot.getPcWidth(), slot.getPcHeight(),
@@ -88,14 +86,22 @@ public class AdRenderService {
                 slot.getFillNetwork(),
                 adUnitResolver.resolve(slot, true, units).map(this::toUnit).orElse(null),
                 adUnitResolver.resolve(slot, false, units).map(this::toUnit).orElse(null),
-                adUnitResolver.resolve(fallbackNetwork, null, slot.getPcWidth(), slot.getPcHeight(), units)
-                        .map(this::toUnit).orElse(null),
-                adUnitResolver.resolve(fallbackNetwork, null, slot.getMobileWidth(), slot.getMobileHeight(), units)
-                        .map(this::toUnit).orElse(null),
-                limit.refillGapMinutes(),
+                filled ? fallbacks(steps, units, slot.getPcWidth(), slot.getPcHeight(), true) : List.of(),
+                filled ? fallbacks(steps, units, slot.getMobileWidth(), slot.getMobileHeight(), false) : List.of(),
                 slotBanners.stream()
                         .map(banner -> toBanner(banner, campaigns, advertisers))
                         .toList());
+    }
+
+    /** 규격에 맞는 단위가 없는 단계는 그 기기에서 건너뛴다 */
+    private List<AdSlotSnapshot.Unit> fallbacks(List<AdSlotFillStep> steps, List<AdUnit> units,
+                                                Integer width, Integer height, boolean pc) {
+        return steps.stream()
+                .map(step -> adUnitResolver.resolve(step.getNetwork(),
+                        pc ? step.getPcAdUnitId() : step.getMobileAdUnitId(), width, height, units))
+                .flatMap(Optional::stream)
+                .map(this::toUnit)
+                .toList();
     }
 
     private AdSlotSnapshot.Banner toBanner(Banner banner,

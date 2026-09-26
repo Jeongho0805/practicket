@@ -44,15 +44,13 @@ public class AdNetworkExposureService {
         return result;
     }
 
-    /** 재요청 간격과 대타 네트워크. 노출 스위치와 달리 모든 환경에서 DB 값을 그대로 쓴다 */
+    /** 네트워크별 재요청 간격(분). 간격이 없는 네트워크는 빠진다. 노출 스위치와 달리 모든 환경에서 DB 값을 그대로 쓴다 */
     @Transactional(readOnly = true)
-    public Map<String, Limit> currentLimits() {
-        Map<String, Limit> result = new LinkedHashMap<>();
-        AdNetworkSettings.LABELS.keySet().forEach(network -> result.put(network, Limit.NONE));
+    public Map<String, Integer> currentRefillGaps() {
+        Map<String, Integer> result = new LinkedHashMap<>();
         repository.findAll().forEach(setting -> {
-            if (result.containsKey(setting.getNetwork())) {
-                result.put(setting.getNetwork(),
-                        new Limit(setting.getRefillGapMinutes(), setting.getFallbackNetwork()));
+            if (AdNetworkSettings.LABELS.containsKey(setting.getNetwork()) && setting.getRefillGapMinutes() != null) {
+                result.put(setting.getNetwork(), setting.getRefillGapMinutes());
             }
         });
         return result;
@@ -61,12 +59,12 @@ public class AdNetworkExposureService {
     @Transactional(readOnly = true)
     public List<ExposureRow> rows() {
         Map<String, Boolean> exposure = currentExposure();
-        Map<String, Limit> limits = currentLimits();
+        Map<String, Integer> gaps = currentRefillGaps();
         boolean editable = isEditable();
         return AdNetworkSettings.LABELS.entrySet().stream()
                 .map(entry -> new ExposureRow(entry.getKey(), entry.getValue(),
                         exposure.getOrDefault(entry.getKey(), false), editable,
-                        limits.getOrDefault(entry.getKey(), Limit.NONE)))
+                        gaps.get(entry.getKey())))
                 .toList();
     }
 
@@ -84,45 +82,30 @@ public class AdNetworkExposureService {
         repository.save(setting);
     }
 
+    /** 값이 null 인 네트워크는 간격을 없앤다 */
     @Transactional
-    public void updateLimits(Map<String, Limit> limits) {
-        limits.forEach(this::validate);
-        limits.forEach((network, limit) -> {
+    public void updateRefillGaps(Map<String, Integer> gaps) {
+        gaps.forEach(this::validate);
+        gaps.forEach((network, minutes) -> {
             AdNetworkExposure setting = repository.findById(network)
                     .orElseGet(() -> new AdNetworkExposure(network, false));
-            setting.updateLimit(limit.refillGapMinutes(), limit.fallbackNetwork());
+            setting.updateRefillGap(minutes);
             repository.save(setting);
         });
     }
 
-    private void validate(String network, Limit limit) {
+    private void validate(String network, Integer minutes) {
         if (!AdNetworkSettings.LABELS.containsKey(network)) {
             throw new AdException("지원하지 않는 광고 네트워크입니다.");
         }
-        if (limit.refillGapMinutes() != null && limit.refillGapMinutes() < 1) {
+        if (minutes != null && minutes < 1) {
             throw new AdException("재요청 간격은 1분 이상이거나 비워야 합니다.");
-        }
-        if (limit.fallbackNetwork() != null) {
-            if (!AdNetworkSettings.LABELS.containsKey(limit.fallbackNetwork())) {
-                throw new AdException("대신 채울 네트워크가 지원 목록에 없습니다.");
-            }
-            if (limit.fallbackNetwork().equals(network)) {
-                throw new AdException("대신 채울 네트워크는 자기 자신일 수 없습니다.");
-            }
         }
     }
 
     private boolean isEditable() {
         return !environment.acceptsProfiles(Profiles.of("prod"))
                 && environment.acceptsProfiles(Profiles.of("local", "stage"));
-    }
-
-    public record Limit(Integer refillGapMinutes, String fallbackNetwork) {
-        public static final Limit NONE = new Limit(null, null);
-
-        public boolean hasGap() {
-            return refillGapMinutes != null;
-        }
     }
 
     @Getter
@@ -132,11 +115,11 @@ public class AdNetworkExposureService {
         private final String label;
         private final boolean enabled;
         private final boolean editable;
-        private final Limit limit;
+        /** null 이면 간격 없음 */
+        private final Integer refillGapMinutes;
 
-        public String getFallbackLabel() {
-            return limit.fallbackNetwork() == null ? null
-                    : AdNetworkSettings.LABELS.getOrDefault(limit.fallbackNetwork(), limit.fallbackNetwork());
+        public boolean hasGap() {
+            return refillGapMinutes != null;
         }
     }
 }

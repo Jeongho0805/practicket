@@ -24,18 +24,15 @@ public class AdNetworkExposure {
 
     private Integer refillGapMinutes;
 
-    private String fallbackNetwork;
-
     public AdNetworkExposure(String network, boolean stageEnabled) {
-        this(network, stageEnabled, null, null);
+        this(network, stageEnabled, null);
     }
 
     public void toggle() {
         stageEnabled = !stageEnabled;
     }
 
-    public void updateLimit(Integer refillGapMinutes, String fallbackNetwork) {
+    public void updateRefillGap(Integer refillGapMinutes) {
         this.refillGapMinutes = refillGapMinutes;
-        this.fallbackNetwork = fallbackNetwork;
     }
 }
