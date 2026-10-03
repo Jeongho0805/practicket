@@ -73,55 +73,48 @@ class AdNetworkExposureServiceTest {
     }
 
     @Test
-    void limitsAreReadInEveryEnvironmentAndDefaultToNone() {
+    void refillGapsAreReadInEveryEnvironmentAndSkipNetworksWithoutOne() {
         AdNetworkExposureRepository repository = mock(AdNetworkExposureRepository.class);
         MockEnvironment production = new MockEnvironment();
         production.setActiveProfiles("prod");
         given(repository.findAll()).willReturn(List.of(
-                new AdNetworkExposure("ADSENSE", false, 5, "ADFIT")));
+                new AdNetworkExposure("ADSENSE", false, 5),
+                new AdNetworkExposure("COUPANG", true, null)));
 
-        Map<String, AdNetworkExposureService.Limit> limits =
-                new AdNetworkExposureService(repository, production).currentLimits();
+        Map<String, Integer> gaps = new AdNetworkExposureService(repository, production).currentRefillGaps();
 
-        assertThat(limits.get("ADSENSE")).isEqualTo(new AdNetworkExposureService.Limit(5, "ADFIT"));
-        assertThat(limits.get("COUPANG")).isEqualTo(AdNetworkExposureService.Limit.NONE);
-        assertThat(limits.get("ADFIT").hasGap()).isFalse();
+        assertThat(gaps).containsExactly(Map.entry("ADSENSE", 5));
     }
 
     @Test
-    void updateLimitsRejectsBadValuesBeforeSavingAnything() {
+    void updateRefillGapsRejectsBadValuesBeforeSavingAnything() {
         AdNetworkExposureRepository repository = mock(AdNetworkExposureRepository.class);
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
         AdNetworkExposureService service = new AdNetworkExposureService(repository, environment);
 
-        assertThatThrownBy(() -> service.updateLimits(Map.of(
-                "ADSENSE", new AdNetworkExposureService.Limit(0, "ADFIT"))))
+        assertThatThrownBy(() -> service.updateRefillGaps(Map.of("ADSENSE", 0)))
                 .isInstanceOf(AdException.class);
-        assertThatThrownBy(() -> service.updateLimits(Map.of(
-                "ADSENSE", new AdNetworkExposureService.Limit(5, "ADSENSE"))))
-                .isInstanceOf(AdException.class);
-        assertThatThrownBy(() -> service.updateLimits(Map.of(
-                "ADSENSE", new AdNetworkExposureService.Limit(5, "DABLE"))))
+        assertThatThrownBy(() -> service.updateRefillGaps(Map.of("DABLE", 5)))
                 .isInstanceOf(AdException.class);
         verify(repository, never()).save(any());
     }
 
     @Test
-    void updateLimitsWritesEachNetworkEvenInProduction() {
+    void updateRefillGapsWritesEachNetworkEvenInProduction() {
         AdNetworkExposureRepository repository = mock(AdNetworkExposureRepository.class);
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
         AdNetworkExposure adsense = new AdNetworkExposure("ADSENSE", false);
         given(repository.findById("ADSENSE")).willReturn(Optional.of(adsense));
         given(repository.findById("COUPANG")).willReturn(Optional.empty());
+        Map<String, Integer> gaps = new java.util.LinkedHashMap<>();
+        gaps.put("ADSENSE", 5);
+        gaps.put("COUPANG", null);
 
-        new AdNetworkExposureService(repository, environment).updateLimits(Map.of(
-                "ADSENSE", new AdNetworkExposureService.Limit(5, "ADFIT"),
-                "COUPANG", AdNetworkExposureService.Limit.NONE));
+        new AdNetworkExposureService(repository, environment).updateRefillGaps(gaps);
 
         assertThat(adsense.getRefillGapMinutes()).isEqualTo(5);
-        assertThat(adsense.getFallbackNetwork()).isEqualTo("ADFIT");
         verify(repository, times(2)).save(any());
     }
 

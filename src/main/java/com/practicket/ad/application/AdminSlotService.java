@@ -3,6 +3,8 @@ package com.practicket.ad.application;
 import com.practicket.ad.component.AdUnitResolver;
 import com.practicket.ad.component.AdNetworkSettings;
 import com.practicket.ad.domain.AdSlot;
+import com.practicket.ad.domain.AdSlotFillStep;
+import com.practicket.ad.domain.AdSlotFillStepRepository;
 import com.practicket.ad.domain.AdSlotRepository;
 import com.practicket.ad.domain.AdUnit;
 import com.practicket.ad.domain.AdUnitRepository;
@@ -16,12 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +37,7 @@ import java.util.stream.Stream;
 public class AdminSlotService {
 
     private final AdSlotRepository adSlotRepository;
+    private final AdSlotFillStepRepository adSlotFillStepRepository;
     private final AdUnitRepository adUnitRepository;
     private final AdUnitResolver adUnitResolver;
     private final AdminCampaignService adminCampaignService;
@@ -42,6 +47,8 @@ public class AdminSlotService {
     public List<SlotGroup> getGroups() {
         List<AdUnit> units = adUnitRepository.findAll();
         Map<Long, Long> liveCounts = adminCampaignService.countLiveBannersBySlot();
+        Map<Long, List<AdSlotFillStep>> stepsBySlot = adSlotFillStepRepository.findAllByOrderBySlotIdAscStepOrderAsc()
+                .stream().collect(Collectors.groupingBy(AdSlotFillStep::getSlotId));
 
         Map<String, SlotGroup> groups = new LinkedHashMap<>();
         adSlotRepository.findAll().stream()
@@ -52,7 +59,8 @@ public class AdminSlotService {
                     groups.computeIfAbsent(name,
                             key -> new SlotGroup(key, slot.getGroupPath(), new ArrayList<>()))
                             .getSlots()
-                            .add(toRow(slot, units, liveCounts.getOrDefault(slot.getId(), 0L)));
+                            .add(toRow(slot, units, stepsBySlot.getOrDefault(slot.getId(), List.of()),
+                                    liveCounts.getOrDefault(slot.getId(), 0L)));
                 });
         return List.copyOf(groups.values());
     }
@@ -119,30 +127,113 @@ public class AdminSlotService {
         return device + " 광고단위가 슬롯보다 큽니다. 저장은 되지만 광고가 잘려 나갑니다.";
     }
 
+    /** 끝에 아직 순서에 없는 첫 네트워크를 붙인다. 순서가 비어 있으면 그게 1단계가 된다 */
     @Transactional
-    public void changeFillNetwork(Long id, String fillNetwork) {
-        AdSlot slot = adSlotRepository.findById(id)
-                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
-        String network = validNetwork(fillNetwork);
-        slot.changeFillNetwork(network);
-        // 기존 데이터에 남아 있던 다른 네트워크 지정도 해제한다.
-        List<AdUnit> units = adUnitRepository.findAll();
-        slot.changeAdUnits(matchingUnitId(network, slot.getPcAdUnitId(), units),
-                matchingUnitId(network, slot.getMobileAdUnitId(), units));
+    public void addStep(Long slotId) {
+        AdSlot slot = findSlot(slotId);
+        List<Step> chain = chainOf(slot);
+        String network = AdNetworkSettings.LABELS.keySet().stream()
+                .filter(candidate -> chain.stream().noneMatch(step -> step.network().equals(candidate)))
+                .findFirst()
+                .orElseThrow(() -> new AdException("모든 네트워크가 이미 채움 순서에 있습니다."));
+        chain.add(new Step(network, null, null));
+        writeChain(slot, chain);
     }
 
+    /** 네트워크를 바꾸면 그 단계의 직접 지정은 해제한다 — 이전 네트워크의 단위라서다 */
     @Transactional
-    public void changeUnits(Long id, String fillNetwork, Long pcAdUnitId, Long mobileAdUnitId) {
-        AdSlot slot = adSlotRepository.findById(id)
-                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
-        String network = validNetwork(fillNetwork);
-        if (!Objects.equals(network, slot.getFillNetwork())) {
-            throw new AdException("슬롯의 네트워크가 변경되었습니다. 새로고침 후 다시 선택해 주세요.");
+    public void changeStep(Long slotId, int index, String network, Long pcAdUnitId, Long mobileAdUnitId) {
+        AdSlot slot = findSlot(slotId);
+        List<Step> chain = chainOf(slot);
+        Step current = stepAt(chain, index);
+        String next = validNetwork(network);
+        if (next == null) {
+            throw new AdException("네트워크를 골라 주세요. 단계를 없애려면 빼기를 누르세요.");
         }
-        validateUnit(network, pcAdUnitId);
-        validateUnit(network, mobileAdUnitId);
-        slot.changeAdUnits(slot.hasPcSize() ? pcAdUnitId : null,
-                slot.hasMobileSize() ? mobileAdUnitId : null);
+        for (int i = 0; i < chain.size(); i++) {
+            if (i != index && chain.get(i).network().equals(next)) {
+                throw new AdException("같은 네트워크를 채움 순서에 두 번 넣을 수 없습니다.");
+            }
+        }
+        if (!next.equals(current.network())) {
+            chain.set(index, new Step(next, null, null));
+        } else {
+            validateUnit(next, pcAdUnitId);
+            validateUnit(next, mobileAdUnitId);
+            chain.set(index, new Step(next, slot.hasPcSize() ? pcAdUnitId : null,
+                    slot.hasMobileSize() ? mobileAdUnitId : null));
+        }
+        writeChain(slot, chain);
+    }
+
+    /** 끌어 놓은 자리로 옮긴다. 0 번으로 옮기면 그 단계가 자리 칸(1단계)이 된다 */
+    @Transactional
+    public void moveStep(Long slotId, int from, int to) {
+        AdSlot slot = findSlot(slotId);
+        List<Step> chain = chainOf(slot);
+        Step moving = stepAt(chain, from);
+        stepAt(chain, to);
+        if (from == to) {
+            return;
+        }
+        chain.remove(from);
+        chain.add(to, moving);
+        writeChain(slot, chain);
+    }
+
+    /** 1단계를 빼면 2단계가 1단계로 올라온다. 마지막 하나를 빼면 자리를 비워 둔다 */
+    @Transactional
+    public void removeStep(Long slotId, int index) {
+        AdSlot slot = findSlot(slotId);
+        List<Step> chain = chainOf(slot);
+        stepAt(chain, index);
+        chain.remove(index);
+        writeChain(slot, chain);
+    }
+
+    private AdSlot findSlot(Long id) {
+        return adSlotRepository.findById(id)
+                .orElseThrow(() -> new AdException("존재하지 않는 슬롯입니다."));
+    }
+
+    private Step stepAt(List<Step> chain, int index) {
+        if (index < 0 || index >= chain.size()) {
+            throw new AdException("채움 순서가 바뀌었습니다. 새로고침 후 다시 시도해 주세요.");
+        }
+        return chain.get(index);
+    }
+
+    private List<Step> chainOf(AdSlot slot) {
+        return chainOf(slot, adSlotFillStepRepository.findAllBySlotIdOrderByStepOrderAsc(slot.getId()));
+    }
+
+    /** 1단계 네트워크가 없으면 2단계부터가 남아 있어도 자리는 비워 둔다 */
+    private List<Step> chainOf(AdSlot slot, List<AdSlotFillStep> extraSteps) {
+        List<Step> chain = new ArrayList<>();
+        if (slot.getFillNetwork() == null) {
+            return chain;
+        }
+        chain.add(new Step(slot.getFillNetwork(), slot.getPcAdUnitId(), slot.getMobileAdUnitId()));
+        extraSteps.forEach(step -> chain.add(new Step(step.getNetwork(), step.getPcAdUnitId(), step.getMobileAdUnitId())));
+        return chain;
+    }
+
+    /** 1단계는 자리 칸에, 2단계부터는 따로 적는다 */
+    private void writeChain(AdSlot slot, List<Step> chain) {
+        adSlotFillStepRepository.deleteAllBySlotId(slot.getId());
+        if (chain.isEmpty()) {
+            slot.changeFillNetwork(null);
+            slot.changeAdUnits(null, null);
+            return;
+        }
+        Step first = chain.get(0);
+        slot.changeFillNetwork(first.network());
+        slot.changeAdUnits(first.pcAdUnitId(), first.mobileAdUnitId());
+        for (int i = 1; i < chain.size(); i++) {
+            Step step = chain.get(i);
+            adSlotFillStepRepository.save(new AdSlotFillStep(slot.getId(), i + 1,
+                    step.network(), step.pcAdUnitId(), step.mobileAdUnitId()));
+        }
     }
 
     private String validNetwork(String value) {
@@ -151,12 +242,6 @@ public class AdminSlotService {
             throw new AdException("지원하지 않는 광고 네트워크입니다.");
         }
         return network;
-    }
-
-    private Long matchingUnitId(String network, Long id, List<AdUnit> units) {
-        return units.stream().filter(unit -> Objects.equals(unit.getId(), id)
-                        && Objects.equals(unit.getNetwork(), network))
-                .map(AdUnit::getId).findFirst().orElse(null);
     }
 
     private void validateUnit(String network, Long id) {
@@ -198,16 +283,22 @@ public class AdminSlotService {
                 .build());
     }
 
-    private SlotRow toRow(AdSlot slot, List<AdUnit> units, long liveBannerCount) {
-        AdUnit pcUnit = adUnitResolver.resolve(slot, true, units).orElse(null);
-        AdUnit mobileUnit = adUnitResolver.resolve(slot, false, units).orElse(null);
-
+    private SlotRow toRow(AdSlot slot, List<AdUnit> units, List<AdSlotFillStep> extraSteps, long liveBannerCount) {
+        List<Step> chain = chainOf(slot, extraSteps);
+        List<StepRow> steps = new ArrayList<>();
+        for (int i = 0; i < chain.size(); i++) {
+            Step step = chain.get(i);
+            AdUnit pcUnit = adUnitResolver.resolve(step.network(), step.pcAdUnitId(),
+                    slot.getPcWidth(), slot.getPcHeight(), units).orElse(null);
+            AdUnit mobileUnit = adUnitResolver.resolve(step.network(), step.mobileAdUnitId(),
+                    slot.getMobileWidth(), slot.getMobileHeight(), units).orElse(null);
+            steps.add(new StepRow(i, step.network(), step.pcAdUnitId(), step.mobileAdUnitId(), pcUnit, mobileUnit,
+                    slot.hasPcSize() && pcUnit == null, slot.hasMobileSize() && mobileUnit == null));
+        }
         return new SlotRow(slot, liveBannerCount,
                 sizeText(slot.getPcWidth(), slot.getPcHeight()),
                 sizeText(slot.getMobileWidth(), slot.getMobileHeight()),
-                pcUnit, mobileUnit,
-                slot.hasPcSize() && slot.getFillNetwork() != null && pcUnit == null,
-                slot.hasMobileSize() && slot.getFillNetwork() != null && mobileUnit == null);
+                steps);
     }
 
     private String sizeText(Integer width, Integer height) {
@@ -226,6 +317,9 @@ public class AdminSlotService {
         private final List<SlotRow> slots;
     }
 
+    private record Step(String network, Long pcAdUnitId, Long mobileAdUnitId) {
+    }
+
     @Getter
     @AllArgsConstructor
     public static class SlotRow {
@@ -233,19 +327,39 @@ public class AdminSlotService {
         private final long liveBannerCount;
         private final String pcSize;
         private final String mobileSize;
-        private final AdUnit pcUnit;
-        private final AdUnit mobileUnit;
-        /** 채울 네트워크는 정했는데 규격에 맞는 단위가 없다 — 그 기기 슬롯이 빈 채로 나간다 */
-        private final boolean pcUnitMissing;
-        private final boolean mobileUnitMissing;
+        /** 채움 순서. 비어 있으면 미판매 시 자리를 비워 둔다 */
+        private final List<StepRow> steps;
 
         public boolean isSold() {
             return liveBannerCount > 0L;
         }
 
-        public boolean isUnitMissing() {
-            return pcUnitMissing || mobileUnitMissing;
+        /** 1단계에 맞는 단위가 없으면 간격과 상관없이 늘 다음 단계로 넘어간다 — 대시보드가 경고한다 */
+        public boolean isPcUnitMissing() {
+            return !steps.isEmpty() && steps.get(0).isPcUnitMissing();
         }
+
+        public boolean isMobileUnitMissing() {
+            return !steps.isEmpty() && steps.get(0).isMobileUnitMissing();
+        }
+
+        public boolean isUnitMissing() {
+            return isPcUnitMissing() || isMobileUnitMissing();
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class StepRow {
+        private final int index;
+        private final String network;
+        private final Long pcAdUnitId;
+        private final Long mobileAdUnitId;
+        private final AdUnit pcUnit;
+        private final AdUnit mobileUnit;
+        /** 네트워크는 정했는데 규격에 맞는 단위가 없다 — 그 기기에서는 이 단계를 건너뛴다 */
+        private final boolean pcUnitMissing;
+        private final boolean mobileUnitMissing;
     }
 
     @Getter

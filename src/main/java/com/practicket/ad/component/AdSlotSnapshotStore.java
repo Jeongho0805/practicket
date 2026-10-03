@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class AdSlotSnapshotStore {
 
     /** 담는 모양이 바뀌면 끝 숫자를 올린다. 옛 키는 제 TTL 로 사라진다 */
-    private static final String CACHE_KEY = "ad:slot-snapshot:v2";
+    private static final String CACHE_KEY = "ad:slot-snapshot:v3";
 
     private final AdRenderService adRenderService;
     private final StringRedisTemplate stringRedisTemplate;

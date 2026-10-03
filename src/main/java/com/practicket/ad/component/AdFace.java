@@ -1,7 +1,13 @@
 package com.practicket.ad.component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 한 자리를 기기 하나가 볼 때의 결과. 자리는 데스크톱과 모바일에서 서로 다른 결과를 낼 수 있다
@@ -11,10 +17,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class AdFace {
 
+    private static final ObjectMapper JSON = new ObjectMapper();
+
     private static final AdFace NONE = new AdFace(false, false, false, false,
-            null, null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, List.of());
     private static final AdFace EMPTY = new AdFace(false, false, false, true,
-            null, null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, List.of());
 
     private final boolean banner;
     private final boolean fill;
@@ -38,8 +46,8 @@ public class AdFace {
 
     /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 분. null 이면 제한 없음 */
     private final Integer refillGapMinutes;
-    /** 간격 안일 때 같은 자리에 대신 넣을 것. 브라우저가 고르므로 첫째와 함께 내려간다 */
-    private final AdFace fallback;
+    /** 채움 순서 2단계부터. 앞 단계가 간격에 걸리면 브라우저가 차례로 내려가며 고른다 */
+    private final List<AdFace> fallbacks;
 
     /** 이 기기 규격이 없는 자리. 화면에서 아예 빠진다 */
     public static AdFace none() {
@@ -52,23 +60,46 @@ public class AdFace {
 
     public static AdFace banner(Long bannerId, String advertiserName, String imagePath) {
         return new AdFace(true, false, false, false, bannerId, advertiserName, imagePath,
-                null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, List.of());
     }
 
     public static AdFace fill(boolean enabled, AdSlotSnapshot.Unit unit,
                               String account, String template) {
-        return fill(enabled, unit, account, template, null, null);
+        return fill(enabled, unit, account, template, null, List.of());
     }
 
     public static AdFace fill(boolean enabled, AdSlotSnapshot.Unit unit, String account, String template,
-                              Integer refillGapMinutes, AdFace fallback) {
+                              Integer refillGapMinutes, List<AdFace> fallbacks) {
         return new AdFace(false, true, enabled, false, null, null, null,
                 unit.network(), unit.unitId(), account, template, sizeOf(unit), unit.extra(),
-                refillGapMinutes, fallback);
+                refillGapMinutes, fallbacks.stream().filter(AdFace::isFillEnabled).toList());
     }
 
-    public boolean hasFallback() {
-        return fallback != null && fallback.isFill() && fallback.isFillEnabled();
+    public boolean hasFallbacks() {
+        return !fallbacks.isEmpty();
+    }
+
+    /** 브라우저가 읽을 2단계부터의 목록. 키 이름은 1단계의 data-* 이름과 맞춘다 */
+    public String getFallbackJson() {
+        if (fallbacks.isEmpty()) {
+            return null;
+        }
+        List<Map<String, Object>> steps = fallbacks.stream().map(face -> {
+            Map<String, Object> step = new LinkedHashMap<>();
+            step.put("network", face.network);
+            step.put("unit", face.unitId);
+            step.put("account", face.account);
+            step.put("template", face.template);
+            step.put("size", face.size);
+            step.put("extra", face.extra);
+            step.put("gapMinutes", face.refillGapMinutes);
+            return step;
+        }).toList();
+        try {
+            return JSON.writeValueAsString(steps);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** 규격을 코드에 박아야 하는 네트워크(애드핏)만 값이 있다. 반응형이면 빈 값이다 */

@@ -30,6 +30,7 @@ public class AdminSlotController {
             AdNetworkSettings.MOBSENSE);
 
     private final AdminSlotService adminSlotService;
+    private final AdNetworkExposureService adNetworkExposureService;
     private final AdSlotSnapshotStore adSlotSnapshotStore;
 
     @InitBinder
@@ -43,6 +44,7 @@ public class AdminSlotController {
         model.addAttribute("units", adminSlotService.allUnits());
         model.addAttribute("networks", NETWORKS);
         model.addAttribute("networkLabels", AdNetworkSettings.LABELS);
+        model.addAttribute("refillGaps", adNetworkExposureService.currentRefillGaps());
         return "admin/ad/slot-list";
     }
 
@@ -60,20 +62,6 @@ public class AdminSlotController {
                 .orElse("redirect:/admin-hoya/ad/slots");
     }
 
-    /** 목록에서 채울 네트워크만 바꾼다. 나머지 값은 건드리지 않는다 */
-    @PostMapping("/{id}/fill")
-    public String changeFillNetwork(@PathVariable Long id,
-                                    @RequestParam(required = false) String fillNetwork,
-                                    RedirectAttributes redirectAttributes) {
-        try {
-            adminSlotService.changeFillNetwork(id, fillNetwork);
-            adSlotSnapshotStore.refresh();
-        } catch (AdException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/admin-hoya/ad/slots";
-    }
-
     @PostMapping
     public String save(@ModelAttribute AdminSlotService.SlotForm form, RedirectAttributes redirectAttributes) {
         try {
@@ -86,14 +74,36 @@ public class AdminSlotController {
         return "redirect:/admin-hoya/ad/slots";
     }
 
-    @PostMapping("/{id}/units")
-    public String changeUnits(@PathVariable Long id,
-                              @RequestParam(required = false) String fillNetwork,
-                              @RequestParam(required = false) Long pcAdUnitId,
-                              @RequestParam(required = false) Long mobileAdUnitId,
-                              RedirectAttributes redirectAttributes) {
+    /** 목록의 채움 순서. index 는 0부터이고 0 이 1단계다 */
+    @PostMapping("/{id}/steps")
+    public String addStep(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        return apply(() -> adminSlotService.addStep(id), redirectAttributes);
+    }
+
+    @PostMapping("/{id}/steps/{index}")
+    public String changeStep(@PathVariable Long id, @PathVariable int index,
+                             @RequestParam(required = false) String network,
+                             @RequestParam(required = false) Long pcAdUnitId,
+                             @RequestParam(required = false) Long mobileAdUnitId,
+                             RedirectAttributes redirectAttributes) {
+        return apply(() -> adminSlotService.changeStep(id, index, network, pcAdUnitId, mobileAdUnitId),
+                redirectAttributes);
+    }
+
+    @PostMapping("/{id}/steps/{index}/move")
+    public String moveStep(@PathVariable Long id, @PathVariable int index, @RequestParam int to,
+                           RedirectAttributes redirectAttributes) {
+        return apply(() -> adminSlotService.moveStep(id, index, to), redirectAttributes);
+    }
+
+    @PostMapping("/{id}/steps/{index}/delete")
+    public String removeStep(@PathVariable Long id, @PathVariable int index, RedirectAttributes redirectAttributes) {
+        return apply(() -> adminSlotService.removeStep(id, index), redirectAttributes);
+    }
+
+    private String apply(Runnable change, RedirectAttributes redirectAttributes) {
         try {
-            adminSlotService.changeUnits(id, fillNetwork, pcAdUnitId, mobileAdUnitId);
+            change.run();
             adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

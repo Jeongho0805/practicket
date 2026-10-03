@@ -68,17 +68,15 @@ public class AdminUnitController {
         return "redirect:/admin-hoya/ad/units";
     }
 
-    /** 세 네트워크 값을 한 폼으로 받는다. 이름은 gap-{네트워크} / fallback-{네트워크} */
+    /** 모든 네트워크 간격을 한 폼으로 받는다. 이름은 gap-{네트워크} */
     @PostMapping("/limits")
     public String saveLimits(@RequestParam Map<String, String> params, RedirectAttributes redirectAttributes) {
-        Map<String, AdNetworkExposureService.Limit> limits = new LinkedHashMap<>();
+        Map<String, Integer> gaps = new LinkedHashMap<>();
         try {
             for (String network : networks()) {
-                limits.put(network, new AdNetworkExposureService.Limit(
-                        parseMinutes(params.get("gap-" + network)),
-                        blankToNull(params.get("fallback-" + network))));
+                gaps.put(network, parseMinutes(params.get("gap-" + network)));
             }
-            adNetworkExposureService.updateLimits(limits);
+            adNetworkExposureService.updateRefillGaps(gaps);
             adSlotSnapshotStore.refresh();
         } catch (AdException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

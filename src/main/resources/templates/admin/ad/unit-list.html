@@ -75,7 +75,7 @@
             <div class="pad">
                 <form method="post" action="/admin-hoya/ad/units/limits" id="limits-form">
                     <div class="exposure-head">
-                        <span>네트워크</span><span>재요청 간격</span><span>제한 시 대신 채울 네트워크</span><span>스테이지</span>
+                        <span>네트워크</span><span>재요청 간격</span><span>스테이지</span>
                     </div>
                     <div class="exposure-list">
                         <div class="exposure-row" th:each="row : ${exposureRows}">
@@ -83,24 +83,14 @@
                                 <b th:text="${row.label}">네트워크</b>
                                 <span class="note" th:text="${row.network}">NETWORK</span>
                             </div>
-                            <div class="v" th:classappend="${!row.limit.hasGap()} ? 'dim'">
-                                <th:block th:if="${row.limit.hasGap()}"><span th:text="${row.limit.refillGapMinutes}">5</span><small>분</small></th:block>
-                                <th:block th:unless="${row.limit.hasGap()}">없음</th:block>
+                            <div class="v" th:classappend="${!row.hasGap()} ? 'dim'">
+                                <th:block th:if="${row.hasGap()}"><span th:text="${row.refillGapMinutes}">5</span><small>분</small></th:block>
+                                <th:block th:unless="${row.hasGap()}">없음</th:block>
                             </div>
                             <div class="e"><div class="unit" data-unit="분">
                                 <input type="number" min="1" th:name="'gap-' + ${row.network}"
-                                       th:value="${row.limit.refillGapMinutes}" placeholder="없음">
+                                       th:value="${row.refillGapMinutes}" placeholder="없음">
                             </div></div>
-                            <div class="t" th:classappend="${row.fallbackLabel == null} ? 'dim'"
-                                 th:text="${row.fallbackLabel != null ? row.fallbackLabel : '없음'}">없음</div>
-                            <div class="e">
-                                <select th:name="'fallback-' + ${row.network}">
-                                    <option value="">없음 (자리 크기만 유지)</option>
-                                    <option th:each="network : ${networks}" th:if="${network != row.network}"
-                                            th:value="${network}" th:selected="${network == row.limit.fallbackNetwork}"
-                                            th:text="${networkLabels[network] != null ? networkLabels[network] : network}">네트워크</option>
-                                </select>
-                            </div>
                             <button type="submit" class="sw" th:classappend="${row.enabled} ? 'on'"
                                     th:disabled="${!row.editable}"
                                     th:formaction="@{/admin-hoya/ad/units/exposure/{network}/toggle(network=${row.network})}"
@@ -115,7 +105,7 @@
                 </form>
                 <p class="hint">
                     재요청 간격: 같은 브라우저 탭에서 이 네트워크를 다시 부르기까지 비워 둘 시간입니다. 비우면 제한 없음.<br>
-                    대신 채울 네트워크: 간격 안에 다시 열린 자리에 대신 들어갈 네트워크입니다. 광고단위는 자리 규격에 맞춰 자동으로 고릅니다.
+                    간격에 걸린 자리를 무엇으로 채울지는 슬롯 화면의 채움 순서에서 정합니다.
                 </p>
                 <p class="hint" th:if="${!#lists.isEmpty(exposureRows) and exposureRows[0].editable}">
                     스테이지 스위치는 실제 네트워크 광고를 확인할 때만 켭니다. 설정은 현재 환경에만 적용되며 판매된 배너에는 영향을 주지 않습니다.

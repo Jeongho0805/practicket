@@ -52,10 +52,10 @@ public class AdSlotView {
                 slot.code(),
                 face(slot.hasPcSize(), banner != null && banner.hasPcImage(),
                         banner, banner == null ? null : banner.pcImagePath(),
-                        slot.pcUnit(), slot.pcFallbackUnit(), slot.refillGapMinutes()),
+                        slot.pcUnit(), slot.pcFallbacks()),
                 face(slot.hasMobileSize(), banner != null && banner.hasMobileImage(),
                         banner, banner == null ? null : banner.mobileImagePath(),
-                        slot.mobileUnit(), slot.mobileFallbackUnit(), slot.refillGapMinutes()));
+                        slot.mobileUnit(), slot.mobileFallbacks()));
     }
 
     /**
@@ -64,7 +64,7 @@ public class AdSlotView {
      */
     private AdFace face(boolean served, boolean hasImage,
                         AdSlotSnapshot.Banner banner, String imagePath,
-                        AdSlotSnapshot.Unit unit, AdSlotSnapshot.Unit fallbackUnit, Integer refillGapMinutes) {
+                        AdSlotSnapshot.Unit unit, List<AdSlotSnapshot.Unit> fallbackUnits) {
         if (!served) {
             return AdFace.none();
         }
@@ -74,15 +74,15 @@ public class AdSlotView {
         if (unit == null) {
             return AdFace.empty();
         }
-        AdFace fallback = fallbackUnit == null ? null : fill(fallbackUnit, null, null);
-        return fill(unit, refillGapMinutes, fallback);
+        List<AdFace> fallbacks = fallbackUnits.stream().map(fallback -> fill(fallback, List.of())).toList();
+        return fill(unit, fallbacks);
     }
 
-    private AdFace fill(AdSlotSnapshot.Unit unit, Integer refillGapMinutes, AdFace fallback) {
+    private AdFace fill(AdSlotSnapshot.Unit unit, List<AdFace> fallbacks) {
         return AdFace.fill(snapshot.isExposed(unit.network()), unit,
                 adNetworkSettings.accountOf(unit.network()),
                 adNetworkSettings.templateOf(unit.network()),
-                refillGapMinutes, fallback);
+                snapshot.refillGapOf(unit.network()), fallbacks);
     }
 
     private AdSlotSnapshot.Banner pick(List<AdSlotSnapshot.Banner> candidates) {

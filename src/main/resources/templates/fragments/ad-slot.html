@@ -5,7 +5,8 @@
   /js/ad-fill.js 가 그 자리가 실제로 화면에 보일 때만 삽입한다. 화면 폭에 따라 숨겨지는 자리에
   코드를 미리 넣어 두면 안 보이는 광고를 요청하는 셈이라 정책 위반이다.
 
-  data-gap-minutes 가 있으면 브라우저가 같은 탭에서 그 시간 안에 다시 열린 자리를 data-fb-* 로 대신 채운다.
+  data-gap-minutes 가 있으면 브라우저가 같은 탭에서 그 시간 안에 다시 열린 자리를 data-fallbacks(채움 순서
+  2단계부터의 JSON 목록) 중 간격에 안 걸린 첫 단계로 채운다.
 
   그림은 <picture> 가 화면 폭을 보고 한 장만 내려받는다. 기기 한쪽만 그림이 있는 배너는
   반대 기기에서 1x1 투명 GIF 로 떨어지므로 그쪽 요청이 아예 안 나간다.
@@ -48,21 +49,15 @@
         </a>
 
         <div th:if="${s.pc.fill and s.pc.fillEnabled}" class="ad-fill ad-face ad-face-pc"
-             th:with="fb=${s.pc.hasFallback() ? s.pc.fallback : null}"
              th:attr="data-network=${s.pc.network}, data-unit=${s.pc.unitId},
                       data-account=${s.pc.account}, data-template=${s.pc.template}, data-size=${s.pc.size},
                       data-extra=${s.pc.extra}, data-gap-minutes=${s.pc.refillGapMinutes},
-                      data-fb-network=${fb?.network}, data-fb-unit=${fb?.unitId},
-                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size},
-                      data-fb-extra=${fb?.extra}"></div>
+                      data-fallbacks=${s.pc.fallbackJson}"></div>
 
         <div th:if="${s.mobile.fill and s.mobile.fillEnabled}" class="ad-fill ad-face ad-face-mobile"
-             th:with="fb=${s.mobile.hasFallback() ? s.mobile.fallback : null}"
              th:attr="data-network=${s.mobile.network}, data-unit=${s.mobile.unitId},
                       data-account=${s.mobile.account}, data-template=${s.mobile.template}, data-size=${s.mobile.size},
                       data-extra=${s.mobile.extra}, data-gap-minutes=${s.mobile.refillGapMinutes},
-                      data-fb-network=${fb?.network}, data-fb-unit=${fb?.unitId},
-                      data-fb-account=${fb?.account}, data-fb-template=${fb?.template}, data-fb-size=${fb?.size},
-                      data-fb-extra=${fb?.extra}"></div>
+                      data-fallbacks=${s.mobile.fallbackJson}"></div>
     </th:block>
 </div>

@@ -20,8 +20,8 @@ class AdSlotViewTest {
     void enablesOnlyNetworksExposedInSnapshot() {
         AdSlotSnapshotStore store = mock(AdSlotSnapshotStore.class);
         AdSlotSnapshot snapshot = new AdSlotSnapshot(List.of(
-                slot("COUPANG_SLOT", new AdSlotSnapshot.Unit("COUPANG", "943782", null, null), null),
-                slot("ADFIT_SLOT", new AdSlotSnapshot.Unit("ADFIT", "DAN-test", 300, 250), null)),
+                slot("COUPANG_SLOT", new AdSlotSnapshot.Unit("COUPANG", "943782", null, null)),
+                slot("ADFIT_SLOT", new AdSlotSnapshot.Unit("ADFIT", "DAN-test", 300, 250))),
                 Map.of("COUPANG", true, "ADSENSE", false, "ADFIT", false));
         given(store.get()).willReturn(snapshot);
 
@@ -33,38 +33,41 @@ class AdSlotViewTest {
     }
 
     @Test
-    void carriesRefillGapAndFallbackWhenSlotHasOne() {
+    void carriesEachStepWithItsOwnNetworkGap() {
         AdSlotSnapshotStore store = mock(AdSlotSnapshotStore.class);
         given(store.get()).willReturn(new AdSlotSnapshot(List.of(
                 new AdSlotSnapshot.Slot("PC_RIGHT", 300, 600, null, null, "디스플레이", "ADSENSE",
                         new AdSlotSnapshot.Unit("ADSENSE", "9697904962", null, null), null,
-                        new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600), null,
-                        5, List.of())),
-                Map.of("ADSENSE", true, "ADFIT", true)));
+                        List.of(new AdSlotSnapshot.Unit("MOBSENSE", "1070053", 300, 600),
+                                new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600)),
+                        List.of(), List.of())),
+                Map.of("ADSENSE", true, "MOBSENSE", true, "ADFIT", true),
+                Map.of("ADSENSE", 5, "MOBSENSE", 1)));
 
         AdFace pc = new AdSlotView(store, networkSettings).render("PC_RIGHT").getPc();
 
         assertThat(pc.getRefillGapMinutes()).isEqualTo(5);
-        assertThat(pc.hasFallback()).isTrue();
-        assertThat(pc.getFallback().getNetwork()).isEqualTo("ADFIT");
-        assertThat(pc.getFallback().getSize()).isEqualTo("160x600");
-        assertThat(pc.getFallback().getRefillGapMinutes()).isNull();
+        assertThat(pc.getFallbacks()).extracting(AdFace::getNetwork).containsExactly("MOBSENSE", "ADFIT");
+        assertThat(pc.getFallbacks()).extracting(AdFace::getRefillGapMinutes).containsExactly(1, null);
+        assertThat(pc.getFallbacks().get(1).getSize()).isEqualTo("160x600");
     }
 
     @Test
-    void dropsFallbackWhenItsNetworkIsNotExposed() {
+    void dropsStepsWhoseNetworkIsNotExposed() {
         AdSlotSnapshotStore store = mock(AdSlotSnapshotStore.class);
         given(store.get()).willReturn(new AdSlotSnapshot(List.of(
                 new AdSlotSnapshot.Slot("PC_RIGHT", 300, 600, null, null, "디스플레이", "ADSENSE",
                         new AdSlotSnapshot.Unit("ADSENSE", "9697904962", null, null), null,
-                        new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600), null,
-                        5, List.of())),
-                Map.of("ADSENSE", true, "ADFIT", false)));
+                        List.of(new AdSlotSnapshot.Unit("ADFIT", "DAN-side", 160, 600)),
+                        List.of(), List.of())),
+                Map.of("ADSENSE", true, "ADFIT", false),
+                Map.of("ADSENSE", 5)));
 
         AdFace pc = new AdSlotView(store, networkSettings).render("PC_RIGHT").getPc();
 
         assertThat(pc.getRefillGapMinutes()).isEqualTo(5);
-        assertThat(pc.hasFallback()).isFalse();
+        assertThat(pc.hasFallbacks()).isFalse();
+        assertThat(pc.getFallbackJson()).isNull();
     }
 
     @Test
@@ -72,7 +75,7 @@ class AdSlotViewTest {
         AdSlotSnapshotStore store = mock(AdSlotSnapshotStore.class);
         given(store.get()).willReturn(new AdSlotSnapshot(List.of(
                 new AdSlotSnapshot.Slot("NO_UNIT", 300, 250, null, null,
-                        "디스플레이", "ADFIT", null, null, null, null, List.of()))));
+                        "디스플레이", "ADFIT", null, null, List.of()))));
 
         AdSlotRender render = new AdSlotView(store, networkSettings).render("NO_UNIT");
 
@@ -82,8 +85,8 @@ class AdSlotViewTest {
         assertThat(render.getMobileClass()).isEqualTo("mo-none");
     }
 
-    private AdSlotSnapshot.Slot slot(String code, AdSlotSnapshot.Unit unit, Integer gap) {
+    private AdSlotSnapshot.Slot slot(String code, AdSlotSnapshot.Unit unit) {
         return new AdSlotSnapshot.Slot(code, 300, 250, null, null,
-                "디스플레이", unit.network(), unit, null, null, null, gap, List.of());
+                "디스플레이", unit.network(), unit, null, List.of());
     }
 }

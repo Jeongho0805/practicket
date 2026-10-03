@@ -157,37 +157,52 @@ function markRequested(network) {
     }
 }
 
-/** 자리 크기는 네트워크별 클래스(pc-net-*)가 정하므로 대타로 바꾸면 그 클래스도 같이 바꾼다 */
-function useFallback(el) {
+const STEP_KEYS = ['network', 'unit', 'account', 'template', 'size', 'extra', 'gapMinutes'];
+
+function fallbackSteps(el) {
+    try {
+        return JSON.parse(el.dataset.fallbacks || '[]');
+    } catch (e) {
+        return [];
+    }
+}
+
+/** 자리 크기는 네트워크별 클래스(pc-net-*)가 정하므로 다른 단계로 바꾸면 그 클래스도 같이 바꾼다 */
+function useStep(el, step) {
     const d = el.dataset;
     const slot = el.closest('.ad-slot');
     const prefix = el.classList.contains('ad-face-mobile') ? 'mo' : 'pc';
     if (slot) {
         slot.classList.remove(`${prefix}-net-${d.network}`);
-        slot.classList.add(`${prefix}-net-${d.fbNetwork}`);
+        slot.classList.add(`${prefix}-net-${step.network}`);
     }
-    d.network = d.fbNetwork;
-    d.unit = d.fbUnit;
-    if (d.fbAccount) d.account = d.fbAccount; else delete d.account;
-    if (d.fbTemplate) d.template = d.fbTemplate; else delete d.template;
-    if (d.fbSize) d.size = d.fbSize; else delete d.size;
-    if (d.fbExtra) d.extra = d.fbExtra; else delete d.extra;
+    STEP_KEYS.forEach((key) => {
+        if (step[key] != null) d[key] = String(step[key]); else delete d[key];
+    });
+}
+
+/** 채움 순서를 위에서부터 보며 재요청 간격에 안 걸린 첫 단계를 고른다. 다 걸리면 false */
+function chooseStep(el) {
+    const first = { network: el.dataset.network, gapMinutes: el.dataset.gapMinutes };
+    const steps = [first, ...fallbackSteps(el)];
+    const chosen = steps.find((step) => {
+        const minutes = Number(step.gapMinutes || 0);
+        return minutes <= 0 || gapAllows(step.network, minutes);
+    });
+    if (!chosen) return false;
+    if (chosen !== first) useStep(el, chosen);
+    return true;
 }
 
 function fill(el) {
     if (el.dataset.filled) return;
     if (!el.dataset.unit) return;
 
-    const gapMinutes = Number(el.dataset.gapMinutes || 0);
-    const gated = gapMinutes > 0 && !gapAllows(el.dataset.network, gapMinutes);
-    if (gated) {
-        if (!el.dataset.fbNetwork) {
-            el.dataset.filled = '1';
-            return;
-        }
-        useFallback(el);
+    if (!chooseStep(el)) {
+        el.dataset.filled = '1';
+        return;
     }
-    const countAfterFill = gapMinutes > 0 && !gated ? el.dataset.network : null;
+    const countAfterFill = Number(el.dataset.gapMinutes || 0) > 0 ? el.dataset.network : null;
 
     const fixedSize = FIXED_SIZE_NETWORKS.includes(el.dataset.network);
     if (!fixedSize && !el.dataset.account) return;

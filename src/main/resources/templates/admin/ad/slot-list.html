@@ -9,7 +9,7 @@
         <div class="topbar">
             <div>
                 <h1>슬롯</h1>
-                <p>판매된 배너가 먼저 나가고, 미판매 시 선택한 네트워크의 광고단위로 채웁니다. 선택을 바꾸면 바로 저장됩니다.</p>
+                <p>판매된 배너가 먼저 나가고, 미판매 시 채움 순서를 위에서부터 봅니다. 재요청 간격에 걸린 네트워크는 건너뜁니다. 선택을 바꾸면 바로 저장됩니다.</p>
             </div>
         </div>
 
@@ -29,9 +29,7 @@
                     <thead>
                     <tr>
                         <th class="place">슬롯</th>
-                        <th class="fill">미판매 시</th>
-                        <th class="ucol">데스크톱 슬롯</th>
-                        <th class="ucol">모바일 슬롯</th>
+                        <th class="order">미판매 시 채움 순서 <span class="note">위에서부터 · 재요청 간격에 걸리면 다음 단계</span></th>
                         <th>지금</th>
                     </tr>
                     </thead>
@@ -42,64 +40,59 @@
                             <div class="meta" th:text="${row.slot.format != null ? row.slot.format : '-'}">디스플레이</div>
                             <div class="slotcode" th:text="${row.slot.code}">CODE</div>
                         </td>
-                        <td class="fill">
-                            <form method="post" th:action="@{/admin-hoya/ad/slots/{id}/fill(id=${row.slot.id})}">
-                                <select name="fillNetwork" class="inlinesel" onchange="this.form.requestSubmit()"
-                                        th:attr="aria-label=${row.slot.name} + ' 미판매 네트워크'">
-                                    <option value="" th:selected="${row.slot.fillNetwork == null}">비워두기</option>
-                                    <option th:each="entry : ${networkLabels}" th:value="${entry.key}"
-                                            th:selected="${entry.key == row.slot.fillNetwork}"
-                                            th:text="${entry.value}">네트워크</option>
-                                </select>
-                            </form>
-                        </td>
-                        <td class="ucol">
-                            <form method="post" th:id="'slot-units-' + ${row.slot.id}"
-                                  th:action="@{/admin-hoya/ad/slots/{id}/units(id=${row.slot.id})}">
-                                <input type="hidden" name="fillNetwork" th:value="${row.slot.fillNetwork}">
-                            </form>
-                            <div class="ucell" th:if="${row.pcSize != null}">
-                                <b class="usize mono" th:text="${row.pcSize}">300x600</b>
-                                <select name="pcAdUnitId" class="inlinesel"
-                                        th:if="${row.slot.fillNetwork != null}"
-                                        th:attr="form='slot-units-' + ${row.slot.id},aria-label=${row.slot.name} + ' 데스크톱 광고단위'"
-                                        onchange="this.form.requestSubmit()">
-                                    <option value="">자동 (규격에 맞춰 선택)</option>
-                                    <option th:each="unit : ${units}" th:if="${unit.network == row.slot.fillNetwork}"
-                                            th:value="${unit.id}" th:selected="${unit.id == row.slot.pcAdUnitId}"
-                                            th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.pcWidth, row.slot.pcHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
-                                </select>
-                                <span class="usize mono" th:if="${row.pcUnit != null and row.slot.pcAdUnitId == null}"
-                                      th:text="${row.pcUnit.unitId}">unit</span>
-                                <span class="unm" th:if="${row.pcUnit != null and row.pcUnit.name != null and row.slot.pcAdUnitId == null}"
-                                      th:text="${row.pcUnit.name}">이름</span>
-                                <span class="tag resp" th:if="${row.pcUnit != null and row.pcUnit.responsive}"><i></i>반응형</span>
-                                <span class="tag miss" th:if="${row.pcUnitMissing}"><i></i>단위 없음</span>
-                                <span class="tag inherit" th:if="${row.pcUnit == null and !row.pcUnitMissing}"><i></i>채우지 않음</span>
+                        <td class="order">
+                            <div class="steps" th:attr="data-slot=${row.slot.id}">
+                                <th:block th:each="step : ${row.steps}">
+                                <form method="post" class="step" draggable="true"
+                                      th:attr="data-index=${step.index}"
+                                      th:action="@{/admin-hoya/ad/slots/{id}/steps/{i}(id=${row.slot.id},i=${step.index})}">
+                                    <span class="no" title="끌어서 순서 바꾸기" th:text="${step.index + 1}">1</span>
+                                    <select name="network" class="inlinesel" onchange="this.form.requestSubmit()"
+                                            th:attr="aria-label=${row.slot.name} + ' ' + ${step.index + 1} + '단계 네트워크'">
+                                        <option th:each="entry : ${networkLabels}" th:value="${entry.key}"
+                                                th:selected="${entry.key == step.network}"
+                                                th:text="${entry.value}">네트워크</option>
+                                    </select>
+                                    <div class="units">
+                                        <label class="ucell" th:if="${row.pcSize != null}">
+                                            <b class="usize mono" th:text="${row.pcSize}">300x600</b>
+                                            <select name="pcAdUnitId" class="inlinesel" onchange="this.form.requestSubmit()"
+                                                    th:attr="aria-label=${row.slot.name} + ' ' + ${step.index + 1} + '단계 데스크톱 광고단위'">
+                                                <option value="" th:text="${step.pcAdUnitId == null and step.pcUnit != null} ? '자동 · ' + ${step.pcUnit.unitId} : '자동 (규격에 맞춰 선택)'">자동</option>
+                                                <option th:each="unit : ${units}" th:if="${unit.network == step.network}"
+                                                        th:value="${unit.id}" th:selected="${unit.id == step.pcAdUnitId}"
+                                                        th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.pcWidth, row.slot.pcHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
+                                            </select>
+                                            <span class="tag miss" th:if="${step.pcUnitMissing}"><i></i>맞는 단위 없음 · 건너뜀</span>
+                                        </label>
+                                        <label class="ucell" th:if="${row.mobileSize != null}">
+                                            <b class="usize mono" th:text="${row.mobileSize}">320x100</b>
+                                            <select name="mobileAdUnitId" class="inlinesel" onchange="this.form.requestSubmit()"
+                                                    th:attr="aria-label=${row.slot.name} + ' ' + ${step.index + 1} + '단계 모바일 광고단위'">
+                                                <option value="" th:text="${step.mobileAdUnitId == null and step.mobileUnit != null} ? '자동 · ' + ${step.mobileUnit.unitId} : '자동 (규격에 맞춰 선택)'">자동</option>
+                                                <option th:each="unit : ${units}" th:if="${unit.network == step.network}"
+                                                        th:value="${unit.id}" th:selected="${unit.id == step.mobileAdUnitId}"
+                                                        th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.mobileWidth, row.slot.mobileHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
+                                            </select>
+                                            <span class="tag miss" th:if="${step.mobileUnitMissing}"><i></i>맞는 단위 없음 · 건너뜀</span>
+                                        </label>
+                                    </div>
+                                    <span class="gap" th:classappend="${refillGaps[step.network] != null} ? 'some' : 'none'"
+                                          th:text="${refillGaps[step.network] != null} ? ${refillGaps[step.network]} + '분 간격' : '간격 없음'">간격 없음</span>
+                                    <span class="ops">
+                                        <button type="submit" title="빼기"
+                                                th:formaction="@{/admin-hoya/ad/slots/{id}/steps/{i}/delete(id=${row.slot.id},i=${step.index})}">×</button>
+                                    </span>
+                                </form>
+                                </th:block>
+                                <div class="stepnote" th:if="${#lists.isEmpty(row.steps)}">채움 순서가 없어 미판매 시 자리를 비워 둡니다.</div>
+                                <div class="stepnote bad" th:if="${!#lists.isEmpty(row.steps) and refillGaps[row.steps[#lists.size(row.steps) - 1].network] != null}">
+                                    마지막 단계도 재요청 간격이 있어, 모두 걸리면 자리가 비워집니다.
+                                </div>
+                                <form method="post" th:action="@{/admin-hoya/ad/slots/{id}/steps(id=${row.slot.id})}">
+                                    <button type="submit" class="addstep">+ 단계 추가</button>
+                                </form>
                             </div>
-                            <span class="note" th:if="${row.pcSize == null}">데스크톱 안 나감</span>
-                        </td>
-                        <td class="ucol">
-                            <div class="ucell" th:if="${row.mobileSize != null}">
-                                <b class="usize mono" th:text="${row.mobileSize}">320x100</b>
-                                <select name="mobileAdUnitId" class="inlinesel"
-                                        th:if="${row.slot.fillNetwork != null}"
-                                        th:attr="form='slot-units-' + ${row.slot.id},aria-label=${row.slot.name} + ' 모바일 광고단위'"
-                                        onchange="this.form.requestSubmit()">
-                                    <option value="">자동 (규격에 맞춰 선택)</option>
-                                    <option th:each="unit : ${units}" th:if="${unit.network == row.slot.fillNetwork}"
-                                            th:value="${unit.id}" th:selected="${unit.id == row.slot.mobileAdUnitId}"
-                                            th:text="${unit.unitId + (unit.name != null ? ' · ' + unit.name : '') + (unit.fitsIn(row.slot.mobileWidth, row.slot.mobileHeight) ? '' : ' · 슬롯보다 큼')}">단위</option>
-                                </select>
-                                <span class="usize mono" th:if="${row.mobileUnit != null and row.slot.mobileAdUnitId == null}"
-                                      th:text="${row.mobileUnit.unitId}">unit</span>
-                                <span class="unm" th:if="${row.mobileUnit != null and row.mobileUnit.name != null and row.slot.mobileAdUnitId == null}"
-                                      th:text="${row.mobileUnit.name}">이름</span>
-                                <span class="tag resp" th:if="${row.mobileUnit != null and row.mobileUnit.responsive}"><i></i>반응형</span>
-                                <span class="tag miss" th:if="${row.mobileUnitMissing}"><i></i>단위 없음</span>
-                                <span class="tag inherit" th:if="${row.mobileUnit == null and !row.mobileUnitMissing}"><i></i>채우지 않음</span>
-                            </div>
-                            <span class="note" th:if="${row.mobileSize == null}">모바일 안 나감</span>
                         </td>
                         <td>
                             <span class="pill live" th:if="${row.sold}">
@@ -121,5 +114,64 @@
 
 <div th:replace="~{admin/fragments/admin-shell :: toast}"></div>
 <script th:replace="~{admin/fragments/admin-shell :: toastScript}"></script>
+<script>
+    (function () {
+        let dragging = null;
+
+        const clearMarks = () => document.querySelectorAll('.step.drop-before, .step.drop-after')
+            .forEach((el) => el.classList.remove('drop-before', 'drop-after'));
+
+        /** 셀렉트를 잡고 끌면 선택이 안 되므로 번호 손잡이에서 시작한 끌기만 받는다 */
+        document.querySelectorAll('.step .no').forEach((handle) => {
+            handle.addEventListener('mousedown', () => { handle.closest('.step').dataset.grab = '1'; });
+        });
+        document.addEventListener('mouseup', () => {
+            document.querySelectorAll('.step[data-grab]').forEach((el) => delete el.dataset.grab);
+        });
+
+        document.querySelectorAll('.step').forEach((step) => {
+            step.addEventListener('dragstart', (e) => {
+                if (!step.dataset.grab) { e.preventDefault(); return; }
+                dragging = step;
+                step.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            step.addEventListener('dragend', () => {
+                step.classList.remove('dragging');
+                clearMarks();
+                dragging = null;
+            });
+            step.addEventListener('dragover', (e) => {
+                if (!dragging || dragging === step || dragging.parentElement !== step.parentElement) return;
+                e.preventDefault();
+                const box = step.getBoundingClientRect();
+                const after = e.clientY > box.top + box.height / 2;
+                clearMarks();
+                step.classList.add(after ? 'drop-after' : 'drop-before');
+            });
+            step.addEventListener('drop', (e) => {
+                if (!dragging || dragging === step || dragging.parentElement !== step.parentElement) return;
+                e.preventDefault();
+                const from = Number(dragging.dataset.index);
+                const over = Number(step.dataset.index);
+                const after = step.classList.contains('drop-after');
+                let to = after ? over + 1 : over;
+                if (from < to) to -= 1;
+                clearMarks();
+                if (to === from) return;
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = `/admin-hoya/ad/slots/${step.parentElement.dataset.slot}/steps/${from}/move`;
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'to';
+                input.value = String(to);
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    })();
+</script>
 </body>
 </html>
