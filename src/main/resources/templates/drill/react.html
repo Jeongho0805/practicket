@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="description" content="티켓 오픈 순간 예매 버튼을 누르는 반응속도를 반복해서 연습하세요. 새로고침·지연·자동 열림 세 가지 유형을 지원합니다.">
+    <meta name="robots" content="index, follow">
+    <title>반응속도 연습 - 프랙티켓</title>
+    <link rel="canonical" href="https://practicket.com/drill/react">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/practice/result-modal.css">
+    <link rel="stylesheet" href="/css/drill/drill.css">
+</head>
+<body>
+    <main layout:fragment="content" class="drill-page is-react" id="drill-page">
+        <div class="practice-sticky">
+            <section class="practice-controls" aria-label="연습 설정">
+                <div class="practice-toolbar">
+                    <div class="practice-intro"><h1 class="a-title">반응속도</h1><span class="drill-live" id="drill-live" hidden></span></div>
+                    <div class="practice-cta"><a class="sub" href="/drill">다른 연습</a><button type="button" class="go" id="drill-start">시작하기</button></div>
+                </div>
+                <div class="rset">
+                    <div class="forms">
+                        <a class="form" data-form="refresh" href="/drill/react?form=refresh"><b>일반형</b><small>새로고침</small></a>
+                        <a class="form" data-form="advanced" href="/drill/react?form=advanced"><b>고급형</b><small>새로고침 + 지연 설정</small></a>
+                        <a class="form" data-form="n-ticket" href="/drill/react?form=n-ticket"><b>N형</b><small>저절로 열림</small></a>
+                    </div>
+                    <div class="lats" id="lats" hidden>
+                        <span class="lat-lb" title="요청이 서버까지 가는 시간 · 응답도 같은 시간">지연</span>
+                        <button type="button" class="lat" data-ms="100">0.1초</button>
+                        <button type="button" class="lat" data-ms="300">0.3초</button>
+                        <button type="button" class="lat" data-ms="500">0.5초</button>
+                        <button type="button" class="lat" data-ms="1000">1.0초</button>
+                        <label class="lat own"><input id="lat-in" type="number" min="0.01" max="5" step="0.01" inputmode="decimal"><span>초</span></label>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="rec" id="rec"></section>
+
+        <div class="drill-play" id="drill-play"></div>
+    </main>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/drill/react.js"></script>
+    </th:block>
+</body>
+</html>

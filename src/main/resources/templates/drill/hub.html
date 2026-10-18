@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="description" content="반응속도·보안문자·포도알·취소표처럼 티켓팅의 한 동작만 떼어 반복해서 연습하세요.">
+    <meta name="robots" content="index, follow">
+    <title>반복연습 - 프랙티켓</title>
+    <link rel="canonical" href="https://practicket.com/drill">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/drill/drill.css">
+</head>
+<body>
+    <main layout:fragment="content" class="drill-hub">
+        <div class="hub-hero">
+            <h1>반복연습</h1>
+            <p>티켓팅에 필요한 동작을 반복해서 연습하세요</p>
+            <span class="drill-live" id="drill-live" hidden></span>
+        </div>
+        <div class="hub-grid" id="hub-grid"></div>
+    </main>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/drill/hub.js"></script>
+    </th:block>
+</body>
+</html>

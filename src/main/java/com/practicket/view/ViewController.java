@@ -22,12 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Slf4j
 @Controller
@@ -110,8 +112,10 @@ public class ViewController {
     }
 
     @GetMapping("/security")
-    public String securityLetterPage(Model model) {
-        return "security";
+    public RedirectView securityLetterPage() {
+        RedirectView redirect = new RedirectView("/drill/captcha");
+        redirect.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return redirect;
     }
 
     @GetMapping("/blog")
@@ -286,5 +290,30 @@ public class ViewController {
     @GetMapping("/practice/m-ticket")
     public String practiceMTicket(Model model) {
         return "practice/m_ticket";
+    }
+
+    @GetMapping("/drill")
+    public String drillHub(Model model) {
+        return "drill/hub";
+    }
+
+    @GetMapping("/drill/react")
+    public String drillReact(Model model) {
+        return "drill/react";
+    }
+
+    @GetMapping("/drill/captcha")
+    public String drillCaptcha(Model model) {
+        return "drill/captcha";
+    }
+
+    @GetMapping("/drill/grape")
+    public String drillGrape(Model model) {
+        return "drill/grape";
+    }
+
+    @GetMapping("/drill/cancel")
+    public String drillCancel(Model model) {
+        return "drill/cancel";
     }
 }
