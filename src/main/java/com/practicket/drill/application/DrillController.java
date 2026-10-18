@@ -3,6 +3,7 @@ package com.practicket.drill.application;
 import com.practicket.common.auth.Auth;
 import com.practicket.common.auth.ClientInfo;
 import com.practicket.drill.domain.DrillReactForm;
+import com.practicket.drill.dto.DrillActivityResponse;
 import com.practicket.drill.dto.DrillCaptchaResultRequest;
 import com.practicket.drill.dto.DrillCaptchaTypoStatsResponse;
 import com.practicket.drill.dto.DrillReactResultRequest;
@@ -22,6 +23,12 @@ public class DrillController {
 
     private final DrillReactService drillReactService;
     private final DrillCaptchaService drillCaptchaService;
+    private final DrillActivityService drillActivityService;
+
+    @GetMapping("/activity")
+    public ResponseEntity<DrillActivityResponse> getActivity() {
+        return ResponseEntity.ok(drillActivityService.getToday());
+    }
 
     @GetMapping("/summary")
     public ResponseEntity<DrillSummaryResponse> getSummary(@Auth ClientInfo clientInfo) {

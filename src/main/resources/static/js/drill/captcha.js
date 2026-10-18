@@ -1,6 +1,7 @@
 import { authFetch } from "../common.js";
 import { IME, playCaptcha } from "./captcha-game.js";
 import { bindTypoStats } from "./captcha-stats.js";
+import { loadActivity, showActivity } from "./activity.js";
 import { createDrillPage } from "./drill-page.js";
 import { EMPTY_RECORD, renderRecord, sec } from "./record-card.js";
 import { deltaLine, failBody, unsavedLine } from "./result-modal.js";
@@ -87,3 +88,4 @@ createDrillPage({
 
 paintRecord();
 loadRecord();
+loadActivity().then(activity => showActivity(document.getElementById("drill-live"), activity?.captcha));

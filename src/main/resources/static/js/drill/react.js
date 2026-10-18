@@ -1,4 +1,5 @@
 import { authFetch } from "../common.js";
+import { loadActivity, showActivity } from "./activity.js";
 import { createDrillPage } from "./drill-page.js";
 import { playReact } from "./react-game.js";
 import { EMPTY_RECORD, rankText, renderRecord, sec } from "./record-card.js";
@@ -109,3 +110,4 @@ bindLatency();
 paintForm();
 paintRecord();
 loadRecord();
+loadActivity().then(activity => showActivity(document.getElementById("drill-live"), activity?.react));

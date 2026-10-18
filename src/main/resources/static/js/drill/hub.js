@@ -1,4 +1,5 @@
 import { authFetch } from "../common.js";
+import { loadActivity, showActivity } from "./activity.js";
 
 const PUR = "#6633cc", INK = "#2e1065";
 
@@ -70,6 +71,8 @@ function render(summary) {
         </${tag}>`;
     }).join("");
 }
+
+loadActivity().then(activity => showActivity(document.getElementById("drill-live"), activity));
 
 async function load() {
     render({});

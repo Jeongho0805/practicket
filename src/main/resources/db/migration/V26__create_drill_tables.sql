@@ -7,7 +7,8 @@ CREATE TABLE `drill_react_result` (
   `latency_ms` int DEFAULT NULL,
   `created_at` datetime(6) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_drill_react_result_client_form` (`client_id`, `form`, `id`)
+  KEY `idx_drill_react_result_client_form` (`client_id`, `form`, `id`),
+  KEY `idx_drill_react_result_created` (`created_at`, `client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `drill_captcha_result` (
@@ -17,7 +18,8 @@ CREATE TABLE `drill_captcha_result` (
   `problems` text NOT NULL,
   `created_at` datetime(6) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_drill_captcha_result_client` (`client_id`, `id`)
+  KEY `idx_drill_captcha_result_client` (`client_id`, `id`),
+  KEY `idx_drill_captcha_result_created` (`created_at`, `client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 사람마다 한 행. 판 기록(problems)에서 다시 만들 수 있는 요약이다.

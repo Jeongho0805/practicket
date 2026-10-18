@@ -40,8 +40,17 @@
     .drill-hub { height: 100%; overflow-y: auto; padding: 18px 14px 90px; gap: 14px; }
 }
 
+/* ───────── 오늘 함께 연습 칩 ───────── */
+.drill-live { display: inline-flex; align-items: center; gap: 6px; width: max-content; padding: 4px 10px 4px 9px; border-radius: 999px; background: #fff; border: 1px solid #e2dcf2; font-size: 12px; font-weight: 600; color: #4b4266; }
+.drill-live i { width: 7px; height: 7px; border-radius: 50%; background: #57e08a; box-shadow: 0 0 0 3px rgba(87, 224, 138, .22); }
+.drill-live b { color: #514897; font-weight: 800; }
+.drill-page .practice-intro .drill-live { margin-top: 2px; padding: 2px 8px 2px 7px; font-size: 11px; }
+
 /* ───────── 허브 ───────── */
-.drill-hub .hub-head h1 { font-family: my-font, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: -0.5px; }
+.drill-hub .hub-hero { background: #f4f2fb; border: 1px solid #e2dcf2; border-radius: 16px; padding: 18px 20px 16px; }
+.drill-hub .hub-hero h1 { font-family: my-font, sans-serif; font-weight: normal; font-size: 1.45rem; color: #514897; }
+.drill-hub .hub-hero p { margin-top: 5px; font-size: .8rem; color: #7b7490; }
+.drill-hub .hub-hero .drill-live { margin-top: 10px; }
 .drill-hub .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 .drill-hub .hub-card { min-width: 0; display: flex; flex-direction: column; border-radius: 18px; border: 1px solid #ece8f5; background: #fff; overflow: hidden; text-decoration: none; color: inherit; transition: transform .2s, box-shadow .2s, border-color .2s; }
 .drill-hub a.hub-card:hover { transform: translateY(-3px); border-color: #d9cff3; box-shadow: 0 12px 28px rgba(102, 51, 204, .12); }
@@ -63,7 +72,10 @@
 .drill-hub .hub-cell b { display: block; font: 700 13px 'Roboto Mono', monospace; color: var(--ink); margin-top: 1px; }
 .drill-hub .hub-cell b.none { color: #cfc9dd; }
 @media (max-width: 768px) {
-    .drill-hub .hub-head h1 { font-size: 22px; }
+    .drill-hub .hub-hero { padding: 13px 14px 12px; border-radius: 14px; }
+    .drill-hub .hub-hero h1 { font-size: 1.12rem; }
+    .drill-hub .hub-hero p { font-size: .78rem; }
+    .drill-hub .hub-hero .drill-live { margin-top: 8px; font-size: 11px; }
     .drill-hub .hub-grid { gap: 10px; }
     .drill-hub .hub-thumb { height: 96px; }
     .drill-hub .hub-body { padding: 11px 12px 12px; }
