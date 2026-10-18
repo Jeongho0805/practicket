@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 464 620" width="464" height="620" role="img" aria-label="HOYA LIVE 2026 IN SEOUL 포스터">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f7ac4" />
+      <stop offset="0.45" stop-color="#57468a" />
+      <stop offset="1" stop-color="#241d3c" />
+    </linearGradient>
+    <radialGradient id="spot" cx="0.5" cy="0.32" r="0.55">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.42" />
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.08" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="beam" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.30" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#120f20" stop-opacity="0" />
+      <stop offset="1" stop-color="#120f20" stop-opacity="0.85" />
+    </linearGradient>
+  </defs>
+
+  <rect width="464" height="620" fill="url(#bg)" />
+
+  <!-- 무대 조명 -->
+  <polygon points="232,0 96,470 368,470" fill="url(#beam)" />
+  <ellipse cx="232" cy="200" rx="250" ry="215" fill="url(#spot)" />
+
+  <!-- 가수 실루엣 -->
+  <g fill="#1b1630" opacity="0.92">
+    <ellipse cx="232" cy="214" rx="27" ry="31" />
+    <path d="M232 246 c-33 0 -55 24 -60 58 l-11 84 c-1 9 5 15 14 15 h114 c9 0 15 -6 14 -15 l-11 -84 c-5 -34 -27 -58 -60 -58 z" />
+    <path d="M180 262 c-14 12 -22 30 -24 52 l-6 62 l17 3 l9 -60 c2 -22 7 -40 15 -50 z" />
+    <path d="M283 262 c14 12 22 30 24 52 l6 62 l-17 3 l-9 -60 c-2 -22 -7 -40 -15 -50 z" />
+  </g>
+
+  <!-- 마이크 스탠드 -->
+  <g stroke="#1b1630" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <line x1="150" y1="256" x2="150" y2="470" />
+    <line x1="150" y1="256" x2="186" y2="243" />
+  </g>
+  <ellipse cx="192" cy="240" rx="11" ry="14" fill="#1b1630" opacity="0.9" transform="rotate(-20 192 240)" />
+
+  <rect y="400" width="464" height="220" fill="url(#floor)" />
+
+  <text x="34" y="62" fill="#ffffff" fill-opacity="0.82"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" letter-spacing="4.2">2026 HOYA SOLO CONCERT</text>
+
+  <text x="232" y="478" text-anchor="middle" fill="#ffffff"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="86" font-weight="700" letter-spacing="11">HOYA</text>
+  <line x1="150" y1="502" x2="314" y2="502" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.5" />
+  <text x="232" y="527" text-anchor="middle" fill="#ffffff" fill-opacity="0.8"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" letter-spacing="7.5">LIVE IN SEOUL</text>
+
+  <text x="34" y="578" fill="#ffffff" fill-opacity="0.9"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="1.2">2026.02.08 SAT 7PM</text>
+  <text x="34" y="600" fill="#ffffff" fill-opacity="0.65"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="15" letter-spacing="1">프랙티켓홀</text>
+</svg>

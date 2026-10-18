@@ -6,8 +6,8 @@ let editingFromUnset = false;
 const mobilePageInfos = {
     ticketing: document.getElementById("ticketing-page-btn"),
     practice: document.getElementById("practice-page-btn"),
+    drill: document.getElementById("drill-page-btn"),
     community: document.getElementById("community-page-btn"),
-    security: document.getElementById("security-page-btn"),
     blog: document.getElementById("blog-page-btn"),
     art: document.getElementById("art-page-btn")
 }
@@ -15,8 +15,8 @@ const mobilePageInfos = {
 const desktopPageInfos = {
     ticketing: document.getElementById("ticketing-desktop-btn"),
     practice: document.getElementById("practice-desktop-btn"),
+    drill: document.getElementById("drill-desktop-btn"),
     community: document.getElementById("community-desktop-btn"),
-    security: document.getElementById("security-desktop-btn"),
     blog: document.getElementById("blog-desktop-btn"),
     art: document.getElementById("art-desktop-btn")
 }
@@ -145,7 +145,7 @@ function markCurrentPage() {
     if (currentPath.startsWith("art")) pageName = "art";
     if (currentPath.startsWith("practice")) pageName = "practice";
     if (currentPath.startsWith("community")) pageName = "community";
-    if (currentPath.startsWith("security")) pageName = "security";
+    if (currentPath.startsWith("drill") || currentPath.startsWith("security")) pageName = "drill";
     if (currentPath.startsWith("blog")) pageName = "blog";
 
     // 모바일 버튼 처리
