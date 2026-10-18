@@ -21,7 +21,8 @@ class DrillActivityServiceTest {
 
     private static final ZoneId ZONE = ZoneOffset.UTC;
     private static final DrillActivityResponse ZERO =
-            new DrillActivityResponse(0, 0, new DrillActivityResponse.Drill(0, 0), new DrillActivityResponse.Drill(0, 0));
+            new DrillActivityResponse(0, 0, new DrillActivityResponse.Drill(0, 0), new DrillActivityResponse.Drill(0, 0),
+                    new DrillActivityResponse.Drill(0, 0), new DrillActivityResponse.Drill(0, 0));
 
     private final DrillActivityQuery query = mock(DrillActivityQuery.class);
     private Instant now;

@@ -3,9 +3,14 @@ package com.practicket.drill.application;
 import com.practicket.drill.domain.DrillActivityQuery;
 import com.practicket.drill.domain.DrillCaptchaResult;
 import com.practicket.drill.domain.DrillCaptchaResultRepository;
+import com.practicket.drill.domain.DrillCancelResult;
+import com.practicket.drill.domain.DrillCancelResultRepository;
+import com.practicket.drill.domain.DrillGrapeResult;
+import com.practicket.drill.domain.DrillGrapeResultRepository;
 import com.practicket.drill.domain.DrillReactForm;
 import com.practicket.drill.domain.DrillReactResult;
 import com.practicket.drill.domain.DrillReactResultRepository;
+import com.practicket.drill.domain.DrillSeatForm;
 import com.practicket.ticket.scheduler.TicketScheduler;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +45,12 @@ class DrillActivityControllerTest {
     DrillCaptchaResultRepository drillCaptchaResultRepository;
 
     @Autowired
+    DrillGrapeResultRepository drillGrapeResultRepository;
+
+    @Autowired
+    DrillCancelResultRepository drillCancelResultRepository;
+
+    @Autowired
     DrillActivityService drillActivityService;
 
     @Autowired
@@ -57,6 +68,8 @@ class DrillActivityControllerTest {
     void tearDown() {
         drillReactResultRepository.deleteAll();
         drillCaptchaResultRepository.deleteAll();
+        drillGrapeResultRepository.deleteAll();
+        drillCancelResultRepository.deleteAll();
     }
 
     @Test
@@ -67,7 +80,9 @@ class DrillActivityControllerTest {
                 .andExpect(jsonPath("$.players").value(0))
                 .andExpect(jsonPath("$.rounds").value(0))
                 .andExpect(jsonPath("$.react.players").value(0))
-                .andExpect(jsonPath("$.captcha.rounds").value(0));
+                .andExpect(jsonPath("$.captcha.rounds").value(0))
+                .andExpect(jsonPath("$.grape.players").value(0))
+                .andExpect(jsonPath("$.cancel.rounds").value(0));
     }
 
     @Test
@@ -90,6 +105,26 @@ class DrillActivityControllerTest {
     }
 
     @Test
+    @DisplayName("네 종목을 합쳐도 한 사람은 한 번만 세고, 종목별 칸도 따로 센다")
+    void countsPlayersOnceAcrossFourDrills() throws Exception {
+        react(1L);
+        captcha(1L);
+        grape(1L);
+        grape(2L);
+        grape(2L);
+        cancel(1L);
+        cancel(3L);
+
+        mockMvc.perform(get("/api/drill/activity"))
+                .andExpect(jsonPath("$.players").value(3))
+                .andExpect(jsonPath("$.rounds").value(7))
+                .andExpect(jsonPath("$.grape.players").value(2))
+                .andExpect(jsonPath("$.grape.rounds").value(3))
+                .andExpect(jsonPath("$.cancel.players").value(2))
+                .andExpect(jsonPath("$.cancel.rounds").value(2));
+    }
+
+    @Test
     @DisplayName("기준 시각 이전 기록은 세지 않는다")
     void excludesBeforeStart() {
         react(1L);
@@ -107,5 +142,17 @@ class DrillActivityControllerTest {
     private void captcha(Long clientId) {
         drillCaptchaResultRepository.save(DrillCaptchaResult.builder()
                 .clientId(clientId).averageMs(4000).problems("[]").build());
+    }
+
+    private void grape(Long clientId) {
+        drillGrapeResultRepository.save(DrillGrapeResult.builder()
+                .clientId(clientId).form(DrillSeatForm.GENERAL).averageMs(500).totalMs(15000).seatCount(30)
+                .misclicks(0).rounds("[]").build());
+    }
+
+    private void cancel(Long clientId) {
+        drillCancelResultRepository.save(DrillCancelResult.builder()
+                .clientId(clientId).form(DrillSeatForm.N_TICKET).averageMs(600).totalMs(3000)
+                .misclicks(0).rounds("[]").build());
     }
 }

@@ -306,4 +306,14 @@ public class ViewController {
     public String drillCaptcha(Model model) {
         return "drill/captcha";
     }
+
+    @GetMapping("/drill/grape")
+    public String drillGrape(Model model) {
+        return "drill/grape";
+    }
+
+    @GetMapping("/drill/cancel")
+    public String drillCancel(Model model) {
+        return "drill/cancel";
+    }
 }

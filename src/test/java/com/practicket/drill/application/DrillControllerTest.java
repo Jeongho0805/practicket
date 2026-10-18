@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -155,39 +154,10 @@ class DrillControllerTest {
     }
 
     @Test
-    @DisplayName("요약은 두 종목의 시도 횟수와 최고 기록을 합쳐 돌려준다")
-    void summary() throws Exception {
-        save("N_TICKET", 300, null);
-        save("N_TICKET", 250, null);
-        save("REFRESH", 410, null);
-        mockMvc.perform(post("/api/drill/captcha/results")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"problems":[
-                                  {"answer":"KWQZMT","elapsed_ms":4000,"typos":[]},
-                                  {"answer":"HXRANW","elapsed_ms":5000,"typos":[]},
-                                  {"answer":"PDGLSE","elapsed_ms":3000,"typos":[]}]}
-                                """))
-                .andExpect(status().isOk());
-
+    @DisplayName("허브 요약 API 는 없어졌다")
+    void summaryRemoved() throws Exception {
         mockMvc.perform(get("/api/drill/summary").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.react.count").value(3))
-                .andExpect(jsonPath("$.react.bests[?(@.form == 'N_TICKET')].best_ms", contains(250)))
-                .andExpect(jsonPath("$.react.bests[?(@.form == 'REFRESH')].best_ms", contains(410)))
-                .andExpect(jsonPath("$.captcha.count").value(1))
-                .andExpect(jsonPath("$.captcha.best_ms").value(4000));
-    }
-
-    @Test
-    @DisplayName("기록이 없으면 요약은 두 종목 모두 0회, 최고 기록 없음이다")
-    void emptySummary() throws Exception {
-        mockMvc.perform(get("/api/drill/summary").header("Authorization", "Bearer " + token))
-                .andExpect(jsonPath("$.react.count").value(0))
-                .andExpect(jsonPath("$.react.bests", hasSize(0)))
-                .andExpect(jsonPath("$.captcha.count").value(0))
-                .andExpect(jsonPath("$.captcha.best_ms").value(nullValue()));
+                .andExpect(status().isNotFound());
     }
 
     private String newClient() {

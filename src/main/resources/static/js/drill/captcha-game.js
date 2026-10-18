@@ -1,3 +1,5 @@
+import { startCountdown } from "./countdown.js";
+
 export const LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
 export const IME = "한";
 
@@ -5,7 +7,6 @@ const ROUNDS = 3;
 const TIME_LIMIT_MS = 60_000;
 const MAX_TYPOS = 30;
 const HANGUL = /[ㄱ-ㅎㅏ-ㅣ가-힣]/;
-const STEPS = ["3", "2", "1", "시작"];
 
 /*
  * 보안문자 한 판. 결과: { ok: true, problems: [{ answer, elapsed_ms, typos: [{ position, typed }] }], keys }
@@ -16,7 +17,8 @@ export function playCaptcha(box, setStep) {
     let resolve;
     const done = new Promise(r => { resolve = r; });
     const timers = [];
-    const stop = () => { timers.forEach(clearInterval); countdown.remove(); };
+    let cancelCountdown = () => {};
+    const stop = () => { timers.forEach(clearInterval); cancelCountdown(); };
 
     box.insertAdjacentHTML("beforeend", `
         <div class="ptop"><div class="psteps">${"<i></i>".repeat(ROUNDS)}</div><div class="ptimer"><b>0.0</b><small>초</small></div></div>
@@ -26,9 +28,6 @@ export function playCaptcha(box, setStep) {
     const segs = box.querySelector(".psteps").children, live = box.querySelector(".ptimer b");
     const canvas = box.querySelector("canvas"), slots = box.querySelector(".slots").children;
     const bar = box.querySelector(".ibar2"), input = bar.querySelector("input"), msg = box.querySelector(".pmsg");
-    const countdown = document.createElement("div");
-    countdown.className = "drill-cd";
-    document.body.appendChild(countdown);
     input.focus();
 
     let answer = "", cur = null, round = 0, prev = "", keys = 0, over = false;
@@ -154,12 +153,7 @@ export function playCaptcha(box, setStep) {
     input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) submit(); });
 
     setStep(`문제 1 / ${ROUNDS}`);
-    const show = i => {
-        countdown.innerHTML = `<div class="cd-in"><small>보안문자</small><b class="${i === 3 ? "go" : ""}">${STEPS[i]}</b><p>${ROUNDS}문제</p></div>`;
-        if (i < 3) timers.push(setTimeout(() => show(i + 1), 1000));
-        else timers.push(setTimeout(() => { countdown.remove(); timers.push(setInterval(watch, 100)); next(); }, 500));
-    };
-    show(0);
+    cancelCountdown = startCountdown({ title: "보안문자", sub: `${ROUNDS}문제` }, () => { timers.push(setInterval(watch, 100)); next(); });
 
     return { done, abort: stop };
 }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <meta name="description" content="티켓 예매 좌석 선택을 반복해서 연습하세요. 흩어진 빈 좌석 30석을 5라운드에 걸쳐 빠르게 누르고, 좌석 1개당 평균 시간과 오클릭을 기록으로 확인할 수 있습니다.">
+    <meta name="robots" content="index, follow">
+    <title>포도알 잡기 연습 - 프랙티켓</title>
+    <link rel="canonical" href="https://practicket.com/drill/grape">
+    <link rel="stylesheet" href="/css/practice/result-modal.css">
+    <link rel="stylesheet" href="/css/drill/drill.css">
+</head>
+<body>
+    <main layout:fragment="content" class="drill-page is-seat is-grape" id="drill-page">
+        <div class="practice-sticky">
+            <section class="practice-controls" aria-label="연습 설정">
+                <div class="practice-toolbar">
+                    <div class="practice-intro"><h1 class="a-title">포도알 잡기</h1><span>5라운드 · 좌석 30석</span><span class="drill-live" id="drill-live" hidden></span></div>
+                    <div class="practice-cta"><a class="sub" href="/drill">다른 연습</a><button type="button" class="go" id="drill-start">시작하기</button></div>
+                </div>
+                <div class="rset">
+                    <div class="forms">
+                        <a class="form" data-form="general" href="/drill/grape?form=general"><b>일반형</b><small>네모 좌석</small></a>
+                        <a class="form" data-form="n-ticket" href="/drill/grape?form=n-ticket"><b>N형</b><small>동그라미 좌석</small></a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="rec" id="rec"></section>
+
+        <div class="drill-play" id="drill-play"></div>
+    </main>
+
+    <th:block layout:fragment="scripts">
+        <script type="module" src="/js/drill/grape.js"></script>
+    </th:block>
+</body>
+</html>

@@ -16,7 +16,6 @@ import com.practicket.drill.dto.DrillCaptchaResultRequest.Typo;
 import com.practicket.drill.dto.DrillCaptchaTypoStatsResponse;
 import com.practicket.drill.dto.DrillRecordResponse;
 import com.practicket.drill.dto.DrillRecordResponse.CaptchaItem;
-import com.practicket.drill.dto.DrillSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -93,14 +92,6 @@ public class DrillCaptchaService {
                                 .toList(),
                         stat.getImeCount()))
                 .orElse(new DrillCaptchaTypoStatsResponse(List.of(), 0));
-    }
-
-    @Transactional(readOnly = true)
-    public DrillSummaryResponse.Captcha getSummary(ClientInfo clientInfo) {
-        Long clientId = clientInfo.getClientId();
-        return new DrillSummaryResponse.Captcha(
-                drillCaptchaResultRepository.countByClientId(clientId),
-                drillCaptchaResultRepository.findBest(clientId).map(DrillCaptchaResultRepository.Row::averageMs).orElse(null));
     }
 
     private void validate(List<Problem> problems) {

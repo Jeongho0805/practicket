@@ -9,7 +9,6 @@ import com.practicket.drill.domain.DrillReactResultRepository;
 import com.practicket.drill.dto.DrillReactResultRequest;
 import com.practicket.drill.dto.DrillRecordResponse;
 import com.practicket.drill.dto.DrillRecordResponse.ReactItem;
-import com.practicket.drill.dto.DrillSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,13 +54,5 @@ public class DrillReactService {
                 .orElseThrow();
         long count = drillReactResultRepository.countByClientIdAndForm(clientId, form);
         return new DrillRecordResponse<>(count, best.getReactionMs(), best.getCreatedAt(), recent);
-    }
-
-    @Transactional(readOnly = true)
-    public DrillSummaryResponse.React getSummary(ClientInfo clientInfo) {
-        Long clientId = clientInfo.getClientId();
-        return new DrillSummaryResponse.React(
-                drillReactResultRepository.countByClientId(clientId),
-                drillReactResultRepository.findBests(clientId));
     }
 }

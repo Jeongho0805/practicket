@@ -10,7 +10,6 @@ import com.practicket.drill.dto.DrillReactResultRequest;
 import com.practicket.drill.dto.DrillRecordResponse;
 import com.practicket.drill.dto.DrillRecordResponse.CaptchaItem;
 import com.practicket.drill.dto.DrillRecordResponse.ReactItem;
-import com.practicket.drill.dto.DrillSummaryResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,13 +27,6 @@ public class DrillController {
     @GetMapping("/activity")
     public ResponseEntity<DrillActivityResponse> getActivity() {
         return ResponseEntity.ok(drillActivityService.getToday());
-    }
-
-    @GetMapping("/summary")
-    public ResponseEntity<DrillSummaryResponse> getSummary(@Auth ClientInfo clientInfo) {
-        return ResponseEntity.ok(new DrillSummaryResponse(
-                drillReactService.getSummary(clientInfo),
-                drillCaptchaService.getSummary(clientInfo)));
     }
 
     @PostMapping("/react/results")

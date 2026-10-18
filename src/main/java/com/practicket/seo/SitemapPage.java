@@ -25,6 +25,8 @@ public enum SitemapPage {
     DRILL("/drill"),
     DRILL_REACT("/drill/react"),
     DRILL_CAPTCHA("/drill/captcha"),
+    DRILL_GRAPE("/drill/grape"),
+    DRILL_CANCEL("/drill/cancel"),
     ART("/art"),
     COMMUNITY("/community"),
     BLOG("/blog"),

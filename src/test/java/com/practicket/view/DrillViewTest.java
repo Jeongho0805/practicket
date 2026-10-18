@@ -35,10 +35,12 @@ class DrillViewTest {
     }
 
     @Test
-    @DisplayName("반복연습 화면은 허브·반응속도·보안문자 템플릿을 그린다")
+    @DisplayName("반복연습 화면은 네 종목과 허브 템플릿을 그린다")
     void drillPages() throws Exception {
         mockMvc.perform(get("/drill")).andExpect(status().isOk()).andExpect(view().name("drill/hub"));
         mockMvc.perform(get("/drill/react")).andExpect(status().isOk()).andExpect(view().name("drill/react"));
         mockMvc.perform(get("/drill/captcha")).andExpect(status().isOk()).andExpect(view().name("drill/captcha"));
+        mockMvc.perform(get("/drill/grape")).andExpect(status().isOk()).andExpect(view().name("drill/grape"));
+        mockMvc.perform(get("/drill/cancel")).andExpect(status().isOk()).andExpect(view().name("drill/cancel"));
     }
 }

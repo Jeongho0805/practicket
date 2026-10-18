@@ -32,3 +32,34 @@ CREATE TABLE `drill_captcha_stat` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_drill_captcha_stat_client` (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `drill_grape_result` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `client_id` bigint NOT NULL,
+  `form` varchar(20) NOT NULL,
+  `average_ms` int NOT NULL,
+  `total_ms` int NOT NULL,
+  `seat_count` int NOT NULL,
+  `misclicks` int NOT NULL,
+  `rounds` text NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_drill_grape_result_client_form` (`client_id`, `form`, `id`),
+  KEY `idx_drill_grape_result_created` (`created_at`, `client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- missed_tickets 는 일반형만 값이 있다. N형은 새로고침이 없어 놓칠 수 없다.
+CREATE TABLE `drill_cancel_result` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `client_id` bigint NOT NULL,
+  `form` varchar(20) NOT NULL,
+  `average_ms` int NOT NULL,
+  `total_ms` int NOT NULL,
+  `misclicks` int NOT NULL,
+  `missed_tickets` int DEFAULT NULL,
+  `rounds` text NOT NULL,
+  `created_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_drill_cancel_result_client_form` (`client_id`, `form`, `id`),
+  KEY `idx_drill_cancel_result_created` (`created_at`, `client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

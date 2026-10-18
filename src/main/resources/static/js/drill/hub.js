@@ -1,4 +1,3 @@
-import { authFetch } from "../common.js";
 import { loadActivity, showActivity } from "./activity.js";
 
 const PUR = "#6633cc", INK = "#2e1065";
@@ -41,46 +40,15 @@ const ART = {
 };
 
 const DRILLS = [
-    { key: "react", name: "반응속도", desc: "열리자마자 예매 버튼 누르기", href: "/drill/react",
-      forms: [["REFRESH", "일반"], ["ADVANCED", "고급"], ["N_TICKET", "N"]] },
+    { key: "react", name: "반응속도", desc: "열리자마자 예매 버튼 누르기", href: "/drill/react" },
     { key: "captcha", name: "보안문자", desc: "영문 6자 빠르게 입력하기", href: "/drill/captcha" },
-    { key: "grape", name: "포도알 잡기", desc: "흩어진 빈 좌석을 전부 누르기" },
-    { key: "cancel", name: "취소표 잡기", desc: "풀리는 한 자리를 먼저 낚아채기" },
+    { key: "grape", name: "포도알 잡기", desc: "흩어진 빈 좌석을 전부 누르기", href: "/drill/grape" },
+    { key: "cancel", name: "취소표 잡기", desc: "풀리는 한 자리를 먼저 낚아채기", href: "/drill/cancel" },
 ];
 
-const sec = ms => (ms / 1000).toFixed(2) + "초";
-
-function footer(drill, stat) {
-    if (!drill.href) return `<div class="hub-ft"><small>곧 열립니다</small><span class="wait">준비 중</span></div>`;
-    if (!stat?.count) return `<div class="hub-ft"><small>아직 기록 없음</small><span class="new">처음 해보기</span></div>`;
-    if (!drill.forms) return `<div class="hub-ft"><small>${stat.count}회 시도</small><span class="new">최고 ${sec(stat.best_ms)}</span></div>`;
-    const cells = drill.forms.map(([code, label]) => {
-        const best = stat.bests.find(b => b.form === code)?.best_ms;
-        return `<div class="hub-cell"><small>${label}</small><b class="${best ? "" : "none"}">${best ? sec(best) : "-"}</b></div>`;
-    }).join("");
-    return `<div class="hub-cells"><div class="tries">${stat.count}회 시도</div>${cells}</div>`;
-}
-
-function render(summary) {
-    document.getElementById("hub-grid").innerHTML = DRILLS.map(d => {
-        const tag = d.href ? "a" : "div";
-        const attrs = d.href ? `class="hub-card" href="${d.href}"` : `class="hub-card soon"`;
-        return `<${tag} ${attrs}>
-            <div class="hub-thumb"><svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet">${ART[d.key]()}</svg></div>
-            <div class="hub-body"><div class="hub-nm">${d.name}</div><div class="hub-ds">${d.desc}</div>${footer(d, summary[d.key])}</div>
-        </${tag}>`;
-    }).join("");
-}
+document.getElementById("hub-grid").innerHTML = DRILLS.map(d => `<a class="hub-card" href="${d.href}">
+    <div class="hub-thumb"><svg viewBox="0 0 240 120" preserveAspectRatio="xMidYMid meet">${ART[d.key]()}</svg></div>
+    <div class="hub-body"><div class="hub-nm">${d.name}</div><div class="hub-ds">${d.desc}</div></div>
+</a>`).join("");
 
 loadActivity().then(activity => showActivity(document.getElementById("drill-live"), activity));
-
-async function load() {
-    render({});
-    try {
-        const response = await authFetch(`${HOST}/api/drill/summary`);
-        if (!response.ok) return;
-        render(await response.json());
-    } catch (e) { /* 기록 없이 카드만 보여 준다 */ }
-}
-
-load();
