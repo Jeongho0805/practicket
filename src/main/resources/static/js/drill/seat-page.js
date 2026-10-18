@@ -2,7 +2,6 @@ import { authFetch } from "../common.js";
 import { loadActivity, showActivity } from "./activity.js";
 import { createDrillPage } from "./drill-page.js";
 import { dateLabel, renderRecord } from "./record-card.js";
-import { unsavedLine } from "./result-modal.js";
 
 export const FORM_NAME = { general: "일반형", "n-ticket": "N형" };
 const FORM_CODE = { general: "GENERAL", "n-ticket": "N_TICKET" };
@@ -79,11 +78,13 @@ export function seatPage({ drill, title, avgLabel, lostFor, play, toRow, modal }
             setStep(`${FORM_NAME[form]} · 5라운드`);
             return play(box, { form, formName: FORM_NAME[form] });
         },
-        async finish(outcome) {
+        finish(outcome) {
             const played = form, previous = record.recent.at(-1)?.ms;
-            const saved = await save(played, outcome.rounds);
-            if (saved) record = saved;
-            return { meta: `${title} · ${FORM_NAME[played]} · 5라운드`, wide: true, body: modal(outcome, toRow(outcome, played), previous, played, saved ? "" : unsavedLine) };
+            const saving = save(played, outcome.rounds).then(saved => {
+                if (saved && played === form) { record = saved; ++loadSeq; paint(); }
+                return !!saved;
+            });
+            return { meta: `${title} · ${FORM_NAME[played]} · 5라운드`, wide: true, saving, body: modal(outcome, toRow(outcome, played), previous, played) };
         },
     });
 

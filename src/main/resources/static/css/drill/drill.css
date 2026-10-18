@@ -107,6 +107,12 @@ body.drill-playing #chat-widget { display: none !important; }
 .drill-page .lat.own input::placeholder { font-family: 'Pretendard', sans-serif; font-weight: 500; color: var(--mute); }
 .drill-page .lat.own span { font-family: 'Pretendard', sans-serif; font-size: 12px; color: var(--mute); }
 
+@media (max-width: 340px) {
+    .drill-page .practice-toolbar { flex-wrap: wrap; }
+    .drill-page .practice-cta { width: 100%; }
+    .drill-page .practice-cta > * { flex: 1; }
+}
+
 @media (max-width: 768px) {
     .drill-page .practice-sticky { top: -14px; margin: -14px -14px 0; padding: 14px 14px 10px; }
     .drill-page .practice-controls { padding: 11px; gap: 11px; }

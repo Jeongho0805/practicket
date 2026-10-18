@@ -3,7 +3,7 @@ import { loadActivity, showActivity } from "./activity.js";
 import { createDrillPage } from "./drill-page.js";
 import { playReact } from "./react-game.js";
 import { EMPTY_RECORD, rankText, renderRecord, sec } from "./record-card.js";
-import { deltaLine, failBody, unsavedLine } from "./result-modal.js";
+import { deltaLine, failBody } from "./result-modal.js";
 import { FORMS, LAT_PRESETS, clampLatency, formLabel, readForm, readLatency, readyUrl, saveLatency } from "./react-config.js";
 
 let form = readForm();
@@ -95,18 +95,20 @@ createDrillPage({
         setStep(formLabel(form, latency));
         return playReact(box, { form, latency });
     },
-    async finish(outcome) {
+    finish(outcome) {
         const meta = "반응속도 · " + formLabel(form, latency);
         if (!outcome.ok) return { fail: true, meta, body: failBody(outcome.title, outcome.why) };
 
-        const previous = record.recent.at(-1)?.ms;
-        const saved = await save(form, latency, outcome.ms);
-        if (saved) record = saved;
+        const played = form, previous = record.recent.at(-1)?.ms;
+        const saving = save(played, latency, outcome.ms).then(saved => {
+            if (saved && played === form) { record = saved; ++loadSeq; paintRecord(); }
+            return !!saved;
+        });
         return {
             meta,
+            saving,
             body: `<div class="rb-main"><div class="rb-num">${sec(outcome.ms)}<small>초</small></div>`
-                + `<p class="rb-rank">대기순번 <b>${rankText(outcome.ms)}번</b></p>${deltaLine(outcome.ms, previous)}</div>`
-                + (saved ? "" : unsavedLine),
+                + `<p class="rb-rank">대기순번 <b>${rankText(outcome.ms)}번</b></p>${deltaLine(outcome.ms, previous)}</div>`,
         };
     },
 });

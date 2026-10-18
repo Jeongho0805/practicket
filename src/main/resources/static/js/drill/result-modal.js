@@ -14,7 +14,12 @@ export function deltaLine(ms, previousMs) {
 export const failBody = (title, why) =>
     `<div class="rb-main fail"><p class="rb-fail-t">${escapeHtml(title)}</p><p class="rb-fail-w">${escapeHtml(why)}</p><span class="rb-note">실패한 판은 기록에 남지 않습니다</span></div>`;
 
-export const unsavedLine = `<p class="rb-unsaved">이번 판 기록은 저장하지 못했습니다</p>`;
+const unsavedLine = `<p class="rb-unsaved">이번 판 기록은 저장하지 못했습니다</p>`;
+
+export function showUnsaved() {
+    const main = document.querySelector("#pkt-complete-overlay .rb-main");
+    if (main && !main.parentElement.querySelector(".rb-unsaved")) main.insertAdjacentHTML("afterend", unsavedLine);
+}
 
 /* 결과 모달. 뒤 화면은 inert 로 막고, Tab 은 모달 안에서만 돈다. */
 export function openResultModal({ fail, meta, body, wide, onRecord, onRetry }) {

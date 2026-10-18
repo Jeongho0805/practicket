@@ -1,4 +1,4 @@
-import { ROUNDS, playSession, seatMap } from "./seat-play.js";
+import { ROUNDS, fitCols, playSession, seatMap } from "./seat-play.js";
 
 const LATENCY_MS = 150;
 /* 라운드가 올라갈수록 취소표가 늦게 풀린다 [최소, 최대] ms */
@@ -19,7 +19,7 @@ export function playCancel(box, { form, formName }) {
 
     function next() {
         if (round >= ROUNDS) return s.finish({ ok: true, rounds });
-        const cols = 16 + Math.floor(round / 2) * 2, rows = 10 + round;
+        const cols = fitCols(s.card, form, 16 + Math.floor(round / 2) * 2), rows = 10 + round;
         s.segs[round].className = "now";
         s.live.textContent = "—";
         s.card.innerHTML = seatMap(form, cols, rows, general ? "새로고침해서 잔여 좌석 확인" : "잔여 좌석이 자동으로 표시됩니다", general ? "무대방향 (STAGE)" : "STAGE")
@@ -29,7 +29,7 @@ export function playCancel(box, { form, formName }) {
         $(".seat-map").insertAdjacentHTML("beforeend", `<div class="seat-load"><i></i>좌석 정보를 불러오는 중</div>`);
         cur = { ticket: 0, shownAt: null, pickedAt: null, loading: false, misclicks: 0, sold: 0, missed: 0 };
         schedule();
-        $(".seat-map").addEventListener("pointerdown", pick);
+        s.tap($(".seat-map"), { hit: pick, miss });
         if (general) $(".confirm").addEventListener("click", confirm);
         if (general) $(".refresh").addEventListener("click", refresh);
     }
@@ -87,24 +87,31 @@ export function playCancel(box, { form, formName }) {
 
     function pick(e) {
         const c = cur;
-        if (!c || c.loading) return;
+        if (!c || c.loading) return true;
         const seat = e.target.closest(".seats i");
         if (c.shownAt && seat?.classList.contains("open")) {
             seat.classList.replace("open", "picked");
             c.pickedAt = performance.now();
-            if (!general) return confirm();
-            selection(true);
-            status("선택 완료 버튼을 눌러 주세요");
-        } else if (c.shownAt && seat?.classList.contains("picked")) {
+            if (!general) confirm();
+            else { selection(true); status("선택 완료 버튼을 눌러 주세요"); }
+            return true;
+        }
+        if (c.shownAt && seat?.classList.contains("picked")) {
             seat.classList.replace("picked", "open");
             c.pickedAt = null;
             selection(false);
             status("잔여 좌석 1석");
-        } else {
-            c.misclicks++;
-            if (seat) { c.sold++; seat.classList.add("bad"); s.later(() => seat.classList.remove("bad"), 220); }
-            s.pop(e, seat ? "판매된 좌석" : "오클릭", "bad");
+            return true;
         }
+        return false;
+    }
+
+    function miss(e, seat) {
+        const c = cur;
+        if (!c || c.loading) return;
+        c.misclicks++;
+        if (seat) { c.sold++; seat.classList.add("bad"); s.later(() => seat.classList.remove("bad"), 220); }
+        s.pop(e, seat ? "판매된 좌석" : "오클릭", "bad");
     }
 
     function confirm() {

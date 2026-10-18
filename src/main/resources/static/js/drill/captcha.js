@@ -4,7 +4,7 @@ import { bindTypoStats } from "./captcha-stats.js";
 import { loadActivity, showActivity } from "./activity.js";
 import { createDrillPage } from "./drill-page.js";
 import { EMPTY_RECORD, renderRecord, sec } from "./record-card.js";
-import { deltaLine, failBody, unsavedLine } from "./result-modal.js";
+import { deltaLine, failBody } from "./result-modal.js";
 
 const META = "보안문자 · 3문제";
 
@@ -65,7 +65,7 @@ function noteCard(p, i) {
 createDrillPage({
     onReady: paintRecord,
     start: (box, setStep) => playCaptcha(box, setStep),
-    async finish(outcome) {
+    finish(outcome) {
         if (!outcome.ok) return { fail: true, meta: META, body: failBody(outcome.title, outcome.why) };
 
         const { problems, keys } = outcome;
@@ -73,14 +73,16 @@ createDrillPage({
         const typos = problems.reduce((a, p) => a + p.typos.length, 0);
         const accuracy = keys ? Math.max(0, Math.round((keys - typos) / keys * 100)) : 100;
         const previous = record.recent.at(-1)?.ms;
-        const saved = await save(problems);
-        if (saved) { record = saved; typoStats.invalidate(); }
+        const saving = save(problems).then(saved => {
+            if (saved) { record = saved; typoStats.invalidate(); paintRecord(); }
+            return !!saved;
+        });
         return {
             meta: META,
             wide: true,
+            saving,
             body: `<div class="rb-main"><div class="rb-label">문제당 평균</div><div class="rb-num">${sec(ms)}<small>초</small></div>${deltaLine(ms, previous)}`
                 + `<div class="rb-stats"><span>정확도<b>${accuracy}%</b></span><span>오타<b>${typos}회</b></span></div></div>`
-                + (saved ? "" : unsavedLine)
                 + `<section class="round-notes"><section class="round-details"><h3>이번 판 오답노트</h3><div class="n-cards">${problems.map(noteCard).join("")}</div></section></section>`,
         };
     },

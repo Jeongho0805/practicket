@@ -21,7 +21,7 @@ seatPage({
     lostFor: form => form === "general",
     play: playCancel,
     toRow: (outcome, form) => ({ ms: Math.round(sum(outcome.rounds, "elapsed_ms") / 5), misclicks: sum(outcome.rounds, "misclicks"), missed: form === "general" ? sum(outcome.rounds, "missed") : 0 }),
-    modal(outcome, row, previous, form, note) {
+    modal(outcome, row, previous, form) {
         const general = form === "general", rounds = outcome.rounds;
         let acc = 0;
         const step = (k, name, how, plus, at) => `<div class="flow-step ${k}"><i></i><div class="nm"><b>${name}</b>${how ? `<small>${how}</small>` : ""}</div><span class="plus">${plus}</span><b class="at">${at}</b></div>`;
@@ -31,7 +31,7 @@ seatPage({
             [r.misclicks ? { no: true, text: `오클릭 ${r.misclicks}회` } : { text: "오클릭 없음" }].concat(general && r.missed ? [{ no: true, text: `놓침 ${r.missed}회` }] : []),
             general ? bar(r, general) : "")).join("");
         return `<div class="rb-main"><div class="rb-label">${general ? "좌석이 풀린 순간부터 선택 완료까지 평균" : "좌석이 뜬 순간부터 좌석을 누를 때까지 평균"}</div><div class="rb-num">${sec(row.ms)}<small>초</small></div>${deltaLine(row.ms, previous)}`
-            + `<div class="rb-stats"><span>오클릭<b>${row.misclicks}회</b></span>${general ? `<span>놓친 취소표<b>${row.missed}회</b></span>` : ""}</div></div>` + note
+            + `<div class="rb-stats"><span>오클릭<b>${row.misclicks}회</b></span>${general ? `<span>놓친 취소표<b>${row.missed}회</b></span>` : ""}</div></div>`
             + `<section class="round-notes">${general ? `<section class="round-details"><h3>한 라운드 평균 흐름</h3><div class="flow-card">${flow}</div></section>` : ""}`
             + `<section class="round-details"><h3>라운드별 기록${general ? `<span class="split-key">${parts(rounds, general).map(p => `<span><i class="${p.k}"></i>${p.name}</span>`).join("")}</span>` : ""}</h3><div class="n-cards">${cards}</div></section></section>`;
     },
