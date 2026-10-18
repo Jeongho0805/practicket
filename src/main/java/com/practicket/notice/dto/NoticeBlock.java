@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * 운영자가 쓴 순수 텍스트 본문을 화면 블록으로 나눈다.
- * "·" 로 시작하는 줄은 목록으로 묶고 나머지는 문단으로 본다.
+ * "## " 로 시작하는 줄은 중제목, "·" 로 시작하는 줄은 목록으로 묶는다.
  * 문단은 놓인 자리에 따라 lead(첫 문단) · p · tail(목록 뒤 맺음말) 로 갈린다.
  */
 public record NoticeBlock(String kind, String text, List<String> items) {
@@ -14,6 +14,7 @@ public record NoticeBlock(String kind, String text, List<String> items) {
     public static final String PARAGRAPH = "p";
     public static final String LIST = "ul";
     public static final String TAIL = "tail";
+    public static final String HEADING = "h2";
 
     private static final String BULLET = "·";
 
@@ -28,6 +29,13 @@ public record NoticeBlock(String kind, String text, List<String> items) {
 
         for (String raw : content.split("\\R")) {
             String line = raw.strip();
+
+            if (line.startsWith("## ")) {
+                flushParagraph(blocks, paragraph);
+                flushList(blocks, bullets);
+                blocks.add(new NoticeBlock(HEADING, line.substring(3).strip(), List.of()));
+                continue;
+            }
 
             if (line.startsWith(BULLET)) {
                 flushParagraph(blocks, paragraph);
@@ -46,6 +54,14 @@ public record NoticeBlock(String kind, String text, List<String> items) {
 
         flushParagraph(blocks, paragraph);
         flushList(blocks, bullets);
+        // 중제목이 있는 공지는 각 절의 설명과 마지막 안내를 구분한다.
+        if (!blocks.isEmpty() && blocks.stream().anyMatch(b -> HEADING.equals(b.kind()))) {
+            int last = blocks.size() - 1;
+            NoticeBlock block = blocks.get(last);
+            if (PARAGRAPH.equals(block.kind()) && last > 0 && LIST.equals(blocks.get(last - 1).kind())) {
+                blocks.set(last, new NoticeBlock(TAIL, block.text(), block.items()));
+            }
+        }
         return blocks;
     }
 
@@ -53,7 +69,7 @@ public record NoticeBlock(String kind, String text, List<String> items) {
         if (paragraph.isEmpty()) {
             return;
         }
-        blocks.add(new NoticeBlock(paragraphKind(blocks), String.join(" ", paragraph), List.of()));
+        blocks.add(new NoticeBlock(paragraphKind(blocks), String.join("\n", paragraph), List.of()));
         paragraph.clear();
     }
 
@@ -68,6 +84,9 @@ public record NoticeBlock(String kind, String text, List<String> items) {
     private static String paragraphKind(List<NoticeBlock> blocks) {
         if (blocks.isEmpty()) {
             return LEAD;
+        }
+        if (blocks.stream().anyMatch(b -> HEADING.equals(b.kind()))) {
+            return PARAGRAPH;
         }
         return blocks.stream().anyMatch(b -> LIST.equals(b.kind())) ? TAIL : PARAGRAPH;
     }

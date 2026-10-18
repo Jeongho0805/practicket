@@ -91,6 +91,12 @@
 .nd-body { padding: 26px 2px 36px; color: #4a4458; word-break: break-word; }
 .nd-body .nd-lead { font-size: 15.5px; font-weight: 600; line-height: 1.7; color: #3a3350; margin-bottom: 18px; }
 .nd-body .nd-p { font-size: 14.5px; line-height: 1.8; margin-bottom: 14px; }
+.nd-body .nd-lead, .nd-body .nd-p, .nd-body .nd-tail { white-space: pre-line; }
+.nd-body .nd-section-title { font-family: Pretendard, sans-serif; font-size: 18px; font-weight: 750;
+    line-height: 1.4; color: #514897; margin: 32px 0 10px; letter-spacing: -.02em; }
+.nd-body .nd-section-title + .nd-p { margin-top: 0; margin-bottom: 12px; }
+.nd-body:has(.nd-section-title) { word-break: keep-all; overflow-wrap: anywhere; }
+.nd-body:has(.nd-section-title) li + li { margin-top: 7px; }
 .nd-body ul { list-style: none; margin: 4px 0 20px; padding: 0; }
 .nd-body li { position: relative; padding-left: 19px; font-size: 14.5px; line-height: 1.7; }
 .nd-body li + li { margin-top: 11px; }
