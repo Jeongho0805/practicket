@@ -18,7 +18,7 @@ function curve(points) {
 
 /*
  * 시간 기록이라 빠를수록 아래에 찍힌다. bars 를 주면 아래에 오클릭 막대와 숫자를 항상 그린다.
- * 툴팁은 마우스·탭·키보드 포커스 모두로 연다.
+ * 툴팁은 마우스를 올리거나 폰에서 끄는 동안 가장 가까운 점에 뜬다. 키보드 포커스로도 연다.
  */
 export function drawSpark(box, values, { height, label, format, bars }) {
     const svg = box.querySelector("svg"), tip = box.querySelector(".tip");
@@ -56,14 +56,19 @@ export function drawSpark(box, values, { height, label, format, bars }) {
         guide.setAttribute("x2", p.x);
         guide.setAttribute("opacity", 1);
     };
+    const nearest = clientX => {
+        const x = clientX - svg.getBoundingClientRect().left;
+        return points.reduce((a, p) => Math.abs(p.x - x) < Math.abs(a.x - x) ? p : a);
+    };
+    svg.onmousemove = e => show(nearest(e.clientX));
+    svg.ontouchstart = svg.ontouchmove = e => show(nearest(e.touches[0].clientX));
+    svg.ontouchend = hide;
     svg.querySelectorAll("rect[data-i]").forEach(rect => {
         const p = points[+rect.dataset.i];
-        rect.addEventListener("pointerenter", () => show(p));
-        rect.addEventListener("pointerdown", e => { e.stopPropagation(); show(p); });
         rect.addEventListener("focus", () => show(p));
         rect.addEventListener("blur", hide);
         rect.addEventListener("keydown", e => { if (e.key === "Escape") hide(); });
     });
-    box.addEventListener("pointerleave", hide);
+    box.onpointerleave = e => { if (e.pointerType === "mouse") hide(); };
     dismiss = e => { if (!box.contains(e.target)) hide(); };
 }
