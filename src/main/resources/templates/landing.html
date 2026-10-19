@@ -21,6 +21,7 @@
                 <li th:each="n : ${notices}">
                     <span class="tag" th:classappend="${n.type.badgeClass}" th:text="${n.type.label}">공지</span>
                     <a class="nt-txt" th:href="@{/notice/{id}(id=${n.id})}" th:text="${n.title}" th:title="${n.title}">제목</a>
+                    <span class="nt-new" th:if="${n.fresh}">NEW</span>
                     <span class="nt-date" th:text="${#temporals.format(n.createdAt, 'MM.dd')}">06.30</span>
                 </li>
                 <li class="nt-empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</li>

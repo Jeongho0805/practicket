@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Notice {
 
+    /** 올린 지 이 기간 안이면 목록에 NEW 배지를 단다 */
+    public static final int FRESH_DAYS = 30;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -60,5 +63,13 @@ public class Notice {
 
     public void togglePublished() {
         this.published = !this.published;
+    }
+
+    public boolean isFresh() {
+        return isFreshAt(LocalDateTime.now());
+    }
+
+    public boolean isFreshAt(LocalDateTime now) {
+        return createdAt != null && createdAt.isAfter(now.minusDays(FRESH_DAYS));
     }
 }
