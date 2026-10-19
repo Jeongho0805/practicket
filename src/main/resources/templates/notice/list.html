@@ -87,7 +87,14 @@
             date.className = 'nt-date';
             date.textContent = n.date;
 
-            line.append(tag, title, date);
+            line.append(tag, title);
+            if (n.fresh) {
+                const fresh = document.createElement('span');
+                fresh.className = 'nt-new';
+                fresh.textContent = 'NEW';
+                line.appendChild(fresh);
+            }
+            line.appendChild(date);
 
             a.appendChild(line);
             item.appendChild(a);

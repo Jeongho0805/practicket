@@ -68,7 +68,10 @@
 .nt-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: #453e5c;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 날짜는 오른쪽 고정폭. 제목 길이에 따라 좌우로 밀리지 않게 한다. */
-.nt-date { flex-shrink: 0; font-size: 11.5px; color: #b0a9c4; font-variant-numeric: tabular-nums; }
+.nt-date { flex-shrink: 0; margin-left: auto; font-size: 11.5px; color: #b0a9c4; font-variant-numeric: tabular-nums; }
+.nt-new { flex-shrink: 0; padding: 2px 7px 1px; border-radius: 999px; background: linear-gradient(135deg, #6b5b9a, #c07fd6); color: #fff;
+    font: normal 9.5px/1.4 my-font, 'Pretendard', sans-serif; letter-spacing: .04em; box-shadow: 0 2px 6px rgba(140, 90, 200, .35); }
+.nt-line:has(.nt-new) .nt-title { flex: 0 1 auto; }
 
 #notice-empty { padding: 48px 0; text-align: center; font-size: 14px; color: #b0a9c4; }
 
@@ -91,6 +94,12 @@
 .nd-body { padding: 26px 2px 36px; color: #4a4458; word-break: break-word; }
 .nd-body .nd-lead { font-size: 15.5px; font-weight: 600; line-height: 1.7; color: #3a3350; margin-bottom: 18px; }
 .nd-body .nd-p { font-size: 14.5px; line-height: 1.8; margin-bottom: 14px; }
+.nd-body .nd-lead, .nd-body .nd-p, .nd-body .nd-tail { white-space: pre-line; }
+.nd-body .nd-section-title { font-family: Pretendard, sans-serif; font-size: 18px; font-weight: 750;
+    line-height: 1.4; color: #514897; margin: 32px 0 10px; letter-spacing: -.02em; }
+.nd-body .nd-section-title + .nd-p { margin-top: 0; margin-bottom: 12px; }
+.nd-body:has(.nd-section-title) { word-break: keep-all; overflow-wrap: anywhere; }
+.nd-body:has(.nd-section-title) li + li { margin-top: 7px; }
 .nd-body ul { list-style: none; margin: 4px 0 20px; padding: 0; }
 .nd-body li { position: relative; padding-left: 19px; font-size: 14.5px; line-height: 1.7; }
 .nd-body li + li { margin-top: 11px; }

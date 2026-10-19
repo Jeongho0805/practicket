@@ -30,6 +30,7 @@
             -->
             <div class="nd-body">
                 <th:block th:each="block : ${blocks}">
+                    <h2 class="nd-section-title" th:if="${block.kind == 'h2'}" th:text="${block.text}">중제목</h2>
                     <p class="nd-lead" th:if="${block.kind == 'lead'}" th:text="${block.text}">리드</p>
                     <p class="nd-p" th:if="${block.kind == 'p'}" th:text="${block.text}">문단</p>
                     <ul th:if="${block.kind == 'ul'}">
