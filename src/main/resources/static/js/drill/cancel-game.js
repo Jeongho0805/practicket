@@ -15,16 +15,16 @@ export function playCancel(box, { form, formName }) {
     let round = 0, cur = null, lostBefore = 0;
     const $ = sel => s.card.querySelector(sel);
 
-    s.every(() => { if (cur) s.live.textContent = cur.shownAt ? s.sec(performance.now() - cur.openAt) : "—"; }, 50);
+    s.every(() => { if (cur) s.clock(cur.shownAt && performance.now() - cur.openAt); }, 50);
 
     function next() {
         if (round >= ROUNDS) return s.finish({ ok: true, rounds });
         const cols = fitCols(s.card, form, 16 + Math.floor(round / 2) * 2), rows = 10 + round;
         s.segs[round].className = "now";
-        s.live.textContent = "—";
-        s.card.innerHTML = seatMap(form, cols, rows, general ? "새로고침해서 잔여 좌석 확인" : "잔여 좌석이 자동으로 표시됩니다", general ? "무대방향 (STAGE)" : "STAGE")
+        s.clock();
+        s.card.innerHTML = seatMap(form, cols, rows, general ? `<span class="lost">놓친 취소표 <b>${lostBefore}</b>회</span>` : "잔여 좌석이 자동으로 표시됩니다", general ? "무대방향 (STAGE)" : "STAGE")
             + `<div class="seat-bar"><span class="cnt" data-status>${general ? "잔여 좌석을 확인해 주세요" : "취소 좌석을 기다리는 중"}</span>`
-            + (general ? `<span class="lost">놓친 취소표 <b>${lostBefore}</b>회</span><button type="button" class="refresh">새로고침</button>` : `<span class="auto"><i></i>자동 갱신</span>`) + `</div>`
+            + (general ? `<button type="button" class="refresh">새로고침</button>` : `<span class="auto"><i></i>자동 갱신</span>`) + `</div>`
             + (general ? `<div class="seat-sel"><span data-sel>선택한 좌석 없음</span><button type="button" class="confirm" disabled>좌석 선택 완료</button></div>` : "");
         $(".seat-map").insertAdjacentHTML("beforeend", `<div class="seat-load"><i></i>좌석 정보를 불러오는 중</div>`);
         cur = { ticket: 0, shownAt: null, pickedAt: null, loading: false, misclicks: 0, sold: 0, missed: 0 };
@@ -79,8 +79,8 @@ export function playCancel(box, { form, formName }) {
         cur.shownAt = cur.pickedAt = null;
         cur.missed++;
         selection(false);
-        s.live.textContent = "—";
-        status("새로고침해서 취소표를 놓쳤어요 · 다음 좌석 대기");
+        s.clock();
+        status("취소표를 놓쳤어요");
         $(".lost b").textContent = lostBefore + cur.missed;
         schedule();
     }
@@ -123,7 +123,7 @@ export function playCancel(box, { form, formName }) {
         cur = null;
         if (general) $(".confirm").disabled = true;
         s.segs[round].className = c.misclicks || c.missed ? "bad" : "good";
-        s.live.textContent = s.sec(ms);
+        s.clock(ms);
         const parts = [general ? `발견 ${s.sec(c.shownAt - c.openAt)}초` : "", c.misclicks ? `오클릭 ${c.misclicks}회` : "오클릭 없음", general && c.missed ? `놓침 ${c.missed}회` : ""].filter(Boolean);
         s.veil(`<small>${general ? "좌석 선택 완료" : "좌석 선점"}</small><b>${s.sec(ms)}초</b><small>${parts.join(" · ")}</small>`);
         round++;

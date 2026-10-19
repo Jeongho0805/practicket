@@ -11,12 +11,13 @@ export function playSession(box, { title, form }) {
     const timers = new Set(), pops = new Set();
     let cancelCountdown = () => {};
 
-    box.insertAdjacentHTML("beforeend", `<div class="ptop"><div class="psteps">${"<i></i>".repeat(ROUNDS)}</div><div class="ptimer"><b>—</b><small>초</small></div></div><div class="seat-card"></div>`);
+    box.insertAdjacentHTML("beforeend", `<div class="ptop"><div class="psteps">${"<i></i>".repeat(ROUNDS)}</div><div class="ptimer"><b class="idle">0.00</b><small>초</small></div></div><div class="seat-card"></div>`);
     const s = {
         done, card: box.querySelector(".seat-card"), segs: box.querySelector(".psteps").children, live: box.querySelector(".ptimer b"),
         later(fn, ms) { const id = setTimeout(() => { timers.delete(id); fn(); }, Math.max(0, ms)); timers.add(id); return id; },
         every(fn, ms) { const id = setInterval(fn, ms); timers.add(id); return id; },
         cancel(id) { clearTimeout(id); timers.delete(id); },
+        clock(ms) { s.live.classList.toggle("idle", ms == null); s.live.textContent = ms == null ? "0.00" : sec(ms); },
         pop(e, text, cls) {
             const el = document.createElement("div");
             el.className = `seat-pop ${cls}`;

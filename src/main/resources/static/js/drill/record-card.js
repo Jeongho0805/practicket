@@ -7,12 +7,16 @@ export const rankText = ms => initialRank(ms).toLocaleString();
 
 export const EMPTY_RECORD = { count: 0, best_ms: null, best_at: null, recent: [] };
 
+const SPARK_MIN = 60;
+const SPARK_MAX = 140;
+
 /*
  * cells: 최근 기록 옆 칸 [{ label, unit, value(latest) }].
  * bests: 역대 최고를 여러 칸으로 [{ label, ms, sub, empty, clean }]. 없으면 record.best_ms 한 칸에 bestPrefix 를 앞에 붙인다.
  * bars: 그래프 아래 막대 값을 뽑는 함수(recent → 숫자 배열). tip: 툴팁 둘째 줄 뒤에 붙일 문구.
+ * 그래프는 연습 화면 아래로 남는 높이만큼 커진다. 누적 오타 분석은 펼쳐져 있어도 접힌 높이로 친다.
  */
-export function renderRecord(box, record, { badge, cells = [], bests, bestPrefix, trendLabel, sparkHeight, bars, tip = () => "" }) {
+export function renderRecord(box, record, { cells = [], bests, bestPrefix, trendLabel, bars, tip = () => "" }) {
     if (!box.getClientRects().length) return;
     const recent = record.recent, latest = recent.at(-1);
     const big = (value, unit) => `<div class="r-big ${latest ? "" : "ph"}">${latest ? value : "-"}<small>${unit}</small></div>`;
@@ -22,13 +26,12 @@ export function renderRecord(box, record, { badge, cells = [], bests, bestPrefix
 
     box.innerHTML = `
         <div class="r-head">
-            <div class="eyebrow2"><span>${badge}</span><span>${record.count}회차</span></div>
             <div class="duo${cells.length > 1 ? " trio" : ""}">
                 <div><div class="lbl">최근 기록</div>${big(latest && sec(latest.ms), "초")}</div>
                 ${cells.map(c => `<div><div class="lbl">${c.label}</div>${big(latest && c.value(latest), c.unit)}</div>`).join("")}
             </div>
             <div class="trend">
-                <div class="trend-head"><span>${trendLabel}</span></div>
+                <div class="trend-head"><span>${trendLabel}</span><span>${record.count}회차</span></div>
                 ${latest ? `<div class="spark"><svg></svg><div class="tip"></div></div>` : `<div class="tr-empty">기록이 쌓이면 그래프가 그려집니다</div>`}
             </div>
         </div>
@@ -38,9 +41,9 @@ export function renderRecord(box, record, { badge, cells = [], bests, bestPrefix
         </div>`;
 
     if (!latest) return;
-    const first = record.count - recent.length;
-    drawSpark(box.querySelector(".spark"), recent.map(r => r.ms), {
-        height: sparkHeight(),
+    const first = record.count - recent.length, spark = box.querySelector(".spark");
+    const draw = height => drawSpark(spark, recent.map(r => r.ms), {
+        height,
         format: ms => sec(ms) + "초",
         bars: bars?.(recent),
         label: i => {
@@ -48,4 +51,25 @@ export function renderRecord(box, record, { badge, cells = [], bests, bestPrefix
             return `${dateLabel(r.created_at)} · ${first + i + 1}회차` + (r.latency_ms ? ` · 지연 ${sec(r.latency_ms)}초` : "") + tip(r);
         },
     });
+    box.fit = () => {
+        if (!spark.isConnected || !box.getClientRects().length) return;
+        draw(SPARK_MIN);
+        const room = roomBelow(box.closest(".drill-page")) - 4;
+        if (room > 0) draw(Math.min(SPARK_MAX, SPARK_MIN + room));
+    };
+    box.fit();
+    if (!box.dataset.fit) {
+        box.dataset.fit = "1";
+        const page = box.closest(".drill-page"), observer = new ResizeObserver(() => box.fit());
+        observer.observe(page);
+        observer.observe(page.querySelector(".practice-sticky"));
+        document.fonts.ready.then(() => box.fit());
+    }
+}
+
+function roomBelow(page) {
+    const last = [...page.children].filter(el => el.offsetParent).pop();
+    const folded = page.querySelector(".v-analysis[open] .v-analysis-body")?.offsetHeight ?? 0;
+    const used = last.getBoundingClientRect().bottom - page.getBoundingClientRect().top + page.scrollTop - folded;
+    return Math.floor(page.clientHeight - parseFloat(getComputedStyle(page).paddingBottom) - used);
 }

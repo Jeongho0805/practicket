@@ -12,13 +12,20 @@ const HANGUL = /[ㄱ-ㅎㅏ-ㅣ가-힣]/;
  * 보안문자 한 판. 결과: { ok: true, problems: [{ answer, elapsed_ms, typos: [{ position, typed }] }], keys }
  * 또는 { ok: false, title, why }.
  * 시작 버튼을 누른 순간(사용자 제스처 안)에 입력창 포커스를 줘야 모바일 키보드가 올라온다. 카운트다운은 그 위에 덮는다.
+ * 키보드가 뜨면 iOS 는 입력창이 보일 만큼만 화면을 밀어 위가 잘린다. 그만하기 줄을 화면 맨 위에 맞춘다.
  */
 export function playCaptcha(box, setStep) {
     let resolve;
     const done = new Promise(r => { resolve = r; });
     const timers = [];
     let cancelCountdown = () => {};
-    const stop = () => { timers.forEach(clearInterval); cancelCountdown(); };
+    const vv = window.visualViewport;
+    const pin = () => {
+        if (vv.height < innerHeight - 120) box.querySelector(".crumb").scrollIntoView({ block: "start" });
+        else scrollTo(0, 0);
+    };
+    vv?.addEventListener("resize", pin);
+    const stop = () => { timers.forEach(clearInterval); cancelCountdown(); vv?.removeEventListener("resize", pin); scrollTo(0, 0); };
 
     box.insertAdjacentHTML("beforeend", `
         <div class="ptop"><div class="psteps">${"<i></i>".repeat(ROUNDS)}</div><div class="ptimer"><b>0.0</b><small>초</small></div></div>

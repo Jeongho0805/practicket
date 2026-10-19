@@ -13,7 +13,7 @@ const recBox = document.getElementById("rec");
 const typoStats = bindTypoStats(document.getElementById("typo-stats"));
 
 function paintRecord() {
-    renderRecord(recBox, record, { badge: "보안문자", trendLabel: "문제당 평균 · 최근 10회 추이", sparkHeight: () => 90 });
+    renderRecord(recBox, record, { trendLabel: "문제당 평균 · 최근 10회 추이" });
 }
 
 async function loadRecord() {

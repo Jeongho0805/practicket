@@ -1,6 +1,6 @@
 const PAD_TOP = 14;
 const PAD_BOTTOM = 8;
-const BAR_AREA = 40;
+const BAR_AREA = 26;
 
 let sparkId = 0;
 let dismiss = null;
@@ -37,7 +37,7 @@ export function drawSpark(box, values, { height, label, format, bars }) {
         + (n > 1 ? `<path d="${curve(points)} L${last.x},${height} L${points[0].x},${height} Z" fill="url(#${id})"/><path d="${curve(points)}" fill="none" stroke="#c9bcf5" stroke-width="2.25" stroke-linecap="round"/>` : "")
         + `<circle cx="${last.x}" cy="${last.y}" r="9" fill="#fff" opacity=".16"/><circle cx="${last.x}" cy="${last.y}" r="4.5" fill="#fff" stroke="#2f2752" stroke-width="2"/>`
         + (bars ? `<line x1="0" x2="${W}" y1="${height + 4}" y2="${height + 4}" stroke="rgba(255,255,255,.08)"/>` + points.map(p => {
-            const v = bars[p.i], h = Math.max(2, v / barMax * 20);
+            const v = bars[p.i], h = Math.max(2, v / barMax * 12);
             return `<rect x="${p.x - 6}" y="${base - h}" width="12" height="${h}" rx="3" fill="${v ? "#e3a3c2" : "rgba(255,255,255,.18)"}"/>`
                 + `<text x="${p.x}" y="${base - h - 4}" text-anchor="middle" font-size="10" font-weight="700" font-family="Pretendard, sans-serif" fill="${v ? "#f1c6da" : "#9d93bd"}">${v}</text>`;
         }).join("") : "")

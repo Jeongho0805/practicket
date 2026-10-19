@@ -15,7 +15,7 @@ export function playGrape(box, { form, formName }) {
     const rounds = [];
     let round = 0, cur = null;
 
-    s.every(() => { if (cur) s.live.textContent = s.sec(performance.now() - cur.t0); }, 50);
+    s.every(() => { if (cur) s.clock(performance.now() - cur.t0); }, 50);
 
     function next() {
         if (round >= ROUNDS) return s.finish({ ok: true, rounds });
@@ -55,7 +55,7 @@ export function playGrape(box, { form, formName }) {
         const ms = Math.round(performance.now() - cur.t0);
         rounds.push({ seats: cur.total, elapsed_ms: ms, misclicks: cur.misclicks, sold_clicks: cur.sold });
         s.segs[round].className = cur.misclicks ? "bad" : "good";
-        s.live.textContent = s.sec(ms);
+        s.clock(ms);
         s.veil(`<small>${cur.total}석 선택 완료</small><b>${s.sec(ms)}초</b><small>${cur.misclicks ? `오클릭 ${cur.misclicks}회` : "오클릭 없음"}</small>`);
         cur = null;
         round++;

@@ -16,7 +16,6 @@ export function seatPage({ drill, title, avgLabel, lostFor, play, toRow, modal }
     const paint = () => {
         const lost = lostFor(form), { best, clean_best: clean } = record;
         renderRecord(rec, record, {
-            badge: FORM_NAME[form],
             cells: [{ label: "오클릭", unit: "회", value: r => r.misclicks }].concat(lost ? [{ label: "놓친 취소표", unit: "회", value: r => r.missed }] : []),
             bests: [
                 { label: "가장 빠른 기록", ms: best?.ms, empty: "첫 연습을 시작해 보세요",
@@ -25,7 +24,6 @@ export function seatPage({ drill, title, avgLabel, lostFor, play, toRow, modal }
                   sub: clean && `${dateLabel(clean.created_at)} 달성` },
             ],
             trendLabel: `${avgLabel} · 최근 10회 추이`,
-            sparkHeight: () => 70,
             bars: recent => recent.map(r => r.misclicks),
             tip: r => ` · 오클릭 ${r.misclicks}회` + (lost ? ` · 놓침 ${r.missed}회` : ""),
         });

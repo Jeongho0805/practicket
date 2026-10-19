@@ -35,9 +35,9 @@
     .drill-page, .drill-hub { height: calc(100vh * 10 / 11); overflow-y: auto; }
 }
 @media (max-width: 768px) {
-    .drill-page { height: 100%; overflow-y: auto; padding: 14px 14px 84px; gap: 12px; }
+    .drill-page { height: 100%; overflow-y: auto; overscroll-behavior-y: none; padding: 14px 14px 84px; gap: 10px; }
     .drill-page.is-playing { padding-bottom: 96px; }
-    .drill-hub { height: 100%; overflow-y: auto; padding: 18px 14px 90px; gap: 14px; }
+    .drill-hub { height: 100%; overflow-y: auto; overscroll-behavior-y: none; padding: 18px 14px 90px; gap: 14px; }
 }
 
 /* ───────── 오늘 함께 연습 칩 ───────── */
@@ -114,18 +114,20 @@ body.drill-playing #chat-widget { display: none !important; }
 }
 
 @media (max-width: 768px) {
-    .drill-page .practice-sticky { top: -14px; margin: -14px -14px 0; padding: 14px 14px 10px; }
-    .drill-page .practice-controls { padding: 11px; gap: 11px; }
+    .drill-page .practice-sticky { top: -14px; margin: -14px -14px 0; padding: 14px 14px 8px; }
+    .drill-page .practice-controls { padding: 10px; gap: 8px; }
+    .drill-page .practice-intro { gap: 2px; }
+    .drill-page .practice-intro:has(.drill-live:not([hidden])) > span:not(.drill-live) { display: none; }
     .drill-page .practice-toolbar { gap: 8px; }
     .drill-page .a-title { font-size: 18px; }
     .drill-page .practice-cta { gap: 6px; }
     .drill-page .practice-cta a, .drill-page .practice-cta button { height: 34px; padding: 0 10px; font-size: 11px; }
     .drill-page .practice-cta .go { min-width: 78px; }
-    .drill-page .form { padding-left: 6px; padding-right: 6px; }
+    .drill-page .form { min-height: 42px; padding: 5px 6px; }
     .drill-page .form b { font-size: 13px; }
-    .drill-page .form small { font-size: 9px; letter-spacing: -0.4px; }
-    .drill-page .lats { grid-template-columns: auto repeat(4, 1fr) 1.5fr; gap: 4px; }
-    .drill-page .lat { height: 32px; padding: 0; font-size: 11.5px; }
+    .drill-page .form small { margin-top: 1px; font-size: 9px; letter-spacing: -0.4px; }
+    .drill-page .lats { margin-top: 8px; grid-template-columns: auto repeat(4, 1fr) 1.5fr; gap: 4px; }
+    .drill-page .lat { height: 30px; padding: 0; font-size: 11.5px; }
     .drill-page .lat.own { padding: 0 6px; }
     .drill-page .lat.own input::placeholder { font-size: 11px; }
 }
@@ -133,9 +135,7 @@ body.drill-playing #chat-widget { display: none !important; }
 /* ───────── 기록 카드 ───────── */
 .drill-page .rec { background: #fff; border: 1px solid #e6e2f1; border-radius: 18px; overflow: hidden; }
 .drill-page .r-head { padding: 18px 22px 16px; background: var(--dark); color: #fff; }
-.drill-page .eyebrow2 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.drill-page .eyebrow2 span { background: rgba(255, 255, 255, .16); color: #fff; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
-.drill-page .duo { display: grid; grid-template-columns: 1fr 1fr; margin-top: 6px; }
+.drill-page .duo { display: grid; grid-template-columns: 1fr 1fr; }
 .drill-page .duo > div + div { border-left: 1px solid rgba(255, 255, 255, .18); padding-left: 22px; }
 .drill-page .duo .lbl { font-size: 12.5px; color: #cfc7ec; font-weight: 600; }
 .drill-page .r-big { margin: 2px 0 0; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
@@ -158,15 +158,21 @@ body.drill-playing #chat-widget { display: none !important; }
 .drill-page .best-sub { font-size: 12px; color: #8a83a3; margin-top: 4px; }
 
 @media (max-width: 768px) {
-    .drill-page .r-head { padding: 15px 14px; }
+    .drill-page .r-head { padding: 11px 14px 10px; }
     .drill-page .duo > div + div { padding-left: 14px; }
-    .drill-page .r-big { font-size: 28px; }
-    .drill-page .r-big small { font-size: 15px; }
+    .drill-page .duo .lbl { font-size: 11.5px; }
+    .drill-page .r-big { font-size: 24px; }
+    .drill-page .r-big small { font-size: 13px; }
+    .drill-page .trend { margin-top: 8px; padding: 7px 10px 3px; }
+    .drill-page .trend-head { margin-bottom: 2px; }
     .drill-page .tr-empty { height: 80px; }
-    .drill-page .best { padding: 12px 14px 14px; }
-    .drill-page .best-card { padding: 10px 14px 11px; }
-    .drill-page .best-val { font-size: 28px; }
-    .drill-page .best-val small { font-size: 14px; }
+    .drill-page .best { padding: 9px 14px 11px; }
+    .drill-page .best-head { margin-bottom: 5px; font-size: 13px; }
+    .drill-page .best-card { padding: 7px 12px 8px; }
+    .drill-page .best-val { font-size: 21px; }
+    .drill-page .best-val small { font-size: 12px; }
+    .drill-page .best-sub { margin-top: 1px; font-size: 10.5px; }
+    .drill-page .v-analysis > summary { min-height: 40px; padding: 8px 2px; }
 }
 
 /* 반응속도는 390×844 모바일에서 스크롤 없이 한 화면에 들어오도록 줄인다 */
@@ -177,15 +183,11 @@ body.drill-playing #chat-widget { display: none !important; }
 .drill-page.is-react .best { padding-top: 10px; padding-bottom: 12px; }
 .drill-page.is-react .best-head { margin-bottom: 6px; }
 .drill-page.is-react .best-card { padding-top: 8px; padding-bottom: 9px; }
-@media (max-width: 768px) {
-    .drill-page.is-react .best-val { font-size: 24px; }
-}
 @media (max-height: 740px) {
     .drill-page.is-react.is-ready { gap: 7px; padding-top: 9px; }
     .drill-page.is-react .practice-sticky { top: -9px; margin-top: -9px; padding-top: 9px; }
     .drill-page.is-react .a-title { font-size: 18px; }
     .drill-page.is-react .r-head { padding: 8px 12px; }
-    .drill-page.is-react .eyebrow2 { margin-bottom: 5px; }
     .drill-page.is-react .r-big { font-size: 26px; }
     .drill-page.is-react .tr-empty { height: 38px; }
     .drill-page.is-react .lats { margin-top: 7px; }
@@ -201,7 +203,6 @@ body.drill-playing #chat-widget { display: none !important; }
     .drill-page.is-react .a-title { font-size: 16px; }
     .drill-page.is-react .form { min-height: 44px; padding: 5px 8px; }
     .drill-page.is-react .lat { height: 28px; }
-    .drill-page.is-react .eyebrow2 span { font-size: 10px; }
     .drill-page.is-react .r-big { font-size: 22px; }
     .drill-page.is-react .trend { margin-top: 4px; padding-top: 4px; padding-bottom: 0; }
 }
@@ -368,10 +369,11 @@ body.drill-playing #chat-widget { display: none !important; }
 .drill-page .ptop { display: flex; align-items: center; justify-content: space-between; }
 .drill-page .psteps { display: flex; gap: 6px; }
 .drill-page .psteps i { width: 26px; height: 6px; border-radius: 999px; background: #e6e2f2; }
-.drill-page .psteps i.now, .drill-page .psteps i.good { background: var(--pk-grad); }
+.drill-page .psteps i.good { background: var(--pk-grad); }
 .drill-page .psteps i.bad { background: var(--pk-grad2); }
 .drill-page .ptimer { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; color: var(--pk-deep); font-variant-numeric: tabular-nums; line-height: 1; }
 .drill-page .ptimer small { font-size: 13px; color: var(--pk-faint); margin-left: 3px; font-weight: 600; }
+.drill-page .ptimer b.idle { opacity: .3; }
 .drill-page .ccard { border: 1px solid var(--pk-line); border-radius: 16px; background: #fff; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .drill-page .ccard canvas { width: 100%; max-width: 420px; height: auto; border-radius: 10px; display: block; }
 .drill-page .slots { display: flex; gap: 6px; }
@@ -520,12 +522,11 @@ body.drill-playing #chat-widget { display: none !important; }
 .drill-page .seat-map.is-g .seats i.open { background: #8b7cf3; }
 .drill-page .seat-map.is-g .seats i.picked { box-shadow: inset 0 0 0 2px #2e1065; }
 .drill-page .seats i.bad { background: #f3b5bd !important; }
-.drill-page .seat-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 10px 14px; border-top: 1px solid var(--pk-line); }
-.drill-page .seat-bar .cnt { font-size: 13px; font-weight: 600; color: var(--pk-sub); }
+.drill-page .seat-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--pk-line); }
+.drill-page .seat-bar .cnt { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: var(--pk-sub); }
 .drill-page .seat-bar .cnt b { color: var(--pk-deep); font-size: 15px; }
-.drill-page .seat-bar .lost { font-size: 12px; color: var(--pk-faint); font-weight: 600; margin-left: auto; }
-.drill-page .seat-bar .lost b { color: var(--pk-no); font-size: 14px; }
-.drill-page .seat-bar .refresh { height: 34px; border: 1.5px solid #ece8f5; border-radius: 10px; background: #fff; color: var(--pk-deep); padding: 0 14px; font: 700 13px 'Pretendard', sans-serif; cursor: pointer; }
+.drill-page .seat-cap .lost b { color: var(--pk-no); font-size: 14px; }
+.drill-page .seat-bar .refresh { flex: 0 0 auto; height: 34px; border: 1.5px solid #ece8f5; border-radius: 10px; background: #fff; color: var(--pk-deep); padding: 0 14px; font: 700 13px 'Pretendard', sans-serif; cursor: pointer; }
 .drill-page .seat-bar .refresh:disabled { color: var(--pk-faint); cursor: default; }
 .drill-page .seat-bar .auto { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--pk-sub); }
 .drill-page .seat-bar .auto i { width: 7px; height: 7px; border-radius: 50%; background: #57e08a; box-shadow: 0 0 0 3px rgba(87, 224, 138, .22); }
@@ -546,7 +547,7 @@ body.drill-playing #chat-widget { display: none !important; }
 @media (max-width: 768px) {
     .drill-page .duo.trio > div + div { padding-left: 10px; }
     .drill-page .best-grid { gap: 6px; }
-    .drill-page .best-lbl { font-size: 11px; }
+    .drill-page .best-lbl { font-size: 10.5px; }
     .drill-page .seat-map { padding: 10px 6px 12px; }
     .drill-page .seat-map.is-n .seats { --s: 10px; --g: 3px; padding: 5px; }
     .drill-page .seat-map.is-g .seats { --s: 12px; --g: 1.5px; }

@@ -15,15 +15,11 @@ const recBox = document.getElementById("rec");
 const latBox = document.getElementById("lats");
 const latInput = document.getElementById("lat-in");
 
-const sparkHeight = () => innerHeight <= 740 ? 38 : 64;
-
 function paintRecord() {
     renderRecord(recBox, record, {
-        badge: FORMS[form].name,
         cells: [{ label: "대기순번", unit: "번", value: r => rankText(r.ms) }],
         bestPrefix: ms => `대기순번 ${rankText(ms)}번 · `,
         trendLabel: "최근 10회 추이",
-        sparkHeight,
     });
 }
 
