@@ -8,7 +8,7 @@ export const rankText = ms => initialRank(ms).toLocaleString();
 export const EMPTY_RECORD = { count: 0, best_ms: null, best_at: null, recent: [] };
 
 const SPARK_MIN = 60;
-const SPARK_MAX = 140;
+const SPARK_MAX_PC = 140;
 
 /*
  * cells: 최근 기록 옆 칸 [{ label, unit, value(latest) }].
@@ -55,7 +55,7 @@ export function renderRecord(box, record, { cells = [], bests, bestPrefix, trend
         if (!spark.isConnected || !box.getClientRects().length) return;
         draw(SPARK_MIN);
         const room = roomBelow(box.closest(".drill-page")) - 4;
-        if (room > 0) draw(Math.min(SPARK_MAX, SPARK_MIN + room));
+        if (room > 0) draw(matchMedia("(max-width: 768px)").matches ? SPARK_MIN + room : Math.min(SPARK_MAX_PC, SPARK_MIN + room));
     };
     box.fit();
     if (!box.dataset.fit) {
