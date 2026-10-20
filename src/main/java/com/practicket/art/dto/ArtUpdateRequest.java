@@ -1,10 +1,12 @@
 package com.practicket.art.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ArtUpdateRequest {
 
     @NotBlank(message = "제목을 입력해주세요.")
