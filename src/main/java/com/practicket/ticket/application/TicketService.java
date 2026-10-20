@@ -11,13 +11,11 @@ import com.practicket.ticket.dto.response.TicketRankResponseDto;
 import com.practicket.ticket.infra.redis.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class TicketService {
 
