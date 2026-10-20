@@ -41,9 +41,8 @@ public class ChatController {
     }
 
     @GetMapping(value = "/connection", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connectChat() {
-        SseEmitter emitter = chatService.createConnection();
-        return ResponseEntity.ok(emitter);
+    public SseEmitter connectChat() {
+        return chatService.createConnection();
     }
 
     @GetMapping("/participants")
