@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
+@Table(name = "practice_result", indexes = {
+        @Index(name = "idx_practice_result_type_started_at", columnList = "type, started_at")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class PracticeResult {
