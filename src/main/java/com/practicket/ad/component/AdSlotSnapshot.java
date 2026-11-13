@@ -28,7 +28,7 @@ public record AdSlotSnapshot(List<Slot> slots, Map<String, Boolean> networkExpos
         return networkExposure.getOrDefault(network, false);
     }
 
-    /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 분. null 이면 제한 없음 */
+    /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 초. null 이면 제한 없음 */
     public Integer refillGapOf(String network) {
         return refillGaps.get(network);
     }

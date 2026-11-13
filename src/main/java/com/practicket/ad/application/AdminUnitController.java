@@ -74,7 +74,7 @@ public class AdminUnitController {
         Map<String, Integer> gaps = new LinkedHashMap<>();
         try {
             for (String network : networks()) {
-                gaps.put(network, parseMinutes(params.get("gap-" + network)));
+                gaps.put(network, parseSeconds(params.get("gap-" + network)));
             }
             adNetworkExposureService.updateRefillGaps(gaps);
             adSlotSnapshotStore.refresh();
@@ -84,7 +84,7 @@ public class AdminUnitController {
         return "redirect:/admin-hoya/ad/units";
     }
 
-    private Integer parseMinutes(String raw) {
+    private Integer parseSeconds(String raw) {
         String value = blankToNull(raw);
         if (value == null) {
             return null;
@@ -92,7 +92,7 @@ public class AdminUnitController {
         try {
             return Integer.valueOf(value);
         } catch (NumberFormatException e) {
-            throw new AdException("재요청 간격은 분 단위 숫자여야 합니다.");
+            throw new AdException("재요청 간격은 초 단위 숫자여야 합니다.");
         }
     }
 

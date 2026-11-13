@@ -78,7 +78,7 @@
                                         </label>
                                     </div>
                                     <span class="gap" th:classappend="${refillGaps[step.network] != null} ? 'some' : 'none'"
-                                          th:text="${refillGaps[step.network] != null} ? ${refillGaps[step.network]} + '분 간격' : '간격 없음'">간격 없음</span>
+                                          th:text="${refillGaps[step.network] != null} ? ${refillGaps[step.network]} + '초 간격' : '간격 없음'">간격 없음</span>
                                     <span class="ops">
                                         <button type="submit" title="빼기"
                                                 th:formaction="@{/admin-hoya/ad/slots/{id}/steps/{i}/delete(id=${row.slot.id},i=${step.index})}">×</button>

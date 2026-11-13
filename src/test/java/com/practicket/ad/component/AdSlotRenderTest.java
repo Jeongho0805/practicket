@@ -111,9 +111,9 @@ class AdSlotRenderTest {
         mockMvc.perform(get("/terms"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-network=\"ADSENSE\"")))
-                .andExpect(content().string(containsString("data-gap-minutes=\"5\"")))
+                .andExpect(content().string(containsString("data-gap-seconds=\"5\"")))
                 .andExpect(content().string(containsString("data-fallbacks=\"[{&quot;network&quot;:&quot;MOBSENSE&quot;")))
-                .andExpect(content().string(containsString("&quot;gapMinutes&quot;:1}")))
+                .andExpect(content().string(containsString("&quot;gapSeconds&quot;:1}")))
                 .andExpect(content().string(containsString("&quot;network&quot;:&quot;ADFIT&quot;,&quot;unit&quot;:&quot;DAN-side&quot;")))
                 .andExpect(content().string(containsString("&quot;size&quot;:&quot;160x600&quot;")));
     }
@@ -127,7 +127,7 @@ class AdSlotRenderTest {
 
         mockMvc.perform(get("/terms"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(not(containsString("data-gap-minutes"))))
+                .andExpect(content().string(not(containsString("data-gap-seconds"))))
                 .andExpect(content().string(not(containsString("data-fallbacks"))));
     }
 

@@ -46,9 +46,9 @@ class AdSlotViewTest {
 
         AdFace pc = new AdSlotView(store, networkSettings).render("PC_RIGHT").getPc();
 
-        assertThat(pc.getRefillGapMinutes()).isEqualTo(5);
+        assertThat(pc.getRefillGapSeconds()).isEqualTo(5);
         assertThat(pc.getFallbacks()).extracting(AdFace::getNetwork).containsExactly("MOBSENSE", "ADFIT");
-        assertThat(pc.getFallbacks()).extracting(AdFace::getRefillGapMinutes).containsExactly(1, null);
+        assertThat(pc.getFallbacks()).extracting(AdFace::getRefillGapSeconds).containsExactly(1, null);
         assertThat(pc.getFallbacks().get(1).getSize()).isEqualTo("160x600");
     }
 
@@ -65,7 +65,7 @@ class AdSlotViewTest {
 
         AdFace pc = new AdSlotView(store, networkSettings).render("PC_RIGHT").getPc();
 
-        assertThat(pc.getRefillGapMinutes()).isEqualTo(5);
+        assertThat(pc.getRefillGapSeconds()).isEqualTo(5);
         assertThat(pc.hasFallbacks()).isFalse();
         assertThat(pc.getFallbackJson()).isNull();
     }
