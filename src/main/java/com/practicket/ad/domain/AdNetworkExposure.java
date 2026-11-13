@@ -22,7 +22,7 @@ public class AdNetworkExposure {
     @Column(nullable = false)
     private boolean stageEnabled;
 
-    private Integer refillGapMinutes;
+    private Integer refillGapSeconds;
 
     public AdNetworkExposure(String network, boolean stageEnabled) {
         this(network, stageEnabled, null);
@@ -32,7 +32,7 @@ public class AdNetworkExposure {
         stageEnabled = !stageEnabled;
     }
 
-    public void updateRefillGap(Integer refillGapMinutes) {
-        this.refillGapMinutes = refillGapMinutes;
+    public void updateRefillGap(Integer refillGapSeconds) {
+        this.refillGapSeconds = refillGapSeconds;
     }
 }

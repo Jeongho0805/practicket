@@ -270,7 +270,7 @@ class AdminAdPageRenderTest {
                 "전 페이지 공통", "GLOBAL", List.of(new AdminSlotService.SlotRow(slot, 0, "300x600", null, List.of(
                 new AdminSlotService.StepRow(0, "ADSENSE", null, null, unit(), null, false, false)))))));
         given(adminSlotService.allUnits()).willReturn(List.of(unit(), adfitUnit()));
-        given(adNetworkExposureService.currentRefillGaps()).willReturn(java.util.Map.of("ADSENSE", 5));
+        given(adNetworkExposureService.currentRefillGaps()).willReturn(java.util.Map.of("ADSENSE", 300));
 
         mockMvc.perform(get("/admin-hoya/ad/slots"))
                 .andExpect(status().isOk())
@@ -279,7 +279,7 @@ class AdminAdPageRenderTest {
                 .andExpect(content().string(not(containsString("name=\"mobileAdUnitId\""))))
                 .andExpect(content().string(containsString("자동 · 9697904962")))
                 .andExpect(content().string(not(containsString(adfitUnit().getUnitId()))))
-                .andExpect(content().string(containsString("5분 간격")))
+                .andExpect(content().string(containsString("300초 간격")))
                 .andExpect(content().string(containsString("마지막 단계도 재요청 간격이 있어")))
                 .andExpect(content().string(not(containsString("/slots/1/edit"))));
     }

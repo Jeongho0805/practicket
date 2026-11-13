@@ -44,8 +44,8 @@ public class AdFace {
     /** 네트워크 전용 값(JSON). 모비센스만 있다 */
     private final String extra;
 
-    /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 분. null 이면 제한 없음 */
-    private final Integer refillGapMinutes;
+    /** 같은 탭에서 이 네트워크를 다시 부르기까지 비울 초. null 이면 제한 없음 */
+    private final Integer refillGapSeconds;
     /** 채움 순서 2단계부터. 앞 단계가 간격에 걸리면 브라우저가 차례로 내려가며 고른다 */
     private final List<AdFace> fallbacks;
 
@@ -69,10 +69,10 @@ public class AdFace {
     }
 
     public static AdFace fill(boolean enabled, AdSlotSnapshot.Unit unit, String account, String template,
-                              Integer refillGapMinutes, List<AdFace> fallbacks) {
+                              Integer refillGapSeconds, List<AdFace> fallbacks) {
         return new AdFace(false, true, enabled, false, null, null, null,
                 unit.network(), unit.unitId(), account, template, sizeOf(unit), unit.extra(),
-                refillGapMinutes, fallbacks.stream().filter(AdFace::isFillEnabled).toList());
+                refillGapSeconds, fallbacks.stream().filter(AdFace::isFillEnabled).toList());
     }
 
     public boolean hasFallbacks() {
@@ -92,7 +92,7 @@ public class AdFace {
             step.put("template", face.template);
             step.put("size", face.size);
             step.put("extra", face.extra);
-            step.put("gapMinutes", face.refillGapMinutes);
+            step.put("gapSeconds", face.refillGapSeconds);
             return step;
         }).toList();
         try {

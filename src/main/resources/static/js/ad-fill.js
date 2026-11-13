@@ -8,7 +8,7 @@
  * 창 크기가 바뀌어 다른 자리가 드러나면 그때 넣는다. 한 번 넣은 자리는 다시 넣지 않는다 —
  * 위젯을 두 번 초기화하면 광고가 겹쳐 뜬다.
  *
- * 재요청 간격(data-gap-minutes)이 있는 네트워크는 같은 탭에서 그 시간 안에 다시 부르지 않는다.
+ * 재요청 간격(data-gap-seconds, 초)이 있는 네트워크는 같은 탭에서 그 시간 안에 다시 부르지 않는다.
  * 연습 루프가 인트로를 몇 초마다 다시 열어 애드센스 요청이 수십 번 나가던 것이 무효 트래픽으로
  * 잡혔기 때문이다. 간격 안이면 같은 자리를 data-fb-* 네트워크로 대신 채운다.
  */
@@ -136,12 +136,12 @@ const GAP_KEY_PREFIX = 'adfill:gap:';
 const gapDecisions = new Map();
 
 /** 같은 페이지 로드 안에서는 네트워크마다 한 번만 판정한다. 자리가 둘이어도 같은 답을 쓴다 */
-function gapAllows(network, minutes) {
+function gapAllows(network, seconds) {
     if (gapDecisions.has(network)) return gapDecisions.get(network);
     let allowed = true;
     try {
         const last = Number(sessionStorage.getItem(GAP_KEY_PREFIX + network) || 0);
-        allowed = !last || Date.now() - last >= minutes * 60000;
+        allowed = !last || Date.now() - last >= seconds * 1000;
     } catch (e) {
         // 저장소를 못 쓰는 환경(비공개 탭 등)은 제한 없이 지나간다.
     }
@@ -157,7 +157,7 @@ function markRequested(network) {
     }
 }
 
-const STEP_KEYS = ['network', 'unit', 'account', 'template', 'size', 'extra', 'gapMinutes'];
+const STEP_KEYS = ['network', 'unit', 'account', 'template', 'size', 'extra', 'gapSeconds'];
 
 function fallbackSteps(el) {
     try {
@@ -183,11 +183,11 @@ function useStep(el, step) {
 
 /** 채움 순서를 위에서부터 보며 재요청 간격에 안 걸린 첫 단계를 고른다. 다 걸리면 false */
 function chooseStep(el) {
-    const first = { network: el.dataset.network, gapMinutes: el.dataset.gapMinutes };
+    const first = { network: el.dataset.network, gapSeconds: el.dataset.gapSeconds };
     const steps = [first, ...fallbackSteps(el)];
     const chosen = steps.find((step) => {
-        const minutes = Number(step.gapMinutes || 0);
-        return minutes <= 0 || gapAllows(step.network, minutes);
+        const seconds = Number(step.gapSeconds || 0);
+        return seconds <= 0 || gapAllows(step.network, seconds);
     });
     if (!chosen) return false;
     if (chosen !== first) useStep(el, chosen);
@@ -202,7 +202,7 @@ function fill(el) {
         el.dataset.filled = '1';
         return;
     }
-    const countAfterFill = Number(el.dataset.gapMinutes || 0) > 0 ? el.dataset.network : null;
+    const countAfterFill = Number(el.dataset.gapSeconds || 0) > 0 ? el.dataset.network : null;
 
     const fixedSize = FIXED_SIZE_NETWORKS.includes(el.dataset.network);
     if (!fixedSize && !el.dataset.account) return;

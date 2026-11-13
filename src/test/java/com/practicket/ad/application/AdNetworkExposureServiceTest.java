@@ -95,6 +95,8 @@ class AdNetworkExposureServiceTest {
 
         assertThatThrownBy(() -> service.updateRefillGaps(Map.of("ADSENSE", 0)))
                 .isInstanceOf(AdException.class);
+        assertThatThrownBy(() -> service.updateRefillGaps(Map.of("ADSENSE", 86401)))
+                .isInstanceOf(AdException.class);
         assertThatThrownBy(() -> service.updateRefillGaps(Map.of("DABLE", 5)))
                 .isInstanceOf(AdException.class);
         verify(repository, never()).save(any());
@@ -114,7 +116,7 @@ class AdNetworkExposureServiceTest {
 
         new AdNetworkExposureService(repository, environment).updateRefillGaps(gaps);
 
-        assertThat(adsense.getRefillGapMinutes()).isEqualTo(5);
+        assertThat(adsense.getRefillGapSeconds()).isEqualTo(5);
         verify(repository, times(2)).save(any());
     }
 

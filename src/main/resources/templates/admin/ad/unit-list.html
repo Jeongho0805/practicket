@@ -84,12 +84,12 @@
                                 <span class="note" th:text="${row.network}">NETWORK</span>
                             </div>
                             <div class="v" th:classappend="${!row.hasGap()} ? 'dim'">
-                                <th:block th:if="${row.hasGap()}"><span th:text="${row.refillGapMinutes}">5</span><small>분</small></th:block>
+                                <th:block th:if="${row.hasGap()}"><span th:text="${row.refillGapSeconds}">5</span><small>초</small></th:block>
                                 <th:block th:unless="${row.hasGap()}">없음</th:block>
                             </div>
-                            <div class="e"><div class="unit" data-unit="분">
-                                <input type="number" min="1" th:name="'gap-' + ${row.network}"
-                                       th:value="${row.refillGapMinutes}" placeholder="없음">
+                            <div class="e"><div class="unit" data-unit="초">
+                                <input type="number" min="1" max="86400" th:name="'gap-' + ${row.network}"
+                                       th:value="${row.refillGapSeconds}" placeholder="없음">
                             </div></div>
                             <button type="submit" class="sw" th:classappend="${row.enabled} ? 'on'"
                                     th:disabled="${!row.editable}"
